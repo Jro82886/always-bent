@@ -17,7 +17,7 @@ export default function ReportsPage() {
           <span className="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/60">{inlet.name}</span>
           <span className="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/60">{username || "anon"}</span>
         </div>
-        <Link href="/app" className="text-sm text-cyan-600 hover:underline">
+        <Link href="/analysis" className="text-sm text-cyan-600 hover:underline">
           Back to Map
         </Link>
       </div>
