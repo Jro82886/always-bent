@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useMapbox } from "@/lib/MapCtx";
 import { useAppState } from "@/store/appState";
 
-export default function LayerToggles() {
+export default function LayerToggles({ includeAbfi = true }: { includeAbfi?: boolean }) {
   const map = useMapbox();
   const { activeRaster, setActiveRaster } = useAppState();
 
@@ -19,7 +19,7 @@ export default function LayerToggles() {
         {([
           { id: 'sst', label: 'Sea Surface Temp' },
           { id: 'chl', label: 'Chlorophyll' },
-          { id: 'abfi', label: 'ABFI' },
+          ...(includeAbfi ? ([{ id: 'abfi', label: 'ABFI' }] as const) : ([] as const)),
         ] as const).map(r => {
           const active = activeRaster === r.id;
           return (

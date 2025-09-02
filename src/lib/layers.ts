@@ -6,6 +6,8 @@ import type mapboxgl from "mapbox-gl";
 /* ---------------------------------- Types --------------------------------- */
 
 export type RasterLayerId = "sst" | "chl" | "abfi";
+// Compatibility alias per requested naming
+export type RasterId = RasterLayerId;
 
 export type RasterLayerConfig = {
   id: RasterLayerId;
@@ -16,6 +18,8 @@ export type RasterLayerConfig = {
   maxzoom?: number;
   tileSize?: 256 | 512;
 };
+// Compatibility alias per requested naming
+export type RasterLayer = RasterLayerConfig;
 
 export type LayerRuntime = {
   /** true if template includes {BBOX4326} (WMS-style) */
@@ -35,19 +39,19 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "sst",
     name: "Sea Surface Temp (daily)",
-    url: "https://tiles.example.com/sst/{DATE}/{z}/{x}/{y}.png",
+    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst/{z}/{x}/{y}.png?time={DATE}`,
     opacity: 0.85,
     minzoom: 0,
-    maxzoom: 22,
+    maxzoom: 10, // Copernicus WMTS supports 0..10
     tileSize: 256,
   },
   {
     id: "chl",
     name: "Chlorophyll",
-    url: "https://tiles.example.com/chl/{DATE}/{z}/{x}/{y}.png",
+    url: "https://example.invalid/chl/{DATE}/{z}/{x}/{y}.png", // placeholder until wired
     opacity: 0.85,
     minzoom: 0,
-    maxzoom: 22,
+    maxzoom: 10,
     tileSize: 256,
   },
   {
@@ -56,10 +60,19 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
     url: "http://localhost:3001/tiles/abfi/{z}/{x}/{y}.png",
     opacity: 0.85,
     minzoom: 0,
-    maxzoom: 22,
+    maxzoom: 10,
     tileSize: 256,
   },
 ];
+
+// Compatibility exports for components that import { LAYERS }
+export const LAYERS: RasterLayerConfig[] = RASTER_LAYERS;
+export const LAYER_BY_ID: Record<string, RasterLayerConfig> = Object.fromEntries(
+  RASTER_LAYERS.map((l) => [l.id, l])
+);
+// Back-compat names used by some components
+export const layers = RASTER_LAYERS;
+export const layersById: Record<string, RasterLayerConfig> = LAYER_BY_ID;
 
 /* ------------------------------- Lookups ---------------------------------- */
 
@@ -85,6 +98,7 @@ function expandUrlTemplate(
 
 export function getBBOX4326(map: mapboxgl.Map): string {
   const b = map.getBounds();
+  if (!b) return "";
   const sw = b.getSouthWest(); // lat,lng
   const ne = b.getNorthEast();
   // BBOX4326 expects minX,minY,maxX,maxY (lngLat order)
@@ -206,9 +220,8 @@ export function refreshOnDate(
   const cfg = getRasterLayer(id);
   if (!cfg) return;
   const lid = lyrId(id);
-  const wasVisible =
-    layerExists(map, lid) &&
-    (map.getLayoutProperty(lid, "visibility") as mapboxgl.Visibility) !== "none";
+  const vis = map.getLayoutProperty(lid, "visibility") as any;
+  const wasVisible = layerExists(map, lid) && vis !== "none";
   addOrUpdateRaster(map, cfg, { isoDate, bbox4326: bbox4326 ?? null, visible: wasVisible });
 }
 

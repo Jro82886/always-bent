@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMapbox } from "@/lib/MapCtx";
 import { useAppState } from "@/store/appState";
-import { addOrUpdateABFI, setABFIVisibility } from "@/layers";
+import { addOrUpdateRaster, setRasterVisible, getRasterLayer } from "@/lib/layers";
 
 export default function ABFIToggle() {
   const map = useMapbox();
@@ -12,8 +12,11 @@ export default function ABFIToggle() {
 
   useEffect(() => {
     if (!map) return;
-    if (on) addOrUpdateABFI(map, isoDate);
-    setABFIVisibility(map, on);
+    if (on) {
+      const cfg = getRasterLayer("abfi");
+      if (cfg) addOrUpdateRaster(map, cfg, { isoDate });
+    }
+    setRasterVisible(map, "abfi", on);
   }, [map, on, isoDate]);
 
   return (

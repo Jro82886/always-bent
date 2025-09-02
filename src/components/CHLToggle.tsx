@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMapbox } from "@/lib/MapCtx";
 import { useAppState } from "@/store/appState";
-import { addOrUpdateCHL, setCHLVisibility } from "@/layers";
+import { addOrUpdateRaster, setRasterVisible, getRasterLayer } from "@/lib/layers";
 
 export default function CHLToggle() {
   const map = useMapbox();
@@ -13,8 +13,11 @@ export default function CHLToggle() {
   // keep layer in sync with date & toggle
   useEffect(() => {
     if (!map) return;
-    if (on) addOrUpdateCHL(map, isoDate);
-    setCHLVisibility(map, on);
+    if (on) {
+      const cfg = getRasterLayer("chl");
+      if (cfg) addOrUpdateRaster(map, cfg, { isoDate });
+    }
+    setRasterVisible(map, "chl", on);
   }, [map, on, isoDate]);
 
   return (

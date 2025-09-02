@@ -8,13 +8,11 @@ const CHL_LAYER_ID = "chl-layer";
 const ABFI_SOURCE_ID = "abfi-src";
 const ABFI_LAYER_ID = "abfi-layer";
 
-/** Placeholder XYZ templates.
- * Replace with real Copernicus tiles later.
- * {DATE} will be replaced with yyyy-mm-dd (store.isoDate if present).
- */
-const SST_XYZ = "https://tiles.example.com/sst/{DATE}/{z}/{x}/{y}.png";
-const CHL_XYZ = "https://tiles.example.com/chl/{DATE}/{z}/{x}/{y}.png";
-const ABFI_XYZ = "https://tiles.example.com/abfi/{DATE}/{z}/{x}/{y}.png";
+/** WMTS via local proxy for SST */
+const TILES_BASE = process.env.NEXT_PUBLIC_TILES_BASE || "/api/tiles";
+const SST_XYZ = `${TILES_BASE}/sst/{z}/{x}/{y}.png?time={DATE}`;
+const CHL_XYZ = "https://example.invalid/chl/{DATE}/{z}/{x}/{y}.png"; // placeholder
+const ABFI_XYZ = "http://localhost:3001/tiles/abfi/{z}/{x}/{y}.png"; // local dev
 
 /** Shared helpers */
 function dateStr(isoDate?: string | null) {
@@ -61,7 +59,7 @@ function ensureRasterLayer(
       source: sourceId,
       paint: { "raster-opacity": opts?.opacity ?? 0.85 },
       minzoom: opts?.minzoom ?? 0,
-      maxzoom: opts?.maxzoom ?? 24,
+      maxzoom: opts?.maxzoom ?? 10,
     } as any);
   }
 }
@@ -71,7 +69,7 @@ export function addOrUpdateSST(map: mapboxgl.Map, isoDate?: string | null) {
   const url = SST_XYZ.replace("{DATE}", dateStr(isoDate));
   if (!url || !/^https?:\/\//.test(url)) return;
   ensureRasterSource(map, SST_SOURCE_ID, url);
-  ensureRasterLayer(map, SST_LAYER_ID, SST_SOURCE_ID);
+  ensureRasterLayer(map, SST_LAYER_ID, SST_SOURCE_ID, { maxzoom: 10 });
 }
 
 export function setSSTVisibility(map: mapboxgl.Map, visible: boolean) {

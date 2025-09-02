@@ -1,25 +1,27 @@
 'use client';
 
 import { MapShell } from '@/lib/MapRef';
-import HeaderBar from '@/components/HeaderBar';
-import Layers from '@/components/Layers';
-import LayersRuntime from '@/components/LayersRuntime';
-import LayerToggles from '@/components/LayerToggles';
+import NavTabs from '@/components/NavTabs';
+import TopHUD from '@/components/TopHUD';
 import StatusPill from '@/components/StatusPill';
+import RequireUsername from '@/components/RequireUsername';
 
 export default function ImageryPage() {
   return (
+    <RequireUsername>
     <MapShell>
-      <div className="pointer-events-auto absolute left-3 top-3 z-40 flex gap-2 flex-wrap bg-black/40 text-white px-2 py-1 rounded">
-        <HeaderBar />
-        <LayerToggles />
+      {/* Glass overlay */}
+      <div className="pointer-events-none absolute inset-0">
+        <NavTabs />
+        <TopHUD includeAbfi={false} />
+        <div className="absolute right-3 bottom-3 pointer-events-none">
+          <StatusPill />
+        </div>
       </div>
 
-      <StatusPill />
-
-      <LayersRuntime />
-      <Layers />
+      {/* Layers disabled temporarily to prevent attempted network calls */}
     </MapShell>
+    </RequireUsername>
   );
 }
 

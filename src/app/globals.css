@@ -4,6 +4,18 @@
 }
 .animate-fade-in { animation: fade-in 500ms ease-out both; }
 
+@keyframes slide-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-fade { animation: slide-fade-in 220ms ease-out both; }
+
+@keyframes slide-fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(8px); }
+}
+.animate-slide-fade-out { animation: slide-fade-out 180ms ease-in forwards; }
+
 @keyframes pulse-slow {
   0%, 100% { opacity: 0.25; }
   50% { opacity: 0.38; }
@@ -15,6 +27,17 @@
   50% { opacity: 0.8; r: 4.2; }
 }
 .animate-twinkle { animation: twinkle 2.8s ease-in-out infinite; }
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 40s linear infinite; }
+.spin-slow { animation: spin-slow 28s linear infinite; }
+
+/* subtle, clean glow for the brand */
+.brand-glow { filter: drop-shadow(0 0 14px rgba(0, 221, 235, 0.25)); }
+.brand-glow-xl { filter: drop-shadow(0 0 24px rgba(0, 221, 235, 0.35)) drop-shadow(0 0 48px rgba(47, 105, 255, 0.25)); }
 @import "tailwindcss";
 
 :root {

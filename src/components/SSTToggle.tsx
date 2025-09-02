@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useMapbox } from "@/lib/MapCtx";
 import { useAppState } from "@/store/appState";
-import { addOrUpdateSST, setSSTVisibility } from "@/layers";
+import { addOrUpdateRaster, setRasterVisible, getRasterLayer } from "@/lib/layers";
 
 export default function SSTToggle() {
   const map = useMapbox();
@@ -15,13 +15,14 @@ export default function SSTToggle() {
     if (!map) return;
     if (!enabled) return;
     if (!isoDate) return;
-    addOrUpdateSST(map, isoDate);
+    const cfg = getRasterLayer("sst");
+    if (cfg) addOrUpdateRaster(map, cfg, { isoDate });
   }, [map, enabled, isoDate]);
 
   // When disabling, hide
   useEffect(() => {
     if (!map) return;
-    if (!enabled) setSSTVisibility(map, false);
+    if (!enabled) setRasterVisible(map, "sst", false);
   }, [map, enabled]);
 
   return (

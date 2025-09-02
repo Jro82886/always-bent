@@ -2,13 +2,16 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
+import BrandMark from '@/components/BrandMark';
 import { useRouter } from 'next/navigation';
+import { useAppState } from '@/store/appState';
+import { DEFAULT_INLET } from '@/lib/inlets';
 
 type GeoStatus = 'idle' | 'prompt' | 'granted' | 'denied' | 'error';
 
 export default function Welcome() {
   const router = useRouter();
+  const { setUsername: setUsernameStore, hydrateOnce, setSelectedInletId } = useAppState();
 
   const [username, setUsername] = useState('');
   const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle');
@@ -16,6 +19,7 @@ export default function Welcome() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    hydrateOnce();
     const saved = localStorage.getItem('abfi_username') || '';
     if (saved) setUsername(saved);
 
@@ -53,7 +57,12 @@ export default function Welcome() {
   };
 
   const onContinue = () => {
-    localStorage.setItem('abfi_username', username.trim());
+    const clean = username.trim();
+    if (!clean) return;
+    try { localStorage.setItem('abfi_username', clean); } catch {}
+    setUsernameStore(clean);
+    try { localStorage.removeItem('abfi_selected_inlet'); } catch {}
+    setSelectedInletId(DEFAULT_INLET.id);
     router.push('/imagery');
   };
 
@@ -61,28 +70,35 @@ export default function Welcome() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#0C0F1C] to-black text-white">
+      {/* Subtle background contrast layers */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, rgba(0,221,235,0.22) 1px, transparent 1px)',
+          backgroundSize: '26px 26px',
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(60% 50% at 50% 30%, rgba(0,221,235,0.24) 0%, rgba(0,0,0,0) 60%)',
+        }}
+      />
       <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center justify-center px-6 text-center">
         
-        {/* Logo */}
-        <div className="mb-6 animate-[fadeIn_800ms_ease]">
-          <Image
-            src="/abfi_logo.png"
-            alt="ABFI Logo"
-            width={220}
-            height={220}
-            priority
-          />
+        {/* Brand */}
+        <div className="mb-10 flex flex-col items-center">
+          <BrandMark className="h-20 w-auto sm:h-24 md:h-28 brand-glow-xl" />
+          <p className="mt-4 text-sm sm:text-base text-cyan-200/80 tracking-wide">
+            Precision fishing starts here.
+          </p>
         </div>
 
-        {/* Tagline */}
-        <p className="mb-2 text-cyan-300/80 tracking-[0.22em] text-sm">
-          ALWAYS BENT FISHING INTELLIGENCE
-        </p>
-
-        {/* Slogan */}
-        <h2 className="mb-8 text-xl font-semibold text-white">
-          Precision fishing starts here.
-        </h2>
+        
 
         {/* Username input */}
         <div className="mb-4 w-full">
@@ -126,13 +142,7 @@ export default function Welcome() {
           Analyze Ocean Data
         </button>
 
-        {/* Guest */}
-        <button
-          onClick={() => router.push('/imagery')}
-          className="mt-4 text-sm text-white/70 hover:text-white underline"
-        >
-          Continue as Guest
-        </button>
+        {/* No guest path; username required */}
       </section>
     </main>
   );

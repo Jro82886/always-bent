@@ -1,12 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { MapShell } from '@/lib/MapRef';
 import { useMapbox } from '@/lib/MapCtx';
-import { TopBar } from '@/components/TopBar';
+import TopHUD from '@/components/TopHUD';
+import GeoControls from '@/components/GeoControls';
+import RequireUsername from '@/components/RequireUsername';
+import { useGeo } from '@/lib/useGeo';
 import DevOverlay from '@/components/DevOverlay';
 import { useAppState } from '@/store/appState';
 import { INLETS } from '@/lib/inlets';
+import NavTabs from '@/components/NavTabs';
 
 type Pos = { lat: number; lng: number } | null;
 
@@ -25,32 +29,19 @@ function colorForInlet(id: string | null) {
 export default function TrackingPage() {
   const { selectedInletId, username } = useAppState();
   const active = INLETS.find(i => i.id === selectedInletId) ?? INLETS[0];
-
-  const [pos, setPos] = useState<Pos>(null);
-  const [geoError, setGeoError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setGeoError('Geolocation not supported by this browser.');
-      return;
-    }
-    const id = navigator.geolocation.watchPosition(
-      ({ coords }) => {
-        setPos({ lat: coords.latitude, lng: coords.longitude });
-        setGeoError(null);
-      },
-      (err) => setGeoError(err.message || 'Location error'),
-      { enableHighAccuracy: true, maximumAge: 10_000, timeout: 20_000 }
-    );
-    return () => navigator.geolocation.clearWatch(id);
-  }, []);
+  const { coords, status, message } = useGeo();
+  const pos: Pos = coords ? { lat: coords.lat, lng: coords.lon } : null;
 
   return (
-    <MapShell initialCenter={[active.lng, active.lat]} initialZoom={9}>
-      <TopBar />
+    <RequireUsername>
+    <MapShell>
+      <div className="pointer-events-none absolute inset-0">
+        <NavTabs />
+        <TopHUD includeAbfi={false} showLayers={false} extraRight={<GeoControls />} />
+      </div>
       <DevOverlay />
       <UserDot pos={pos} color={colorForInlet(selectedInletId)} label={username || 'You'} />
-      {geoError && (
+      {message && (
         <div
           style={{
             position: 'absolute', bottom: 12, right: 12, zIndex: 20,
@@ -59,10 +50,11 @@ export default function TrackingPage() {
             maxWidth: 280, lineHeight: 1.4
           }}
         >
-          {geoError}. Make sure location services are enabled for this site.
+          {message}. Make sure location services are enabled for this site.
         </div>
       )}
     </MapShell>
+    </RequireUsername>
   );
 }
 

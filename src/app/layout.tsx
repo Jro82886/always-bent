@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Toaster } from "react-hot-toast";
+import SelectedInletPersistence from "@/components/SelectedInletPersistence";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <SelectedInletPersistence />
         {children}
         <Toaster position="top-right" toastOptions={{ style: { background: "#1f2937", color: "#fff" } }} />
       </body>
