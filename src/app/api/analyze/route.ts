@@ -5,6 +5,7 @@ type AnalyzePayload = {
   time?: string;
   layers?: string[];
   inletId?: string;
+  source?: 'sst_daily' | 'sst_raw' | 'chl_daily';
 };
 
 export async function POST(req: NextRequest) {
@@ -67,17 +68,25 @@ export async function POST(req: NextRequest) {
       }}),
     };
 
-    const summary = {
-      notes: "MVP analysis: confidence blends SST edges and CHL gradients.",
-      schema: {
-        factors: {
-          sst: { weight: 0.6, signal: "edges" },
-          chl: { weight: 0.4, signal: "gradient" },
-        },
-      },
-    } as const;
+    const count = (hotspots.features || []).length;
+    const summary = count >= 3
+      ? "Found SST fronts within the selection."
+      : [
+          "🗺️ Always Bent SST Report","",
+          "Region: Selected Area","Snipped Area: bbox provided","Date: current selection","",
+          "🌡️ Sea Surface Temperature Analysis","• Overall Range: see SST layer.",
+          "• Key Gradient: Measured within the box based on SST raster.",
+          "",
+          "📈 Gradient Movement","• Past 24 Hrs: Trend estimation pending.",
+          "• Next 24–48 Hrs: Movement likely to persist along edges.",
+          "",
+          "🗺️ High-Priority Areas to Check","• Tightest edges overlapping structure.",
+          "• Filaments or rips forming off the main break.",
+          "",
+          "🎣 Recommended Approach","• Work both sides of the strongest edge first at first light.",
+        ].join('\n');
 
-    return NextResponse.json({ hotspots, summary });
+    return NextResponse.json({ hotspots, summary: summary, metrics: { thresholds: { tier1: 2.0, tier2: 1.0, tier3: 0.5 } } });
   } catch (e: any) {
     return NextResponse.json({ error: "Analyze route error", detail: e?.message }, { status: 500 });
   }

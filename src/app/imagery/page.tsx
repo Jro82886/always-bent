@@ -6,6 +6,7 @@ import TopHUD from '@/components/TopHUD';
 import StatusPill from '@/components/StatusPill';
 import RequireUsername from '@/components/RequireUsername';
 import LayersRuntime from '@/components/LayersRuntime';
+import AnalyzeBar from '@/components/AnalyzeBar';
 
 export default function ImageryPage() {
   return (
@@ -21,6 +22,7 @@ export default function ImageryPage() {
       </div>
 
       <LayersRuntime />
+      <AnalyzeBar />
     </MapShell>
     </RequireUsername>
   );

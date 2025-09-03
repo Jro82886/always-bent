@@ -55,6 +55,7 @@ export function MapShell({ children }: { children: React.ReactNode }) {
 
     mapRef.current = map;
     (window as any).map = map;
+    (globalThis as any).abfiMap = map;
 
     return () => {
       map.remove();

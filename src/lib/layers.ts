@@ -35,6 +35,12 @@ export type AddOptions = {
 
 /* ----------------------------- Layer registry ----------------------------- */
 // TODO: replace placeholders with your production URLs
+// Allow overriding client raster tile size to match WMTS matrix set (e.g. 512 for EPSG:3857@2x)
+const CLIENT_TILE_SIZE = (() => {
+  const v = parseInt(process.env.NEXT_PUBLIC_RASTER_TILE_SIZE || '', 10);
+  return (v === 512 ? 512 : 256) as 256 | 512;
+})();
+
 export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "sst",
@@ -43,7 +49,7 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
     opacity: 0.85,
     minzoom: 0,
     maxzoom: 22, // allow display beyond WMTS matrix via upsampling
-    tileSize: 256,
+    tileSize: CLIENT_TILE_SIZE,
   },
   {
     id: "chl",
@@ -52,7 +58,7 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
     opacity: 0.85,
     minzoom: 0,
     maxzoom: 22,
-    tileSize: 256,
+    tileSize: CLIENT_TILE_SIZE,
   },
   {
     id: "abfi",

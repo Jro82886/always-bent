@@ -10,6 +10,7 @@ import RequireUsername from '@/components/RequireUsername';
 import NavTabs from '@/components/NavTabs';
 import { DEFAULT_INLET, getInletById } from '@/lib/inlets';
 import { flags } from '@/lib/flags';
+import AnalyzeBar from '@/components/AnalyzeBar';
  
 
 type Bbox = { minLng: number; minLat: number; maxLng: number; maxLat: number } | null;
@@ -329,32 +330,7 @@ export default function AnalysisPage() {
       <div className="pointer-events-none absolute inset-0">
         <NavTabs />
         <TopHUD includeAbfi showSoon />
-        {/* Bottom-center action bar */}
-        <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 bottom-6 z-50 flex flex-col items-center gap-3">
-          <button
-            className="rounded-full bg-black/55 px-4 py-2 text-sm text-cyan-200 ring-1 ring-cyan-400/40 hover:ring-cyan-300"
-            onClick={() => { setSnipping(true); setAnalysisOpen(false); setBbox(null); }}
-            title="Snip an area"
-          >
-            Snip Area
-          </button>
-          <button
-            className={[
-              'rounded-full px-5 py-2 text-sm font-medium',
-              bbox && !isAnalyzing
-                ? 'bg-emerald-400 text-black shadow-[0_0_24px_rgba(16,185,129,0.45)] animate-pulse'
-                : 'bg-white/20 text-white/80',
-              'ring-1 ring-white/15'
-            ].join(' ')}
-            disabled={!bbox || isAnalyzing}
-            onClick={runAnalyze}
-            title={bbox ? (isAnalyzing ? 'Analyzing…' : 'Analyze selected area') : 'Snip an area first'}
-          >
-            {isAnalyzing ? 'Analyzing…' : 'Analyze'}
-          </button>
-
-          
-        </div>
+        <AnalyzeBar />
       </div>
 
       {/* Snip overlay removed; we attach native mouse handlers to the map canvas in the snipping effect */}
