@@ -39,19 +39,19 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "sst",
     name: "Sea Surface Temp (daily)",
-    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst/{z}/{x}/{y}.png?time={DATE}`,
+    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst_daily/{z}/{x}/{y}.png?time={DATE}&style=default`,
     opacity: 0.85,
     minzoom: 0,
-    maxzoom: 10, // Copernicus WMTS supports 0..10
+    maxzoom: 22, // allow display beyond WMTS matrix via upsampling
     tileSize: 256,
   },
   {
     id: "chl",
-    name: "Chlorophyll",
-    url: "https://example.invalid/chl/{DATE}/{z}/{x}/{y}.png", // placeholder until wired
+    name: "Chlorophyll (daily)",
+    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/chl_daily/{z}/{x}/{y}.png?time={DATE}&style=default`,
     opacity: 0.85,
     minzoom: 0,
-    maxzoom: 10,
+    maxzoom: 22,
     tileSize: 256,
   },
   {

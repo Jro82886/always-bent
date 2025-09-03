@@ -22,6 +22,11 @@ export default function CommunityPage() {
   const TOAST_DURATION_MS = 4000;
   const toastExpiryRef = useRef<number | null>(null);
   const toastRemainingRef = useRef<number>(TOAST_DURATION_MS);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimer = useRef<number | null>(null);
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionIndex, setMentionIndex] = useState(0);
 
   useEffect(() => {
     const client = clientRef.current;
@@ -92,6 +97,12 @@ export default function CommunityPage() {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [messages, inlet.id, username]);
 
+  const mentionCandidates = useMemo(() => {
+    if (!mentionOpen || !mentionQuery) return [] as string[];
+    const q = mentionQuery.toLowerCase();
+    return onlineUsers.filter(u => u.toLowerCase().includes(q)).slice(0, 6);
+  }, [mentionOpen, mentionQuery, onlineUsers]);
+
   const insertMention = (name: string) => {
     const at = `@${name} `;
     const cur = text || '';
@@ -153,7 +164,55 @@ export default function CommunityPage() {
             <input
               ref={inputRef}
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setText(v);
+                setIsTyping(true);
+                if (typingTimer.current) window.clearTimeout(typingTimer.current);
+                typingTimer.current = window.setTimeout(() => setIsTyping(false), 800);
+                // mention state
+                const at = v.lastIndexOf('@');
+                if (at >= 0) {
+                  const after = v.slice(at + 1);
+                  const stop = /\s|[.,:;!?]/.exec(after)?.index ?? -1;
+                  const token = stop >= 0 ? after.slice(0, stop) : after;
+                  if (token.length >= 1) {
+                    setMentionOpen(true);
+                    setMentionQuery(token);
+                    setMentionIndex(0);
+                  } else {
+                    setMentionOpen(false);
+                    setMentionQuery('');
+                  }
+                } else {
+                  setMentionOpen(false);
+                  setMentionQuery('');
+                }
+              }}
+              onKeyDown={(e) => {
+                if (!mentionOpen || mentionCandidates.length === 0) return;
+                if (e.key === 'ArrowDown') { e.preventDefault(); setMentionIndex((i) => (i + 1) % mentionCandidates.length); }
+                if (e.key === 'ArrowUp') { e.preventDefault(); setMentionIndex((i) => (i - 1 + mentionCandidates.length) % mentionCandidates.length); }
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                  e.preventDefault();
+                  const name = mentionCandidates[mentionIndex];
+                  if (name) {
+                    // replace current @token with @name
+                    const v = text;
+                    const at = v.lastIndexOf('@');
+                    const after = v.slice(at + 1);
+                    const stopMatch = /\s|[.,:;!?]/.exec(after);
+                    const stop = stopMatch ? at + 1 + stopMatch.index : v.length;
+                    const next = v.slice(0, at) + `@${name}` + (stop < v.length ? v.slice(stop) : ' ') ;
+                    setText(next);
+                    setMentionOpen(false);
+                    setMentionQuery('');
+                    setMentionIndex(0);
+                    requestAnimationFrame(() => inputRef.current?.focus());
+                  }
+                }
+                if (e.key === 'Escape') { setMentionOpen(false); setMentionQuery(''); }
+              }}
               placeholder="Type a message"
               className="flex-1 rounded-md bg-black/60 px-3 py-2 text-sm outline-none ring-1 ring-white/10"
             />
@@ -164,6 +223,37 @@ export default function CommunityPage() {
               Send
             </button>
           </div>
+          {mentionOpen && mentionCandidates.length > 0 && (
+            <div className="relative">
+              <div className="absolute z-50 mt-1 w-60 max-w-[80vw] rounded-md border border-white/10 bg-black/80 p-1 text-sm backdrop-blur">
+                {mentionCandidates.map((u, i) => (
+                  <button
+                    key={u}
+                    type="button"
+                    className={["block w-full truncate text-left rounded px-2 py-1", i === mentionIndex ? "bg-cyan-500/30 text-white" : "text-white/85 hover:bg-white/10"].join(' ')}
+                    onMouseEnter={() => setMentionIndex(i)}
+                    onMouseDown={(e) => { e.preventDefault(); }}
+                    onClick={() => {
+                      const v = text;
+                      const at = v.lastIndexOf('@');
+                      const after = v.slice(at + 1);
+                      const stopMatch = /\s|[.,:;!?]/.exec(after);
+                      const stop = stopMatch ? at + 1 + stopMatch.index : v.length;
+                      const next = v.slice(0, at) + `@${u}` + (stop < v.length ? v.slice(stop) : ' ');
+                      setText(next);
+                      setMentionOpen(false);
+                      setMentionQuery('');
+                      setMentionIndex(0);
+                      requestAnimationFrame(() => inputRef.current?.focus());
+                    }}
+                  >
+                    @{u}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="mt-1 h-4 text-xs text-white/60">{isTyping ? 'typing…' : ' '}</div>
           <div className="mt-2 text-xs text-white/50">Only users in this inlet see these messages. Click a name to @mention.</div>
         </div>
       </div>

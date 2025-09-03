@@ -5,6 +5,7 @@ import NavTabs from '@/components/NavTabs';
 import TopHUD from '@/components/TopHUD';
 import StatusPill from '@/components/StatusPill';
 import RequireUsername from '@/components/RequireUsername';
+import LayersRuntime from '@/components/LayersRuntime';
 
 export default function ImageryPage() {
   return (
@@ -19,7 +20,7 @@ export default function ImageryPage() {
         </div>
       </div>
 
-      {/* Layers disabled temporarily to prevent attempted network calls */}
+      <LayersRuntime />
     </MapShell>
     </RequireUsername>
   );

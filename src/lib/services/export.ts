@@ -24,3 +24,5 @@ export async function exportMapAsPng(map: mapboxgl.Map) {
 
 
 
+
+

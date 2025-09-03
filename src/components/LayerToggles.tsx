@@ -17,8 +17,9 @@ export default function LayerToggles({ includeAbfi = true }: { includeAbfi?: boo
     <div className="rounded bg-black/60 text-white px-2 py-1 shadow backdrop-blur">
       <div className="flex items-center gap-2">
         {([
-          { id: 'sst', label: 'Sea Surface Temp' },
-          { id: 'chl', label: 'Chlorophyll' },
+          ...(process.env.NEXT_PUBLIC_SST_ENABLED !== 'false' ? ([{ id: 'sst', label: 'Sea Surface Temp' }] as const) : ([] as const)),
+          ...(process.env.NEXT_PUBLIC_CHL_ENABLED === 'true' ? ([{ id: 'chl', label: 'Chlorophyll' }] as const) : ([] as const)),
+          // Hide ABFI on non-analysis pages by controlling includeAbfi upstream
           ...(includeAbfi ? ([{ id: 'abfi', label: 'ABFI' }] as const) : ([] as const)),
         ] as const).map(r => {
           const active = activeRaster === r.id;

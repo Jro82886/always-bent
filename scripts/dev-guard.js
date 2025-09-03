@@ -65,6 +65,66 @@ function main() {
     console.log("ℹ️  If you recently pulled big changes, consider:");
     console.log("    `npm run clean:start` (purges caches, installs clean, typechecks)\n");
   }
+
+  // 3) WMTS env guard: try to auto-restore missing critical keys from .env.local.bak.*
+  const criticalKeys = [
+    'COPERNICUS_WMTS_BASE',
+  ];
+  const optionalKeys = [
+    'LAYER_SST_DAILY',
+    'LAYER_CHL_DAILY',
+    'COPERNICUS_WMTS_MATRIXSET',
+    'COPERNICUS_WMTS_STYLE',
+    'COPERNICUS_AUTH_TYPE',
+    'COPERNICUS_TOKEN',
+    'COPERNICUS_BASIC_USER',
+    'COPERNICUS_BASIC_PASS',
+  ];
+
+  const dotenvPath = path.resolve(process.cwd(), '.env.local');
+  const hasEnv = fs.existsSync(dotenvPath);
+  const currentLines = hasEnv ? fs.readFileSync(dotenvPath, 'utf8').split(/\r?\n/) : [];
+  const currentMap = Object.fromEntries(
+    currentLines
+      .filter(l => /^[A-Za-z_][A-Za-z0-9_]*=/.test(l))
+      .map(l => [l.split('=')[0], l])
+  );
+
+  const needs = criticalKeys.filter(k => !currentMap[k]);
+  if (needs.length > 0) {
+    // search backups
+    const dir = process.cwd();
+    const backups = fs.readdirSync(dir).filter(n => n.startsWith('.env.local.bak.'));
+    let restored = [];
+    for (const bak of backups) {
+      try {
+        const txt = fs.readFileSync(path.join(dir, bak), 'utf8');
+        for (const key of [...needs, ...optionalKeys]) {
+          if (currentMap[key]) continue;
+          const m = txt.match(new RegExp(`^${key}=[^\n\r]+`, 'm'));
+          if (m) {
+            currentMap[key] = m[0];
+            restored.push(key);
+          }
+        }
+      } catch {}
+    }
+    if (restored.length > 0) {
+      // backup current, then write merged file
+      const ts = Date.now();
+      try { fs.copyFileSync(dotenvPath, `.env.local.bak.${ts}`); } catch {}
+      const keep = currentLines.filter(l => !/^(COPERNICUS_|LAYER_)/.test(l));
+      const merged = [
+        ...keep,
+        ...Object.values(currentMap),
+      ].join('\n');
+      fs.writeFileSync(dotenvPath, merged + '\n');
+      console.log('🔧 Dev-Guard: Restored WMTS keys from backup:', restored.join(', '));
+    } else if (needs.length > 0) {
+      console.log('⚠️  WMTS not fully configured. Missing:', needs.join(', '));
+      console.log('    Add them to .env.local to enable SST/CHL tiles.');
+    }
+  }
 }
 
 main();

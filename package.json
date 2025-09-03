@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev-guard.js && next dev",
+    "env:backup": "bash scripts/env-backup.sh",
+    "env:restore": "bash scripts/env-restore.sh",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -12,7 +14,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@supabase/supabase-js": "^2.56.0",
+    "@supabase/supabase-js": "^2.57.0",
     "clsx": "^2.1.1",
     "mapbox-gl": "^3.14.0",
     "nanoid": "^5.1.5",

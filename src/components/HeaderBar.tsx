@@ -6,6 +6,7 @@ import { useMapbox } from "@/lib/MapCtx";
 import { INLETS, DEFAULT_INLET, getInletById } from "@/lib/inlets";
 import { buildInletColorMap } from "@/lib/inletColors";
 import { useAppState } from "@/store/appState";
+import * as Tooltip from "@radix-ui/react-tooltip";
 
 /** Small helper for today's ISO (YYYY-MM-DD) */
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -14,11 +15,11 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
  * HeaderBar
  * - Inlet dropdown (flies map to selection)
  * - Date picker (writes to store)
- * - Exclusive layer toggles (SST / CHL / ABFI)
+ * - Exclusive layer toggles (SST / CHL)
  */
 const COLOR_MAP = buildInletColorMap(INLETS.map(i => i.id), {});
 
-export default function HeaderBar() {
+export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boolean } = {}) {
   const map = useMapbox();
   const {
     selectedInletId,
@@ -45,6 +46,12 @@ export default function HeaderBar() {
   const onChangeInlet = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = e.target.value || DEFAULT_INLET.id;
     if (id === selectedInletId) return; // no-op if unchanged
+    // Rule: cannot switch inlets with an active layer; require toggling off first
+    if (activeRaster) {
+      // Revert the select by not changing state and notify
+      alert('Please toggle off active layers before switching inlets.');
+      return;
+    }
     const inlet = getInletById(id) ?? DEFAULT_INLET;
     console.log("[HeaderBar] inlet change:", id, inlet);
     setSelectedInletId(inlet.id);
@@ -65,8 +72,13 @@ export default function HeaderBar() {
     setIsoDate(d);
   };
 
-  // One-at-a-time layer selection
+  // One-at-a-time selection for raw layers; ABFI remains single-select too
   const toggleLayer = (id: "sst" | "chl" | "abfi") => {
+    // Require manual OFF before switching between raw layers (sst/chl)
+    if ((id === 'sst' || id === 'chl') && (activeRaster && activeRaster !== id) && (activeRaster === 'sst' || activeRaster === 'chl')) {
+      alert('Please toggle off the current layer before enabling another.');
+      return;
+    }
     setActiveRaster(activeRaster === id ? null : id);
   };
 
@@ -122,13 +134,15 @@ export default function HeaderBar() {
       <label className="ml-3 mr-1 text-xs opacity-80" htmlFor="date-input">
         Date
       </label>
-      <input
-        id="date-input"
-        type="date"
-        value={localDate}
-        onChange={onChangeDate}
-        className="rounded bg-black/60 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-cyan-400/60"
-      />
+      <div id="tour-date-picker">
+        <input
+          id="date-input"
+          type="date"
+          value={localDate}
+          onChange={onChangeDate}
+          className="rounded bg-black/60 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-cyan-400/60"
+        />
+      </div>
 
       {/* Divider */}
       <span className="mx-2 h-5 w-px bg-white/15" />
@@ -139,17 +153,22 @@ export default function HeaderBar() {
         label="SST"
         active={activeRaster === "sst"}
         onClick={() => toggleLayer("sst")}
+        tooltip="Toggle Sea Surface Temperature layer"
       />
       <ToggleButton
         label="CHL"
         active={activeRaster === "chl"}
         onClick={() => toggleLayer("chl")}
+        tooltip="Toggle Chlorophyll-a layer"
       />
-      <ToggleButton
-        label="ABFI"
-        active={activeRaster === "abfi"}
-        onClick={() => toggleLayer("abfi")}
-      />
+      {includeAbfi ? (
+        <ToggleButton
+          label="ABFI"
+          active={activeRaster === "abfi"}
+          onClick={() => toggleLayer("abfi")}
+          tooltip="Thermocline (custom blend) for hotspot prediction"
+        />
+      ) : null}
     </div>
   );
 }
@@ -159,16 +178,19 @@ function ToggleButton({
   label,
   active,
   onClick,
+  tooltip,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  tooltip?: string;
 }) {
-  return (
+  const btn = (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
+      aria-label={tooltip || label}
       className={[
         "rounded px-3 py-1 text-sm font-medium transition",
         "ring-1 ring-white/10 hover:ring-cyan-300/50",
@@ -179,5 +201,19 @@ function ToggleButton({
     >
       {label}
     </button>
+  );
+  if (!tooltip) return btn;
+  return (
+    <Tooltip.Provider delayDuration={150}>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>{btn}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content side="bottom" sideOffset={6} className="rounded bg-black/80 px-2 py-1 text-[11px] text-white shadow ring-1 ring-white/10">
+            {tooltip}
+            <Tooltip.Arrow className="fill-black/80" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
   );
 }

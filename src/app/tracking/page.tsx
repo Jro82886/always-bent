@@ -5,19 +5,21 @@ import { MapShell } from '@/lib/MapRef';
 import { useMapbox } from '@/lib/MapCtx';
 import TopHUD from '@/components/TopHUD';
 import GeoControls from '@/components/GeoControls';
+import ReportCatchButton from '@/components/ReportCatchButton';
 import RequireUsername from '@/components/RequireUsername';
 import { useGeo } from '@/lib/useGeo';
 import DevOverlay from '@/components/DevOverlay';
 import { useAppState } from '@/store/appState';
 import { INLETS } from '@/lib/inlets';
 import NavTabs from '@/components/NavTabs';
+import { ensureTrackingLayers, upsertTrackingSource } from './_layers/userDot';
 
 type Pos = { lat: number; lng: number } | null;
 
 function colorForInlet(id: string | null) {
   const c: Record<string, string> = {
     'md-ocean-city': '#00bdff',
-    'de-indian-river': '#26c281',
+    'de-indian_river': '#26c281',
     'nj-barnegat': '#f39c12',
     'ga-savannah': '#9b59b6',
     'fl-miami': '#e74c3c',
@@ -27,17 +29,39 @@ function colorForInlet(id: string | null) {
 }
 
 export default function TrackingPage() {
+  const map = useMapbox();
   const { selectedInletId, username } = useAppState();
   const active = INLETS.find(i => i.id === selectedInletId) ?? INLETS[0];
   const { coords, status, message } = useGeo();
   const pos: Pos = coords ? { lat: coords.lat, lng: coords.lon } : null;
+
+  // Mapbox-native tracking layers (for V2-scale, ok to keep now)
+  useEffect(() => {
+    if (!map) return;
+    const add = () => {
+      ensureTrackingLayers(map);
+      const me: any = pos ? {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [pos.lng, pos.lat] },
+        properties: { type: 'user', color: colorForInlet(selectedInletId), label: username || 'You' }
+      } : null;
+      upsertTrackingSource(map, me ? [me] : []);
+    };
+    if ((map as any).isStyleLoaded?.()) add();
+    else map.once('style.load', add);
+  }, [map, pos, selectedInletId, username]);
 
   return (
     <RequireUsername>
     <MapShell>
       <div className="pointer-events-none absolute inset-0">
         <NavTabs />
-        <TopHUD includeAbfi={false} showLayers={false} extraRight={<GeoControls />} />
+        <TopHUD includeAbfi={false} showLayers={false} extraRight={
+          <div className="flex items-center gap-2">
+            <GeoControls />
+            <ReportCatchButton disabled={process.env.NEXT_PUBLIC_ENABLE_REPORT_CATCH !== 'true'} />
+          </div>
+        } />
       </div>
       <DevOverlay />
       <UserDot pos={pos} color={colorForInlet(selectedInletId)} label={username || 'You'} />
