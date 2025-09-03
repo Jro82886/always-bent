@@ -78,6 +78,10 @@ const LAYER_MAP: Record<string, string> = {
     process.env.LAYER_CHL_DAILY ||
     process.env.LAYER_CHL_MONTHLY ||
     "",
+  // Raw SST (optional separate product)
+  sst_raw:
+    process.env.LAYER_SST_RAW ||
+    "",
 };
 
 export async function GET(req: NextRequest, ctx: { params: Promise<Params> }) {

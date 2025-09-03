@@ -69,6 +69,15 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
     maxzoom: 10,
     tileSize: 256,
   },
+  {
+    id: "sst",
+    name: "SST (Raw)",
+    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst_raw/{z}/{x}/{y}.png?time={DATE}&style=default`,
+    opacity: 0.85,
+    minzoom: 0,
+    maxzoom: 22,
+    tileSize: CLIENT_TILE_SIZE,
+  },
 ];
 
 // Compatibility exports for components that import { LAYERS }

@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import SnipController, { BBox } from '@/components/SnipController';
 import { useAppState } from '@/store/appState';
 import { DEFAULT_INLET, getInletById } from '@/lib/inlets';
+import { ensureHotspotLayers } from '@/lib/overlay';
 
 function fitToBBox(map: any, bbox: BBox) {
   try {
@@ -43,8 +44,8 @@ export default function AnalyzeBar() {
     if (!bbox) return;
     setBusy(true);
     try {
-      const map: any = (globalThis as any).abfiMap;
-      if (map) fitToBBox(map, bbox);
+      const mapRef: any = (globalThis as any).abfiMap;
+      if (mapRef) fitToBBox(mapRef, bbox);
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,9 +53,10 @@ export default function AnalyzeBar() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Analyze failed');
-      const map: any = (globalThis as any).abfiMap;
-      if (map) {
-        drawHotspots(map, data.hotspots);
+      if (mapRef) {
+        ensureHotspotLayers(mapRef);
+        drawHotspots(mapRef, data.hotspots);
+        fitToBBox(mapRef, bbox);
       }
     } catch (e) {
       console.error(e);
