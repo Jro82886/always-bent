@@ -2,10 +2,11 @@
 // Raster layer registry + safe helpers: add/remove/show-only/refresh/date/move listeners.
 
 import type mapboxgl from "mapbox-gl";
+import { firstSymbolLayerId } from "@/lib/overlay";
 
 /* ---------------------------------- Types --------------------------------- */
 
-export type RasterLayerId = "sst" | "chl" | "abfi";
+export type RasterLayerId = "sst" | "sst_raw" | "chl" | "abfi";
 // Compatibility alias per requested naming
 export type RasterId = RasterLayerId;
 
@@ -70,9 +71,9 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
     tileSize: 256,
   },
   {
-    id: "sst",
+    id: "sst_raw",
     name: "SST (Raw)",
-    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst_raw/{z}/{x}/{y}.png?time={DATE}&style=default`,
+    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst/{z}/{x}/{y}.png?source=goes&time={DATE}`,
     opacity: 0.85,
     minzoom: 0,
     maxzoom: 22,
@@ -167,6 +168,7 @@ export function addOrUpdateRaster(
     } as any)
   );
 
+  const insertBefore = opts.beforeId ?? firstSymbolLayerId(map);
   safe(() =>
     map.addLayer(
       {
@@ -178,7 +180,7 @@ export function addOrUpdateRaster(
         layout: { visibility: visible ? "visible" : "none" },
         paint: { "raster-opacity": opacity },
       },
-      opts.beforeId
+      insertBefore
     )
   );
 }

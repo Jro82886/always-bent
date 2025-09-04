@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/dev-guard.js && next dev",
+    "clean:start": "bash scripts/clean-start.sh",
     "env:backup": "bash scripts/env-backup.sh",
     "env:restore": "bash scripts/env-restore.sh",
+    "polys:rebuild": "ABFI_ENABLE_REAL=1 python3 build_copernicus_sst_polys.py --bbox='-77,33,-70,40' --date='2025-09-02' --out='public/abfi_sst_edges_latest.geojson'",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

@@ -12,7 +12,8 @@ export type Inlet = {
  */
 export const INLETS: Inlet[] = [
   // ---- Overview (default) ----
-  { id: "overview", name: "East Coast (overview)", center: [-74.0, 36.5], zoom: 4.4, isOverview: true },
+  // Shifted slightly offshore and adjusted zoom to bias ocean ~75% of viewport
+  { id: "overview", name: "East Coast (overview)", center: [-71.8, 36.0], zoom: 4.7, isOverview: true },
 
   // ---- Maine ----
   { id: "penobscot_me", name: "Penobscot Bay, ME", center: [-68.80, 44.33], zoom: 9 },

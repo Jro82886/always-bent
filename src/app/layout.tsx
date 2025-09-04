@@ -4,6 +4,7 @@ import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Toaster } from "react-hot-toast";
 import SelectedInletPersistence from "@/components/SelectedInletPersistence";
+import ChunkGuard from "@/components/ChunkGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SelectedInletPersistence />
+        <ChunkGuard />
         {children}
         <Toaster position="top-right" toastOptions={{ style: { background: "#1f2937", color: "#fff" } }} />
       </body>

@@ -6,22 +6,26 @@ import { MapCtx } from "@/lib/MapCtx";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAppState } from "@/store/appState";
 import { DEFAULT_INLET, getInletById } from "@/lib/inlets";
+import { PersistentLayerManager } from "@/lib/persistLayers";
+import { overviewBundle } from "@/lib/persistentBundles";
+import { usePathname } from "next/navigation";
 
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
 const BASE_STYLES = [
-  { id: "dark", url: "mapbox://styles/mapbox/dark-v11", label: "Dark" },
   { id: "satellite", url: "mapbox://styles/mapbox/satellite-v9", label: "Satellite" },
+  { id: "dark", url: "mapbox://styles/mapbox/dark-v11", label: "Dark" },
   { id: "streets", url: "mapbox://styles/mapbox/streets-v12", label: "Streets" },
 ] as const;
 
 function getInitialStyleUrl(): string {
-  if (typeof window === "undefined") return BASE_STYLES[0].url;
+  const satelliteUrl = "mapbox://styles/mapbox/satellite-v9";
+  if (typeof window === "undefined") return satelliteUrl;
   try {
-    return localStorage.getItem("abfi:basemap") ?? BASE_STYLES[0].url;
+    return localStorage.getItem("abfi:basemap") ?? satelliteUrl;
   } catch {
-    return BASE_STYLES[0].url;
+    return satelliteUrl;
   }
 }
 
@@ -31,6 +35,20 @@ export function MapShell({ children }: { children: React.ReactNode }) {
   const divRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const selectedInletId = useAppState((s) => s.selectedInletId);
+  const isoDate = useAppState((s) => s.isoDate);
+  const plmRef = useRef<PersistentLayerManager | null>(null);
+  const pathname = usePathname();
+
+  function adjustToShelf(center: [number, number], zoom: number): { center: [number, number]; zoom: number } {
+    const [lng, lat] = center;
+    // Heuristic: for inlets north of North Carolina (lat >= 35), pan ~0.6° offshore (east) and widen view
+    if (lat >= 35) {
+      const offshoreLng = lng + 0.6; // move east toward shelf (less negative)
+      const z = Math.max(8.5, zoom - 1.5);
+      return { center: [offshoreLng, lat], zoom: z } as any;
+    }
+    return { center, zoom } as any;
+  }
 
   useEffect(() => {
     if (mapRef.current || !divRef.current || !mapboxgl.accessToken) return;
@@ -51,11 +69,21 @@ export function MapShell({ children }: { children: React.ReactNode }) {
       try {
         map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
       } catch {}
+      try { map.setPadding({ top: 0, right: 0, left: 0, bottom: 80 }); } catch {}
     });
 
     mapRef.current = map;
     (window as any).map = map;
     (globalThis as any).abfiMap = map;
+
+    // Attach persistence for overview + SST
+    try {
+      const plm = new PersistentLayerManager(map);
+      plm.register(overviewBundle);
+      plm.attach();
+      (globalThis as any).abfiPLM = plm;
+      plmRef.current = plm;
+    } catch {}
 
     return () => {
       map.remove();
@@ -63,13 +91,20 @@ export function MapShell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Fly map when inlet changes
+  // Fly map when inlet changes (only honor inlet on Tracking pages)
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const inlet = getInletById(selectedInletId) || DEFAULT_INLET;
-    map.flyTo({ center: inlet.center, zoom: inlet.zoom, essential: true });
-  }, [selectedInletId]);
+    const isTracking = Boolean(pathname && (pathname.startsWith('/tracking') || pathname.startsWith('/v2/tracking')));
+    const inlet = isTracking ? (getInletById(selectedInletId) || DEFAULT_INLET) : DEFAULT_INLET;
+    const target = inlet.isOverview
+      ? { center: inlet.center, zoom: inlet.zoom }
+      : adjustToShelf(inlet.center as any, inlet.zoom as any);
+    map.flyTo({ center: target.center as any, zoom: target.zoom as any, essential: true });
+  }, [selectedInletId, pathname]);
+
+  // Update SST tiles when the selected date changes
+  // Copernicus SST is now managed by layer runtime; no persistent SST bundle here
 
   return (
     <MapCtx.Provider value={mapRef.current}>

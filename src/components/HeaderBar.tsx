@@ -7,6 +7,7 @@ import { INLETS, DEFAULT_INLET, getInletById } from "@/lib/inlets";
 import { buildInletColorMap } from "@/lib/inletColors";
 import { useAppState } from "@/store/appState";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { usePathname } from "next/navigation";
 
 /** Small helper for today's ISO (YYYY-MM-DD) */
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -29,6 +30,26 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
     activeRaster,          // 'sst' | 'chl' | 'abfi' | null
     setActiveRaster,
   } = useAppState();
+
+  const pathname = usePathname();
+  const showInletSelect = Boolean(pathname && (pathname.startsWith("/tracking") || pathname.startsWith("/v2/tracking")));
+  const onRawImagery = Boolean(pathname && (pathname.startsWith("/imagery") || pathname.startsWith("/v2/imagery")));
+  const onAnalysis   = Boolean(pathname && (pathname.startsWith("/analysis") || pathname.startsWith("/v2/analysis")));
+  const showRawTime = onRawImagery;
+  const showColors = showInletSelect; // Colors legend only on Tracking
+  const [indexTimestamps, setIndexTimestamps] = useState<string[]>([]);
+
+  // Load recent timestamps for Raw Imagery time chips
+  useEffect(() => {
+    if (!showRawTime) return;
+    (async () => {
+      try {
+        const res = await fetch(`/api/tiles/index?layer=sst&source=goes&windowHours=72`, { cache: 'no-store' });
+        const j = await res.json().catch(() => ({ timestamps: [] }));
+        if (Array.isArray(j.timestamps)) setIndexTimestamps(j.timestamps);
+      } catch {}
+    })();
+  }, [showRawTime]);
 
   const currentId = selectedInletId ?? DEFAULT_INLET.id;
   const activeInlet = useMemo(() => getInletById(currentId) ?? DEFAULT_INLET, [currentId]);
@@ -74,46 +95,52 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
 
   // One-at-a-time selection for raw layers; ABFI remains single-select too
   const toggleLayer = (id: "sst" | "chl" | "abfi") => {
-    // Require manual OFF before switching between raw layers (sst/chl)
-    if ((id === 'sst' || id === 'chl') && (activeRaster && activeRaster !== id) && (activeRaster === 'sst' || activeRaster === 'chl')) {
-      alert('Please toggle off the current layer before enabling another.');
+    // Route-aware: on Raw Imagery use sst_raw; on Analysis use sst
+    if (id === 'sst') {
+      const desired = onRawImagery ? 'sst_raw' : 'sst';
+      setActiveRaster((activeRaster as any) === desired ? null : (desired as any));
       return;
     }
-    setActiveRaster(activeRaster === id ? null : id);
+    setActiveRaster((activeRaster as any) === id ? null : id);
   };
 
   return (
     <div className="pointer-events-auto z-40 flex flex-wrap items-center gap-2 rounded-md bg-black/50 px-3 py-2 text-white backdrop-blur">
-      {/* Inlet select */}
-      <select
-        id="inlet-select"
-        value={activeInlet.id}
-        onChange={onChangeInlet}
-        className="rounded bg-black/60 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-cyan-400/60"
-      >
-        {INLETS.map((i) => (
-          <option key={i.id} value={i.id}>
-            {i.name}
-          </option>
-        ))}
-      </select>
+      {/* Inlet select: Only in Tracking */}
+      {showInletSelect && (
+        <>
+          <select
+            id="inlet-select"
+            value={activeInlet.id}
+            onChange={onChangeInlet}
+            className="rounded bg-black/60 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-cyan-400/60"
+          >
+            {INLETS.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.name}
+              </option>
+            ))}
+          </select>
 
-      {/* Selected inlet swatch */}
-      <span
-        className="inline-block h-4 w-4 rounded-full border border-white/40"
-        style={{ backgroundColor: COLOR_MAP[activeInlet.id] ?? '#343A40' }}
-        title="Inlet color"
-      />
+          <span
+            className="inline-block h-4 w-4 rounded-full border border-white/40"
+            style={{ backgroundColor: COLOR_MAP[activeInlet.id] ?? '#343A40' }}
+            title="Inlet color"
+          />
+        </>
+      )}
 
-      <button
-        type="button"
-        onClick={() => setLegendOpen(v => !v)}
-        className="rounded-md bg-black/60 text-white/90 px-2 py-1 text-xs border border-white/15 hover:bg-black/70"
-      >
-        Colors
-      </button>
+      {showColors && (
+        <button
+          type="button"
+          onClick={() => setLegendOpen(v => !v)}
+          className="rounded-md bg-black/60 text-white/90 px-2 py-1 text-xs border border-white/15 hover:bg-black/70"
+        >
+          Colors
+        </button>
+      )}
 
-      {legendOpen && (
+      {showColors && legendOpen && (
         <div className="absolute mt-10 left-0 max-h-64 w-72 overflow-auto rounded-md border border-white/15 bg-black/80 p-2 backdrop-blur z-50">
           <div className="mb-1 text-xs text-white/60">Inlet Colors</div>
           <ul className="space-y-1">
@@ -130,19 +157,58 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
         </div>
       )}
 
-      {/* Date picker */}
-      <label className="ml-3 mr-1 text-xs opacity-80" htmlFor="date-input">
-        Date
-      </label>
-      <div id="tour-date-picker">
-        <input
-          id="date-input"
-          type="date"
-          value={localDate}
-          onChange={onChangeDate}
-          className="rounded bg-black/60 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-cyan-400/60"
-        />
-      </div>
+      {/* Raw Imagery time chips */}
+      {showRawTime && (
+        <div className="ml-2 flex items-center gap-1">
+          <span className="text-xs opacity-80 mr-1">Time</span>
+          <button
+            type="button"
+            onClick={() => setIsoDate('latest') as any}
+            className="rounded px-2 py-1 text-xs ring-1 ring-white/10 hover:ring-cyan-300/50 bg-black/60 text-white"
+            title="Latest (today UTC)"
+          >Latest</button>
+          <button
+            type="button"
+            onClick={() => { const d=new Date(); d.setUTCDate(d.getUTCDate()-1); setIsoDate(d.toISOString().slice(0,10)); }}
+            className="rounded px-2 py-1 text-xs ring-1 ring-white/10 hover:ring-cyan-300/50 bg-black/60 text-white"
+            title="Yesterday (UTC)"
+          >-1d</button>
+          <button
+            type="button"
+            onClick={() => { const d=new Date(); d.setUTCDate(d.getUTCDate()-2); setIsoDate(d.toISOString().slice(0,10)); }}
+            className="rounded px-2 py-1 text-xs ring-1 ring-white/10 hover:ring-cyan-300/50 bg-black/60 text-white"
+            title="Two days ago (UTC)"
+          >-2d</button>
+          <select
+            onChange={(e)=> setIsoDate((e.target.value||'').slice(0,10))}
+            className="ml-1 rounded bg-black/60 px-2 py-1 text-xs outline-none ring-1 ring-white/10 focus:ring-cyan-400/60"
+            value={isoDate || todayISO()}
+            title="More timestamps (last ~72h)"
+          >
+            {([isoDate, ...indexTimestamps].filter(Boolean) as string[]).filter((v,i,self)=>self.indexOf(v)===i).map(ts => (
+              <option key={ts} value={ts.slice(0,10)}>{ts.slice(0,10)}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Date picker (hide on Raw Imagery to avoid duplicate calendar UI) */}
+      {!onRawImagery && (
+        <>
+          <label className="ml-3 mr-1 text-xs opacity-80" htmlFor="date-input">
+            Date
+          </label>
+          <div id="tour-date-picker">
+            <input
+              id="date-input"
+              type="date"
+              value={localDate}
+              onChange={onChangeDate}
+              className="rounded bg-black/60 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-cyan-400/60"
+            />
+          </div>
+        </>
+      )}
 
       {/* Divider */}
       <span className="mx-2 h-5 w-px bg-white/15" />

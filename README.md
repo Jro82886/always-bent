@@ -1,3 +1,16 @@
+## Polygons (SST features)
+
+Rebuild latest SST polygons (requires Python deps installed):
+
+```
+ABFI_ENABLE_REAL=1 python3 build_copernicus_sst_polys.py \
+  --bbox='-77,33,-70,40' \
+  --date='2025-09-02' \
+  --out='public/abfi_sst_edges_latest.geojson'
+```
+
+Then hard refresh the overview.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

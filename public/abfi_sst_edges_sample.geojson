@@ -1,0 +1,70 @@
+{
+  "type": "FeatureCollection",
+  "name": "abfi_sst_edges_2025-09-03T12:00Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "class": "edge",
+        "delta_f": 1.3,
+        "gradient_f_per_mi": 2.6,
+        "band_width_m": 780,
+        "warm_side_mean_f": 79.8,
+        "cool_side_mean_f": 78.5,
+        "orientation_deg": 35,
+        "confidence": 0.84,
+        "source_time": "2025-09-03T12:00:00Z",
+        "notes": "Tight GS edge pressing toward shelf; narrow band."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[ -73.215, 37.910 ], [ -73.185, 37.895 ], [ -73.160, 37.920 ], [ -73.190, 37.935 ], [ -73.215, 37.910 ]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "class": "filament",
+        "delta_f": 1.1,
+        "gradient_f_per_mi": 2.2,
+        "band_width_m": 800,
+        "warm_side_mean_f": 80.2,
+        "cool_side_mean_f": 79.1,
+        "orientation_deg": 18,
+        "length_km": 18.4,
+        "width_km": 1.0,
+        "slenderness": 18.4,
+        "confidence": 0.78,
+        "source_time": "2025-09-03T12:00:00Z",
+        "notes": "Warm GS filament peeling off main axis."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[ -73.050, 37.760 ], [ -73.030, 37.745 ], [ -72.995, 37.780 ], [ -73.015, 37.795 ], [ -73.050, 37.760 ]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "class": "eddy",
+        "delta_f": 1.6,
+        "gradient_f_per_mi": 3.1,
+        "band_width_m": 760,
+        "warm_core": true,
+        "warm_side_mean_f": 80.5,
+        "cool_side_mean_f": 78.9,
+        "diameter_km": 14.2,
+        "circularity": 0.86,
+        "confidence": 0.82,
+        "source_time": "2025-09-03T12:00:00Z",
+        "notes": "Warm-core eddy detaching on the GS north wall."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[ -72.820, 37.640 ], [ -72.790, 37.635 ], [ -72.760, 37.650 ], [ -72.770, 37.675 ], [ -72.800, 37.690 ], [ -72.830, 37.675 ], [ -72.840, 37.655 ], [ -72.820, 37.640 ]]]
+      }
+    }
+  ]
+}
+
+
