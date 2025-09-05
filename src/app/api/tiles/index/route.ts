@@ -35,11 +35,12 @@ function expandTimeRange(range: string, windowHours: number): string[] {
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const source = (url.searchParams.get('source') || 'goes').toLowerCase();
+    const source = (url.searchParams.get('source') || 'mur').toLowerCase();
     const layer = (url.searchParams.get('layer') || 'sst').toLowerCase();
     const windowHours = Math.max(1, Math.min(72, parseInt(url.searchParams.get('windowHours') || '72', 10)));
 
-    if (source !== 'goes' || layer !== 'sst') {
+    // Only support SST; accept either legacy 'goes' or desired 'mur' as aliases
+    if (layer !== 'sst' || (source !== 'mur' && source !== 'goes')) {
       return NextResponse.json({ timestamps: [] });
     }
 

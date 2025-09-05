@@ -1,3 +1,4 @@
+"use client";
 import '../globals.css';
 import { UIProvider, useUI } from '@/state/ui';
 import Link from 'next/link';
@@ -17,45 +18,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 
 function HeaderBar(){
+  const path = usePathname();
+  const { sstOn, setSstOn, setSnipOn } = useUI() as any;
   return (
     <div className="h-14 border-b border-neutral-800 flex items-center justify-between px-4">
       <div className="font-semibold tracking-wide">Always Bent (v2 sandbox)</div>
-      <div className="flex items-center gap-3">
-        <DatePicker />
-        <Tabs />
+      <div className="flex items-center gap-2">
+        <button className={`px-3 py-1 rounded ${sstOn?'bg-neutral-800':'hover:bg-neutral-800/60'}`} onClick={()=>{ setSstOn(!sstOn); setSnipOn(true); }}>SST</button>
+        <button className="px-3 py-1 rounded bg-neutral-800/50 text-neutral-400" disabled>Chlorophyll</button>
+        <Link href="/v2/community" className={`px-3 py-1 rounded ${path.startsWith('/v2/community')?'bg-neutral-800':'hover:bg-neutral-800/60'}`}>Chat</Link>
       </div>
     </div>
   );
 }
 
-function DatePicker(){
-  const { dateISO, setDateISO } = useUI();
-  return (
-    <input
-      type="date"
-      value={dateISO}
-      onChange={(e)=>setDateISO(e.target.value)}
-      className="bg-neutral-800 border border-neutral-700 rounded px-2 py-1"
-      aria-label="Imagery Date"
-    />
-  );
-}
+// Old DatePicker removed for simplified header
 
-function Tabs(){
-  const path = usePathname();
-  const Tab = ({href,label}:{href:string;label:string}) => {
-    const active = path.startsWith(href);
-    return (
-      <Link href={href} className={`px-3 py-1 rounded ${active?'bg-neutral-800':'hover:bg-neutral-800/60'}`}>
-        {label}
-      </Link>
-    );
-  };
-  return (
-    <nav className="flex items-center gap-2">
-      <Tab href="/v2/imagery" label="Raw Imagery" />
-      <Tab href="/v2/analysis" label="Analysis" />
-      <Tab href="/v2/community" label="Community" />
-    </nav>
-  );
-}
+// Tabs removed per simplified header

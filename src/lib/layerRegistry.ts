@@ -11,17 +11,7 @@ export type LayerEntry = {
 const TILES_BASE = process.env.NEXT_PUBLIC_TILES_BASE || "";
 
 export const LAYERS: LayerEntry[] = [
-  {
-    id: "sst_daily",
-    label: "SST (Daily)",
-    tiles: [
-      `${TILES_BASE}/copernicus/sst_daily/{z}/{x}/{y}.png`,
-    ],
-    opacity: 0.85,
-    attribution: "© Copernicus",
-    minzoom: 0,
-    maxzoom: 10,
-  },
+  // Copernicus layers removed for MUR-only MVP
   {
     id: "chlorophyll",
     label: "Chlorophyll",

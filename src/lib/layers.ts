@@ -45,8 +45,8 @@ const CLIENT_TILE_SIZE = (() => {
 export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "sst",
-    name: "Sea Surface Temp (daily)",
-    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst_daily/{z}/{x}/{y}.png?time={DATE}&style=default`,
+    name: "Sea Surface Temp (MUR)",
+    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst/{z}/{x}/{y}.png?source=mur&time={DATE}`,
     opacity: 0.85,
     minzoom: 0,
     maxzoom: 22, // allow display beyond WMTS matrix via upsampling
@@ -70,15 +70,7 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
     maxzoom: 10,
     tileSize: 256,
   },
-  {
-    id: "sst_raw",
-    name: "SST (Raw)",
-    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst/{z}/{x}/{y}.png?source=goes&time={DATE}`,
-    opacity: 0.85,
-    minzoom: 0,
-    maxzoom: 22,
-    tileSize: CLIENT_TILE_SIZE,
-  },
+  // sst_raw removed in favor of single MUR SST
 ];
 
 // Compatibility exports for components that import { LAYERS }

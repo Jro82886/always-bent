@@ -59,10 +59,7 @@ function normalizeTimeParam(raw?: string | null): string {
 const LAYER_MAP: Record<string, string> = {
   // Copernicus SST (OSTIA L4 NRT) default if env not set
   // You can override by setting LAYER_SST_DAILY in .env.local
-  sst_daily:
-    process.env.LAYER_SST_DAILY ||
-    process.env.AMENTUM_WMTS_LAYER ||
-    "SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001/METOFFICE-GLO-SST-L4-NRT-OBS-SST-V2/analysed_sst",
+  // sst_daily removed in favor of MUR SST via /api/tiles/sst route
   // keep alias if needed
   sst:
     process.env.LAYER_SST_DAILY ||

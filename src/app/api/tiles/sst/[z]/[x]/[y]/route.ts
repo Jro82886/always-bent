@@ -50,11 +50,12 @@ async function resolveLatestIndex(): Promise<string | null> {
 export async function GET(req: NextRequest, ctx: { params: Promise<{ z: string; x: string; y: string }> }) {
   const { z, x, y } = await ctx.params;
   const url = new URL(req.url);
-  const source = (url.searchParams.get('source') || 'goes').toLowerCase();
-  if (source !== 'goes') return new Response('unsupported source', { status: 400 });
+  const source = (url.searchParams.get('source') || 'mur').toLowerCase();
+  if (source !== 'mur') return new Response('unsupported source', { status: 400 });
 
-  const base = process.env.ABFI_SST_RAW_WMS_BASE;
-  const layer = process.env.ABFI_SST_RAW_WMS_LAYER;
+  // Prefer ERDDAP_* envs, fallback to legacy ABFI_* keys
+  const base = process.env.ERDDAP_WMS_BASE || process.env.ABFI_SST_RAW_WMS_BASE;
+  const layer = process.env.ERDDAP_WMS_LAYER || process.env.ABFI_SST_RAW_WMS_LAYER;
   if (!base || !layer) return new Response('Not configured', { status: 500 });
 
   let time = url.searchParams.get('time');
@@ -78,17 +79,18 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ z: string; 
   // Build candidate queries in preferred order
   const buildCandidates = () => {
     const out: string[] = [];
+    const version = (process.env.ERDDAP_WMS_VERSION || '1.3.0').trim();
     // WMS 1.3.0, EPSG:3857
-    const q1 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: '1.3.0', LAYERS: layer, STYLES: '', FORMAT: 'image/png', TRANSPARENT: 'true', CRS: 'EPSG:3857', BBOX: bbox3857, WIDTH: '256', HEIGHT: '256' });
+    const q1 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: version, LAYERS: layer, STYLES: '', FORMAT: 'image/png', TRANSPARENT: 'true', CRS: 'EPSG:3857', BBOX: bbox3857, WIDTH: '256', HEIGHT: '256' });
     if (time) q1.set('TIME', time);
     out.push(`${base}?${q1.toString()}`);
     // WMS 1.1.1, EPSG:3857 (SRS)
-    const q2 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: '1.1.1', LAYERS: layer, STYLES: '', FORMAT: 'image/png', TRANSPARENT: 'true', SRS: 'EPSG:3857', BBOX: bbox3857, WIDTH: '256', HEIGHT: '256' } as any);
+    const q2 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: version === '1.1.1' ? '1.1.1' : '1.1.1', LAYERS: layer, STYLES: '', FORMAT: 'image/png', TRANSPARENT: 'true', SRS: 'EPSG:3857', BBOX: bbox3857, WIDTH: '256', HEIGHT: '256' } as any);
     if (time) q2.set('TIME', time);
     out.push(`${base}?${q2.toString()}`);
     // WMS 1.3.0, EPSG:4326 (axis order: lat,lon)
     const b3 = [bbox4326.minLat, bbox4326.minLon, bbox4326.maxLat, bbox4326.maxLon].join(',');
-    const q3 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: '1.3.0', LAYERS: layer, STYLES: '', FORMAT: 'image/png', TRANSPARENT: 'true', CRS: 'EPSG:4326', BBOX: b3, WIDTH: '256', HEIGHT: '256' });
+    const q3 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: version, LAYERS: layer, STYLES: '', FORMAT: 'image/png', TRANSPARENT: 'true', CRS: 'EPSG:4326', BBOX: b3, WIDTH: '256', HEIGHT: '256' });
     if (time) q3.set('TIME', time);
     out.push(`${base}?${q3.toString()}`);
     // WMS 1.1.1, EPSG:4326 (axis order: lon,lat)
