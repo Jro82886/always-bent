@@ -8,15 +8,15 @@ const SnipOverlay  = dynamic(()=>import('@/components/SnipOverlay'), { ssr:false
 const AnalysisCard = dynamic(()=>import('@/components/SnipAnalysisCard'), { ssr:false });
 
 export default function ImageryPage(){
-  const { snipEnabled, setSnipEnabled } = useUI();
-  const label = useMemo(()=> snipEnabled ? 'Exit Snip' : 'Snip/Analyze', [snipEnabled]);
+  const { snipOn, setSnipOn } = useUI();
+  const label = useMemo(()=> snipOn ? 'Exit Snip' : 'Snip/Analyze', [snipOn]);
 
   return (
     <div className="relative h-full w-full">
       <MapStage />
       <div className="absolute top-3 right-3 flex gap-2">
         <button
-          onClick={()=>setSnipEnabled(!snipEnabled)}
+          onClick={()=>setSnipOn(!snipOn)}
           className="px-3 py-2 rounded bg-neutral-800 border border-neutral-700 hover:bg-neutral-700"
         >
           {label}

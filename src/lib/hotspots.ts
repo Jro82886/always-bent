@@ -31,7 +31,9 @@ export function pickTop3HotspotsForSnip(
   opts = { minScore: 1.2, maxReturn: 3 }
 ): FC {
   const snipB = featureBbox({ type:'Feature', properties:{}, geometry: snip } as any);
-  const candidates = allHotspots.features.filter(f => bboxIntersects(snipB, featureBbox(f as any)));
+  // Simple bbox intersection check without external helper
+  const intersects = (a: number[], b: number[]) => !(a[2] < b[0] || b[2] < a[0] || a[3] < b[1] || b[3] < a[1]);
+  const candidates = allHotspots.features.filter(f => intersects(snipB, featureBbox(f as any)));
   if (!candidates.length) return emptyFC();
 
   const scored = candidates.map(f => {

@@ -14,7 +14,7 @@ export default function LayersRuntime() {
   const isoDate = useAppState(s => s.isoDate);
   const selectedInletId = useAppState(s => s.selectedInletId);
   const unwireRef = useRef<null | (() => void)>(null);
-  const pathname = typeof window !== 'undefined' ? usePathname() : undefined as any;
+  const pathname = usePathname();
 
   // --- Overview: BIG INTEREST AREAS (placeholder polygons) ---
   function ensureOverviewAreas(show: boolean) {

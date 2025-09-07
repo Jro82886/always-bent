@@ -4,7 +4,7 @@ import HeaderBar from '@/components/HeaderBar';
 import CleanReloadButton from '@/components/CleanReloadButton';
 import BasemapControl from '@/components/BasemapControl';
 
-export default function TopHUD({ includeAbfi = false, className, extraRight, showSoon, showLayers = true }: { includeAbfi?: boolean; className?: string; extraRight?: React.ReactNode; showSoon?: boolean; showLayers?: boolean }) {
+export default function TopHUD({ includeAbfi = false, className, extraRight, showSoon = false, showLayers = true }: { includeAbfi?: boolean; className?: string; extraRight?: React.ReactNode; showSoon?: boolean; showLayers?: boolean }) {
   return (
     <div
       className={[

@@ -18,6 +18,7 @@ export type RasterLayerConfig = {
   minzoom?: number;
   maxzoom?: number;
   tileSize?: 256 | 512;
+  resampling?: 'linear' | 'nearest';
 };
 // Compatibility alias per requested naming
 export type RasterLayer = RasterLayerConfig;
@@ -46,11 +47,12 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "sst",
     name: "Sea Surface Temp (MUR)",
-    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst/{z}/{x}/{y}.png?source=mur&time={DATE}`,
-    opacity: 0.85,
+    url: `/api/sst/{z}/{x}/{y}.png?time={DATE}`,
+    opacity: 0.9,
     minzoom: 0,
     maxzoom: 22, // allow display beyond WMTS matrix via upsampling
-    tileSize: CLIENT_TILE_SIZE,
+    tileSize: 256,
+    resampling: 'linear',
   },
   {
     id: "chl",
@@ -115,8 +117,8 @@ export function getBBOX4326(map: mapboxgl.Map): string {
 
 /* ------------------------- Id builders + guards --------------------------- */
 
-const srcId = (id: string) => `src:${id}`;
-const lyrId = (id: string) => `lyr:${id}`;
+const srcId = (id: string) => (id === "sst" ? "sst-src" : `src:${id}`);
+const lyrId = (id: string) => (id === "sst" ? "sst-lyr" : `lyr:${id}`);
 
 const sourceExists = (map: mapboxgl.Map, id: string) => !!(map as any).getSource(id);
 const layerExists = (map: mapboxgl.Map, id: string) => !!map.getLayer(id);
@@ -170,11 +172,24 @@ export function addOrUpdateRaster(
         minzoom: cfg.minzoom,
         maxzoom: cfg.maxzoom,
         layout: { visibility: visible ? "visible" : "none" },
-        paint: { "raster-opacity": opacity },
+        paint: { "raster-opacity": opacity, "raster-resampling": (cfg.resampling ?? 'linear') as any },
       },
       insertBefore
     )
   );
+
+  // Keep polygons above SST where applicable
+  if (cfg.id === "sst") {
+    const polygonIds = [
+      "sst-polys-fill",
+      "sst-polys-line",
+      "overview-edges-demo-fill",
+      "overview-edges-demo-line",
+    ];
+    for (const pid of polygonIds) {
+      safe(() => map.getLayer(pid) && map.moveLayer(pid));
+    }
+  }
 }
 
 export function removeRaster(map: mapboxgl.Map, id: RasterLayerId) {

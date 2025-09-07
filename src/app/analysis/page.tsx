@@ -329,7 +329,7 @@ export default function AnalysisPage() {
     <MapShell>
       <div className="pointer-events-none absolute inset-0">
         <NavTabs />
-        <TopHUD includeAbfi showSoon />
+        <TopHUD includeAbfi showSoon={false} />
         <AnalyzeBar />
       </div>
 

@@ -6,13 +6,14 @@ import { getMap } from './MapStage';
 type Pt = { x:number; y:number };
 
 export default function SnipOverlay(){
-  const { snipEnabled, setBBox } = useUI();
+  const { snipOn } = useUI();
+  const setBBox = (_: any) => {};
   const overlayRef = useRef<HTMLDivElement|null>(null);
   const [dragStart, setDragStart] = useState<Pt|null>(null);
   const [rect, setRect] = useState<{left:number; top:number; width:number; height:number}|null>(null);
 
-  useEffect(()=>{ if(!snipEnabled){ setRect(null); setDragStart(null); } },[snipEnabled]);
-  if(!snipEnabled) return null;
+  useEffect(()=>{ if(!snipOn){ setRect(null); setDragStart(null); } },[snipOn]);
+  if(!snipOn) return null;
 
   const onDown=(e: React.MouseEvent)=>{
     const el = overlayRef.current!; const b = el.getBoundingClientRect();

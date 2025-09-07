@@ -10,10 +10,10 @@ const MATRIX_SET = "EPSG:3857";
 const DEFAULT_STYLE = "default";
 const DEFAULT_TIME = undefined as unknown as string | undefined;
 
-const AUTH_TYPE = "";
-const TOKEN = undefined as unknown as string | undefined;
-const BASIC_USER = undefined as unknown as string | undefined;
-const BASIC_PASS = undefined as unknown as string | undefined;
+const AUTH_TYPE: string = "";
+const TOKEN: string | undefined = undefined;
+const BASIC_USER: string | undefined = undefined;
+const BASIC_PASS: string | undefined = undefined;
 
 function isoMidnightUTC(date?: string | null) {
   if (date) return date;

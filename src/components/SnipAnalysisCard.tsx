@@ -5,7 +5,10 @@ import { useUI } from '@/state/ui';
 type Summary = { coords: string; date: string; sstRange?: string; gradientHint?: string; recs?: string[] };
 
 export default function SnipAnalysisCard(){
-  const { bbox, dateISO } = useUI();
+  const { snipOn } = useUI();
+  // UIState no longer exposes bbox/date; render placeholder until API is wired
+  const bbox: any = null;
+  const dateISO: string = new Date().toISOString().slice(0,10);
   const [summary, setSummary] = useState<Summary | null>(null);
 
   useEffect(()=>{
@@ -20,7 +23,7 @@ export default function SnipAnalysisCard(){
     })();
   }, [bbox, dateISO]);
 
-  if(!summary) return null;
+  if(!snipOn || !summary) return null;
   return (
     <div className="absolute bottom-4 right-4 max-w-sm bg-white text-black rounded-lg shadow-xl border border-neutral-200">
       <div className="p-4">

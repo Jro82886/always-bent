@@ -4,8 +4,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Geist, Geist_Mono } from 'next/font/google';
 import GuardsClient from '@/components/GuardsClient';
 
-export const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
-export const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
+const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
 export const metadata: Metadata = { title: 'Always Bent (v2 sandbox)' };
 

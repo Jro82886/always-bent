@@ -6,11 +6,7 @@ import { useEffect } from 'react';
 import { useAppState } from '@/store/appState';
 
 const TABS = [
-  { href: '/imagery',  label: 'Layers' },
   { href: '/analysis', label: 'Analysis' },
-  { href: '/tracking', label: 'Tracking' },
-  { href: '/community', label: 'Community' },
-  { href: '/gfw',      label: 'GFW' },
 ];
 
 export default function NavTabs() {
