@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+xarray
+numpy
+netCDF4
+pydap
+scikit-image
+shapely
+requests

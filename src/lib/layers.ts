@@ -135,7 +135,8 @@ export function addOrUpdateRaster(
   cfg: RasterLayerConfig,
   opts: AddOptions & { bbox4326?: string | null } = {}
 ) {
-  if (!map || !(map as any).loaded) {
+  // Ensure the style is loaded before mutating sources/layers
+  if (!map || !(map as any).isStyleLoaded?.()) {
     console.warn("addOrUpdateRaster: map not ready");
     return;
   }

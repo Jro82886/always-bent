@@ -50,9 +50,11 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ z: string; 
   if (time && /^\d{4}-\d{2}-\d{2}$/.test(time)) time = `${time}T00:00:00Z`;
   if (time.toLowerCase() === 'latest') time = '';
 
-  // Prefer ERDDAP_* envs; fall back to legacy keys
-  const base = process.env.ERDDAP_WMS_BASE || process.env.ABFI_SST_RAW_WMS_BASE;
-  const layer = process.env.ERDDAP_WMS_LAYER || process.env.ABFI_SST_RAW_WMS_LAYER;
+  // Prefer ERDDAP_* envs; fall back to CoastWatch MUR (jplMURSST41) WMS defaults
+  // Example base: https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request
+  // Example layer: jplMURSST41:analysed_sst
+  const base = (process.env.ERDDAP_WMS_BASE || 'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request').trim();
+  const layer = (process.env.ERDDAP_WMS_LAYER || 'jplMURSST41:analysed_sst').trim();
   const version = (process.env.ERDDAP_WMS_VERSION || '1.3.0').trim();
 
   if (!base || !layer) return blankPngResponse('not-configured');

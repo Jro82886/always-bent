@@ -6,8 +6,9 @@ export default function SSTRasterInner({ iso }: { iso: string }) {
     const map: any = (window as any).mapboxglMap;
     if (!map || !iso) return;
 
-    const srcId = 'sst';
-    const lyrId = 'sst-layer';
+    // Standardize with layers.ts helpers: 'sst-src' and 'sst-lyr'
+    const srcId = 'sst-src';
+    const lyrId = 'sst-lyr';
     const tilesUrl = `${window.location.origin}/api/tiles/sst/{z}/{x}/{y}.png?source=mur&time=${iso}`;
 
     const recreate = () => {

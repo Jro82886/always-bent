@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useMapbox } from '@/lib/MapCtx';
 
 const SRC_ID = 'sst-polys-src';
 const LINE_ID = 'sst-polys-line';
@@ -56,8 +57,9 @@ function removeLayers(map: any) {
 }
 
 export default function PolysLayer({ iso }: { iso: string }) {
+  const map = useMapbox() as any;
+
   useEffect(() => {
-    const map: any = (window as any).mapboxglMap;
     if (!map || !iso) return;
 
     let cancelled = false;
@@ -113,7 +115,7 @@ export default function PolysLayer({ iso }: { iso: string }) {
       map.off('moveend', onMoveEnd);
       removeLayers(map);
     };
-  }, [iso]);
+  }, [map, iso]);
 
   return null;
 }

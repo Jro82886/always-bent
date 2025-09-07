@@ -1,4 +1,5 @@
 'use client';
+import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type mapboxgl from 'mapbox-gl';
 import { MapShell } from '@/lib/MapRef';
@@ -14,6 +15,9 @@ import AnalyzeBar from '@/components/AnalyzeBar';
  
 
 type Bbox = { minLng: number; minLat: number; maxLng: number; maxLat: number } | null;
+
+// Mount polygons layer above raster (client-only)
+const PolysLayer = dynamic(() => import('@/components/polygons/PolysLayer'), { ssr: false });
 
 function deterministicHotspots(b: NonNullable<Bbox>) {
   const dx = (b.maxLng - b.minLng) / 4;
@@ -336,6 +340,9 @@ export default function AnalysisPage() {
       {/* Snip overlay removed; we attach native mouse handlers to the map canvas in the snipping effect */}
 
       <LayersRuntime />
+
+      {/* SST feature polygons (edges/filaments/eddies) */}
+      {isoDate ? <PolysLayer iso={isoDate} /> : null}
 
       {analysisOpen && (
         <div className="pointer-events-auto absolute right-3 top-3 z-40 w-[min(92vw,420px)] max-h-[82vh] overflow-auto rounded-xl bg-black/70 p-4 text-white ring-1 ring-white/10 backdrop-blur">
