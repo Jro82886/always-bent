@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ timestamps: [] });
     }
 
-    const base = process.env.ABFI_SST_RAW_WMS_BASE;
+    const base = process.env.ERDDAP_WMS_BASE || process.env.ABFI_SST_WMS_BASE || process.env.ABFI_SST_RAW_WMS_BASE;
     const cacheKey = `${base}|${windowHours}`;
     const now = Date.now();
     const cached = INDEX_CACHE[cacheKey];

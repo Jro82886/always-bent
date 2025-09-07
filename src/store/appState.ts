@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { DEFAULT_INLET } from "@/lib/inlets";
 
-type RasterId = "sst" | "sst_raw" | "chl" | "abfi" | null;
+type RasterId = "sst" | "chl" | "abfi" | null;
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 

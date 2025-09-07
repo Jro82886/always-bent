@@ -32,24 +32,6 @@ export const overviewBundle: PersistentBundle = {
   ],
 };
 
-export const sstBundle = (timeISO: string): PersistentBundle => ({
-  sourceId: 'abfi-sst-src',
-  source: {
-    type: 'raster',
-    tiles: [
-      `${process.env.NEXT_PUBLIC_ABFI_ORIGIN ?? ''}/api/tiles/sst/{z}/{x}/{y}.png?time=${encodeURIComponent(timeISO)}&style=default`,
-    ],
-    tileSize: 256,
-  },
-  layers: [
-    {
-      id: 'abfi-sst-layer',
-      type: 'raster',
-      source: 'abfi-sst-src',
-      layout: { visibility: 'none' },
-      paint: { 'raster-opacity': 0.55 },
-    },
-  ],
-});
+// Legacy SST persistence removed to avoid auto-readding old sources/layers.
 
 

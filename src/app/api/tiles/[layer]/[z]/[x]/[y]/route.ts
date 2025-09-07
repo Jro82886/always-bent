@@ -4,31 +4,16 @@ export const dynamic = "force-dynamic";
 
 type Params = { layer: string; z: string; x: string; y: string };
 
-// Support either Copernicus-* or legacy Amentum-* envs
-const BASE =
-  process.env.COPERNICUS_WMTS_BASE ||
-  process.env.AMENTUM_WMTS_BASE ||
-  "";
-const MATRIX_SET =
-  process.env.COPERNICUS_WMTS_MATRIXSET ||
-  process.env.AMENTUM_WMTS_MATRIXSET ||
-  "EPSG:3857";
-const DEFAULT_STYLE =
-  process.env.COPERNICUS_WMTS_STYLE ||
-  process.env.AMENTUM_WMTS_STYLE ||
-  "default";
-const DEFAULT_TIME =
-  process.env.COPERNICUS_WMTS_TIME ||
-  process.env.AMENTUM_WMTS_TIME;
+// Copernicus WMTS disabled. Keep placeholders empty to prevent usage.
+const BASE = "";
+const MATRIX_SET = "EPSG:3857";
+const DEFAULT_STYLE = "default";
+const DEFAULT_TIME = undefined as unknown as string | undefined;
 
-const AUTH_TYPE = (
-  process.env.COPERNICUS_AUTH_TYPE ||
-  process.env.AMENTUM_AUTH_TYPE ||
-  ""
-).toLowerCase();
-const TOKEN = process.env.COPERNICUS_TOKEN || process.env.AMENTUM_TOKEN;
-const BASIC_USER = process.env.COPERNICUS_BASIC_USER || process.env.AMENTUM_BASIC_USER;
-const BASIC_PASS = process.env.COPERNICUS_BASIC_PASS || process.env.AMENTUM_BASIC_PASS;
+const AUTH_TYPE = "";
+const TOKEN = undefined as unknown as string | undefined;
+const BASIC_USER = undefined as unknown as string | undefined;
+const BASIC_PASS = undefined as unknown as string | undefined;
 
 function isoMidnightUTC(date?: string | null) {
   if (date) return date;
@@ -57,15 +42,10 @@ function normalizeTimeParam(raw?: string | null): string {
 
 // Map short names to full layer ids; extend as you add layers
 const LAYER_MAP: Record<string, string> = {
-  // Copernicus SST (OSTIA L4 NRT) default if env not set
-  // You can override by setting LAYER_SST_DAILY in .env.local
-  // sst_daily removed in favor of MUR SST via /api/tiles/sst route
-  // keep alias if needed
-  sst:
-    process.env.LAYER_SST_DAILY ||
-    process.env.LAYER_THETAO_DAILY ||
-    process.env.AMENTUM_WMTS_LAYER ||
-    "SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001/METOFFICE-GLO-SST-L4-NRT-OBS-SST-V2/analysed_sst",
+  // Chlorophyll aliases (choose env-based product later)
+  // Note: SST is handled via /api/tiles/sst and not via this WMTS route.
+  // Any previous sst_daily fallback is removed.
+  sst: "",
   // Chlorophyll aliases (choose env-based product later)
   chl_daily:
     process.env.LAYER_CHL_DAILY ||
@@ -76,9 +56,7 @@ const LAYER_MAP: Record<string, string> = {
     process.env.LAYER_CHL_MONTHLY ||
     "",
   // Raw SST (optional separate product)
-  sst_raw:
-    process.env.LAYER_SST_RAW ||
-    "",
+  sst_raw: process.env.LAYER_SST_RAW || "",
 };
 
 export async function GET(req: NextRequest, ctx: { params: Promise<Params> }) {

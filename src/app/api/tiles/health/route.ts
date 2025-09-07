@@ -8,7 +8,6 @@ export async function GET() {
   const authType = (env.COPERNICUS_AUTH_TYPE || '').toLowerCase();
   const hasBearer = authType === 'bearer' && !!env.COPERNICUS_TOKEN;
   const hasBasic = authType === 'basic' && !!env.COPERNICUS_BASIC_USER && !!env.COPERNICUS_BASIC_PASS;
-  const layerSst = !!env.LAYER_SST_DAILY;
   const layerChl = !!env.LAYER_CHL_DAILY;
 
   return NextResponse.json({
@@ -16,7 +15,7 @@ export async function GET() {
     base,
     authType: authType || null,
     authReady: hasBearer || hasBasic,
-    layers: { sst: layerSst, chl: layerChl },
+    layers: { sst: false, chl: layerChl },
   });
 }
 

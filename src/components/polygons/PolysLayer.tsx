@@ -63,7 +63,10 @@ export default function PolysLayer({ iso }: { iso: string }) {
     let cancelled = false;
     let debTimer: any = null;
 
-    const base = process.env.NEXT_PUBLIC_SST_POLYGONS_URL || '';
+    const base =
+      process.env.NEXT_PUBLIC_SST_POLYGONS_URL ??
+      process.env.NEXT_PUBLIC_POLYGONS_URL ??
+      '';
     const daysBack = process.env.NEXT_PUBLIC_SST_POLYGONS_DAYS_BACK || '';
     const gsUrl = process.env.NEXT_PUBLIC_SST_POLYGONS_GS_URL || '';
 

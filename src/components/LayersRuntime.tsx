@@ -59,11 +59,8 @@ export default function LayersRuntime() {
       return;
     }
 
-    // Force correct SST variant by route: Copernicus on Analysis, ERDDAP on Raw Imagery
-    const onImagery = Boolean(pathname && (pathname.startsWith('/imagery') || pathname.startsWith('/v2/imagery')));
-    const effective = (active === 'sst' || active === 'sst_raw')
-      ? (onImagery ? 'sst_raw' : 'sst')
-      : active;
+    // No route-based flips; lock to the active raster id as selected in Header
+    const effective = active;
 
     const needs = needsBbox(effective as any);
     showOnly(map, effective as any, { isoDate });

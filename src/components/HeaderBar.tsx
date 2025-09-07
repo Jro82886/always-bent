@@ -95,9 +95,8 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
 
   // One-at-a-time selection for raw layers; ABFI remains single-select too
   const toggleLayer = (id: "sst" | "chl" | "abfi") => {
-    // Route-aware: on Raw Imagery use sst_raw; on Analysis use sst
     if (id === 'sst') {
-      const desired = onRawImagery ? 'sst_raw' : 'sst';
+      const desired = 'sst';
       setActiveRaster((activeRaster as any) === desired ? null : (desired as any));
       return;
     }
