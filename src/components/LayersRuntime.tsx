@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useMapbox } from "@/lib/MapCtx";
 import { useAppState } from "@/store/appState";
-import { showOnly, refreshOnDate, wireMoveRefresh, needsBbox } from "@/lib/layers";
+import { showOnly, refreshOnDate, wireMoveRefresh, needsBbox, RASTER_LAYERS, setRasterVisible } from "@/lib/layers";
 
 export default function LayersRuntime() {
   const map = useMapbox();
@@ -13,7 +13,17 @@ export default function LayersRuntime() {
 
   // When active layer changes: show that one and manage bbox listener
   useEffect(() => {
-    if (!map || !active) return;
+    if (!map) return;
+    
+    // If nothing is active, hide all rasters
+    if (!active) {
+      if (unwireRef.current) { unwireRef.current(); unwireRef.current = null; }
+      // Hide all layers by setting visibility to none
+      for (const cfg of RASTER_LAYERS) {
+        setRasterVisible(map, cfg.id, false);
+      }
+      return;
+    }
 
     const needs = needsBbox(active);
     showOnly(map, active, { isoDate });
