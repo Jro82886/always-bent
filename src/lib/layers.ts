@@ -54,15 +54,16 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
     maxzoom: 10,
     tileSize: 256,
   },
-  {
-    id: "abfi",
-    name: "ABFI Hotspots",
-    url: "http://localhost:3001/tiles/abfi/{z}/{x}/{y}.png",
-    opacity: 0.85,
-    minzoom: 0,
-    maxzoom: 10,
-    tileSize: 256,
-  },
+  // ABFI layer disabled for production deployment
+  // {
+  //   id: "abfi",
+  //   name: "ABFI Hotspots", 
+  //   url: "http://localhost:3001/tiles/abfi/{z}/{x}/{y}.png",
+  //   opacity: 0.85,
+  //   minzoom: 0,
+  //   maxzoom: 10,
+  //   tileSize: 256,
+  // },
 ];
 
 // Compatibility exports for components that import { LAYERS }
