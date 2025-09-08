@@ -1,2 +1,2 @@
 import { redirect } from 'next/navigation';
-export default function Root() { redirect('/fresh'); }
+export default function Root() { redirect('/legendary'); }
