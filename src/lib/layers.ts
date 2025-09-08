@@ -39,7 +39,7 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "sst",
     name: "Sea Surface Temp (daily)",
-    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/sst/{z}/{x}/{y}.png?time={DATE}`,
+    url: `/api/sst/{z}/{x}/{y}.png?time={DATE}`,
     opacity: 0.85,
     minzoom: 0,
     maxzoom: 10, // Copernicus WMTS supports 0..10
@@ -91,8 +91,9 @@ function expandUrlTemplate(
 ): string {
   const date = (isoDate ?? "").trim();
   const bbox = (bbox4326 ?? "").trim();
+  const defaultDate = new Date().toISOString().slice(0, 10);
   return template
-    .replaceAll("{DATE}", date || "2025-08-30")
+    .replaceAll("{DATE}", date || defaultDate)
     .replaceAll("{BBOX4326}", bbox);
 }
 
@@ -107,8 +108,8 @@ export function getBBOX4326(map: mapboxgl.Map): string {
 
 /* ------------------------- Id builders + guards --------------------------- */
 
-const srcId = (id: string) => `src:${id}`;
-const lyrId = (id: string) => `lyr:${id}`;
+const srcId = (id: string) => (id === "sst" ? "sst-src" : `src:${id}`);
+const lyrId = (id: string) => (id === "sst" ? "sst-lyr" : `lyr:${id}`);
 
 const sourceExists = (map: mapboxgl.Map, id: string) => !!(map as any).getSource(id);
 const layerExists = (map: mapboxgl.Map, id: string) => !!map.getLayer(id);
@@ -125,8 +126,9 @@ export function addOrUpdateRaster(
   cfg: RasterLayerConfig,
   opts: AddOptions & { bbox4326?: string | null } = {}
 ) {
-  if (!map || !(map as any).loaded) {
-    console.warn("addOrUpdateRaster: map not ready");
+  if (!map || !(map as any).isStyleLoaded?.()) {
+    console.warn("addOrUpdateRaster: map not ready, retrying");
+    setTimeout(() => addOrUpdateRaster(map, cfg, opts), 100);
     return;
   }
 
@@ -220,8 +222,16 @@ export function refreshOnDate(
   const cfg = getRasterLayer(id);
   if (!cfg) return;
   const lid = lyrId(id);
-  const vis = map.getLayoutProperty(lid, "visibility") as any;
-  const wasVisible = layerExists(map, lid) && vis !== "none";
+  const exists = layerExists(map, lid);
+  let wasVisible = true;
+  if (exists) {
+    try {
+      const vis = map.getLayoutProperty(lid, "visibility") as any;
+      wasVisible = vis !== "none";
+    } catch {
+      wasVisible = true;
+    }
+  }
   addOrUpdateRaster(map, cfg, { isoDate, bbox4326: bbox4326 ?? null, visible: wasVisible });
 }
 
