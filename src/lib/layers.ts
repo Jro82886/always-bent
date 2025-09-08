@@ -101,8 +101,10 @@ function expandUrlTemplate(
 ): string {
   const date = (isoDate ?? "").trim();
   const bbox = (bbox4326 ?? "").trim();
+  // Use today's date if no date provided, not a hardcoded future date
+  const defaultDate = new Date().toISOString().slice(0, 10);
   return template
-    .replaceAll("{DATE}", date || "2025-08-30")
+    .replaceAll("{DATE}", date || defaultDate)
     .replaceAll("{BBOX4326}", bbox);
 }
 
@@ -136,8 +138,10 @@ export function addOrUpdateRaster(
   opts: AddOptions & { bbox4326?: string | null } = {}
 ) {
   // Ensure the style is loaded before mutating sources/layers
-  if (!map || !(map as any).isStyleLoaded?.()) {
-    console.warn("addOrUpdateRaster: map not ready");
+  if (!map || !(map as any).isStyleLoaded?.() || !(map as any).getStyle?.()) {
+    console.warn("addOrUpdateRaster: map not ready, will retry");
+    // Retry after a short delay if map isn't ready
+    setTimeout(() => addOrUpdateRaster(map, cfg, opts), 100);
     return;
   }
 
@@ -244,9 +248,25 @@ export function refreshOnDate(
 ) {
   const cfg = getRasterLayer(id);
   if (!cfg) return;
+
+  // Check if map is ready, otherwise defer
+  if (!map || !(map as any).isStyleLoaded?.() || !(map as any).getStyle?.()) {
+    console.warn(`refreshOnDate: map not ready for ${id}, deferring`);
+    setTimeout(() => refreshOnDate(map, id, isoDate, bbox4326), 100);
+    return;
+  }
+
   const lid = lyrId(id);
-  const vis = map.getLayoutProperty(lid, "visibility") as any;
-  const wasVisible = layerExists(map, lid) && vis !== "none";
+  const exists = layerExists(map, lid);
+  let wasVisible = true;
+  if (exists) {
+    try {
+      const vis = map.getLayoutProperty(lid, "visibility") as any;
+      wasVisible = vis !== "none";
+    } catch {
+      wasVisible = true;
+    }
+  }
   addOrUpdateRaster(map, cfg, { isoDate, bbox4326: bbox4326 ?? null, visible: wasVisible });
 }
 
