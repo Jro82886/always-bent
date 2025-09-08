@@ -102,11 +102,23 @@ export default function MapRoot({ children }: { children?: React.ReactNode }) {
   // Handle SST toggle
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map) return;
 
-    const visibility = sstOn ? 'visible' : 'none';
-    if (map.getLayer('sst-lyr')) {
-      map.setLayoutProperty('sst-lyr', 'visibility', visibility);
+    const applyToggle = () => {
+      const visibility = sstOn ? 'visible' : 'none';
+      if (map.getLayer('sst-lyr')) {
+        console.log(`[MapRoot] Setting SST visibility to: ${visibility}`);
+        map.setLayoutProperty('sst-lyr', 'visibility', visibility);
+        map.triggerRepaint();
+      } else {
+        console.warn('[MapRoot] SST layer not found');
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      applyToggle();
+    } else {
+      map.once('style.load', applyToggle);
     }
   }, [sstOn]);
 
