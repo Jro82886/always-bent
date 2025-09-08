@@ -1,2 +1,2 @@
 import { redirect } from 'next/navigation';
-export default function Root() { redirect('/analysis'); }
+export default function Root() { redirect('/mvp'); }
