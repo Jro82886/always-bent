@@ -74,7 +74,7 @@ export default function LegendaryOceanPlatform() {
           'raster-brightness-min': 0.2,
           'raster-brightness-max': 0.8,
           'raster-contrast': 0.3,
-          'raster-saturation': 1.3
+          'raster-saturation': 1.0
         }
       });
 
