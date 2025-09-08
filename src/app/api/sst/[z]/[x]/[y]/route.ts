@@ -50,8 +50,9 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ z: string; 
   if (time && /^\d{4}-\d{2}-\d{2}$/.test(time)) time = `${time}T00:00:00Z`;
   if (time.toLowerCase() === 'latest') time = '';
 
-  // Use ERDDAP environment variables from .env.local
-  const base = (process.env.ERDDAP_WMS_BASE || 'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request').trim();
+  // Use ERDDAP environment variables from .env.local - ensure /request is appended
+  let base = (process.env.ERDDAP_WMS_BASE || 'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request').trim();
+  if (!base.endsWith('/request')) base += '/request';
   const layer = (process.env.ERDDAP_WMS_LAYER || 'jplMURSST41:analysed_sst').trim();
   const version = (process.env.ERDDAP_WMS_VERSION || '1.3.0').trim();
 
