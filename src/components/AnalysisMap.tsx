@@ -21,7 +21,8 @@ function yToLat(y: number, height: number): number {
 export function AnalysisMap({ zoomKey }: { zoomKey: number }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const selectionRef = useRef<HTMLDivElement | null>(null);
-  const { bbox, setBbox } = useAppState();
+  // Note: bbox functionality moved to analysis page
+  const [bbox, setBbox] = useState<number[] | null>(null);
   const { analysis } = (useAppState as any)() ?? {};
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [viewTransform, setViewTransform] = useState<{ scale: number; tx: number; ty: number }>({ scale: 1, tx: 0, ty: 0 });

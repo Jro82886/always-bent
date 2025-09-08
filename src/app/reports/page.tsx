@@ -5,8 +5,8 @@ import { useAppState } from "@/store/appState";
 import { INLETS } from "@/lib/inlets";
 
 export default function ReportsPage() {
-  const { inletId, username } = useAppState();
-  const inlet = INLETS.find((i) => i.id === inletId) || INLETS[0];
+  const { selectedInletId, username } = useAppState();
+  const inlet = INLETS.find((i) => i.id === selectedInletId) || INLETS[0];
   const srcBase = process.env.FAMOUS_REPORTS_URL || "about:blank";
   const url = `${srcBase}?inlet=${encodeURIComponent(inlet.id)}&username=${encodeURIComponent(username || "anon")}`;
 

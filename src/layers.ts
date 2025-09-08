@@ -33,9 +33,8 @@ function ensureRasterSource(
     } as any);
   } else {
     // If already exists, update tiles array if it changed
-    const s = map.getSource(id) as mapboxgl.RasterSource;
-    // @ts-expect-error Mapbox types don't expose setTiles; re-add layer below if needed.
-    if ((s as any).tiles && (s as any).tiles[0] !== url) {
+    const s = map.getSource(id) as any; // RasterTileSource
+    if (s.tiles && s.tiles[0] !== url) {
       map.removeSource(id);
       map.addSource(id, {
         type: "raster",

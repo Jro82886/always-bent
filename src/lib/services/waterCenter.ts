@@ -1,4 +1,4 @@
-import type { LatLon } from "@/store/appState";
+type LatLon = { lat: number; lng: number };
 import { INLETS } from "@/lib/inlets";
 
 const EARTH_RADIUS_KM = 6371; // Earth radius in kilometers
@@ -21,7 +21,7 @@ export function offsetPoint(lat: number, lon: number, distanceKm: number, bearin
       Math.cos(delta) - Math.sin(phi1) * Math.sin(phi2)
     );
 
-  return { lat: (phi2 * 180) / Math.PI, lon: (lambda2 * 180) / Math.PI };
+  return { lat: (phi2 * 180) / Math.PI, lng: (lambda2 * 180) / Math.PI };
 }
 
 // Pick a bearing based on inlet region so we always head toward the ocean.
@@ -41,7 +41,7 @@ export function waterCenterForInlet(inletId: string): LatLon {
   const inlet = INLETS.find((i) => i.id === inletId);
   if (!inlet) throw new Error("Unknown inlet: " + inletId);
   const bearing = offshoreBearing(inletId);
-  return offsetPoint(inlet.lat, inlet.lng, 4.8, bearing); // ~3 miles = 4.8 km
+  return offsetPoint(inlet.center[1], inlet.center[0], 4.8, bearing); // ~3 miles = 4.8 km
 }
 
 export function chooseInitialCenter(inletId: string, _userCoords?: LatLon | null): LatLon {

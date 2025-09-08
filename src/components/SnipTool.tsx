@@ -12,8 +12,8 @@ export default function SnipTool({ map, onBbox }: Props) {
   const [snipMode, setSnipMode] = useState(false);
   const [bbox, setBbox] = useState<[number, number, number, number] | null>(null);
   const startRef = useRef<[number, number] | null>(null);
-  const moveRef = useRef<(e: mapboxgl.MapMouseEvent) => void>();
-  const upRef = useRef<(e: mapboxgl.MapMouseEvent) => void>();
+  const moveRef = useRef<(e: mapboxgl.MapMouseEvent) => void>(null);
+  const upRef = useRef<(e: mapboxgl.MapMouseEvent) => void>(null);
 
   useEffect(() => {
     if (!map) return;
