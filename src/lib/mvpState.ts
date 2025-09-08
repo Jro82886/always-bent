@@ -19,7 +19,8 @@ interface MVPState {
   // Analysis
   sstOn: boolean;
   polygonsOn: boolean;
-  opacity: number; // 0..1
+  sstOpacity: number; // 0..1
+  polygonOpacity: number; // 0..1
   day: Day;
   iso: string; // resolved ISO date
   snipOn: boolean;
@@ -38,7 +39,8 @@ interface MVPState {
   setInletId: (id: string | null) => void;
   setSstOn: (on: boolean) => void;
   setPolygonsOn: (on: boolean) => void;
-  setOpacity: (opacity: number) => void;
+  setSstOpacity: (opacity: number) => void;
+  setPolygonOpacity: (opacity: number) => void;
   setDay: (day: Day) => void;
   setSnipOn: (on: boolean) => void;
   setSnipBox: (box: SnipBox) => void;
@@ -66,7 +68,8 @@ export const useMVPState = create<MVPState>()(
     // Analysis defaults
     sstOn: false,
     polygonsOn: true,
-    opacity: 0.85,
+    sstOpacity: 0.85,
+    polygonOpacity: 0.8,
     day: 'latest',
     iso: 'latest',
     snipOn: false,
@@ -85,7 +88,8 @@ export const useMVPState = create<MVPState>()(
     setInletId: (inletId) => set({ inletId }),
     setSstOn: (sstOn) => set({ sstOn }),
     setPolygonsOn: (polygonsOn) => set({ polygonsOn }),
-    setOpacity: (opacity) => set({ opacity }),
+    setSstOpacity: (sstOpacity) => set({ sstOpacity }),
+    setPolygonOpacity: (polygonOpacity) => set({ polygonOpacity }),
     setDay: (day) => {
       const iso = resolveDay(day);
       set({ day, iso });

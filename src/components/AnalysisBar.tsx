@@ -6,7 +6,8 @@ export default function AnalysisBar() {
   const {
     sstOn, setSstOn,
     polygonsOn, setPolygonsOn,
-    opacity, setOpacity,
+    sstOpacity, setSstOpacity,
+    polygonOpacity, setPolygonOpacity,
     day, setDay,
     snipOn, setSnipOn,
     snipBox
@@ -30,20 +31,36 @@ export default function AnalysisBar() {
           />
         </div>
 
-        {/* Opacity Slider */}
+        {/* Opacity Sliders */}
         {sstOn && (
           <div className="flex items-center gap-2">
-            <label className="text-xs">Opacity</label>
+            <label className="text-xs">SST Opacity</label>
             <input
               type="range"
               min="0"
               max="1"
               step="0.1"
-              value={opacity}
-              onChange={(e) => setOpacity(parseFloat(e.target.value))}
+              value={sstOpacity}
+              onChange={(e) => setSstOpacity(parseFloat(e.target.value))}
               className="w-20"
             />
-            <span className="text-xs w-8">{Math.round(opacity * 100)}%</span>
+            <span className="text-xs w-8">{Math.round(sstOpacity * 100)}%</span>
+          </div>
+        )}
+        
+        {polygonsOn && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs">Polygon Opacity</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={polygonOpacity}
+              onChange={(e) => setPolygonOpacity(parseFloat(e.target.value))}
+              className="w-20"
+            />
+            <span className="text-xs w-8">{Math.round(polygonOpacity * 100)}%</span>
           </div>
         )}
 

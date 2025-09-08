@@ -12,7 +12,7 @@ export default function MapRoot({ children }: { children?: React.ReactNode }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   
-  const { sstOn, polygonsOn, opacity, iso, inletId } = useMVPState();
+  const { sstOn, polygonsOn, sstOpacity, polygonOpacity, iso, inletId } = useMVPState();
 
   useEffect(() => {
     if (mapRef.current || !mapContainerRef.current) return;
@@ -41,7 +41,7 @@ export default function MapRoot({ children }: { children?: React.ReactNode }) {
         type: 'raster',
         source: 'sst-src',
         layout: { visibility: 'none' },
-        paint: { 'raster-opacity': opacity }
+        paint: { 'raster-opacity': sstOpacity }
       });
 
       // Add polygons source (empty initially)
@@ -62,7 +62,7 @@ export default function MapRoot({ children }: { children?: React.ReactNode }) {
             'eddy', '#E879F9', 
             '#F59E0B'
           ],
-          'fill-opacity': 0.12
+          'fill-opacity': polygonOpacity
         }
       });
 
@@ -134,15 +134,25 @@ export default function MapRoot({ children }: { children?: React.ReactNode }) {
     }
   }, [polygonsOn]);
 
-  // Handle opacity changes
+  // Handle SST opacity changes
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded()) return;
 
     if (map.getLayer('sst-lyr')) {
-      map.setPaintProperty('sst-lyr', 'raster-opacity', opacity);
+      map.setPaintProperty('sst-lyr', 'raster-opacity', sstOpacity);
     }
-  }, [opacity]);
+  }, [sstOpacity]);
+
+  // Handle polygon opacity changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+
+    if (map.getLayer('polys-fill')) {
+      map.setPaintProperty('polys-fill', 'fill-opacity', polygonOpacity);
+    }
+  }, [polygonOpacity]);
 
   // Handle date/time changes
   useEffect(() => {
