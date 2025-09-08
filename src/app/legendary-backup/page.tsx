@@ -4,13 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Import Inter font for modern typography
-import { Inter } from 'next/font/google';
-const inter = Inter({ subsets: ['latin'] });
-
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
-console.log('🗝️ Mapbox token loaded:', !!mapboxgl.accessToken);
 
 export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -260,7 +255,7 @@ export default function LegendaryOceanPlatform() {
   }, [currentDate]);
 
   return (
-    <div className={`w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden ${inter.className}`}>
+    <div className="w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden">
       {/* Map Container */}
       <div ref={mapContainer} className="w-full h-full" />
       
