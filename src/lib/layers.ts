@@ -127,8 +127,7 @@ export function addOrUpdateRaster(
   opts: AddOptions & { bbox4326?: string | null } = {}
 ) {
   if (!map || !(map as any).isStyleLoaded?.()) {
-    console.warn("addOrUpdateRaster: map not ready, retrying");
-    setTimeout(() => addOrUpdateRaster(map, cfg, opts), 100);
+    console.warn("addOrUpdateRaster: map not ready");
     return;
   }
 

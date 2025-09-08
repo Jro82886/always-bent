@@ -51,7 +51,7 @@ export function MapShell({ children }: { children: React.ReactNode }) {
   return (
     <MapCtx.Provider value={mapRef.current}>
       {/* Empty container for Mapbox */}
-      <div ref={divRef} className="map-canvas w-full h-screen" />
+      <div ref={divRef} id="map" className="w-full h-full" />
 
       {/* Overlays (UI on top of the map) */}
       <div className="pointer-events-none absolute inset-0 z-10">
