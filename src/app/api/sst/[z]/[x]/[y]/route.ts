@@ -79,9 +79,10 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ z: string; 
     const styles = process.env.ERDDAP_WMS_STYLES || 'boxfill/rainbow';
     const colorScale = process.env.ERDDAP_WMS_COLORSCALERANGE || '0,35';
     const numBands = process.env.ERDDAP_WMS_NUMCOLORBANDS || '254';
-    // WMS 1.3.0, EPSG:3857
-    const q1 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: version, LAYERS: layer, STYLES: styles, FORMAT: 'image/png', TRANSPARENT: 'true', CRS: 'EPSG:3857', BBOX: bbox3857, WIDTH: '256', HEIGHT: '256', COLORSCALERANGE: colorScale, NUMCOLORBANDS: numBands } as any);
-    if (time) q1.set('TIME', time);
+    // WMS 1.3.0, EPSG:4326 (this works!)
+    const b4326 = [bbox4326.minLat, bbox4326.minLon, bbox4326.maxLat, bbox4326.maxLon].join(',');
+    const q1 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: version, LAYERS: layer, STYLES: styles, FORMAT: 'image/png', TRANSPARENT: 'true', CRS: 'EPSG:4326', BBOX: b4326, WIDTH: '256', HEIGHT: '256', COLORSCALERANGE: colorScale, NUMCOLORBANDS: numBands } as any);
+    // Don't add time parameter - use ERDDAP default
     out.push(`${base}?${q1.toString()}`);
     // WMS 1.1.1, EPSG:3857 (SRS)
     const q2 = new URLSearchParams({ SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: '1.1.1', LAYERS: layer, STYLES: styles, FORMAT: 'image/png', TRANSPARENT: 'true', SRS: 'EPSG:3857', BBOX: bbox3857, WIDTH: '256', HEIGHT: '256', COLORSCALERANGE: colorScale, NUMCOLORBANDS: numBands } as any);

@@ -59,7 +59,7 @@ export default function LegendaryOceanPlatform() {
       // SST layer with cinematic effects - use specific date with data
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`/api/sst/{z}/{x}/{y}?time=2025-09-08`], // Use today's date
+        tiles: [`/api/sst/{z}/{x}/{y}`], // No time parameter - use ERDDAP default
         tileSize: 256
       });
 
@@ -242,21 +242,21 @@ export default function LegendaryOceanPlatform() {
     try {
       // Use demo ocean features to avoid API errors
       const demoData = {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [
           {
-            type: 'Feature',
+            type: 'Feature' as const,
             properties: { class: 'filament', score: 85 },
             geometry: {
-              type: 'LineString',
+              type: 'LineString' as const,
               coordinates: [[-75.5, 36.2], [-75.3, 36.4], [-75.0, 36.6]]
             }
           },
           {
-            type: 'Feature',
+            type: 'Feature' as const,
             properties: { class: 'eddy', score: 92 },
             geometry: {
-              type: 'Polygon',
+              type: 'Polygon' as const,
               coordinates: [[[-74.8, 35.8], [-74.6, 35.8], [-74.6, 36.0], [-74.8, 36.0], [-74.8, 35.8]]]
             }
           }
