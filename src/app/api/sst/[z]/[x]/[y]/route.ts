@@ -54,6 +54,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ z: string; 
   // Example base: https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request
   // Example layer: jplMURSST41:analysed_sst
   const base = (process.env.ERDDAP_WMS_BASE || 'https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request').trim();
+  console.log('🔍 ERDDAP Base URL:', base);
   const layer = (process.env.ERDDAP_WMS_LAYER || 'jplMURSST41:analysed_sst').trim();
   const version = (process.env.ERDDAP_WMS_VERSION || '1.3.0').trim();
 

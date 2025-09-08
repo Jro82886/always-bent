@@ -19,7 +19,7 @@ export default function LegendaryOceanPlatform() {
   const [sstActive, setSstActive] = useState(true); // Start with SST active
   const [polygonsActive, setPolygonsActive] = useState(false);
   const [sstOpacity, setSstOpacity] = useState(0.85);
-  const [currentDate, setCurrentDate] = useState('latest');
+  const [currentDate, setCurrentDate] = useState('2025-09-08'); // Today's date
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const [dataStats, setDataStats] = useState({ tiles: 0, features: 0 });
@@ -59,7 +59,7 @@ export default function LegendaryOceanPlatform() {
       // SST layer with cinematic effects - use specific date with data
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`/api/sst/{z}/{x}/{y}?time=2025-09-05`], // Force specific date
+        tiles: [`/api/sst/{z}/{x}/{y}?time=2025-09-08`], // Use today's date
         tileSize: 256
       });
 
