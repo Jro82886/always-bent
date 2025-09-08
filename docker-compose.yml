@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  web:
+    image: node:20
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:-dummy-token}
+      NEXT_PUBLIC_SST_POLYGONS_URL: /api/polygons
+      POLYGONS_BACKEND_URL: http://backend:8010/polygons
+    volumes:
+      - ./:/app
+    command: bash -lc "npm ci && PORT=3000 npm run dev"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: python/Dockerfile
+    environment:
+      GRIDDAP_BASE: https://coastwatch.pfeg.noaa.gov/erddap/griddap/jplMURSST41
+    ports:
+      - "8010:8010"
+

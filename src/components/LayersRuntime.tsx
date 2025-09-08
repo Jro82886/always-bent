@@ -87,15 +87,7 @@ export default function LayersRuntime() {
     return () => { map.off('style.load', onStyle); };
   }, [map, selectedInletId]);
 
-  // Defensive: detect unexpected duplicate legacy UI state and hard refresh
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const legacy = document.querySelector('[title="Toggle SST layer"]');
-    if (legacy) {
-      // Clean caches + reload to remove any stale injected UI
-      cleanReload();
-    }
-  }, []);
+  // Legacy UI detector removed; HeaderBar is the single source of truth
 
   // When the date changes: refresh currently active layer
   useEffect(() => {
