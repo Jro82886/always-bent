@@ -4,22 +4,17 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Import Inter font for modern typography
-import { Inter } from 'next/font/google';
-const inter = Inter({ subsets: ['latin'] });
-
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
-console.log('🗝️ Mapbox token loaded:', !!mapboxgl.accessToken);
 
 export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  const [sstActive, setSstActive] = useState(true); // Start with SST active
+  const [sstActive, setSstActive] = useState(false);
   const [polygonsActive, setPolygonsActive] = useState(false);
   const [sstOpacity, setSstOpacity] = useState(0.85);
-  const [currentDate, setCurrentDate] = useState('2025-09-08'); // Today's date
+  const [currentDate, setCurrentDate] = useState('latest');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const [dataStats, setDataStats] = useState({ tiles: 0, features: 0 });
@@ -56,10 +51,10 @@ export default function LegendaryOceanPlatform() {
     const mapInstance = map.current;
 
     mapInstance.on('load', () => {
-      // SST layer with cinematic effects - use specific date with data
+      // SST layer with cinematic effects
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`/api/sst/{z}/{x}/{y}`], // No time parameter - use ERDDAP default
+        tiles: [`/api/sst/{z}/{x}/{y}?time=${currentDate}`],
         tileSize: 256
       });
 
@@ -67,14 +62,14 @@ export default function LegendaryOceanPlatform() {
         id: 'sst-layer',
         type: 'raster',
         source: 'sst',
-        layout: { visibility: 'visible' }, // Start visible for demo
+        layout: { visibility: 'none' },
         paint: { 
           'raster-opacity': sstOpacity,
           'raster-fade-duration': 500,
           'raster-brightness-min': 0.2,
           'raster-brightness-max': 0.8,
           'raster-contrast': 0.3,
-          'raster-saturation': 1.0
+          'raster-saturation': 1.3
         }
       });
 
@@ -189,14 +184,6 @@ export default function LegendaryOceanPlatform() {
       }
       
       console.log(`🌡️ SST ${newState ? '🔥 ACTIVATED' : '❄️ DEACTIVATED'}`);
-      
-      // Debug SST layer
-      if (newState && map.current.getLayer('sst-layer')) {
-        const visibility = map.current.getLayoutProperty('sst-layer', 'visibility');
-        const opacity = map.current.getPaintProperty('sst-layer', 'raster-opacity');
-        console.log('🔍 SST Debug - Visibility:', visibility, 'Opacity:', opacity);
-      }
-      
       setDataStats(prev => ({ ...prev, tiles: newState ? prev.tiles + 1 : 0 }));
     }
   };
@@ -237,36 +224,14 @@ export default function LegendaryOceanPlatform() {
     setDataStats(prev => ({ ...prev, features: newState ? 42 : 0 }));
   };
 
-  // Load polygon data with fallback to demo data
+  // Load polygon data
   const loadPolygons = async () => {
     try {
-      // Use demo ocean features to avoid API errors
-      const demoData = {
-        type: 'FeatureCollection' as const,
-        features: [
-          {
-            type: 'Feature' as const,
-            properties: { class: 'filament', score: 85 },
-            geometry: {
-              type: 'LineString' as const,
-              coordinates: [[-75.5, 36.2], [-75.3, 36.4], [-75.0, 36.6]]
-            }
-          },
-          {
-            type: 'Feature' as const,
-            properties: { class: 'eddy', score: 92 },
-            geometry: {
-              type: 'Polygon' as const,
-              coordinates: [[[-74.8, 35.8], [-74.6, 35.8], [-74.6, 36.0], [-74.8, 36.0], [-74.8, 35.8]]]
-            }
-          }
-        ]
-      };
-      
+      const response = await fetch(`/api/polygons?date=${currentDate}`);
+      const data = await response.json();
       const source = map.current?.getSource('polygons') as mapboxgl.GeoJSONSource;
       if (source) {
-        source.setData(demoData);
-        console.log('🌀 Demo ocean features loaded');
+        source.setData(data);
       }
     } catch (error) {
       console.warn('Failed to load ocean features:', error);
@@ -290,7 +255,7 @@ export default function LegendaryOceanPlatform() {
   }, [currentDate]);
 
   return (
-    <div className={`w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden ${inter.className}`}>
+    <div className="w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden">
       {/* Map Container */}
       <div ref={mapContainer} className="w-full h-full" />
       
@@ -309,7 +274,7 @@ export default function LegendaryOceanPlatform() {
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full border-3 border-white animate-pulse shadow-lg"></div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
+                <h1 className="text-3xl font-black text-white tracking-tight mb-1">
                   <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
                     ALWAYS BENT
                   </span>
@@ -338,7 +303,7 @@ export default function LegendaryOceanPlatform() {
                   <span className="text-white text-xl font-bold">🌡️</span>
                 </div>
                 <div>
-                  <h3 className="text-white font-bold text-lg">Sea Surface Temperature</h3>
+                  <h3 className="text-white font-black text-xl">Sea Surface Temperature</h3>
                   <p className="text-blue-200/90 text-sm font-medium">NOAA CoastWatch MUR • Live Satellite Feed</p>
                 </div>
               </div>
@@ -414,7 +379,7 @@ export default function LegendaryOceanPlatform() {
                   <span className="text-white text-xl font-bold">🌀</span>
                 </div>
                 <div>
-                  <h3 className="text-white font-bold text-lg">Ocean Features</h3>
+                  <h3 className="text-white font-black text-xl">Ocean Features</h3>
                   <p className="text-purple-200/90 text-sm font-medium">AI-Detected Eddies • Filaments • Thermal Fronts</p>
                 </div>
               </div>
@@ -471,7 +436,7 @@ export default function LegendaryOceanPlatform() {
                 <span className="text-white text-xl font-bold">⏰</span>
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg">Temporal Analysis</h3>
+                <h3 className="text-white font-black text-xl">Temporal Analysis</h3>
                 <p className="text-orange-200/90 text-sm font-medium">Multi-day Time Series • Historical Patterns</p>
               </div>
             </div>
