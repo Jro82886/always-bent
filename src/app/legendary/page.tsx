@@ -224,10 +224,13 @@ export default function LegendaryOceanPlatform() {
       (window as any).map = mapInstance;
     });
 
-    // Add error handling
+    // Add error handling with better logging
     mapInstance.on('error', (e) => {
-      console.error('Map error:', e);
-      setError('Map initialization failed. Please refresh.');
+      console.error('Map error details:', e.error, e.sourceId, e.type);
+      // Don't show error to user unless it's critical
+      if (e.error && e.error.message && !e.error.message.includes('ie')) {
+        setError('Map initialization failed. Please refresh.');
+      }
       setMapLoading(false);
     });
 
