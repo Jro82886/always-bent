@@ -33,13 +33,12 @@ export default function LegendaryOceanPlatform() {
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
 
-      // Add SST source - professional thermal visualization
+      // Add SST source - copy phyto's working settings
       mapInstance.addSource('sst', {
         type: 'raster',
         tiles: [`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // High resolution
-        maxzoom: 20,    // Ultra-detailed thermal analysis
-        minzoom: 0
+        tileSize: 256,  // Same as working phyto
+        maxzoom: 18     // Same as working phyto
       });
 
       mapInstance.addLayer({
@@ -58,13 +57,12 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Add chlorophyll source - optimized for coastline clarity
+      // Add chlorophyll source - copy phyto's working settings
       mapInstance.addSource('chl', {
         type: 'raster',
         tiles: [`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // Higher resolution tiles
-        maxzoom: 20,    // Ultra-deep zoom for precise analysis
-        minzoom: 0
+        tileSize: 256,  // Same as working phyto
+        maxzoom: 18     // Same as working phyto
       });
 
       mapInstance.addLayer({
@@ -73,14 +71,9 @@ export default function LegendaryOceanPlatform() {
         source: 'chl',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.8,
-          'raster-fade-duration': 150,     // Smooth transitions
-          'raster-resampling': 'linear',   // Anti-aliased coastlines
-          'raster-brightness-min': 0.0,   // Full dynamic range
-          'raster-brightness-max': 1.0,
-          'raster-contrast': 0.3,          // Enhanced definition
-          'raster-saturation': 1.2,       // Vibrant but not oversaturated
-          'raster-hue-rotate': 0          // Keep natural colors
+          'raster-opacity': 0.8,          // Same as working phyto
+          'raster-fade-duration': 300,    // Same as working phyto  
+          'raster-resampling': 'linear'   // Same as working phyto
         }
       });
 
