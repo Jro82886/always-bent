@@ -60,8 +60,9 @@ export default function LegendaryOceanPlatform() {
         source: 'chl',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.9,
-          'raster-fade-duration': 300
+          'raster-opacity': 0.8,
+          'raster-fade-duration': 300,
+          'raster-resampling': 'linear'  // Smooth interpolation
         }
       });
 
