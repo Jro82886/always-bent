@@ -117,16 +117,31 @@ export default function LegendaryOceanPlatform() {
     };
   }, []);
 
-  // Handle date changes - update chlorophyll tiles
+  // Handle date changes - update ALL ocean layers (iron-clad system)
   useEffect(() => {
-    if (!map.current || !map.current.getSource('chl')) return;
+    if (!map.current) return;
     
-    const source = map.current.getSource('chl') as mapboxgl.RasterTileSource;
-    if (source && (source as any).setTiles) {
-      (source as any).setTiles([`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
-      map.current.triggerRepaint();
-      console.log(`📅 Date changed to: ${selectedDate}`);
+    // Update chlorophyll tiles
+    const chlSource = map.current.getSource('chl') as mapboxgl.RasterTileSource;
+    if (chlSource && (chlSource as any).setTiles) {
+      (chlSource as any).setTiles([`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
     }
+    
+    // Update phytoplankton tiles  
+    const phycSource = map.current.getSource('phyc') as mapboxgl.RasterTileSource;
+    if (phycSource && (phycSource as any).setTiles) {
+      (phycSource as any).setTiles([`/api/copernicus-phyc/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
+    }
+    
+    // Update SST tiles
+    const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
+    if (sstSource && (sstSource as any).setTiles) {
+      (sstSource as any).setTiles([`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
+    }
+    
+    // Force map repaint for all layers
+    map.current.triggerRepaint();
+    console.log(`📅 Date changed to: ${selectedDate} - ALL layers updated`);
   }, [selectedDate]);
 
   // SST toggle with forced visibility
