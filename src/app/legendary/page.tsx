@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback, memo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -23,6 +23,9 @@ export default function LegendaryOceanPlatform() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const [dataStats, setDataStats] = useState({ tiles: 0, features: 0 });
+  const [mapLoading, setMapLoading] = useState(true);
+  const [sstLoading, setSstLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Live UTC clock
   useEffect(() => {
@@ -56,6 +59,9 @@ export default function LegendaryOceanPlatform() {
     const mapInstance = map.current;
 
     mapInstance.on('load', () => {
+      console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
+      setMapLoading(false);
+      setError(null);
       // SST layer with cinematic effects - use specific date with data
       mapInstance.addSource('sst', {
         type: 'raster',
@@ -155,7 +161,20 @@ export default function LegendaryOceanPlatform() {
 
       // Make globally available
       (window as any).map = mapInstance;
-      console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
+    });
+
+    // Add error handling
+    mapInstance.on('error', (e) => {
+      console.error('Map error:', e);
+      setError('Map initialization failed. Please refresh.');
+      setMapLoading(false);
+    });
+
+    mapInstance.on('sourcedata', (e) => {
+      if (e.sourceId === 'sst' && e.isSourceLoaded) {
+        setSstLoading(false);
+        setDataStats(prev => ({ ...prev, tiles: prev.tiles + 1 }));
+      }
     });
 
     return () => {
@@ -163,11 +182,13 @@ export default function LegendaryOceanPlatform() {
     };
   }, []);
 
-  // Epic SST activation
-  const toggleSST = () => {
+  // Epic SST activation with optimized loading
+  const toggleSST = useCallback(() => {
     if (!map.current) return;
     const newState = !sstActive;
     setSstActive(newState);
+    
+    if (newState) setSstLoading(true);
     
     if (map.current.getLayer('sst-layer')) {
       if (newState) {
@@ -199,7 +220,7 @@ export default function LegendaryOceanPlatform() {
       
       setDataStats(prev => ({ ...prev, tiles: newState ? prev.tiles + 1 : 0 }));
     }
-  };
+  }, [sstActive, sstOpacity]);
 
   // Epic polygon activation with cascade
   const togglePolygons = async () => {
@@ -294,10 +315,10 @@ export default function LegendaryOceanPlatform() {
       {/* Map Container */}
       <div ref={mapContainer} className="w-full h-full" />
       
-      {/* LEGENDARY CONTROL HUB */}
-      <div className="absolute top-8 left-8 space-y-6 z-50">
+      {/* LEGENDARY CONTROL HUB - Responsive */}
+      <div className="absolute top-4 left-4 md:top-8 md:left-8 space-y-4 md:space-y-6 z-50 max-w-[90vw] md:max-w-none">
         {/* Main Control Panel */}
-        <div className="bg-black/20 backdrop-blur-2xl rounded-3xl border border-cyan-500/30 p-8 min-w-[400px] shadow-2xl shadow-cyan-500/10">
+        <div className="bg-black/20 backdrop-blur-2xl rounded-3xl border border-cyan-500/30 p-4 md:p-8 min-w-[300px] md:min-w-[400px] shadow-2xl shadow-cyan-500/10">
           
           {/* Epic Branding */}
           <div className="mb-8">
@@ -577,7 +598,44 @@ export default function LegendaryOceanPlatform() {
         </div>
       </div>
 
-      {/* Loading Overlay */}
+      {/* Map Loading Overlay */}
+      {mapLoading && (
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100]">
+          <div className="bg-black/40 backdrop-blur-2xl rounded-3xl p-12 border border-cyan-400/30 shadow-2xl">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin"></div>
+                <div className="absolute inset-4 border-2 border-blue-400/30 border-b-blue-400 rounded-full animate-spin-reverse"></div>
+              </div>
+              <div>
+                <span className="text-white text-2xl font-bold block">Initializing Ocean Platform...</span>
+                <span className="text-cyan-400 text-sm font-medium">Loading Mapbox & Satellite Data</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Overlay */}
+      {error && (
+        <div className="absolute inset-0 bg-red-900/80 backdrop-blur-sm flex items-center justify-center z-[100]">
+          <div className="bg-black/40 backdrop-blur-2xl rounded-3xl p-12 border border-red-400/30 shadow-2xl">
+            <div className="text-center">
+              <span className="text-red-400 text-4xl block mb-4">⚠️</span>
+              <span className="text-white text-xl font-bold block mb-2">System Error</span>
+              <span className="text-red-200 text-sm">{error}</span>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-4 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Reload Platform
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Analysis Loading Overlay */}
       {isAnalyzing && (
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]">
           <div className="bg-black/40 backdrop-blur-2xl rounded-3xl p-12 border border-cyan-400/30 shadow-2xl">
