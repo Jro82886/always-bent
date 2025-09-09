@@ -16,7 +16,7 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  const [sstActive, setSstActive] = useState(true); // Start with SST active
+  const [sstActive, setSstActive] = useState(false); // Start OFF - let user activate
   const [polygonsActive, setPolygonsActive] = useState(false);
   const [sstOpacity, setSstOpacity] = useState(0.85);
   const [currentDate, setCurrentDate] = useState('2025-09-08'); // Today's date
@@ -73,7 +73,7 @@ export default function LegendaryOceanPlatform() {
         id: 'sst-layer',
         type: 'raster',
         source: 'sst',
-        layout: { visibility: 'visible' }, // Start visible for demo
+        layout: { visibility: 'none' }, // Start hidden - activate on toggle
         paint: { 
           'raster-opacity': sstOpacity,
           'raster-fade-duration': 500,
