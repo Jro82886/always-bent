@@ -260,7 +260,9 @@ export default function LegendaryOceanPlatform() {
     });
 
     return () => {
-      mapInstance.remove();
+      if (mapInstance) {
+        mapInstance.remove();
+      }
     };
   }, []);
 
