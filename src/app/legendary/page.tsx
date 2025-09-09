@@ -379,12 +379,12 @@ export default function LegendaryOceanPlatform() {
   }, [currentDate]);
 
   return (
-    <div className={`w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden ${inter.className}`}>
+    <div className={`w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden ${inter.className} main-container`}>
       {/* Map Container */}
       <div ref={mapContainer} className="w-full h-full" />
       
       {/* LEGENDARY CONTROL HUB - Fixed Scrolling */}
-      <div className="absolute top-4 left-4 md:top-8 md:left-8 w-[380px] h-[calc(100vh-2rem)] z-50 overflow-y-scroll overflow-x-hidden">
+      <div className="absolute top-4 left-4 md:top-8 md:left-8 w-[380px] h-[80vh] z-50 overflow-y-auto overflow-x-hidden bg-transparent layer-panel controls-panel" style={{ maxHeight: '80vh' }}>
         <div className="space-y-4 pb-20">
         {/* Main Control Panel - Glow Flow Design */}
         <div className="bg-black/10 backdrop-blur-3xl rounded-3xl border border-white/10 p-4 md:p-8 min-w-[300px] md:min-w-[400px] shadow-2xl shadow-white/5">
@@ -824,8 +824,39 @@ export default function LegendaryOceanPlatform() {
         </div>
       )}
 
-      {/* Glow Flow Styles - Intuitive Navigation */}
+      {/* Glow Flow Styles + Scroll Fixes */}
       <style jsx>{`
+        .main-container {
+          height: 100vh;
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .layer-panel, .controls-panel {
+          max-height: 80vh !important;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255,255,255,0.3) transparent;
+        }
+        
+        .layer-panel::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .layer-panel::-webkit-scrollbar-track {
+          background: rgba(255,255,255,0.1);
+          border-radius: 3px;
+        }
+        
+        .layer-panel::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.3);
+          border-radius: 3px;
+        }
+        
+        .layer-panel::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,255,255,0.5);
+        }
         .glow-active {
           box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 
                       0 0 40px rgba(255, 255, 255, 0.1),
