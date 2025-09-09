@@ -47,13 +47,9 @@ export default function LegendaryOceanPlatform() {
         source: 'sst',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.85,          // Prominent thermal visibility
-          'raster-fade-duration': 150,
-          'raster-resampling': 'linear',
-          'raster-brightness-min': 0.0,
-          'raster-brightness-max': 1.0,
-          'raster-contrast': 0.4,          // Strong thermal contrast
-          'raster-saturation': 1.3         // Vivid thermal colors
+          'raster-opacity': 0.8,          // Same as working layers
+          'raster-fade-duration': 300,    // Same as working layers  
+          'raster-resampling': 'linear'   // Same as working layers
         }
       });
 
@@ -182,8 +178,12 @@ export default function LegendaryOceanPlatform() {
 
   return (
     <div className="w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
-      {/* Map Container */}
-      <div ref={mapContainer} className="w-full h-full" />
+      {/* Map Container with enhanced rendering */}
+      <div ref={mapContainer} className="w-full h-full" style={{ 
+        imageRendering: 'crisp-edges',
+        WebkitImageRendering: 'crisp-edges',
+        MozImageRendering: 'crisp-edges'
+      }} />
       
       {/* Simple Control Panel */}
       <div className="absolute top-8 left-8 bg-black/80 backdrop-blur rounded-2xl p-6 text-white space-y-4">
