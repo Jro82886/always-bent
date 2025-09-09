@@ -13,6 +13,7 @@ export default function LegendaryOceanPlatform() {
   
   const [sstActive, setSstActive] = useState(false);
   const [chlActive, setChlActive] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('2025-09-09'); // Today
 
   // Initialize map
   useEffect(() => {
@@ -46,10 +47,10 @@ export default function LegendaryOceanPlatform() {
         paint: { 'raster-opacity': 0.8 }
       });
 
-      // Add chlorophyll source
+      // Add chlorophyll source with dynamic date
       mapInstance.addSource('chl', {
         type: 'raster',
-        tiles: ['/api/copernicus/{z}/{x}/{y}?time=2025-09-03T00:00:00.000Z'],
+        tiles: [`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
         tileSize: 256
       });
 
@@ -58,7 +59,10 @@ export default function LegendaryOceanPlatform() {
         type: 'raster',
         source: 'chl',
         layout: { visibility: 'none' },
-        paint: { 'raster-opacity': 0.8 }
+        paint: { 
+          'raster-opacity': 0.9,
+          'raster-fade-duration': 300
+        }
       });
 
       console.log('🌿 Chlorophyll layer added successfully');
@@ -69,6 +73,18 @@ export default function LegendaryOceanPlatform() {
       mapInstance.remove();
     };
   }, []);
+
+  // Handle date changes - update chlorophyll tiles
+  useEffect(() => {
+    if (!map.current || !map.current.getSource('chl')) return;
+    
+    const source = map.current.getSource('chl') as mapboxgl.RasterTileSource;
+    if (source && (source as any).setTiles) {
+      (source as any).setTiles([`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
+      map.current.triggerRepaint();
+      console.log(`📅 Date changed to: ${selectedDate}`);
+    }
+  }, [selectedDate]);
 
   // SST toggle
   const toggleSST = () => {
@@ -82,7 +98,7 @@ export default function LegendaryOceanPlatform() {
     }
   };
 
-  // Chlorophyll toggle
+  // Chlorophyll toggle with debugging
   const toggleChlorophyll = () => {
     if (!map.current) return;
     const newState = !chlActive;
@@ -90,7 +106,14 @@ export default function LegendaryOceanPlatform() {
     
     if (map.current.getLayer('chl-layer')) {
       map.current.setLayoutProperty('chl-layer', 'visibility', newState ? 'visible' : 'none');
-      console.log(`🌿 Chlorophyll ${newState ? 'ON' : 'OFF'}`);
+      if (newState) {
+        // Force layer to be visible and on top
+        map.current.setPaintProperty('chl-layer', 'raster-opacity', 0.9);
+        map.current.moveLayer('chl-layer');
+      }
+      console.log(`🌿 Chlorophyll ${newState ? 'ON' : 'OFF'} - Layer visibility: ${newState ? 'visible' : 'none'}`);
+    } else {
+      console.error('🚨 Chlorophyll layer not found!');
     }
   };
 
@@ -123,6 +146,21 @@ export default function LegendaryOceanPlatform() {
         >
           🌿 Chlorophyll {chlActive ? 'ON' : 'OFF'}
         </button>
+        
+        <div className="border-t border-white/20 pt-4">
+          <label className="text-sm opacity-80 block mb-2">📅 Date Selection</label>
+          <select
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white text-sm"
+          >
+            <option value="2025-09-09">Today (Sep 9)</option>
+            <option value="2025-09-08">Yesterday (Sep 8)</option>
+            <option value="2025-09-07">2 Days Ago (Sep 7)</option>
+            <option value="2025-09-06">3 Days Ago (Sep 6)</option>
+            <option value="2025-09-05">4 Days Ago (Sep 5)</option>
+          </select>
+        </div>
         
         <p className="text-xs opacity-60">
           ⚡ Powered by Claude & Cursor
