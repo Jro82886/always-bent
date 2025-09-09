@@ -18,6 +18,7 @@ export default function LegendaryOceanPlatform() {
   
   const [sstActive, setSstActive] = useState(false); // Start OFF - let user activate
   const [chlActive, setChlActive] = useState(false); // Chlorophyll layer
+  const [abfiActive, setAbfiActive] = useState(false); // Jeff's ABFI custom layer
   const [polygonsActive, setPolygonsActive] = useState(false);
   const [sstOpacity, setSstOpacity] = useState(0.85);
   const [currentDate, setCurrentDate] = useState('2025-09-08'); // Today's date
@@ -100,6 +101,28 @@ export default function LegendaryOceanPlatform() {
         paint: { 
           'raster-opacity': 0.8,
           'raster-fade-duration': 300
+        }
+      });
+
+      // ABFI Custom Layer (Jeff's Secret Sauce) - Ready for custom Copernicus endpoint
+      mapInstance.addSource('abfi', {
+        type: 'raster',
+        tiles: [`/api/abfi/{z}/{x}/{y}?time=2025-09-03T00:00:00.000Z`], // Will be Jeff's custom layer
+        tileSize: 256
+      });
+
+      mapInstance.addLayer({
+        id: 'abfi-layer',
+        type: 'raster',
+        source: 'abfi',
+        layout: { visibility: 'none' },
+        paint: { 
+          'raster-opacity': 0.9,
+          'raster-fade-duration': 400,
+          'raster-brightness-min': 0.1,
+          'raster-brightness-max': 1.0,
+          'raster-contrast': 0.4,
+          'raster-saturation': 1.1
         }
       });
 
@@ -253,6 +276,19 @@ export default function LegendaryOceanPlatform() {
       console.log(`🌿 Chlorophyll ${newState ? '🟢 ACTIVATED' : '🔴 DEACTIVATED'}`);
     }
   }, [chlActive]);
+
+  // ABFI toggle (Jeff's secret weapon)
+  const toggleABFI = useCallback(() => {
+    if (!map.current) return;
+    const newState = !abfiActive;
+    setAbfiActive(newState);
+    
+    if (map.current.getLayer('abfi-layer')) {
+      const visibility = newState ? 'visible' : 'none';
+      map.current.setLayoutProperty('abfi-layer', 'visibility', visibility);
+      console.log(`⚡ ABFI ${newState ? '🔥 UNLEASHED' : '💤 DORMANT'}`);
+    }
+  }, [abfiActive]);
 
   // Epic polygon activation with cascade
   const togglePolygons = async () => {
@@ -472,7 +508,7 @@ export default function LegendaryOceanPlatform() {
                 </div>
               </div>
               <button
-                onClick={() => setChlActive(!chlActive)}
+                onClick={toggleChlorophyll}
                 className={`relative px-10 py-5 rounded-2xl font-black text-lg transition-all duration-500 transform hover:scale-110 ${
                   chlActive 
                     ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-2xl shadow-green-500/50 animate-pulse' 
@@ -489,6 +525,77 @@ export default function LegendaryOceanPlatform() {
                   'ACTIVATE'
                 )}
               </button>
+            </div>
+          </div>
+
+          {/* 🔥 ABFI - JEFF'S SECRET WEAPON 🔥 */}
+          <div className="mb-8 p-8 bg-gradient-to-br from-yellow-400/20 via-orange-500/20 to-red-500/20 rounded-3xl border-2 border-yellow-400/40 shadow-2xl shadow-yellow-500/20 relative overflow-hidden">
+            {/* Animated background particles */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-2 left-4 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+              <div className="absolute top-8 right-6 w-1 h-1 bg-orange-400 rounded-full animate-pulse"></div>
+              <div className="absolute bottom-4 left-8 w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce"></div>
+            </div>
+            
+            <div className="relative z-10">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center gap-3 mb-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-orange-500/40">
+                      <span className="text-white text-2xl font-black">⚡</span>
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-300 rounded-full border-2 border-white animate-pulse shadow-lg"></div>
+                    <div className="absolute -bottom-1 -left-1 w-4 h-4 bg-red-400 rounded-full border border-white animate-bounce"></div>
+                  </div>
+                  <div className="text-left">
+                    <h2 className="text-3xl font-black text-transparent bg-gradient-to-r from-yellow-300 via-orange-400 to-red-400 bg-clip-text">
+                      A B F I
+                    </h2>
+                    <p className="text-yellow-100 text-sm font-bold">Jeff's Proprietary Algorithm</p>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-r from-yellow-500/20 to-red-500/20 rounded-2xl p-4 border border-yellow-400/30 mb-6">
+                  <p className="text-yellow-100 text-lg font-bold mb-2">🎯 PRECISION FISHING INTELLIGENCE</p>
+                  <p className="text-white/90 text-sm leading-relaxed">
+                    Revolutionary custom analysis combining thermal boundaries, productivity zones, and proprietary ocean behavior models. 
+                    <span className="text-yellow-300 font-semibold"> Industry-exclusive technology.</span>
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-center">
+                <button
+                  onClick={toggleABFI}
+                  className={`relative px-12 py-6 rounded-2xl font-black text-xl transition-all duration-700 transform hover:scale-110 border-3 ${
+                    abfiActive 
+                      ? 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white shadow-2xl shadow-orange-500/60 animate-pulse border-yellow-300' 
+                      : 'bg-gradient-to-r from-yellow-400/20 via-orange-500/20 to-red-500/20 text-yellow-100 hover:from-yellow-400/30 hover:via-orange-500/30 hover:to-red-500/30 border-yellow-400/50'
+                  }`}
+                >
+                  {abfiActive ? (
+                    <span className="flex items-center gap-4">
+                      <span className="w-5 h-5 bg-yellow-200 rounded-full animate-ping"></span>
+                      <span className="w-5 h-5 bg-yellow-300 rounded-full absolute left-10"></span>
+                      <span className="font-black tracking-wider">🔥 ANALYZING 🔥</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-3">
+                      <span className="text-2xl">🎯</span>
+                      <span className="font-black tracking-wider">UNLEASH ABFI</span>
+                    </span>
+                  )}
+                </button>
+              </div>
+              
+              {abfiActive && (
+                <div className="mt-6 text-center animate-fadeIn">
+                  <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-400/30">
+                    <p className="text-yellow-200 text-sm font-semibold mb-2">🚧 Custom Layer Building 🚧</p>
+                    <p className="text-white/80 text-xs">Jeff's proprietary algorithm ready for deployment</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
