@@ -86,28 +86,41 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Chlorophyll layer (Copernicus) with error handling
-      try {
-        mapInstance.addSource('chl', {
-          type: 'raster',
-          tiles: [`/api/copernicus/{z}/{x}/{y}?time=2025-09-03T00:00:00.000Z`],
-          tileSize: 256
-        });
-
-        mapInstance.addLayer({
-          id: 'chl-layer',
-          type: 'raster',
-          source: 'chl',
-          layout: { visibility: 'none' },
-          paint: { 
-            'raster-opacity': 0.8,
-            'raster-fade-duration': 300
+      // Add chlorophyll layer when style is fully ready
+      const addChlorophyllLayer = () => {
+        try {
+          if (!mapInstance.getSource('chl')) {
+            mapInstance.addSource('chl', {
+              type: 'raster',
+              tiles: [`/api/copernicus/{z}/{x}/{y}?time=2025-09-03T00:00:00.000Z`],
+              tileSize: 256
+            });
           }
-        });
-        
-        console.log('🌿 Chlorophyll layer added successfully');
-      } catch (error) {
-        console.error('🚨 Chlorophyll layer failed:', error);
+
+          if (!mapInstance.getLayer('chl-layer')) {
+            mapInstance.addLayer({
+              id: 'chl-layer',
+              type: 'raster',
+              source: 'chl',
+              layout: { visibility: 'none' },
+              paint: { 
+                'raster-opacity': 0.8,
+                'raster-fade-duration': 300
+              }
+            });
+          }
+          
+          console.log('🌿 Chlorophyll layer added successfully');
+        } catch (error) {
+          console.error('🚨 Chlorophyll layer failed:', error);
+        }
+      };
+
+      // Add when map is ready
+      if (mapInstance.isStyleLoaded()) {
+        addChlorophyllLayer();
+      } else {
+        mapInstance.once('styledata', addChlorophyllLayer);
       }
 
       // ABFI Custom Layer (Jeff's Secret Sauce) - Ready for custom Copernicus endpoint
