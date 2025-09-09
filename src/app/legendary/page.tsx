@@ -442,7 +442,7 @@ export default function LegendaryOceanPlatform() {
               <div>
                 <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
                   <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                    ALWAYS BENT
+                    HI AMANDA! 👋 ALWAYS BENT
                   </span>
                 </h1>
                 <p className="text-cyan-100/90 text-sm font-semibold">Ocean Intelligence Platform</p>
