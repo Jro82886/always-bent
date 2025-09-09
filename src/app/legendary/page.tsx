@@ -383,8 +383,9 @@ export default function LegendaryOceanPlatform() {
       {/* Map Container */}
       <div ref={mapContainer} className="w-full h-full" />
       
-      {/* LEGENDARY CONTROL HUB - Responsive */}
-      <div className="absolute top-4 left-4 md:top-8 md:left-8 space-y-4 md:space-y-6 z-50 max-w-[90vw] md:max-w-none">
+      {/* LEGENDARY CONTROL HUB - Scrollable */}
+      <div className="absolute top-4 left-4 md:top-8 md:left-8 bottom-4 z-50 max-w-[90vw] md:max-w-none overflow-y-auto">
+        <div className="space-y-4 md:space-y-6 pb-8">
         {/* Main Control Panel - Glow Flow Design */}
         <div className="bg-black/10 backdrop-blur-3xl rounded-3xl border border-white/10 p-4 md:p-8 min-w-[300px] md:min-w-[400px] shadow-2xl shadow-white/5">
           
@@ -689,6 +690,7 @@ export default function LegendaryOceanPlatform() {
               ))}
             </div>
           </div>
+        </div>
         </div>
       </div>
 
