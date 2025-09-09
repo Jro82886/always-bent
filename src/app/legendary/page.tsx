@@ -17,6 +17,7 @@ export default function LegendaryOceanPlatform() {
   const map = useRef<mapboxgl.Map | null>(null);
   
   const [sstActive, setSstActive] = useState(false); // Start OFF - let user activate
+  const [chlActive, setChlActive] = useState(false); // Chlorophyll layer
   const [polygonsActive, setPolygonsActive] = useState(false);
   const [sstOpacity, setSstOpacity] = useState(0.85);
   const [currentDate, setCurrentDate] = useState('2025-09-08'); // Today's date
@@ -81,6 +82,24 @@ export default function LegendaryOceanPlatform() {
           'raster-brightness-max': 0.8,
           'raster-contrast': 0.3,
           'raster-saturation': 1.0
+        }
+      });
+
+      // Chlorophyll layer (Copernicus)
+      mapInstance.addSource('chl', {
+        type: 'raster',
+        tiles: [`/api/copernicus/{z}/{x}/{y}?time=2025-09-03T00:00:00.000Z`],
+        tileSize: 256
+      });
+
+      mapInstance.addLayer({
+        id: 'chl-layer',
+        type: 'raster',
+        source: 'chl',
+        layout: { visibility: 'none' },
+        paint: { 
+          'raster-opacity': 0.8,
+          'raster-fade-duration': 300
         }
       });
 
@@ -221,6 +240,19 @@ export default function LegendaryOceanPlatform() {
       setDataStats(prev => ({ ...prev, tiles: newState ? prev.tiles + 1 : 0 }));
     }
   }, [sstActive, sstOpacity]);
+
+  // Chlorophyll toggle
+  const toggleChlorophyll = useCallback(() => {
+    if (!map.current) return;
+    const newState = !chlActive;
+    setChlActive(newState);
+    
+    if (map.current.getLayer('chl-layer')) {
+      const visibility = newState ? 'visible' : 'none';
+      map.current.setLayoutProperty('chl-layer', 'visibility', visibility);
+      console.log(`🌿 Chlorophyll ${newState ? '🟢 ACTIVATED' : '🔴 DEACTIVATED'}`);
+    }
+  }, [chlActive]);
 
   // Epic polygon activation with cascade
   const togglePolygons = async () => {
@@ -425,6 +457,39 @@ export default function LegendaryOceanPlatform() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Chlorophyll Command Center */}
+          <div className="mb-8 p-6 bg-gradient-to-br from-green-500/15 to-emerald-500/15 rounded-2xl border border-green-400/30">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <span className="text-white text-xl font-bold">🌿</span>
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">Chlorophyll-a</h3>
+                  <p className="text-green-200/90 text-sm font-medium">Copernicus Marine • Phytoplankton Productivity</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setChlActive(!chlActive)}
+                className={`relative px-10 py-5 rounded-2xl font-black text-lg transition-all duration-500 transform hover:scale-110 ${
+                  chlActive 
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-2xl shadow-green-500/50 animate-pulse' 
+                    : 'bg-white/10 text-white/80 hover:bg-white/20 border-2 border-white/30'
+                }`}
+              >
+                {chlActive ? (
+                  <span className="flex items-center gap-3">
+                    <span className="w-4 h-4 bg-emerald-300 rounded-full animate-ping"></span>
+                    <span className="w-4 h-4 bg-emerald-400 rounded-full absolute left-8"></span>
+                    LIVE
+                  </span>
+                ) : (
+                  'ACTIVATE'
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Ocean Features Command Center */}
