@@ -92,6 +92,10 @@ export default function LegendaryOceanPlatform() {
 
       console.log('🌿 Chlorophyll layer added successfully');
       console.log('🦠 Phytoplankton layer added successfully');
+      
+      // Debug: Check if Copernicus is configured
+      console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
+      console.log('🔍 Copernicus config check - Pass:', !!process.env.COPERNICUS_PASS);
       (window as any).map = mapInstance;
     });
 
@@ -112,7 +116,7 @@ export default function LegendaryOceanPlatform() {
     }
   }, [selectedDate]);
 
-  // SST toggle
+  // SST toggle with forced visibility
   const toggleSST = () => {
     if (!map.current) return;
     const newState = !sstActive;
@@ -120,7 +124,13 @@ export default function LegendaryOceanPlatform() {
     
     if (map.current.getLayer('sst-layer')) {
       map.current.setLayoutProperty('sst-layer', 'visibility', newState ? 'visible' : 'none');
-      console.log(`🌡️ SST ${newState ? 'ON' : 'OFF'}`);
+      if (newState) {
+        // Force layer properties to ensure visibility
+        map.current.setPaintProperty('sst-layer', 'raster-opacity', 0.8);
+        map.current.moveLayer('sst-layer'); // Move to top
+        map.current.triggerRepaint();
+      }
+      console.log(`🌡️ SST ${newState ? 'ON' : 'OFF'} - Forced visible`);
     }
   };
 
