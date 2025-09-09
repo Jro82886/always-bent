@@ -30,7 +30,7 @@ jobs:
 
       - name: Build
         env:
-          NEXT_PUBLIC_MAPBOX_TOKEN: dummy-token
+          NEXT_PUBLIC_MAPBOX_TOKEN: pk.eyJ1IjoiamVmZmpyODI4ODYiLCJhIjoiY21mYm8ybHVsMGIzeTJxcTNybHoxNmM2YyJ9.ncpWfCSOo1W66ZNi-g9axQ
         run: npm run build --if-present
 
 
