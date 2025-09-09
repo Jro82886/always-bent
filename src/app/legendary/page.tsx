@@ -385,8 +385,8 @@ export default function LegendaryOceanPlatform() {
       
       {/* LEGENDARY CONTROL HUB - Responsive */}
       <div className="absolute top-4 left-4 md:top-8 md:left-8 space-y-4 md:space-y-6 z-50 max-w-[90vw] md:max-w-none">
-        {/* Main Control Panel */}
-        <div className="bg-black/20 backdrop-blur-2xl rounded-3xl border border-cyan-500/30 p-4 md:p-8 min-w-[300px] md:min-w-[400px] shadow-2xl shadow-cyan-500/10">
+        {/* Main Control Panel - Glow Flow Design */}
+        <div className="bg-black/10 backdrop-blur-3xl rounded-3xl border border-white/10 p-4 md:p-8 min-w-[300px] md:min-w-[400px] shadow-2xl shadow-white/5">
           
           {/* Epic Branding */}
           <div className="mb-8">
@@ -419,8 +419,8 @@ export default function LegendaryOceanPlatform() {
             </div>
           </div>
 
-          {/* SST Command Center */}
-          <div className="mb-8 p-6 bg-gradient-to-br from-blue-500/15 to-cyan-500/15 rounded-2xl border border-blue-400/30">
+          {/* SST Command Center - Glow Flow */}
+          <div className="mb-6 p-6 bg-black/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-500 hover:shadow-lg hover:shadow-white/10">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -433,20 +433,19 @@ export default function LegendaryOceanPlatform() {
               </div>
               <button
                 onClick={toggleSST}
-                className={`relative px-10 py-5 rounded-2xl font-black text-lg transition-all duration-500 transform hover:scale-110 ${
+                className={`relative px-8 py-4 rounded-xl font-medium text-sm transition-all duration-700 ${
                   sstActive 
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-2xl shadow-blue-500/50 animate-pulse' 
-                    : 'bg-white/10 text-white/80 hover:bg-white/20 border-2 border-white/30'
+                    ? 'bg-white/20 text-white border border-white/40 shadow-xl shadow-white/20 glow-active' 
+                    : 'bg-white/5 text-white/70 border border-white/10 hover:border-white/30 hover:bg-white/10 hover:text-white hover:shadow-lg hover:shadow-white/10'
                 }`}
               >
                 {sstActive ? (
-                  <span className="flex items-center gap-3">
-                    <span className="w-4 h-4 bg-cyan-300 rounded-full animate-ping"></span>
-                    <span className="w-4 h-4 bg-cyan-400 rounded-full absolute left-8"></span>
-                    LIVE
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                    <span>ACTIVE</span>
                   </span>
                 ) : (
-                  'ACTIVATE'
+                  <span>Temperature</span>
                 )}
               </button>
             </div>
@@ -495,8 +494,8 @@ export default function LegendaryOceanPlatform() {
             )}
           </div>
 
-          {/* Chlorophyll Command Center */}
-          <div className="mb-8 p-6 bg-gradient-to-br from-green-500/15 to-emerald-500/15 rounded-2xl border border-green-400/30">
+          {/* Chlorophyll Command Center - Glow Flow */}
+          <div className="mb-6 p-6 bg-black/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-500 hover:shadow-lg hover:shadow-emerald-400/10">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -509,27 +508,26 @@ export default function LegendaryOceanPlatform() {
               </div>
               <button
                 onClick={toggleChlorophyll}
-                className={`relative px-10 py-5 rounded-2xl font-black text-lg transition-all duration-500 transform hover:scale-110 ${
+                className={`relative px-8 py-4 rounded-xl font-medium text-sm transition-all duration-700 ${
                   chlActive 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-2xl shadow-green-500/50 animate-pulse' 
-                    : 'bg-white/10 text-white/80 hover:bg-white/20 border-2 border-white/30'
+                    ? 'bg-white/20 text-white border border-white/40 shadow-xl shadow-emerald-400/30 glow-active' 
+                    : 'bg-white/5 text-white/70 border border-white/10 hover:border-emerald-400/30 hover:bg-white/10 hover:text-white hover:shadow-lg hover:shadow-emerald-400/20'
                 }`}
               >
                 {chlActive ? (
-                  <span className="flex items-center gap-3">
-                    <span className="w-4 h-4 bg-emerald-300 rounded-full animate-ping"></span>
-                    <span className="w-4 h-4 bg-emerald-400 rounded-full absolute left-8"></span>
-                    LIVE
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></span>
+                    <span>ACTIVE</span>
                   </span>
                 ) : (
-                  'ACTIVATE'
+                  <span>Chlorophyll</span>
                 )}
               </button>
             </div>
           </div>
 
-          {/* 🔥 ABFI - JEFF'S SECRET WEAPON 🔥 */}
-          <div className="mb-8 p-8 bg-gradient-to-br from-yellow-400/20 via-orange-500/20 to-red-500/20 rounded-3xl border-2 border-yellow-400/40 shadow-2xl shadow-yellow-500/20 relative overflow-hidden">
+          {/* ABFI - Jeff's Precision Intelligence */}
+          <div className="mb-6 p-8 bg-black/5 backdrop-blur-xl rounded-2xl border border-white/20 hover:border-white/40 transition-all duration-700 hover:shadow-2xl hover:shadow-white/20 relative group">
             {/* Animated background particles */}
             <div className="absolute inset-0 opacity-20">
               <div className="absolute top-2 left-4 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
@@ -567,22 +565,21 @@ export default function LegendaryOceanPlatform() {
               <div className="flex justify-center">
                 <button
                   onClick={toggleABFI}
-                  className={`relative px-12 py-6 rounded-2xl font-black text-xl transition-all duration-700 transform hover:scale-110 border-3 ${
+                  className={`relative px-10 py-5 rounded-xl font-semibold text-lg transition-all duration-1000 transform hover:scale-105 ${
                     abfiActive 
-                      ? 'bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white shadow-2xl shadow-orange-500/60 animate-pulse border-yellow-300' 
-                      : 'bg-gradient-to-r from-yellow-400/20 via-orange-500/20 to-red-500/20 text-yellow-100 hover:from-yellow-400/30 hover:via-orange-500/30 hover:to-red-500/30 border-yellow-400/50'
+                      ? 'bg-white/30 text-white border-2 border-white/60 shadow-2xl shadow-white/40 glow-active-strong' 
+                      : 'bg-white/8 text-white/80 border-2 border-white/20 hover:border-white/50 hover:bg-white/15 hover:text-white hover:shadow-xl hover:shadow-white/30 group-hover:glow-hint'
                   }`}
                 >
                   {abfiActive ? (
-                    <span className="flex items-center gap-4">
-                      <span className="w-5 h-5 bg-yellow-200 rounded-full animate-ping"></span>
-                      <span className="w-5 h-5 bg-yellow-300 rounded-full absolute left-10"></span>
-                      <span className="font-black tracking-wider">🔥 ANALYZING 🔥</span>
+                    <span className="flex items-center gap-3">
+                      <span className="w-3 h-3 bg-white rounded-full animate-pulse"></span>
+                      <span className="tracking-wide">ANALYZING</span>
                     </span>
                   ) : (
                     <span className="flex items-center gap-3">
-                      <span className="text-2xl">🎯</span>
-                      <span className="font-black tracking-wider">UNLEASH ABFI</span>
+                      <span className="text-xl">⚡</span>
+                      <span className="tracking-wide">ABFI</span>
                     </span>
                   )}
                 </button>
@@ -825,8 +822,36 @@ export default function LegendaryOceanPlatform() {
         </div>
       )}
 
-      {/* Custom Epic Styles */}
+      {/* Glow Flow Styles - Intuitive Navigation */}
       <style jsx>{`
+        .glow-active {
+          box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 
+                      0 0 40px rgba(255, 255, 255, 0.1),
+                      inset 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .glow-active-strong {
+          box-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 
+                      0 0 60px rgba(255, 255, 255, 0.2),
+                      inset 0 0 30px rgba(255, 255, 255, 0.15);
+          animation: glow-pulse 2s ease-in-out infinite;
+        }
+        
+        .glow-hint {
+          box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+          transition: all 0.5s ease;
+        }
+        
+        @keyframes glow-pulse {
+          0%, 100% { 
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4), 
+                        0 0 60px rgba(255, 255, 255, 0.2);
+          }
+          50% { 
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.6), 
+                        0 0 80px rgba(255, 255, 255, 0.3);
+          }
+        }
         @keyframes slideIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
