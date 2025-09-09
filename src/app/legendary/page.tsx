@@ -13,6 +13,7 @@ export default function LegendaryOceanPlatform() {
   
   const [sstActive, setSstActive] = useState(false);
   const [chlActive, setChlActive] = useState(false);
+  const [phycActive, setPhycActive] = useState(false); // Total Phytoplankton
   const [selectedDate, setSelectedDate] = useState('2025-09-09'); // Today
 
   // Initialize map
@@ -32,10 +33,10 @@ export default function LegendaryOceanPlatform() {
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
 
-      // Add SST source
+      // Add SST source (using reliable Copernicus instead of NOAA)
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: ['/api/sst/{z}/{x}/{y}'],
+        tiles: [`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
         tileSize: 256
       });
 
@@ -44,7 +45,11 @@ export default function LegendaryOceanPlatform() {
         type: 'raster',
         source: 'sst',
         layout: { visibility: 'none' },
-        paint: { 'raster-opacity': 0.8 }
+        paint: { 
+          'raster-opacity': 0.8,
+          'raster-fade-duration': 300,
+          'raster-resampling': 'linear'
+        }
       });
 
       // Add chlorophyll source with dynamic date
@@ -66,7 +71,27 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
+      // Add Total Phytoplankton layer (another Copernicus layer)
+      mapInstance.addSource('phyc', {
+        type: 'raster',
+        tiles: [`/api/copernicus-phyc/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
+        tileSize: 256
+      });
+
+      mapInstance.addLayer({
+        id: 'phyc-layer',
+        type: 'raster',
+        source: 'phyc',
+        layout: { visibility: 'none' },
+        paint: { 
+          'raster-opacity': 0.8,
+          'raster-fade-duration': 300,
+          'raster-resampling': 'linear'
+        }
+      });
+
       console.log('🌿 Chlorophyll layer added successfully');
+      console.log('🦠 Phytoplankton layer added successfully');
       (window as any).map = mapInstance;
     });
 
@@ -99,7 +124,7 @@ export default function LegendaryOceanPlatform() {
     }
   };
 
-  // Chlorophyll toggle with debugging
+  // Chlorophyll toggle - bulletproof version
   const toggleChlorophyll = () => {
     if (!map.current) return;
     const newState = !chlActive;
@@ -108,9 +133,15 @@ export default function LegendaryOceanPlatform() {
     if (map.current.getLayer('chl-layer')) {
       map.current.setLayoutProperty('chl-layer', 'visibility', newState ? 'visible' : 'none');
       if (newState) {
-        // Force layer to be visible and on top
-        map.current.setPaintProperty('chl-layer', 'raster-opacity', 0.9);
+        // Force layer to be visible and reload tiles
+        map.current.setPaintProperty('chl-layer', 'raster-opacity', 0.8);
         map.current.moveLayer('chl-layer');
+        // Force tile reload to ensure data appears
+        const source = map.current.getSource('chl') as mapboxgl.RasterTileSource;
+        if (source && (source as any).setTiles) {
+          (source as any).setTiles([`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
+          map.current.triggerRepaint();
+        }
       }
       console.log(`🌿 Chlorophyll ${newState ? 'ON' : 'OFF'} - Layer visibility: ${newState ? 'visible' : 'none'}`);
     } else {
@@ -146,6 +177,22 @@ export default function LegendaryOceanPlatform() {
           } transition-colors`}
         >
           🌿 Chlorophyll {chlActive ? 'ON' : 'OFF'}
+        </button>
+        
+        <button
+          onClick={() => {
+            const newState = !phycActive;
+            setPhycActive(newState);
+            if (map.current?.getLayer('phyc-layer')) {
+              map.current.setLayoutProperty('phyc-layer', 'visibility', newState ? 'visible' : 'none');
+              console.log(`🦠 Phytoplankton ${newState ? 'ON' : 'OFF'}`);
+            }
+          }}
+          className={`w-full px-4 py-2 rounded ${
+            phycActive ? 'bg-purple-500' : 'bg-white/20'
+          } transition-colors`}
+        >
+          🦠 Phytoplankton {phycActive ? 'ON' : 'OFF'}
         </button>
         
         <div className="border-t border-white/20 pt-4">
