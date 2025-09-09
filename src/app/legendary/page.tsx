@@ -52,11 +52,12 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Add chlorophyll source with dynamic date
+      // Add chlorophyll source - optimized for clarity
       mapInstance.addSource('chl', {
         type: 'raster',
         tiles: [`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 256
+        tileSize: 256,
+        maxzoom: 18  // Allow deep zoom for detailed analysis
       });
 
       mapInstance.addLayer({
@@ -65,9 +66,13 @@ export default function LegendaryOceanPlatform() {
         source: 'chl',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.8,
-          'raster-fade-duration': 300,
-          'raster-resampling': 'linear'  // Smooth interpolation
+          'raster-opacity': 0.85,           // Slightly higher for better visibility
+          'raster-fade-duration': 200,     // Faster transitions
+          'raster-resampling': 'linear',   // Smooth interpolation
+          'raster-brightness-min': 0.1,   // Enhance contrast
+          'raster-brightness-max': 0.9,
+          'raster-contrast': 0.2,          // Better definition
+          'raster-saturation': 1.1        // More vibrant greens
         }
       });
 
