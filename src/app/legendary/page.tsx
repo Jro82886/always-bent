@@ -86,23 +86,29 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Chlorophyll layer (Copernicus)
-      mapInstance.addSource('chl', {
-        type: 'raster',
-        tiles: [`/api/copernicus/{z}/{x}/{y}?time=2025-09-03T00:00:00.000Z`],
-        tileSize: 256
-      });
+      // Chlorophyll layer (Copernicus) with error handling
+      try {
+        mapInstance.addSource('chl', {
+          type: 'raster',
+          tiles: [`/api/copernicus/{z}/{x}/{y}?time=2025-09-03T00:00:00.000Z`],
+          tileSize: 256
+        });
 
-      mapInstance.addLayer({
-        id: 'chl-layer',
-        type: 'raster',
-        source: 'chl',
-        layout: { visibility: 'none' },
-        paint: { 
-          'raster-opacity': 0.8,
-          'raster-fade-duration': 300
-        }
-      });
+        mapInstance.addLayer({
+          id: 'chl-layer',
+          type: 'raster',
+          source: 'chl',
+          layout: { visibility: 'none' },
+          paint: { 
+            'raster-opacity': 0.8,
+            'raster-fade-duration': 300
+          }
+        });
+        
+        console.log('🌿 Chlorophyll layer added successfully');
+      } catch (error) {
+        console.error('🚨 Chlorophyll layer failed:', error);
+      }
 
       // ABFI Custom Layer (Jeff's Secret Sauce) - Ready for custom Copernicus endpoint
       mapInstance.addSource('abfi', {
