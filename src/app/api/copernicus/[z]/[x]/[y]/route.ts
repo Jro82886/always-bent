@@ -6,7 +6,7 @@ const BASE = process.env.COPERNICUS_WMTS_BASE!;
 const LAYER = process.env.COPERNICUS_WMTS_LAYER!;
 const STYLE = process.env.COPERNICUS_WMTS_STYLE || 'cmap:algae';
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
-const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857@2x'; // Higher resolution
+const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857'; // Back to standard
 const USER = process.env.COPERNICUS_USER!;
 const PASS = process.env.COPERNICUS_PASS!;
 
