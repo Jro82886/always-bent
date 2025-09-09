@@ -309,7 +309,7 @@ export default function LegendaryOceanPlatform() {
                 <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full border-3 border-white animate-pulse shadow-lg"></div>
               </div>
               <div>
-                <h1 className="text-3xl font-black text-white tracking-tight mb-1">
+                <h1 className="text-2xl font-bold text-white tracking-tight mb-1">
                   <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
                     ALWAYS BENT
                   </span>
@@ -338,7 +338,7 @@ export default function LegendaryOceanPlatform() {
                   <span className="text-white text-xl font-bold">🌡️</span>
                 </div>
                 <div>
-                  <h3 className="text-white font-black text-xl">Sea Surface Temperature</h3>
+                  <h3 className="text-white font-bold text-lg">Sea Surface Temperature</h3>
                   <p className="text-blue-200/90 text-sm font-medium">NOAA CoastWatch MUR • Live Satellite Feed</p>
                 </div>
               </div>
@@ -414,7 +414,7 @@ export default function LegendaryOceanPlatform() {
                   <span className="text-white text-xl font-bold">🌀</span>
                 </div>
                 <div>
-                  <h3 className="text-white font-black text-xl">Ocean Features</h3>
+                  <h3 className="text-white font-bold text-lg">Ocean Features</h3>
                   <p className="text-purple-200/90 text-sm font-medium">AI-Detected Eddies • Filaments • Thermal Fronts</p>
                 </div>
               </div>
@@ -471,7 +471,7 @@ export default function LegendaryOceanPlatform() {
                 <span className="text-white text-xl font-bold">⏰</span>
               </div>
               <div>
-                <h3 className="text-white font-black text-xl">Temporal Analysis</h3>
+                <h3 className="text-white font-bold text-lg">Temporal Analysis</h3>
                 <p className="text-orange-200/90 text-sm font-medium">Multi-day Time Series • Historical Patterns</p>
               </div>
             </div>
