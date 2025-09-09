@@ -149,18 +149,30 @@ export default function LegendaryOceanPlatform() {
         </button>
         
         <div className="border-t border-white/20 pt-4">
-          <label className="text-sm opacity-80 block mb-2">📅 Date Selection</label>
-          <select
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white text-sm"
-          >
-            <option value="2025-09-09">Today (Sep 9)</option>
-            <option value="2025-09-08">Yesterday (Sep 8)</option>
-            <option value="2025-09-07">2 Days Ago (Sep 7)</option>
-            <option value="2025-09-06">3 Days Ago (Sep 6)</option>
-            <option value="2025-09-05">4 Days Ago (Sep 5)</option>
-          </select>
+          <label className="text-sm font-semibold block mb-3">📅 Ocean Data Date</label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { date: '2025-09-09', label: 'Today', desc: 'Latest' },
+              { date: '2025-09-08', label: 'Sep 8', desc: 'Yesterday' },
+              { date: '2025-09-07', label: 'Sep 7', desc: '2 days ago' },
+              { date: '2025-09-06', label: 'Sep 6', desc: '3 days ago' },
+              { date: '2025-09-05', label: 'Sep 5', desc: '4 days ago' },
+              { date: '2025-09-04', label: 'Sep 4', desc: '5 days ago' }
+            ].map(option => (
+              <button
+                key={option.date}
+                onClick={() => setSelectedDate(option.date)}
+                className={`p-3 rounded-lg text-left transition-all ${
+                  selectedDate === option.date 
+                    ? 'bg-white/20 border-2 border-white/40 shadow-lg' 
+                    : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                <div className="font-medium text-sm">{option.label}</div>
+                <div className="text-xs opacity-70">{option.desc}</div>
+              </button>
+            ))}
+          </div>
         </div>
         
         <p className="text-xs opacity-60">
