@@ -36,6 +36,9 @@ export async function GET(
       });
     }
     
+    // Add authentication first
+    const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
+    
     // Try high resolution first, fallback to standard
     const matrixSets = [MATRIX_HI, MATRIX];
     let wmtsUrl: URL;
@@ -83,9 +86,6 @@ export async function GET(
     }
     
     console.log('🌿 Copernicus WMTS URL:', wmtsUrl!.toString());
-    
-    // Add authentication
-    const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
     
     const response = await fetch(wmtsUrl!.toString(), {
       headers: { 
