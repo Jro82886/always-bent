@@ -35,7 +35,7 @@ export async function GET(
       });
     }
     
-    // Build WMTS URL
+    // Build WMTS URL - Copernicus specific format
     const wmtsUrl = new URL(BASE);
     wmtsUrl.searchParams.set('SERVICE', 'WMTS');
     wmtsUrl.searchParams.set('REQUEST', 'GetTile');
@@ -48,6 +48,9 @@ export async function GET(
     wmtsUrl.searchParams.set('TILEROW', y);
     wmtsUrl.searchParams.set('TILECOL', x);
     wmtsUrl.searchParams.set('time', time);
+    wmtsUrl.searchParams.set('elevation', '-0.4940253794193268'); // Default surface level
+    
+    console.log('🌿 Copernicus WMTS URL:', wmtsUrl.toString());
     
     // Add authentication
     const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
