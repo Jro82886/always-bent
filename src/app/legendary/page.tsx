@@ -64,6 +64,20 @@ export default function LegendaryOceanPlatform() {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
       setMapLoading(false);
       setError(null);
+      
+      // Wait for style to be fully loaded before adding layers
+      if (!mapInstance.isStyleLoaded()) {
+        mapInstance.once('style.load', () => {
+          console.log('🎯 Map style fully loaded, adding layers...');
+          addAllLayers();
+        });
+      } else {
+        addAllLayers();
+      }
+    });
+
+    // Function to add all layers safely
+    const addAllLayers = () => {
       // SST layer with cinematic effects - use specific date with data
       mapInstance.addSource('sst', {
         type: 'raster',
@@ -71,20 +85,23 @@ export default function LegendaryOceanPlatform() {
         tileSize: 256
       });
 
-      mapInstance.addLayer({
-        id: 'sst-layer',
-        type: 'raster',
-        source: 'sst',
-        layout: { visibility: 'none' }, // Start hidden - activate on toggle
-        paint: { 
-          'raster-opacity': sstOpacity,
-          'raster-fade-duration': 500,
-          'raster-brightness-min': 0.2,
-          'raster-brightness-max': 0.8,
-          'raster-contrast': 0.3,
-          'raster-saturation': 1.0
-        }
-      });
+      // Check if layer already exists before adding
+      if (!mapInstance.getLayer('sst-layer')) {
+        mapInstance.addLayer({
+          id: 'sst-layer',
+          type: 'raster',
+          source: 'sst',
+          layout: { visibility: 'none' },
+          paint: { 
+            'raster-opacity': sstOpacity,
+            'raster-fade-duration': 500,
+            'raster-brightness-min': 0.2,
+            'raster-brightness-max': 0.8,
+            'raster-contrast': 0.3,
+            'raster-saturation': 1.0
+          }
+        });
+      }
 
       // Add chlorophyll layer when style is fully ready
       const addChlorophyllLayer = () => {
@@ -222,7 +239,9 @@ export default function LegendaryOceanPlatform() {
 
       // Make globally available
       (window as any).map = mapInstance;
-    });
+    };  // End addAllLayers function
+    
+    }); // End map.on('load')
 
     // Add error handling with better logging
     mapInstance.on('error', (e) => {
