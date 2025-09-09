@@ -6,7 +6,8 @@ const BASE = process.env.COPERNICUS_WMTS_BASE!;
 const LAYER = process.env.COPERNICUS_WMTS_LAYER!;
 const STYLE = process.env.COPERNICUS_WMTS_STYLE || 'cmap:algae';
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
-const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857'; // Back to standard
+const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857'; // Standard resolution
+const MATRIX_HI = 'EPSG:3857@2x'; // High resolution option
 const USER = process.env.COPERNICUS_USER!;
 const PASS = process.env.COPERNICUS_PASS!;
 
@@ -35,44 +36,64 @@ export async function GET(
       });
     }
     
-    // Build WMTS URL - Copernicus specific format
-    const wmtsUrl = new URL(BASE);
-    wmtsUrl.searchParams.set('SERVICE', 'WMTS');
-    wmtsUrl.searchParams.set('REQUEST', 'GetTile');
-    wmtsUrl.searchParams.set('VERSION', '1.0.0');
-    wmtsUrl.searchParams.set('LAYER', LAYER);
-    wmtsUrl.searchParams.set('STYLE', STYLE);
-    wmtsUrl.searchParams.set('TILEMATRIXSET', MATRIX);
-    wmtsUrl.searchParams.set('FORMAT', FORMAT);
-    wmtsUrl.searchParams.set('TILEMATRIX', z);
-    wmtsUrl.searchParams.set('TILEROW', y);
-    wmtsUrl.searchParams.set('TILECOL', x);
-    wmtsUrl.searchParams.set('time', time);
-    wmtsUrl.searchParams.set('elevation', '-0.4940253794193268'); // Default surface level
+    // Try high resolution first, fallback to standard
+    const matrixSets = [MATRIX_HI, MATRIX];
+    let wmtsUrl: URL;
+    let success = false;
     
-    console.log('🌿 Copernicus WMTS URL:', wmtsUrl.toString());
+    for (const matrix of matrixSets) {
+      wmtsUrl = new URL(BASE);
+      wmtsUrl.searchParams.set('SERVICE', 'WMTS');
+      wmtsUrl.searchParams.set('REQUEST', 'GetTile');
+      wmtsUrl.searchParams.set('VERSION', '1.0.0');
+      wmtsUrl.searchParams.set('LAYER', LAYER);
+      wmtsUrl.searchParams.set('STYLE', STYLE);
+      wmtsUrl.searchParams.set('TILEMATRIXSET', matrix);
+      wmtsUrl.searchParams.set('FORMAT', FORMAT);
+      wmtsUrl.searchParams.set('TILEMATRIX', z);
+      wmtsUrl.searchParams.set('TILEROW', y);
+      wmtsUrl.searchParams.set('TILECOL', x);
+      wmtsUrl.searchParams.set('time', time);
+      wmtsUrl.searchParams.set('elevation', '-0.4940253794193268');
+      
+      // Test this configuration
+      const testResponse = await fetch(wmtsUrl.toString(), {
+        headers: { 
+          'Authorization': `Basic ${auth}`,
+          'Accept': 'image/png'
+        },
+        cache: 'no-store'
+      }).catch(() => null);
+      
+      if (testResponse && testResponse.ok) {
+        success = true;
+        console.log(`🌿 Copernicus success with matrix: ${matrix}`);
+        break;
+      }
+    }
+    
+    if (!success) {
+      console.warn(`Copernicus WMTS failed for all matrix sets`);
+      return new NextResponse(BLANK_PNG, {
+        headers: {
+          'Content-Type': 'image/png',
+          'x-error': 'matrix-failed'
+        }
+      });
+    }
+    
+    console.log('🌿 Copernicus WMTS URL:', wmtsUrl!.toString());
     
     // Add authentication
     const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
     
-    const response = await fetch(wmtsUrl.toString(), {
+    const response = await fetch(wmtsUrl!.toString(), {
       headers: { 
         'Authorization': `Basic ${auth}`,
         'Accept': 'image/png'
       },
       cache: 'no-store'
     });
-    
-    if (!response.ok) {
-      console.warn(`Copernicus WMTS error ${response.status} for tile ${z}/${x}/${y}`);
-      return new NextResponse(BLANK_PNG, {
-        headers: {
-          'Content-Type': 'image/png',
-          'Cache-Control': 'public, max-age=60',
-          'x-error': `copernicus-${response.status}`
-        }
-      });
-    }
     
     const buffer = Buffer.from(await response.arrayBuffer());
     

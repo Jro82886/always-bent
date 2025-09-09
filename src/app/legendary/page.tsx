@@ -33,11 +33,13 @@ export default function LegendaryOceanPlatform() {
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
 
-      // Add SST source (using reliable Copernicus instead of NOAA)
+      // Add SST source - professional thermal visualization
       mapInstance.addSource('sst', {
         type: 'raster',
         tiles: [`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 256
+        tileSize: 512,  // High resolution
+        maxzoom: 20,    // Ultra-detailed thermal analysis
+        minzoom: 0
       });
 
       mapInstance.addLayer({
@@ -46,18 +48,23 @@ export default function LegendaryOceanPlatform() {
         source: 'sst',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.8,
-          'raster-fade-duration': 300,
-          'raster-resampling': 'linear'
+          'raster-opacity': 0.85,          // Prominent thermal visibility
+          'raster-fade-duration': 150,
+          'raster-resampling': 'linear',
+          'raster-brightness-min': 0.0,
+          'raster-brightness-max': 1.0,
+          'raster-contrast': 0.4,          // Strong thermal contrast
+          'raster-saturation': 1.3         // Vivid thermal colors
         }
       });
 
-      // Add chlorophyll source - optimized for clarity
+      // Add chlorophyll source - optimized for coastline clarity
       mapInstance.addSource('chl', {
         type: 'raster',
         tiles: [`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 256,
-        maxzoom: 18  // Allow deep zoom for detailed analysis
+        tileSize: 512,  // Higher resolution tiles
+        maxzoom: 20,    // Ultra-deep zoom for precise analysis
+        minzoom: 0
       });
 
       mapInstance.addLayer({
@@ -66,13 +73,14 @@ export default function LegendaryOceanPlatform() {
         source: 'chl',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.85,           // Slightly higher for better visibility
-          'raster-fade-duration': 200,     // Faster transitions
-          'raster-resampling': 'linear',   // Smooth interpolation
-          'raster-brightness-min': 0.1,   // Enhance contrast
-          'raster-brightness-max': 0.9,
-          'raster-contrast': 0.2,          // Better definition
-          'raster-saturation': 1.1        // More vibrant greens
+          'raster-opacity': 0.8,
+          'raster-fade-duration': 150,     // Smooth transitions
+          'raster-resampling': 'linear',   // Anti-aliased coastlines
+          'raster-brightness-min': 0.0,   // Full dynamic range
+          'raster-brightness-max': 1.0,
+          'raster-contrast': 0.3,          // Enhanced definition
+          'raster-saturation': 1.2,       // Vibrant but not oversaturated
+          'raster-hue-rotate': 0          // Keep natural colors
         }
       });
 
