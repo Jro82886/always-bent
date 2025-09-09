@@ -239,7 +239,7 @@ export default function LegendaryOceanPlatform() {
 
       // Make globally available
       (window as any).map = mapInstance;
-    };  // End addAllLayers function
+    }; // End addAllLayers function
     
     }); // End map.on('load')
 
