@@ -34,12 +34,12 @@ export default function LegendaryOceanPlatform() {
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
 
-      // Add SST source - ULTRA HIGH RESOLUTION
+      // Add SST source - OPTIMIZED RESOLUTION
       mapInstance.addSource('sst', {
         type: 'raster',
         tiles: [`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // HIGHER RESOLUTION: 512px tiles
-        maxzoom: 20,    // DEEPER ZOOM: Level 20 for coastline detail
+        tileSize: 256,  // Standard WMTS tile size
+        maxzoom: 18,    // Standard zoom level
         minzoom: 0      // Full zoom range
       });
 
@@ -58,12 +58,12 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Add chlorophyll source - ULTRA HIGH RESOLUTION
+      // Add chlorophyll source - OPTIMIZED RESOLUTION
       mapInstance.addSource('chl', {
         type: 'raster',
         tiles: [`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // HIGHER RESOLUTION: 512px tiles  
-        maxzoom: 20,    // DEEPER ZOOM: Level 20 for coastline detail
+        tileSize: 256,  // Standard WMTS tile size
+        maxzoom: 18,    // Standard zoom level
         minzoom: 0      // Full zoom range
       });
 
@@ -82,12 +82,12 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Add Total Phytoplankton layer - ULTRA HIGH RESOLUTION
+      // Add Total Phytoplankton layer - OPTIMIZED RESOLUTION
       mapInstance.addSource('phyc', {
         type: 'raster',
         tiles: [`/api/copernicus-phyc/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // HIGHER RESOLUTION: 512px tiles
-        maxzoom: 20,    // DEEPER ZOOM: Level 20 for coastline detail
+        tileSize: 256,  // Standard WMTS tile size
+        maxzoom: 18,    // Standard zoom level
         minzoom: 0      // Full zoom range
       });
 
