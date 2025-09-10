@@ -17,6 +17,13 @@ export default function LegendaryOceanPlatform() {
   const [thermoActive, setThermoActive] = useState(false); // Thermocline (Mixed Layer Depth)
   const [noaaActive, setNoaaActive] = useState(false); // NOAA VIIRS 4km Chlorophyll
   const [selectedDate, setSelectedDate] = useState('2025-09-09'); // Today
+  
+  // Opacity states for sliders
+  const [sstOpacity, setSstOpacity] = useState(90);
+  const [chlOpacity, setChlOpacity] = useState(85);
+  const [slaOpacity, setSlaOpacity] = useState(80);
+  const [noaaOpacity, setNoaaOpacity] = useState(85);
+  const [thermoOpacity, setThermoOpacity] = useState(80);
 
   // Initialize map
   useEffect(() => {
@@ -45,12 +52,12 @@ export default function LegendaryOceanPlatform() {
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
-      // JEFF'S CHOICE: NOAA SST DIRECT (high-resolution like the other Claude achieved)
+      // REAL NOAA SST via proper proxy system
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // HIGH RESOLUTION TILES (consistent with others)
-        maxzoom: 22,    // MAXIMUM ZOOM (consistent with others)
+        tiles: [`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`],
+        tileSize: 256,  // Standard tile size for NOAA proxy
+        maxzoom: 18,    // Reasonable zoom for SST data
         minzoom: 0
       });
 
@@ -60,13 +67,7 @@ export default function LegendaryOceanPlatform() {
         source: 'sst',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.9,                     // HIGH VISIBILITY (consistent)
-          'raster-fade-duration': 50,                // ULTRA FAST TRANSITIONS (consistent)
-          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
-          'raster-contrast': 0.3,                    // HIGH CONTRAST for temperature gradients
-          'raster-brightness-max': 1.1,              // ENHANCED BRIGHTNESS (consistent)
-          'raster-brightness-min': 0.1,              // PREVENT TOTAL BLACK (consistent)
-          'raster-saturation': 0.3                   // ENHANCED TEMPERATURE COLORS
+          'raster-opacity': 0.9
         }
       });
 
@@ -85,14 +86,7 @@ export default function LegendaryOceanPlatform() {
         source: 'chl',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.95,                    // MAXIMUM VISIBILITY
-          'raster-fade-duration': 50,                // ULTRA FAST TRANSITIONS  
-          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
-          'raster-contrast': 0.4,                    // HIGH CONTRAST for definition
-          'raster-brightness-max': 1.1,              // ENHANCED BRIGHTNESS
-          'raster-brightness-min': 0.1,              // PREVENT TOTAL BLACK
-          'raster-saturation': 0.6,                  // VIBRANT GREEN COLORS
-          'raster-hue-rotate': 25                    // OPTIMAL GREEN SHIFT (blue→green)
+          'raster-opacity': 0.85
         }
       });
 
@@ -111,13 +105,7 @@ export default function LegendaryOceanPlatform() {
         source: 'sla',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.9,                     // HIGH VISIBILITY (consistent)
-          'raster-fade-duration': 50,                // ULTRA FAST TRANSITIONS (consistent)
-          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
-          'raster-contrast': 0.35,                   // HIGH CONTRAST for anomalies
-          'raster-brightness-max': 1.1,              // ENHANCED BRIGHTNESS (consistent)
-          'raster-brightness-min': 0.1,              // PREVENT TOTAL BLACK (consistent)
-          'raster-saturation': 0.4                   // ENHANCED BLUE-RED COLORS
+          'raster-opacity': 0.8
         }
       });
 
@@ -136,14 +124,7 @@ export default function LegendaryOceanPlatform() {
         source: 'noaa-viirs',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.9,                     // HIGH VISIBILITY
-          'raster-fade-duration': 50,                // ULTRA FAST TRANSITIONS
-          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
-          'raster-contrast': 0.35,                   // HIGH CONTRAST for definition
-          'raster-brightness-max': 1.1,              // ENHANCED BRIGHTNESS
-          'raster-brightness-min': 0.1,              // PREVENT TOTAL BLACK
-          'raster-saturation': 0.5,                  // VIBRANT GREEN COLORS
-          'raster-hue-rotate': 15                    // SLIGHT GREEN SHIFT for chlorophyll
+          'raster-opacity': 0.85
         }
       });
 
@@ -162,13 +143,7 @@ export default function LegendaryOceanPlatform() {
         source: 'thermocline',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.9,                     // HIGH VISIBILITY (consistent)
-          'raster-fade-duration': 50,                // ULTRA FAST TRANSITIONS (consistent)
-          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
-          'raster-contrast': 0.35,                   // HIGH CONTRAST (consistent)
-          'raster-brightness-max': 1.1,              // ENHANCED BRIGHTNESS (consistent)
-          'raster-brightness-min': 0.1,              // PREVENT TOTAL BLACK (consistent)
-          'raster-saturation': 0.4                   // ENHANCED COLORS
+          'raster-opacity': 0.8
         }
       });
 
@@ -222,7 +197,7 @@ export default function LegendaryOceanPlatform() {
     // Update SST tiles
     const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
     if (sstSource && (sstSource as any).setTiles) {
-      (sstSource as any).setTiles([`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
+      (sstSource as any).setTiles([`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`]);
     }
 
     // Update NOAA VIIRS tiles
@@ -310,85 +285,220 @@ export default function LegendaryOceanPlatform() {
         </h1>
         <p className="text-sm opacity-80">Ocean Intelligence Platform</p>
         
-        <button
-          onClick={toggleSST}
-          className={`w-full px-4 py-2 rounded ${
-            sstActive ? 'bg-blue-500' : 'bg-white/20'
-          } transition-colors`}
-        >
-          🌡️ Temperature {sstActive ? 'ON' : 'OFF'}
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={toggleSST}
+            className={`w-full px-4 py-2 rounded ${
+              sstActive ? 'bg-blue-500' : 'bg-white/20'
+            } transition-colors`}
+          >
+            🌡️ Temperature {sstActive ? 'ON' : 'OFF'}
+          </button>
+          {sstActive && (
+            <div className="px-2">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span>Opacity</span>
+                <span>{sstOpacity}%</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={sstOpacity}
+                onChange={(e) => {
+                  const newOpacity = parseInt(e.target.value);
+                  setSstOpacity(newOpacity);
+                  if (map.current?.getLayer('sst-layer')) {
+                    map.current.setPaintProperty('sst-layer', 'raster-opacity', newOpacity / 100);
+                  }
+                }}
+                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
+                }}
+              />
+            </div>
+          )}
+        </div>
         
-        <button
-          onClick={toggleChlorophyll}
-          className={`w-full px-4 py-2 rounded ${
-            chlActive ? 'bg-green-500' : 'bg-white/20'
-          } transition-colors`}
-        >
-          🌿 Chlorophyll {chlActive ? 'ON' : 'OFF'}
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={toggleChlorophyll}
+            className={`w-full px-4 py-2 rounded ${
+              chlActive ? 'bg-green-500' : 'bg-white/20'
+            } transition-colors`}
+          >
+            🌿 Chlorophyll {chlActive ? 'ON' : 'OFF'}
+          </button>
+          {chlActive && (
+            <div className="px-2">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span>Opacity</span>
+                <span>{chlOpacity}%</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={chlOpacity}
+                onChange={(e) => {
+                  const newOpacity = parseInt(e.target.value);
+                  setChlOpacity(newOpacity);
+                  if (map.current?.getLayer('chl-layer')) {
+                    map.current.setPaintProperty('chl-layer', 'raster-opacity', newOpacity / 100);
+                  }
+                }}
+                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  background: `linear-gradient(to right, #10b981 0%, #10b981 ${chlOpacity}%, rgba(255,255,255,0.2) ${chlOpacity}%, rgba(255,255,255,0.2) 100%)`
+                }}
+              />
+            </div>
+          )}
+        </div>
         
-        <button
-          onClick={() => {
-            const newState = !slaActive;
-            setSlaActive(newState);
-            if (map.current?.getLayer('sla-layer')) {
-              map.current.setLayoutProperty('sla-layer', 'visibility', newState ? 'visible' : 'none');
-              if (newState) {
-                map.current.moveLayer('sla-layer'); // Move to top
-                map.current.triggerRepaint();
-              }
-              console.log(`🌊 Sea Level Anomaly ${newState ? 'ON' : 'OFF'}`);
-            }
-          }}
-          className={`w-full px-4 py-2 rounded ${
-            slaActive ? 'bg-blue-600' : 'bg-white/20'
-          } transition-colors`}
-        >
-          🌊 Altimetry {slaActive ? 'ON' : 'OFF'}
-        </button>
-        
-        <button
-          onClick={() => {
-            const newState = !noaaActive;
-            setNoaaActive(newState);
-            if (map.current?.getLayer('noaa-viirs-layer')) {
-              map.current.setLayoutProperty('noaa-viirs-layer', 'visibility', newState ? 'visible' : 'none');
-              if (newState) {
-                map.current.moveLayer('noaa-viirs-layer'); // Move to top
-                map.current.triggerRepaint();
-              }
-              console.log(`🛰️ NOAA VIIRS 4km ${newState ? 'ON' : 'OFF'}`);
-            }
-          }}
-          className={`w-full px-4 py-2 rounded ${
-            noaaActive ? 'bg-cyan-500' : 'bg-white/20'
-          } transition-colors`}
-        >
-          🛰️ NOAA 4km {noaaActive ? 'ON' : 'OFF'}
-        </button>
-        
-        <div className="border-t border-white/20 pt-4">
-          <p className="text-xs font-bold text-yellow-400 mb-2">⚡ ABFI EXCLUSIVE</p>
+        <div className="space-y-2">
           <button
             onClick={() => {
-              const newState = !thermoActive;
-              setThermoActive(newState);
-              if (map.current?.getLayer('thermocline-layer')) {
-                map.current.setLayoutProperty('thermocline-layer', 'visibility', newState ? 'visible' : 'none');
+              const newState = !slaActive;
+              setSlaActive(newState);
+              if (map.current?.getLayer('sla-layer')) {
+                map.current.setLayoutProperty('sla-layer', 'visibility', newState ? 'visible' : 'none');
                 if (newState) {
-                  map.current.moveLayer('thermocline-layer');
+                  map.current.moveLayer('sla-layer'); // Move to top
                   map.current.triggerRepaint();
                 }
-                console.log(`🌡️ Thermocline ${newState ? 'ON' : 'OFF'}`);
+                console.log(`🌊 Sea Level Anomaly ${newState ? 'ON' : 'OFF'}`);
               }
             }}
             className={`w-full px-4 py-2 rounded ${
-              thermoActive ? 'bg-yellow-500' : 'bg-white/20'
+              slaActive ? 'bg-blue-600' : 'bg-white/20'
             } transition-colors`}
           >
-            🌡️ Thermocline {thermoActive ? 'ON' : 'OFF'}
+            🌊 Altimetry {slaActive ? 'ON' : 'OFF'}
           </button>
+          {slaActive && (
+            <div className="px-2">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span>Opacity</span>
+                <span>{slaOpacity}%</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={slaOpacity}
+                onChange={(e) => {
+                  const newOpacity = parseInt(e.target.value);
+                  setSlaOpacity(newOpacity);
+                  if (map.current?.getLayer('sla-layer')) {
+                    map.current.setPaintProperty('sla-layer', 'raster-opacity', newOpacity / 100);
+                  }
+                }}
+                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  background: `linear-gradient(to right, #2563eb 0%, #2563eb ${slaOpacity}%, rgba(255,255,255,0.2) ${slaOpacity}%, rgba(255,255,255,0.2) 100%)`
+                }}
+              />
+            </div>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          <button
+            onClick={() => {
+              const newState = !noaaActive;
+              setNoaaActive(newState);
+              if (map.current?.getLayer('noaa-viirs-layer')) {
+                map.current.setLayoutProperty('noaa-viirs-layer', 'visibility', newState ? 'visible' : 'none');
+                if (newState) {
+                  map.current.moveLayer('noaa-viirs-layer'); // Move to top
+                  map.current.triggerRepaint();
+                }
+                console.log(`🛰️ NOAA VIIRS 4km ${newState ? 'ON' : 'OFF'}`);
+              }
+            }}
+            className={`w-full px-4 py-2 rounded ${
+              noaaActive ? 'bg-cyan-500' : 'bg-white/20'
+            } transition-colors`}
+          >
+            🛰️ NOAA 4km {noaaActive ? 'ON' : 'OFF'}
+          </button>
+          {noaaActive && (
+            <div className="px-2">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span>Opacity</span>
+                <span>{noaaOpacity}%</span>
+              </div>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={noaaOpacity}
+                onChange={(e) => {
+                  const newOpacity = parseInt(e.target.value);
+                  setNoaaOpacity(newOpacity);
+                  if (map.current?.getLayer('noaa-viirs-layer')) {
+                    map.current.setPaintProperty('noaa-viirs-layer', 'raster-opacity', newOpacity / 100);
+                  }
+                }}
+                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  background: `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${noaaOpacity}%, rgba(255,255,255,0.2) ${noaaOpacity}%, rgba(255,255,255,0.2) 100%)`
+                }}
+              />
+            </div>
+          )}
+        </div>
+        
+        <div className="border-t border-white/20 pt-4">
+          <p className="text-xs font-bold text-yellow-400 mb-2">⚡ ABFI EXCLUSIVE</p>
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                const newState = !thermoActive;
+                setThermoActive(newState);
+                if (map.current?.getLayer('thermocline-layer')) {
+                  map.current.setLayoutProperty('thermocline-layer', 'visibility', newState ? 'visible' : 'none');
+                  if (newState) {
+                    map.current.moveLayer('thermocline-layer');
+                    map.current.triggerRepaint();
+                  }
+                  console.log(`🌡️ Thermocline ${newState ? 'ON' : 'OFF'}`);
+                }
+              }}
+              className={`w-full px-4 py-2 rounded ${
+                thermoActive ? 'bg-yellow-500' : 'bg-white/20'
+              } transition-colors`}
+            >
+              🌡️ Thermocline {thermoActive ? 'ON' : 'OFF'}
+            </button>
+            {thermoActive && (
+              <div className="px-2">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span>Opacity</span>
+                  <span>{thermoOpacity}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={thermoOpacity}
+                  onChange={(e) => {
+                    const newOpacity = parseInt(e.target.value);
+                    setThermoOpacity(newOpacity);
+                    if (map.current?.getLayer('thermocline-layer')) {
+                      map.current.setPaintProperty('thermocline-layer', 'raster-opacity', newOpacity / 100);
+                    }
+                  }}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #eab308 0%, #eab308 ${thermoOpacity}%, rgba(255,255,255,0.2) ${thermoOpacity}%, rgba(255,255,255,0.2) 100%)`
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="border-t border-white/20 pt-4">
