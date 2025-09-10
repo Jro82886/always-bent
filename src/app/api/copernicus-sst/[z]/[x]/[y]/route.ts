@@ -40,7 +40,7 @@ export async function GET(
     
     // Try multiple matrix sets for better coastline alignment
     const matrixSets = [MATRIX_GOOGLE, 'PopularVisualisation3857', MATRIX];
-    let wmtsUrl: URL;
+    let wmtsUrl: URL | undefined;
     let success = false;
     
     for (const matrix of matrixSets) {
@@ -89,6 +89,17 @@ export async function GET(
       wmtsUrl.searchParams.set('time', time);
       wmtsUrl.searchParams.set('elevation', '-0.4940253794193268');
     } // Surface level
+    
+    if (!wmtsUrl) {
+      console.error('🚨 No valid WMTS URL found for SST');
+      return new NextResponse(BLANK_PNG, {
+        headers: {
+          'Content-Type': 'image/png',
+          'Cache-Control': 'public, max-age=300',
+          'x-error': 'no-valid-matrix-set'
+        }
+      });
+    }
     
     console.log('🌡️ SST WMTS URL:', wmtsUrl.toString());
     
