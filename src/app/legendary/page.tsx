@@ -33,6 +33,16 @@ export default function LegendaryOceanPlatform() {
 
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
+      
+      // Debug: List all layers after initialization
+      setTimeout(() => {
+        const layers = mapInstance.getStyle().layers;
+        console.log('🗺️ Available layers:', layers.map(l => l.id));
+        console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-layer'));
+        console.log('🌿 CHL layer exists:', !!mapInstance.getLayer('chl-layer'));
+        console.log('🦠 PHYC layer exists:', !!mapInstance.getLayer('phyc-layer'));
+        console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
+      }, 2000);
 
       // Add SST source - OPTIMIZED RESOLUTION
       mapInstance.addSource('sst', {
@@ -138,6 +148,21 @@ export default function LegendaryOceanPlatform() {
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
       console.log('🔍 Copernicus config check - Pass:', !!process.env.COPERNICUS_PASS);
       (window as any).map = mapInstance;
+    });
+
+    // Add error handling
+    mapInstance.on('error', (e) => {
+      console.error('🚨 Map error:', e);
+    });
+
+    mapInstance.on('sourcedataloading', (e) => {
+      console.log('📡 Loading data for source:', e.sourceId);
+    });
+
+    mapInstance.on('sourcedata', (e) => {
+      if (e.isSourceLoaded) {
+        console.log('✅ Data loaded for source:', e.sourceId);
+      }
     });
 
     return () => {
