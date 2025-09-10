@@ -14,6 +14,7 @@ export default function LegendaryOceanPlatform() {
   const [sstActive, setSstActive] = useState(false);
   const [chlActive, setChlActive] = useState(false);
   const [phycActive, setPhycActive] = useState(false); // Total Phytoplankton
+  const [noaaActive, setNoaaActive] = useState(false); // NOAA VIIRS 4km Chlorophyll
   const [selectedDate, setSelectedDate] = useState('2025-09-09'); // Today
 
   // Initialize map
@@ -105,8 +106,33 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
+      // Add NOAA VIIRS Chlorophyll layer - ULTRA HIGH RESOLUTION (4km!)
+      mapInstance.addSource('noaa-viirs', {
+        type: 'raster',
+        tiles: [`/api/noaa-viirs/{z}/{x}/{y}?time=${selectedDate}`],
+        tileSize: 256,  // Standard WMS tile size
+        maxzoom: 18,    // High zoom for 4km resolution
+        minzoom: 0      // Full zoom range
+      });
+
+      mapInstance.addLayer({
+        id: 'noaa-viirs-layer',
+        type: 'raster',
+        source: 'noaa-viirs',
+        layout: { visibility: 'none' },
+        paint: { 
+          'raster-opacity': 0.85,                    // SLIGHTLY MORE OPAQUE
+          'raster-fade-duration': 150,               // FASTER TRANSITIONS
+          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
+          'raster-contrast': 0.2,                    // ENHANCED CONTRAST
+          'raster-brightness-max': 1.0,              // MAXIMUM BRIGHTNESS
+          'raster-saturation': 0.25                  // ENHANCED GREEN COLORS
+        }
+      });
+
       console.log('🌿 Chlorophyll layer added successfully');
       console.log('🦠 Phytoplankton layer added successfully');
+      console.log('🛰️ NOAA VIIRS 4km Chlorophyll layer added successfully');
       
       // Debug: Check if Copernicus is configured
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
@@ -139,6 +165,12 @@ export default function LegendaryOceanPlatform() {
     const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
     if (sstSource && (sstSource as any).setTiles) {
       (sstSource as any).setTiles([`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
+    }
+
+    // Update NOAA VIIRS tiles
+    const noaaSource = map.current.getSource('noaa-viirs') as mapboxgl.RasterTileSource;
+    if (noaaSource && (noaaSource as any).setTiles) {
+      (noaaSource as any).setTiles([`/api/noaa-viirs/{z}/{x}/{y}?time=${selectedDate}`]);
     }
     
     // Force map repaint for all layers
@@ -246,6 +278,26 @@ export default function LegendaryOceanPlatform() {
           } transition-colors`}
         >
           🦠 Phytoplankton {phycActive ? 'ON' : 'OFF'}
+        </button>
+        
+        <button
+          onClick={() => {
+            const newState = !noaaActive;
+            setNoaaActive(newState);
+            if (map.current?.getLayer('noaa-viirs-layer')) {
+              map.current.setLayoutProperty('noaa-viirs-layer', 'visibility', newState ? 'visible' : 'none');
+              if (newState) {
+                map.current.moveLayer('noaa-viirs-layer'); // Move to top
+                map.current.triggerRepaint();
+              }
+              console.log(`🛰️ NOAA VIIRS 4km ${newState ? 'ON' : 'OFF'}`);
+            }
+          }}
+          className={`w-full px-4 py-2 rounded ${
+            noaaActive ? 'bg-cyan-500' : 'bg-white/20'
+          } transition-colors`}
+        >
+          🛰️ NOAA 4km {noaaActive ? 'ON' : 'OFF'}
         </button>
         
         <div className="border-t border-white/20 pt-4">
