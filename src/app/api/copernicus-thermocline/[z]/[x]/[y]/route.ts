@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BASE = process.env.COPERNICUS_WMTS_BASE!;
-// THERMOCLINE DEPTH - Where fish concentrate! Critical for fishing success
-const LAYER = process.env.COPERNICUS_WMTS_THERMO_LAYER || 'GLOBAL_MULTIYEAR_PHY_001_030/cmems_mod_glo_phy_my_0.083deg-lev_P1M/mlotst'; // Mixed Layer Depth (thermocline)
+// ARMOR3D MIXED LAYER DEPTH - Real thermocline data for fishing!
+const LAYER = process.env.COPERNICUS_WMTS_THERMO_LAYER || 'MULTIOBS_GLO_PHY_TSUV_3D_MYNRT_015_012/dataset-armor-3d-nrt-weekly_202012/mlotst';
 const STYLE = 'cmap:deep'; // Deep ocean colormap for depth
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
 const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857';
