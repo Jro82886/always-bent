@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BASE = process.env.COPERNICUS_WMTS_BASE!;
-// REVERT TO WORKING CHLOROPHYLL LAYER (we'll optimize after it displays)
+// ORIGINAL WORKING CHLOROPHYLL LAYER
 const LAYER = process.env.COPERNICUS_WMTS_LAYER || 'GLOBAL_ANALYSISFORECAST_BGC_001_028/cmems_mod_glo_bgc-pft_anfc_0.25deg_P1D-m_202311/chl';
 const STYLE = process.env.COPERNICUS_WMTS_STYLE || 'cmap:algae';
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
