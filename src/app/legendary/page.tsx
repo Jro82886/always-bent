@@ -192,15 +192,20 @@ export default function LegendaryOceanPlatform() {
   return (
     <div className="w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       {/* Map Container with enhanced rendering */}
-      <div ref={mapContainer} className="w-full h-full" style={{ 
-        imageRendering: 'pixelated',           // SHARPEST PIXEL RENDERING
-        WebkitImageRendering: 'pixelated',     // WEBKIT SHARP RENDERING
-        MozImageRendering: 'pixelated',        // FIREFOX SHARP RENDERING
-        msImageRendering: 'pixelated',         // EDGE SHARP RENDERING
-        transform: 'translateZ(0)',            // HARDWARE ACCELERATION
-        willChange: 'transform',               // OPTIMIZE FOR CHANGES
-        backfaceVisibility: 'hidden'           // REDUCE RENDERING ARTIFACTS
-      }} />
+      <div 
+        ref={mapContainer} 
+        className="w-full h-full" 
+        style={{ 
+          imageRendering: 'pixelated',
+          transform: 'translateZ(0)',
+          willChange: 'transform',
+          backfaceVisibility: 'hidden'
+        } as React.CSSProperties & {
+          WebkitImageRendering?: string;
+          MozImageRendering?: string;
+          msImageRendering?: string;
+        }}
+      />
       
       {/* Simple Control Panel */}
       <div className="absolute top-8 left-8 bg-black/80 backdrop-blur rounded-2xl p-6 text-white space-y-4">
