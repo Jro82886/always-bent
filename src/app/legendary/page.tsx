@@ -14,6 +14,7 @@ export default function LegendaryOceanPlatform() {
   const [sstActive, setSstActive] = useState(false);
   const [chlActive, setChlActive] = useState(false);
   const [slaActive, setSlaActive] = useState(false); // Sea Level Anomaly (Altimetry)
+  const [thermoActive, setThermoActive] = useState(false); // Thermocline (Mixed Layer Depth)
   const [noaaActive, setNoaaActive] = useState(false); // NOAA VIIRS 4km Chlorophyll
   const [selectedDate, setSelectedDate] = useState('2025-09-09'); // Today
 
@@ -44,13 +45,13 @@ export default function LegendaryOceanPlatform() {
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
-      // Add SST source - OPTIMIZED RESOLUTION
+      // JEFF'S CHOICE: NOAA SST ONLY (with proper proxy and caching)
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 256,  // Standard WMTS tile size
-        maxzoom: 18,    // Standard zoom level
-        minzoom: 0      // Full zoom range
+        tiles: [`/api/tiles/noaa/sst/{z}/{x}/{y}?time=${selectedDate}`],
+        tileSize: 256,
+        maxzoom: 18,
+        minzoom: 0
       });
 
       mapInstance.addLayer({
@@ -140,8 +141,33 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
+      // Add Thermocline (Mixed Layer Depth) - ABFI secret weapon!
+      mapInstance.addSource('thermocline', {
+        type: 'raster',
+        tiles: [`/api/copernicus-thermocline/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
+        tileSize: 256,
+        maxzoom: 18,
+        minzoom: 0
+      });
+
+      mapInstance.addLayer({
+        id: 'thermocline-layer',
+        type: 'raster',
+        source: 'thermocline',
+        layout: { visibility: 'none' },
+        paint: { 
+          'raster-opacity': 0.85,
+          'raster-fade-duration': 150,
+          'raster-resampling': 'linear',
+          'raster-contrast': 0.3,
+          'raster-brightness-max': 1.0,
+          'raster-saturation': 0.4
+        }
+      });
+
       console.log('🌿 Chlorophyll layer added successfully');
       console.log('🌊 Sea Level Anomaly layer added successfully');
+      console.log('🌡️ Thermocline layer added successfully');
       console.log('🛰️ NOAA VIIRS 4km Chlorophyll layer added successfully');
       
       // Debug: Check if Copernicus is configured
@@ -196,6 +222,12 @@ export default function LegendaryOceanPlatform() {
     const noaaSource = map.current.getSource('noaa-viirs') as mapboxgl.RasterTileSource;
     if (noaaSource && (noaaSource as any).setTiles) {
       (noaaSource as any).setTiles([`/api/noaa-viirs/{z}/{x}/{y}?time=${selectedDate}`]);
+    }
+
+    // Update Thermocline tiles
+    const thermoSource = map.current.getSource('thermocline') as mapboxgl.RasterTileSource;
+    if (thermoSource && (thermoSource as any).setTiles) {
+      (thermoSource as any).setTiles([`/api/copernicus-thermocline/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
     }
     
     // Force map repaint for all layers
@@ -328,6 +360,29 @@ export default function LegendaryOceanPlatform() {
         >
           🛰️ NOAA 4km {noaaActive ? 'ON' : 'OFF'}
         </button>
+        
+        <div className="border-t border-white/20 pt-4">
+          <p className="text-xs font-bold text-yellow-400 mb-2">⚡ ABFI EXCLUSIVE</p>
+          <button
+            onClick={() => {
+              const newState = !thermoActive;
+              setThermoActive(newState);
+              if (map.current?.getLayer('thermocline-layer')) {
+                map.current.setLayoutProperty('thermocline-layer', 'visibility', newState ? 'visible' : 'none');
+                if (newState) {
+                  map.current.moveLayer('thermocline-layer');
+                  map.current.triggerRepaint();
+                }
+                console.log(`🌡️ Thermocline ${newState ? 'ON' : 'OFF'}`);
+              }
+            }}
+            className={`w-full px-4 py-2 rounded ${
+              thermoActive ? 'bg-yellow-500' : 'bg-white/20'
+            } transition-colors`}
+          >
+            🌡️ Thermocline {thermoActive ? 'ON' : 'OFF'}
+          </button>
+        </div>
         
         <div className="border-t border-white/20 pt-4">
           <label className="text-sm font-semibold block mb-3">📅 Ocean Data Date</label>

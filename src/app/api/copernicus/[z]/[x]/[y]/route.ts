@@ -7,8 +7,8 @@ const BASE = process.env.COPERNICUS_WMTS_BASE!;
 const LAYER = process.env.COPERNICUS_WMTS_LAYER || 'GLOBAL_ANALYSISFORECAST_BGC_001_028/cmems_mod_glo_bgc-pft_anfc_0.25deg_P1D-m_202311/chl';
 const STYLE = process.env.COPERNICUS_WMTS_STYLE || 'cmap:algae';
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
-const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857'; // Standard resolution
-const MATRIX_HI = 'EPSG:3857@2x'; // High resolution option
+const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857';
+const MATRIX_GOOGLE = 'GoogleMapsCompatible'; // Copy from working SST
 const USER = process.env.COPERNICUS_USER!;
 const PASS = process.env.COPERNICUS_PASS!;
 
@@ -40,8 +40,8 @@ export async function GET(
     // Add authentication first
     const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
     
-    // Try GoogleMapsCompatible first (better coastline alignment), then fallbacks
-    const matrixSets = ['GoogleMapsCompatible', 'PopularVisualisation3857', MATRIX_HI, MATRIX];
+    // Copy EXACT matrix set strategy from working SST
+    const matrixSets = [MATRIX_GOOGLE, 'PopularVisualisation3857', MATRIX];
     let wmtsUrl: URL;
     let success = false;
     
