@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BASE = process.env.COPERNICUS_WMTS_BASE!;
-// HIGH-RESOLUTION SST DATASET SWITCH (1km instead of 25km!)
-const LAYER = process.env.COPERNICUS_WMTS_SST_HIRES || 'SST_GLO_SST_L4_REP_OBSERVATIONS_010_011/METOFFICE-GLO-SST-L4-REP-OBS-SST/analysed_sst';
+// REVERT TO WORKING SST LAYER (we'll optimize after it displays)
+const LAYER = process.env.COPERNICUS_WMTS_SST_LAYER || 'GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy_anfc_0.083deg_P1D-m_202311/thetao';
 const STYLE = 'cmap:thermal'; // Thermal colormap for SST
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
 const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857';

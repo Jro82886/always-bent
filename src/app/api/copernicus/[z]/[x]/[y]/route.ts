@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BASE = process.env.COPERNICUS_WMTS_BASE!;
-// HIGH-RESOLUTION DATASET SWITCH (300m instead of 25km!)
-const LAYER = process.env.COPERNICUS_WMTS_LAYER_HIRES || 'OCEANCOLOUR_GLO_BGC_L4_REP_009_102/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/chl';
+// REVERT TO WORKING CHLOROPHYLL LAYER (we'll optimize after it displays)
+const LAYER = process.env.COPERNICUS_WMTS_LAYER || 'GLOBAL_ANALYSISFORECAST_BGC_001_028/cmems_mod_glo_bgc-pft_anfc_0.25deg_P1D-m_202311/chl';
 const STYLE = process.env.COPERNICUS_WMTS_STYLE || 'cmap:algae';
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
 const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857'; // Standard resolution

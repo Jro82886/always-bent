@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BASE = process.env.COPERNICUS_WMTS_BASE!;
-// SEA LEVEL ANOMALY (ALTIMETRY) - Shows eddies, currents, upwelling for fishing!
-const LAYER = process.env.COPERNICUS_WMTS_SLA_LAYER || 'SEALEVEL_GLO_PHY_L4_REP_OBSERVATIONS_008_047/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D/sla'; // Sea Level Anomaly
+// SIMPLIFIED SLA LAYER (use working BGC dataset format for now)
+const LAYER = process.env.COPERNICUS_WMTS_SLA_LAYER || 'GLOBAL_ANALYSISFORECAST_BGC_001_028/cmems_mod_glo_bgc-pft_anfc_0.25deg_P1D-m_202311/chl'; // Placeholder with working format
 const STYLE = 'cmap:balance'; // Blue-white-red for sea level anomaly
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
 const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857';
