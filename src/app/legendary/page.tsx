@@ -69,12 +69,12 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Add chlorophyll source - OPTIMIZED RESOLUTION
+      // Add chlorophyll source - ENHANCED RESOLUTION
       mapInstance.addSource('chl', {
         type: 'raster',
         tiles: [`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 256,  // Standard WMTS tile size
-        maxzoom: 18,    // Standard zoom level
+        tileSize: 512,  // HIGHER RESOLUTION TILES
+        maxzoom: 20,    // DEEPER ZOOM for coastline detail
         minzoom: 0      // Full zoom range
       });
 
@@ -84,12 +84,13 @@ export default function LegendaryOceanPlatform() {
         source: 'chl',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.85,                    // SLIGHTLY MORE OPAQUE
-          'raster-fade-duration': 150,               // FASTER TRANSITIONS  
+          'raster-opacity': 0.9,                     // MORE VISIBLE
+          'raster-fade-duration': 100,               // FASTER TRANSITIONS  
           'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
-          'raster-contrast': 0.15,                   // ENHANCED CONTRAST
+          'raster-contrast': 0.3,                    // HIGHER CONTRAST
           'raster-brightness-max': 1.0,              // MAXIMUM BRIGHTNESS
-          'raster-saturation': 0.2                   // ENHANCED GREEN COLORS
+          'raster-saturation': 0.5,                  // ENHANCED GREEN COLORS
+          'raster-hue-rotate': 20                    // SHIFT TOWARDS GREEN (blue→green)
         }
       });
 
