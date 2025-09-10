@@ -33,12 +33,13 @@ export default function LegendaryOceanPlatform() {
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
 
-      // Add SST source - copy phyto's working settings
+      // Add SST source - ULTRA HIGH RESOLUTION
       mapInstance.addSource('sst', {
         type: 'raster',
         tiles: [`/api/copernicus-sst/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 256,  // Same as working phyto
-        maxzoom: 18     // Same as working phyto
+        tileSize: 512,  // HIGHER RESOLUTION: 512px tiles
+        maxzoom: 20,    // DEEPER ZOOM: Level 20 for coastline detail
+        minzoom: 0      // Full zoom range
       });
 
       mapInstance.addLayer({
@@ -47,18 +48,22 @@ export default function LegendaryOceanPlatform() {
         source: 'sst',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.8,          // Same as working layers
-          'raster-fade-duration': 300,    // Same as working layers  
-          'raster-resampling': 'linear'   // Same as working layers
+          'raster-opacity': 0.85,                    // SLIGHTLY MORE OPAQUE
+          'raster-fade-duration': 150,               // FASTER TRANSITIONS
+          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
+          'raster-contrast': 0.1,                    // ENHANCED CONTRAST
+          'raster-brightness-max': 1.0,              // MAXIMUM BRIGHTNESS
+          'raster-saturation': 0.1                   // ENHANCED COLORS
         }
       });
 
-      // Add chlorophyll source - copy phyto's working settings
+      // Add chlorophyll source - ULTRA HIGH RESOLUTION
       mapInstance.addSource('chl', {
         type: 'raster',
         tiles: [`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 256,  // Same as working phyto
-        maxzoom: 18     // Same as working phyto
+        tileSize: 512,  // HIGHER RESOLUTION: 512px tiles  
+        maxzoom: 20,    // DEEPER ZOOM: Level 20 for coastline detail
+        minzoom: 0      // Full zoom range
       });
 
       mapInstance.addLayer({
@@ -67,17 +72,22 @@ export default function LegendaryOceanPlatform() {
         source: 'chl',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.8,          // Same as working phyto
-          'raster-fade-duration': 300,    // Same as working phyto  
-          'raster-resampling': 'linear'   // Same as working phyto
+          'raster-opacity': 0.85,                    // SLIGHTLY MORE OPAQUE
+          'raster-fade-duration': 150,               // FASTER TRANSITIONS  
+          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
+          'raster-contrast': 0.15,                   // ENHANCED CONTRAST
+          'raster-brightness-max': 1.0,              // MAXIMUM BRIGHTNESS
+          'raster-saturation': 0.2                   // ENHANCED GREEN COLORS
         }
       });
 
-      // Add Total Phytoplankton layer (another Copernicus layer)
+      // Add Total Phytoplankton layer - ULTRA HIGH RESOLUTION
       mapInstance.addSource('phyc', {
         type: 'raster',
         tiles: [`/api/copernicus-phyc/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 256
+        tileSize: 512,  // HIGHER RESOLUTION: 512px tiles
+        maxzoom: 20,    // DEEPER ZOOM: Level 20 for coastline detail
+        minzoom: 0      // Full zoom range
       });
 
       mapInstance.addLayer({
@@ -86,9 +96,12 @@ export default function LegendaryOceanPlatform() {
         source: 'phyc',
         layout: { visibility: 'none' },
         paint: { 
-          'raster-opacity': 0.8,
-          'raster-fade-duration': 300,
-          'raster-resampling': 'linear'
+          'raster-opacity': 0.85,                    // SLIGHTLY MORE OPAQUE
+          'raster-fade-duration': 150,               // FASTER TRANSITIONS
+          'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
+          'raster-contrast': 0.2,                    // ENHANCED CONTRAST
+          'raster-brightness-max': 1.0,              // MAXIMUM BRIGHTNESS
+          'raster-saturation': 0.3                   // ENHANCED PURPLE COLORS
         }
       });
 
@@ -180,9 +193,13 @@ export default function LegendaryOceanPlatform() {
     <div className="w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       {/* Map Container with enhanced rendering */}
       <div ref={mapContainer} className="w-full h-full" style={{ 
-        imageRendering: 'crisp-edges',
-        WebkitImageRendering: 'crisp-edges',
-        MozImageRendering: 'crisp-edges'
+        imageRendering: 'pixelated',           // SHARPEST PIXEL RENDERING
+        WebkitImageRendering: 'pixelated',     // WEBKIT SHARP RENDERING
+        MozImageRendering: 'pixelated',        // FIREFOX SHARP RENDERING
+        msImageRendering: 'pixelated',         // EDGE SHARP RENDERING
+        transform: 'translateZ(0)',            // HARDWARE ACCELERATION
+        willChange: 'transform',               // OPTIMIZE FOR CHANGES
+        backfaceVisibility: 'hidden'           // REDUCE RENDERING ARTIFACTS
       }} />
       
       {/* Simple Control Panel */}

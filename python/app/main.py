@@ -8,8 +8,10 @@ from shapely.geometry import Polygon, mapping
 from skimage import measure
 from typing import Optional, List, Tuple
 import requests
+from ocean_features import OceanFeatureDetector
 
-app = FastAPI(title="ABFI Polygons (numeric)")
+app = FastAPI(title="ABFI Ocean Analysis Backend")
+detector = OceanFeatureDetector()
 
 
 def fetch_mur(time_iso: str, bbox: Tuple[float, float, float, float]) -> xr.DataArray:
@@ -95,6 +97,107 @@ def get_polygons(time: str = Query(..., description="YYYY-MM-DD"), bbox: str = Q
         da = fetch_mur(time, (min_lon, min_lat, max_lon, max_lat))
         feats = sst_edges_to_polygons(da)
         return JSONResponse({"type": "FeatureCollection", "features": feats})
+    except Exception as e:
+        return JSONResponse({"error": "failed", "message": str(e)}, status_code=500)
+
+
+@app.get("/ocean-features/fronts")
+def get_thermal_fronts(
+    bbox: str = Query(..., description="min_lon,min_lat,max_lon,max_lat"),
+    date: str = Query(..., description="YYYY-MM-DD"),
+    threshold: float = Query(0.5, description="Temperature gradient threshold (°C/km)")
+):
+    """Detect SST thermal fronts using Sobel edge detection"""
+    try:
+        parts = [float(p) for p in bbox.split(",")]
+        if len(parts) != 4:
+            return JSONResponse({"error": "bad_bbox"}, status_code=400)
+        
+        min_lon, min_lat, max_lon, max_lat = parts
+        da = fetch_mur(date, (min_lon, min_lat, max_lon, max_lat))
+        
+        # Extract arrays
+        sst_array = da.values
+        if sst_array.ndim == 3:
+            sst_array = sst_array[0]  # Remove time dimension
+            
+        lat_array = da["latitude"].values
+        lon_array = da["longitude"].values
+        
+        # Detect thermal fronts
+        fronts = detector.detect_thermal_fronts(sst_array, lon_array, lat_array, threshold)
+        
+        return JSONResponse(fronts)
+        
+    except Exception as e:
+        return JSONResponse({"error": "failed", "message": str(e)}, status_code=500)
+
+
+@app.get("/ocean-features/edges")
+def get_chlorophyll_edges(
+    bbox: str = Query(..., description="min_lon,min_lat,max_lon,max_lat"),
+    date: str = Query(..., description="YYYY-MM-DD"),
+    low_thresh: float = Query(0.1, description="Lower Canny threshold"),
+    high_thresh: float = Query(0.3, description="Upper Canny threshold")
+):
+    """Detect chlorophyll edges using Canny edge detection"""
+    try:
+        # For now, use SST data as a proxy - in production would use actual chlorophyll data
+        parts = [float(p) for p in bbox.split(",")]
+        if len(parts) != 4:
+            return JSONResponse({"error": "bad_bbox"}, status_code=400)
+        
+        min_lon, min_lat, max_lon, max_lat = parts
+        da = fetch_mur(date, (min_lon, min_lat, max_lon, max_lat))
+        
+        # Extract arrays (using SST as proxy for chlorophyll)
+        chl_array = da.values
+        if chl_array.ndim == 3:
+            chl_array = chl_array[0]
+            
+        # Convert SST to mock chlorophyll-like values
+        chl_array = np.exp(-(chl_array - 20)**2 / 50) * 10  # Mock transformation
+            
+        lat_array = da["latitude"].values
+        lon_array = da["longitude"].values
+        
+        # Detect chlorophyll edges
+        edges = detector.detect_chlorophyll_edges(chl_array, lon_array, lat_array, low_thresh, high_thresh)
+        
+        return JSONResponse(edges)
+        
+    except Exception as e:
+        return JSONResponse({"error": "failed", "message": str(e)}, status_code=500)
+
+
+@app.get("/ocean-features/eddies")
+def get_eddies(
+    bbox: str = Query(..., description="min_lon,min_lat,max_lon,max_lat"),
+    date: str = Query(..., description="YYYY-MM-DD"),
+    min_radius: float = Query(10.0, description="Minimum eddy radius (km)")
+):
+    """Detect mesoscale eddies using Okubo-Weiss parameter"""
+    try:
+        parts = [float(p) for p in bbox.split(",")]
+        if len(parts) != 4:
+            return JSONResponse({"error": "bad_bbox"}, status_code=400)
+        
+        min_lon, min_lat, max_lon, max_lat = parts
+        da = fetch_mur(date, (min_lon, min_lat, max_lon, max_lat))
+        
+        # Extract arrays
+        sst_array = da.values
+        if sst_array.ndim == 3:
+            sst_array = sst_array[0]
+            
+        lat_array = da["latitude"].values
+        lon_array = da["longitude"].values
+        
+        # Detect eddies
+        eddies = detector.detect_eddies(sst_array, lon_array, lat_array, min_radius)
+        
+        return JSONResponse(eddies)
+        
     except Exception as e:
         return JSONResponse({"error": "failed", "message": str(e)}, status_code=500)
 
