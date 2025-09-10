@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BASE = process.env.COPERNICUS_WMTS_BASE!;
-// HIGH-RESOLUTION METOFFICE SST (0.05° = ~5km resolution!)
-const LAYER = process.env.COPERNICUS_WMTS_SST_LAYER || 'SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001/METOFFICE-GLO-SST-L4-NRT-OBS-SST-V2/analysed_sst';
+// NORTH ATLANTIC SPECIFIC SST (IFREMER ODYSSEA - optimized for Atlantic!)
+const LAYER = process.env.COPERNICUS_WMTS_SST_LAYER || 'SST_ATL_SST_L4_NRT_OBSERVATIONS_010_025/IFREMER-ATL-SST-L4-NRT-OBS_FULL_TIME_SERIE_201904/analysed_sst';
 const STYLE = 'cmap:thermal'; // Thermal colormap for SST
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
 const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857';
