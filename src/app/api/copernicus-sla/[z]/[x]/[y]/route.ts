@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BASE = process.env.COPERNICUS_WMTS_BASE!;
-// HIGH-RESOLUTION PHYTOPLANKTON DATASET (4km instead of 25km!)
-const LAYER = process.env.COPERNICUS_WMTS_PHYC_HIRES || 'OCEANCOLOUR_GLO_BGC_L4_REP_009_102/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/phyc'; // Phytoplankton
-const STYLE = 'cmap:matter'; // Different colormap for phytoplankton
+// SEA LEVEL ANOMALY (ALTIMETRY) - Shows eddies, currents, upwelling for fishing!
+const LAYER = process.env.COPERNICUS_WMTS_SLA_LAYER || 'SEALEVEL_GLO_PHY_L4_REP_OBSERVATIONS_008_047/cmems_obs-sl_glo_phy-ssh_my_allsat-l4-duacs-0.25deg_P1D/sla'; // Sea Level Anomaly
+const STYLE = 'cmap:balance'; // Blue-white-red for sea level anomaly
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
 const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857';
 const USER = process.env.COPERNICUS_USER!;

@@ -13,7 +13,7 @@ export default function LegendaryOceanPlatform() {
   
   const [sstActive, setSstActive] = useState(false);
   const [chlActive, setChlActive] = useState(false);
-  const [phycActive, setPhycActive] = useState(false); // Total Phytoplankton
+  const [slaActive, setSlaActive] = useState(false); // Sea Level Anomaly (Altimetry)
   const [noaaActive, setNoaaActive] = useState(false); // NOAA VIIRS 4km Chlorophyll
   const [selectedDate, setSelectedDate] = useState('2025-09-09'); // Today
 
@@ -40,7 +40,7 @@ export default function LegendaryOceanPlatform() {
         console.log('🗺️ Available layers:', layers.map(l => l.id));
         console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-layer'));
         console.log('🌿 CHL layer exists:', !!mapInstance.getLayer('chl-layer'));
-        console.log('🦠 PHYC layer exists:', !!mapInstance.getLayer('phyc-layer'));
+        console.log('🌊 SLA layer exists:', !!mapInstance.getLayer('sla-layer'));
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
@@ -92,27 +92,27 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Add Total Phytoplankton layer - OPTIMIZED RESOLUTION
-      mapInstance.addSource('phyc', {
+      // Add Sea Level Anomaly (Altimetry) - Shows eddies, currents, upwelling!
+      mapInstance.addSource('sla', {
         type: 'raster',
-        tiles: [`/api/copernicus-phyc/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
+        tiles: [`/api/copernicus-sla/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
         tileSize: 256,  // Standard WMTS tile size
         maxzoom: 18,    // Standard zoom level
         minzoom: 0      // Full zoom range
       });
 
       mapInstance.addLayer({
-        id: 'phyc-layer',
+        id: 'sla-layer',
         type: 'raster',
-        source: 'phyc',
+        source: 'sla',
         layout: { visibility: 'none' },
         paint: { 
           'raster-opacity': 0.85,                    // SLIGHTLY MORE OPAQUE
           'raster-fade-duration': 150,               // FASTER TRANSITIONS
           'raster-resampling': 'linear',             // SMOOTH INTERPOLATION
-          'raster-contrast': 0.2,                    // ENHANCED CONTRAST
+          'raster-contrast': 0.3,                    // HIGH CONTRAST for anomalies
           'raster-brightness-max': 1.0,              // MAXIMUM BRIGHTNESS
-          'raster-saturation': 0.3                   // ENHANCED PURPLE COLORS
+          'raster-saturation': 0.4                   // ENHANCED BLUE-RED COLORS
         }
       });
 
@@ -141,7 +141,7 @@ export default function LegendaryOceanPlatform() {
       });
 
       console.log('🌿 Chlorophyll layer added successfully');
-      console.log('🦠 Phytoplankton layer added successfully');
+      console.log('🌊 Sea Level Anomaly layer added successfully');
       console.log('🛰️ NOAA VIIRS 4km Chlorophyll layer added successfully');
       
       // Debug: Check if Copernicus is configured
@@ -181,9 +181,9 @@ export default function LegendaryOceanPlatform() {
     }
     
     // Update phytoplankton tiles  
-    const phycSource = map.current.getSource('phyc') as mapboxgl.RasterTileSource;
-    if (phycSource && (phycSource as any).setTiles) {
-      (phycSource as any).setTiles([`/api/copernicus-phyc/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
+    const slaSource = map.current.getSource('sla') as mapboxgl.RasterTileSource;
+    if (slaSource && (slaSource as any).setTiles) {
+      (slaSource as any).setTiles([`/api/copernicus-sla/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
     }
     
     // Update SST tiles
@@ -291,18 +291,22 @@ export default function LegendaryOceanPlatform() {
         
         <button
           onClick={() => {
-            const newState = !phycActive;
-            setPhycActive(newState);
-            if (map.current?.getLayer('phyc-layer')) {
-              map.current.setLayoutProperty('phyc-layer', 'visibility', newState ? 'visible' : 'none');
-              console.log(`🦠 Phytoplankton ${newState ? 'ON' : 'OFF'}`);
+            const newState = !slaActive;
+            setSlaActive(newState);
+            if (map.current?.getLayer('sla-layer')) {
+              map.current.setLayoutProperty('sla-layer', 'visibility', newState ? 'visible' : 'none');
+              if (newState) {
+                map.current.moveLayer('sla-layer'); // Move to top
+                map.current.triggerRepaint();
+              }
+              console.log(`🌊 Sea Level Anomaly ${newState ? 'ON' : 'OFF'}`);
             }
           }}
           className={`w-full px-4 py-2 rounded ${
-            phycActive ? 'bg-purple-500' : 'bg-white/20'
+            slaActive ? 'bg-blue-600' : 'bg-white/20'
           } transition-colors`}
         >
-          🦠 Phytoplankton {phycActive ? 'ON' : 'OFF'}
+          🌊 Altimetry {slaActive ? 'ON' : 'OFF'}
         </button>
         
         <button
