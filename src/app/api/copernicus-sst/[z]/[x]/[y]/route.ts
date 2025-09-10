@@ -7,6 +7,7 @@ const LAYER = 'GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy_anfc_0.083d
 const STYLE = 'cmap:thermal'; // Thermal colormap for SST
 const FORMAT = process.env.COPERNICUS_WMTS_FORMAT || 'image/png';
 const MATRIX = process.env.COPERNICUS_WMTS_MATRIXSET || 'EPSG:3857';
+const MATRIX_GOOGLE = 'GoogleMapsCompatible'; // Better coastline alignment
 const USER = process.env.COPERNICUS_USER!;
 const PASS = process.env.COPERNICUS_PASS!;
 
@@ -35,23 +36,61 @@ export async function GET(
     }
     
     // Build WMTS URL for sea surface temperature
-    const wmtsUrl = new URL(BASE);
-    wmtsUrl.searchParams.set('SERVICE', 'WMTS');
-    wmtsUrl.searchParams.set('REQUEST', 'GetTile');
-    wmtsUrl.searchParams.set('VERSION', '1.0.0');
-    wmtsUrl.searchParams.set('LAYER', LAYER);
-    wmtsUrl.searchParams.set('STYLE', STYLE);
-    wmtsUrl.searchParams.set('TILEMATRIXSET', MATRIX);
-    wmtsUrl.searchParams.set('FORMAT', FORMAT);
-    wmtsUrl.searchParams.set('TILEMATRIX', z);
-    wmtsUrl.searchParams.set('TILEROW', y);
-    wmtsUrl.searchParams.set('TILECOL', x);
-    wmtsUrl.searchParams.set('time', time);
-    wmtsUrl.searchParams.set('elevation', '-0.4940253794193268'); // Surface level
+    const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
+    
+    // Try multiple matrix sets for better coastline alignment
+    const matrixSets = [MATRIX_GOOGLE, 'PopularVisualisation3857', MATRIX];
+    let wmtsUrl: URL;
+    let success = false;
+    
+    for (const matrix of matrixSets) {
+      wmtsUrl = new URL(BASE);
+      wmtsUrl.searchParams.set('SERVICE', 'WMTS');
+      wmtsUrl.searchParams.set('REQUEST', 'GetTile');
+      wmtsUrl.searchParams.set('VERSION', '1.0.0');
+      wmtsUrl.searchParams.set('LAYER', LAYER);
+      wmtsUrl.searchParams.set('STYLE', STYLE);
+      wmtsUrl.searchParams.set('TILEMATRIXSET', matrix);
+      wmtsUrl.searchParams.set('FORMAT', FORMAT);
+      wmtsUrl.searchParams.set('TILEMATRIX', z);
+      wmtsUrl.searchParams.set('TILEROW', y);
+      wmtsUrl.searchParams.set('TILECOL', x);
+      wmtsUrl.searchParams.set('time', time);
+      wmtsUrl.searchParams.set('elevation', '-0.4940253794193268');
+      
+      // Test this configuration
+      const testResponse = await fetch(wmtsUrl.toString(), {
+        headers: { 
+          'Authorization': `Basic ${auth}`,
+          'Accept': 'image/png'
+        },
+        cache: 'no-store'
+      }).catch(() => null);
+      
+      if (testResponse?.ok) {
+        success = true;
+        break;
+      }
+    }
+    
+    if (!success) {
+      // Fallback to default matrix set
+      wmtsUrl = new URL(BASE);
+      wmtsUrl.searchParams.set('SERVICE', 'WMTS');
+      wmtsUrl.searchParams.set('REQUEST', 'GetTile');
+      wmtsUrl.searchParams.set('VERSION', '1.0.0');
+      wmtsUrl.searchParams.set('LAYER', LAYER);
+      wmtsUrl.searchParams.set('STYLE', STYLE);
+      wmtsUrl.searchParams.set('TILEMATRIXSET', MATRIX);
+      wmtsUrl.searchParams.set('FORMAT', FORMAT);
+      wmtsUrl.searchParams.set('TILEMATRIX', z);
+      wmtsUrl.searchParams.set('TILEROW', y);
+      wmtsUrl.searchParams.set('TILECOL', x);
+      wmtsUrl.searchParams.set('time', time);
+      wmtsUrl.searchParams.set('elevation', '-0.4940253794193268');
+    } // Surface level
     
     console.log('🌡️ SST WMTS URL:', wmtsUrl.toString());
-    
-    const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
     
     const response = await fetch(wmtsUrl.toString(), {
       headers: { 

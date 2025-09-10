@@ -39,8 +39,8 @@ export async function GET(
     // Add authentication first
     const auth = Buffer.from(`${USER}:${PASS}`).toString('base64');
     
-    // Try high resolution first, fallback to standard
-    const matrixSets = [MATRIX_HI, MATRIX];
+    // Try GoogleMapsCompatible first (better coastline alignment), then fallbacks
+    const matrixSets = ['GoogleMapsCompatible', 'PopularVisualisation3857', MATRIX_HI, MATRIX];
     let wmtsUrl: URL;
     let success = false;
     
