@@ -17,6 +17,7 @@ export default function LegendaryOceanPlatform() {
   const [selectedDate, setSelectedDate] = useState('2025-09-10'); // Today's date
   const [oceanOpacity, setOceanOpacity] = useState(60);
   const [sstOpacity, setSstOpacity] = useState(85);
+  const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'degraded'>('online');
 
   // Initialize map
   useEffect(() => {
@@ -55,17 +56,17 @@ export default function LegendaryOceanPlatform() {
         attribution: 'Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors'
       });
 
-      // NASA GIBS SST - EAST COAST OPTIMIZED
+      // NASA GIBS SST - CORRECT WEB MERCATOR FORMAT
       // Dataset: MODIS Aqua L3 SST Thermal 4km Night Daily
       // Coverage: Global with excellent East Coast coverage
       // Style: Built-in NASA thermal colormap (red=cold, yellow=hot)
       // Time: Daily composites optimized for fishing
-      // WMTS Format: epsg4326/best/{LAYER}/default/{DATE}/{MATRIX}/{z}/{y}/{x}.png
+      // CORRECT WMTS Format: epsg3857/best/{LAYER}/default/{DATE}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`],
+        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png`],
         tileSize: 256,
-        maxzoom: 8,
+        maxzoom: 9,
         minzoom: 0
       });
 
@@ -95,23 +96,57 @@ export default function LegendaryOceanPlatform() {
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
       console.log('🌡️ NASA GIBS SST layer added - EAST COAST OPTIMIZED - BRIGHT red/orange/yellow temperature gradients');
-      
+
+      // 🔒 SAFEGUARD: Add error handlers for tile loading failures
+      mapInstance.on('error', (e: any) => {
+        console.error('🚨 Map error:', e.error);
+        if (e.error?.message?.includes('sst')) {
+          console.warn('⚠️ SST tile loading failed - may be temporary NASA GIBS issue');
+        }
+      });
+
+      mapInstance.on('sourcedataabort', (e: any) => {
+        if (e.sourceId === 'sst') {
+          console.warn('⚠️ SST tile request aborted - network or service issue');
+        }
+      });
+
+      // 🔒 SAFEGUARD: Monitor tile loading for SST with connection status
+      let sstTileErrors = 0;
+      const maxErrors = 5; // Allow up to 5 errors before marking as degraded
+
+      mapInstance.on('sourcedata', (e: any) => {
+        if (e.sourceId === 'sst' && e.isSourceLoaded) {
+          sstTileErrors = 0; // Reset error counter on successful load
+          setConnectionStatus('online');
+          console.log('✅ SST tiles loaded successfully');
+        }
+      });
+
+      // 🔒 Track tile loading errors
+      mapInstance.on('error', (e: any) => {
+        if (e.sourceId === 'sst' || e.error?.message?.includes('gibs.earthdata.nasa.gov')) {
+          sstTileErrors++;
+          if (sstTileErrors >= maxErrors) {
+            setConnectionStatus('degraded');
+            console.warn(`⚠️ NASA GIBS connection degraded (${sstTileErrors} errors)`);
+          }
+        }
+      });
+
       // Debug: Check if Copernicus is configured
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
       console.log('🔍 Copernicus config check - Pass:', !!process.env.COPERNICUS_PASS);
       (window as any).map = mapInstance;
     });
 
-    // Add error handling
-    mapInstance.on('error', (e) => {
-      console.error('🚨 Map error:', e);
-    });
+    // 🔒 Additional error handling (backup)
 
-    mapInstance.on('sourcedataloading', (e) => {
+    mapInstance.on('sourcedataloading', (e: any) => {
       console.log('📡 Loading data for source:', e.sourceId);
     });
 
-    mapInstance.on('sourcedata', (e) => {
+    mapInstance.on('sourcedata', (e: any) => {
       if (e.isSourceLoaded) {
         console.log('✅ Data loaded for source:', e.sourceId);
       }
@@ -122,18 +157,40 @@ export default function LegendaryOceanPlatform() {
     };
   }, []);
 
-  // Handle date changes - Update SST layer (ocean basemap doesn't need dates)
+  // Handle date changes - Update SST layer (ocean basemap doesn't need dates) with SAFEGUARDS
   useEffect(() => {
-    if (!map.current) return;
-
-    // Update SST layer tiles with new date - NASA GIBS WMTS
-    const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
-    if (sstSource && (sstSource as any).setTiles && sstActive) {
-      (sstSource as any).setTiles([`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`]);
-      map.current.triggerRepaint();
+    if (!map.current) {
+      console.warn('🚨 Date Change: Map not initialized');
+      return;
     }
 
-    console.log(`📅 Date changed to: ${selectedDate} - SST layer updated`);
+    // SAFEGUARD: Validate date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(selectedDate)) {
+      console.error('🚨 Date Change: Invalid date format:', selectedDate);
+      return;
+    }
+
+    // SAFEGUARD: Only update if SST is active (prevents unnecessary requests)
+    if (!sstActive) {
+      console.log(`📅 Date changed to: ${selectedDate} - SST layer inactive, no update needed`);
+      return;
+    }
+
+    try {
+      // Update SST layer tiles with new date - NASA GIBS WMTS
+      const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
+      if (sstSource && (sstSource as any).setTiles) {
+        const tileUrl = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png`;
+        (sstSource as any).setTiles([tileUrl]);
+        map.current.triggerRepaint();
+        console.log(`📅 Date changed to: ${selectedDate} - SST layer updated successfully`);
+      } else {
+        console.warn('⚠️ Date Change: SST source not available for update');
+      }
+    } catch (error) {
+      console.error('🚨 Date Change failed:', error);
+    }
   }, [selectedDate, sstActive]);
 
   // Ocean Basemap toggle (bathymetry)
@@ -152,19 +209,50 @@ export default function LegendaryOceanPlatform() {
     console.log(`🌊 ESRI Ocean Basemap ${newState ? 'ON' : 'OFF'}`);
   };
 
-  // SST toggle - BRIGHT temperature layer
+  // SST toggle - BRIGHT temperature layer with SAFEGUARDS
   const toggleSST = () => {
-    if (!map.current) return;
+    if (!map.current) {
+      console.warn('🚨 SST Toggle: Map not initialized');
+      return;
+    }
+
     const newState = !sstActive;
     setSstActive(newState);
-    
-    if (map.current.getLayer('sst-layer')) {
-      map.current.setLayoutProperty('sst-layer', 'visibility', newState ? 'visible' : 'none');
-      if (newState) {
-        map.current.moveLayer('sst-layer'); // Move to top
-        map.current.triggerRepaint();
+
+    try {
+      // SAFEGUARD: Check if layer exists before manipulating
+      if (!map.current.getLayer('sst-layer')) {
+        console.error('🚨 SST Toggle: sst-layer not found on map');
+        // Reset state if layer doesn't exist
+        setSstActive(false);
+        return;
       }
+
+      // SAFEGUARD: Check if source exists
+      if (!map.current.getSource('sst')) {
+        console.error('🚨 SST Toggle: sst source not found on map');
+        setSstActive(false);
+        return;
+      }
+
+      map.current.setLayoutProperty('sst-layer', 'visibility', newState ? 'visible' : 'none');
+
+      if (newState) {
+        // SAFEGUARD: Move layer safely
+        try {
+          map.current.moveLayer('sst-layer'); // Move to top
+          map.current.triggerRepaint();
+        } catch (moveError) {
+          console.warn('⚠️ SST Layer move failed, continuing anyway:', moveError);
+        }
+      }
+
       console.log(`🌡️ NASA GIBS SST ${newState ? 'ON' : 'OFF'} - EAST COAST - BRIGHT red/orange/yellow temperature gradients`);
+
+    } catch (error) {
+      console.error('🚨 SST Toggle failed:', error);
+      // SAFEGUARD: Reset state on error
+      setSstActive(false);
     }
   };
 
@@ -193,6 +281,17 @@ export default function LegendaryOceanPlatform() {
           HI AMANDA! 👋 ALWAYS BENT
         </h1>
         <p className="text-sm opacity-80">Ocean Intelligence Platform</p>
+
+        {/* 🔒 Connection Status Indicator */}
+        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+          connectionStatus === 'online' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+          connectionStatus === 'degraded' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+          'bg-red-500/20 text-red-400 border border-red-500/30'
+        }`}>
+          {connectionStatus === 'online' ? '🟢 NASA GIBS Online' :
+           connectionStatus === 'degraded' ? '🟡 NASA GIBS Degraded' :
+           '🔴 NASA GIBS Offline'}
+        </div>
         
         <div className="space-y-4">
           {/* Ocean Basemap Toggle (Bathymetry) */}
@@ -222,9 +321,19 @@ export default function LegendaryOceanPlatform() {
                   value={oceanOpacity}
                   onChange={(e) => {
                     const newOpacity = parseInt(e.target.value);
-                    setOceanOpacity(newOpacity);
+                    // SAFEGUARD: Validate opacity range
+                    const clampedOpacity = Math.max(20, Math.min(80, newOpacity));
+                    setOceanOpacity(clampedOpacity);
+
+                    // SAFEGUARD: Check map and layer exist before updating
                     if (map.current?.getLayer('ocean-layer')) {
-                      map.current.setPaintProperty('ocean-layer', 'raster-opacity', newOpacity / 100);
+                      try {
+                        map.current.setPaintProperty('ocean-layer', 'raster-opacity', clampedOpacity / 100);
+                      } catch (error) {
+                        console.error('🚨 Ocean opacity update failed:', error);
+                      }
+                    } else {
+                      console.warn('⚠️ Ocean layer not available for opacity update');
                     }
                   }}
                   className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
@@ -263,9 +372,19 @@ export default function LegendaryOceanPlatform() {
                   value={sstOpacity}
                   onChange={(e) => {
                     const newOpacity = parseInt(e.target.value);
-                    setSstOpacity(newOpacity);
+                    // SAFEGUARD: Validate opacity range
+                    const clampedOpacity = Math.max(50, Math.min(95, newOpacity));
+                    setSstOpacity(clampedOpacity);
+
+                    // SAFEGUARD: Check map and layer exist before updating
                     if (map.current?.getLayer('sst-layer')) {
-                      map.current.setPaintProperty('sst-layer', 'raster-opacity', newOpacity / 100);
+                      try {
+                        map.current.setPaintProperty('sst-layer', 'raster-opacity', clampedOpacity / 100);
+                      } catch (error) {
+                        console.error('🚨 SST opacity update failed:', error);
+                      }
+                    } else {
+                      console.warn('⚠️ SST layer not available for opacity update');
                     }
                   }}
                   className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
