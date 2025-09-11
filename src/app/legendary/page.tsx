@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import LayerToggles from '@/components/LayerToggles';
 
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
@@ -393,7 +394,8 @@ export default function LegendaryOceanPlatform() {
         </p>
       </div>
 
-      {/* Copernicus legends to be added */}
+      {/* Layer Toggles */}
+      <LayerToggles map={map.current} />
 
     </div>
   );
