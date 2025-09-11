@@ -23,10 +23,12 @@ export async function GET(
   const url = new URL(req.url);
   const requested = url.searchParams.get("time") || "today";
 
-  // HARDCODED NASA GIBS VALUES FOR RELIABILITY
-  const base   = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
-  const layer  = "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily";
-  const matrix = "GoogleMapsCompatible_Level9";
+  // NASA GIBS VALUES - Can be overridden by environment variables
+  const base   = process.env.ABFI_SST_TILE_BASE || "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
+  const layer  = process.env.ABFI_SST_TILE_LAYER || "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily";
+  const matrix = process.env.ABFI_SST_TILE_MATRIX || "GoogleMapsCompatible_Level9";
+
+  console.log('🔧 Using NASA GIBS config:', { base, layer, matrix });
 
   // Try up to 3 dates (today -> -1d -> -2d) but only on 404/204
   const chain = buildFallbackChain(requested);
@@ -37,6 +39,7 @@ export async function GET(
     lastUrl = gibsUrl;
 
     console.log(`🌐 Testing NASA GIBS: ${gibsUrl}`);
+    console.log(`🔍 Tile coordinates: z=${z}, x=${x}, y=${y}, time=${timeISO}`);
 
     try {
       const upstream = await fetch(gibsUrl, {
@@ -72,6 +75,9 @@ export async function GET(
 
     } catch (fetchError: any) {
       console.error(`🚨 Fetch failed for ${timeISO}:`, fetchError.message);
+      if (fetchError.name === 'AbortError') {
+        console.error('⏱️ Request timed out after 5 seconds');
+      }
       lastStatus = 502;
       // Continue to next date in chain for timeout/network errors
     }

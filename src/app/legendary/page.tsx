@@ -254,23 +254,25 @@ export default function LegendaryOceanPlatform() {
       if (newState) {
         // TURNING ON: Resolve time and set up source
         console.log('🌡️ Turning ON SST - resolving latest data...');
-        const { timeUsed, badge } = await resolveSstTime(map.current, 'latest');
-        setSstSource(map.current, timeUsed);
-        setSstBadge(badge);
-        setConnectionStatus('online');
-        console.log(`🌡️ SST ON - resolved to ${timeUsed}${badge ? ` ${badge}` : ''}`);
+        setConnectionStatus('degraded'); // Show loading state
+
+        try {
+          const { timeUsed, badge } = await resolveSstTime(map.current, 'latest');
+          setSstSource(map.current, timeUsed);
+          setSstBadge(badge);
+          setConnectionStatus('online'); // Success
+          console.log(`🌡️ SST ON - resolved to ${timeUsed}${badge ? ` ${badge}` : ''}`);
+        } catch (error) {
+          console.error('🚨 SST resolution failed:', error);
+          setConnectionStatus('offline'); // Failed
+          setSstActive(false); // Reset toggle
+        }
       } else {
         // TURNING OFF: Just hide the layer
         if (map.current.getLayer('sst-lyr')) {
           map.current.setLayoutProperty('sst-lyr', 'visibility', 'none');
           console.log('🌡️ SST OFF');
         }
-      }
-
-      // Update connection status based on toggle state
-      if (newState) {
-        setConnectionStatus('online');
-      } else {
         setConnectionStatus('offline');
       }
 
