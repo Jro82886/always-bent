@@ -24,12 +24,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     return new Response(`${tplKey} not configured`, { status: 500 });
   }
 
-  // Handle time parameter - try latest for PT1H
-  const time = req.nextUrl.searchParams.get('time') || 'latest';
-  const target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{time}', time);
+  // Remove TIME parameter - many WMTS services work without it
+  let target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+  // Strip TIME parameter completely
+  target = target.replace(/[&?]TIME=\{time\}/, '');
 
-  console.log(`🚨 SST DEBUG - Time param: ${time}`);
-  console.log(`🚨 SST DEBUG - Final URL: ${target}`);
+  console.log(`🚨 SST DEBUG - Final URL (no TIME): ${target}`);
 
   const u = process.env.COPERNICUS_USER || '';
   const p = process.env.COPERNICUS_PASS || '';
