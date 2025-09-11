@@ -68,12 +68,12 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Copernicus SST - via proxy
+      // SST via new imagery system - single point of wiring
       if (!mapInstance.getSource('sst-src')) {
         mapInstance.addSource('sst-src', {
           type: 'raster',
           tiles: ['/api/tiles/sst/{z}/{x}/{y}.png'],
-          tileSize: 256,
+          tileSize: 512, // Updated to match environment
           minzoom: 0,
           maxzoom: 24
         });
@@ -96,7 +96,7 @@ export default function LegendaryOceanPlatform() {
         mapInstance.addSource('chl-src', {
           type: 'raster',
           tiles: ['/api/tiles/chl/{z}/{x}/{y}.png'],
-          tileSize: 256,
+          tileSize: 512, // Updated to match environment
           minzoom: 0,
           maxzoom: 24
         });
