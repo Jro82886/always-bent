@@ -95,7 +95,9 @@ export default function LegendaryOceanPlatform() {
           'raster-opacity': 0.9,   // Very high opacity for maximum visibility
           'raster-contrast': 0.5,   // High contrast for thermal data
           'raster-saturation': 1.0  // Full saturation for vibrant colors
-        }
+        },
+        minzoom: 0,
+        maxzoom: 9  // 🚨 CRITICAL: Prevents 404s from requesting z>9
       });
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
