@@ -24,8 +24,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     return new Response(`${tplKey} not configured`, { status: 500 });
   }
 
-  // Handle time parameter - use default for PT1H as Jeff specified
-  const time = req.nextUrl.searchParams.get('time') || 'default';
+  // Handle time parameter - try latest for PT1H
+  const time = req.nextUrl.searchParams.get('time') || 'latest';
   const target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{time}', time);
 
   console.log(`🚨 SST DEBUG - Time param: ${time}`);
