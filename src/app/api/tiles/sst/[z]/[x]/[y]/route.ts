@@ -24,10 +24,10 @@ export async function GET(
     baseDateISO = resolveSstDate("today");
   }
 
-  const base   = envOr("ABFI_SST_TILE_BASE", "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best");
-  const layer  = envOr("ABFI_SST_TILE_LAYER", "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily");
-  const envMatrix = envOr("ABFI_SST_TILE_MATRIX", "GoogleMapsCompatible_Level9");
-  const matrixCandidates = [envMatrix, "GoogleMapsCompatible_Level8", "GoogleMapsCompatible_Level7", "GoogleMapsCompatible"]; // try alternates if invalid
+  const base   = envOr("ABFI_SST_TILE_BASE", "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best").trim();
+  const layer  = envOr("ABFI_SST_TILE_LAYER", "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily").trim();
+  const envMatrix = envOr("ABFI_SST_TILE_MATRIX", "GoogleMapsCompatible_Level9").trim();
+  const matrixCandidates = [envMatrix, "GoogleMapsCompatible_Level9"]; // prefer exact Level9, no generic fallback
 
   const chain = chainFromBase(baseDateISO);
   let lastStatus = 0, lastUrl = "";
@@ -49,7 +49,8 @@ export async function GET(
             "X-Debug-Used": timeISO,
             "X-Debug-GIBS": gibsUrl,
             "X-Debug-Time-Guard": timeGuardNote,
-            "X-Debug-Matrix-Used": matrix
+            "X-Debug-Matrix-Used": matrix,
+            "X-Debug-Matrix-Candidates": matrixCandidates.join(",")
           }
         });
       }
@@ -60,7 +61,7 @@ export async function GET(
 
   return NextResponse.json(
     { error: "upstream-failed", requested, lastStatus, lastUrl },
-    { status: lastStatus || 502, headers: { "Cache-Control": "public, s-maxage=60, max-age=0", "X-Debug-Requested": requested, "X-Debug-GIBS": lastUrl, "X-Debug-Time-Guard": timeGuardNote } }
+    { status: lastStatus || 502, headers: { "Cache-Control": "public, s-maxage=60, max-age=0", "X-Debug-Requested": requested, "X-Debug-GIBS": lastUrl, "X-Debug-Time-Guard": timeGuardNote, "X-Debug-Matrix-Candidates": matrixCandidates.join(",") } }
   );
 }
 
