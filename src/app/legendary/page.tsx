@@ -7,6 +7,7 @@ import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
 import SSTLegend from '@/components/SSTLegend';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
+import SnipController from '@/components/SnipController';
 import { EAST_COAST_BOUNDS } from '@/lib/imagery/bounds';
 import '@/styles/mapSmoothing.css';
 
@@ -396,6 +397,9 @@ export default function LegendaryOceanPlatform() {
       
       {/* SST Temperature Legend */}
       <SSTLegend visible={sstActive} />
+      
+      {/* Snip-It Controller - Handles drawing, analysis, and reporting */}
+      <SnipController map={map.current} />
 
     </div>
   );

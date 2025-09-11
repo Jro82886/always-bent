@@ -1,47 +1,304 @@
-'use client';
-import { useEffect, useRef } from 'react';
-export type BBox = [number, number, number, number];
+"use client";
+import { useState, useCallback } from 'react';
+import type mapboxgl from 'mapbox-gl';
+import SnipTool from './SnipTool';
+import SnipAnalysisReport from './SnipAnalysisReport';
+import { analyzeSSTPolygon, generateMockSSTData, type AnalysisResult } from '@/lib/analysis/sst-analyzer';
+import { saveSnipAnalysis } from '@/lib/supabase/ml-queries';
+import * as turf from '@turf/turf';
 
-export default function SnipController({ onDone }:{ onDone:(bbox:BBox)=>void }) {
-  const start = useRef<{x:number,y:number}|null>(null);
-  const rectRef = useRef<HTMLDivElement|null>(null);
-
-  useEffect(() => {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9998;cursor:crosshair;background:rgba(0,0,0,.05)';
-    const rect = document.createElement('div');
-    rect.style.cssText = 'position:fixed;border:2px solid #00ffff;background:rgba(0,255,255,.08);pointer-events:none;z-index:9999';
-    rectRef.current = rect;
-    document.body.appendChild(overlay);
-    document.body.appendChild(rect);
-
-    function down(e:MouseEvent){ start.current={x:e.clientX,y:e.clientY}; rect.style.width='0'; rect.style.height='0'; rect.style.left=e.clientX+'px'; rect.style.top=e.clientY+'px'; }
-    function move(e:MouseEvent){
-      if(!start.current) return;
-      const x1=Math.min(start.current.x,e.clientX), y1=Math.min(start.current.y,e.clientY);
-      const x2=Math.max(start.current.x,e.clientX), y2=Math.max(start.current.y,e.clientY);
-      rect.style.left=x1+'px'; rect.style.top=y1+'px'; rect.style.width=(x2-x1)+'px'; rect.style.height=(y2-y1)+'px';
-    }
-    function up(){
-      if(!start.current){ cleanup(); return; }
-      const map:any = (globalThis as any).abfiMap;
-      if(!map || !rect.style.width){ cleanup(); return; }
-      const L=parseInt(rect.style.left||'0'), T=parseInt(rect.style.top||'0');
-      const W=parseInt(rect.style.width||'0'), H=parseInt(rect.style.height||'0');
-      const sw = map.unproject({x:L,     y:T+H});
-      const ne = map.unproject({x:L+W,   y:T   });
-      cleanup();
-      onDone([sw.lng, sw.lat, ne.lng, ne.lat]);
-    }
-    function cleanup(){ overlay.remove(); rect.remove(); window.removeEventListener('mousemove',move); window.removeEventListener('mouseup',up); }
-
-    overlay.addEventListener('mousedown',down);
-    window.addEventListener('mousemove',move);
-    window.addEventListener('mouseup',up);
-    return cleanup;
-  }, [onDone]);
-
-  return null;
+interface SnipControllerProps {
+  map: mapboxgl.Map | null;
 }
 
+export default function SnipController({ map }: SnipControllerProps) {
+  const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
+    if (!map) return;
+    
+    setIsAnalyzing(true);
+    console.log('🔍 Starting SST analysis for polygon:', polygon);
+
+    try {
+      // Get polygon bounds
+      const bbox = turf.bbox(polygon);
+      const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
+      
+      // TODO: Replace with real SST data extraction from map tiles
+      // For MVP, using mock data that simulates SST patterns
+      const sstData = generateMockSSTData(bounds);
+      
+      // Run Jeff's analysis algorithm
+      const analysis = await analyzeSSTPolygon(polygon as GeoJSON.Feature<GeoJSON.Polygon>, sstData);
+      
+      console.log('✅ Analysis complete:', analysis);
+      setCurrentAnalysis(analysis);
+      
+      // Add visual overlays to map
+      if (analysis.hotspot) {
+        // Add hotspot marker
+        addHotspotMarker(map, analysis.hotspot.location);
+      }
+      
+      if (analysis.features.length > 0) {
+        // Add feature overlays
+        addFeatureOverlays(map, analysis.features);
+      }
+      
+    } catch (error) {
+      console.error('❌ Analysis failed:', error);
+      alert('Analysis failed. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [map]);
+
+  const handleSaveAnalysis = useCallback(async () => {
+    if (!currentAnalysis) return;
+    
+    try {
+      console.log('💾 Saving analysis to Supabase...');
+      
+      // Prepare data for Supabase
+      const analysisData = {
+        geometry: currentAnalysis.polygon.geometry,
+        conditions: {
+          sst_min: currentAnalysis.stats.min_temp_f,
+          sst_max: currentAnalysis.stats.max_temp_f,
+          sst_gradient_max: currentAnalysis.hotspot?.gradient_strength || 0,
+          time_of_day: getTimeOfDay()
+        },
+        detected_features: currentAnalysis.features.map(f => ({
+          type: f.type,
+          strength: f.properties.grad_f_per_km_mean,
+          confidence: f.properties.score
+        })),
+        report_text: generateReportText(currentAnalysis),
+        primary_hotspot: currentAnalysis.hotspot ? {
+          type: 'Point',
+          coordinates: currentAnalysis.hotspot.location
+        } : undefined,
+        hotspot_confidence: currentAnalysis.hotspot?.confidence || 0,
+        success_prediction: currentAnalysis.hotspot ? currentAnalysis.hotspot.confidence * 0.85 : 0.5,
+        layers_active: ['sst']
+      };
+      
+      const saved = await saveSnipAnalysis(analysisData);
+      console.log('✅ Analysis saved:', saved);
+      
+      alert('Analysis saved successfully!');
+    } catch (error) {
+      console.error('❌ Failed to save analysis:', error);
+      alert('Failed to save analysis. Please try again.');
+    }
+  }, [currentAnalysis]);
+
+  const handleCloseReport = useCallback(() => {
+    setCurrentAnalysis(null);
+    // Clear map overlays
+    if (map) {
+      clearMapOverlays(map);
+    }
+  }, [map]);
+
+  return (
+    <>
+      <SnipTool 
+        map={map} 
+        onAnalyze={handleAnalyze}
+      />
+      
+      {isAnalyzing && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/90 rounded-lg p-6 shadow-2xl">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-lg font-semibold">Analyzing SST Data...</p>
+            <p className="text-sm text-gray-400 mt-2">Detecting edges, eddies, and hotspots</p>
+          </div>
+        </div>
+      )}
+      
+      <SnipAnalysisReport
+        analysis={currentAnalysis}
+        onClose={handleCloseReport}
+        onSave={handleSaveAnalysis}
+      />
+    </>
+  );
+}
+
+// Helper functions
+function getTimeOfDay(): string {
+  const hour = new Date().getHours();
+  if (hour < 6) return 'night';
+  if (hour < 9) return 'dawn';
+  if (hour < 12) return 'morning';
+  if (hour < 15) return 'midday';
+  if (hour < 18) return 'afternoon';
+  if (hour < 21) return 'dusk';
+  return 'night';
+}
+
+function generateReportText(analysis: AnalysisResult): string {
+  const lines = [`Area Analysis Report - ${new Date().toLocaleString()}`];
+  
+  if (analysis.hotspot) {
+    lines.push(`Primary Hotspot: ${analysis.hotspot.location[1].toFixed(4)}°N, ${Math.abs(analysis.hotspot.location[0]).toFixed(4)}°W`);
+    lines.push(`Gradient: ${analysis.hotspot.gradient_strength.toFixed(2)}°F/km`);
+    lines.push(`Confidence: ${(analysis.hotspot.confidence * 100).toFixed(0)}%`);
+  }
+  
+  lines.push(`Temperature Range: ${analysis.stats.min_temp_f.toFixed(1)}-${analysis.stats.max_temp_f.toFixed(1)}°F`);
+  lines.push(`Area: ${analysis.stats.area_km2.toFixed(1)} km²`);
+  
+  if (analysis.features.length > 0) {
+    lines.push(`Detected Features: ${analysis.features.map(f => f.type).join(', ')}`);
+  }
+  
+  return lines.join('\n');
+}
+
+function addHotspotMarker(map: mapboxgl.Map, location: [number, number]) {
+  // Remove existing hotspot layer if it exists
+  if (map.getLayer('hotspot-marker')) {
+    map.removeLayer('hotspot-marker');
+  }
+  if (map.getSource('hotspot-marker')) {
+    map.removeSource('hotspot-marker');
+  }
+  
+  // Add new hotspot marker
+  map.addSource('hotspot-marker', {
+    type: 'geojson',
+    data: {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: location
+      },
+      properties: {}
+    }
+  });
+  
+  map.addLayer({
+    id: 'hotspot-marker',
+    type: 'circle',
+    source: 'hotspot-marker',
+    paint: {
+      'circle-radius': 12,
+      'circle-color': '#ff0000',
+      'circle-stroke-width': 3,
+      'circle-stroke-color': '#ffffff',
+      'circle-opacity': 0.8
+    }
+  });
+  
+  // Add pulsing animation
+  let radius = 12;
+  let increasing = true;
+  
+  const animateMarker = () => {
+    if (!map.getLayer('hotspot-marker')) return;
+    
+    radius += increasing ? 0.3 : -0.3;
+    if (radius > 18) increasing = false;
+    if (radius < 12) increasing = true;
+    
+    map.setPaintProperty('hotspot-marker', 'circle-radius', radius);
+    requestAnimationFrame(animateMarker);
+  };
+  
+  animateMarker();
+}
+
+function addFeatureOverlays(map: mapboxgl.Map, features: any[]) {
+  // Remove existing feature layers
+  if (map.getLayer('detected-features')) {
+    map.removeLayer('detected-features');
+  }
+  if (map.getLayer('detected-features-outline')) {
+    map.removeLayer('detected-features-outline');
+  }
+  if (map.getSource('detected-features')) {
+    map.removeSource('detected-features');
+  }
+  
+  // Create GeoJSON from features
+  const geojson = {
+    type: 'FeatureCollection' as const,
+    features: features.map(f => ({
+      type: 'Feature' as const,
+      geometry: f.geometry,
+      properties: {
+        type: f.type,
+        score: f.properties.score
+      }
+    }))
+  };
+  
+  // Add source
+  map.addSource('detected-features', {
+    type: 'geojson',
+    data: geojson
+  });
+  
+  // Add fill layer
+  map.addLayer({
+    id: 'detected-features',
+    type: 'fill',
+    source: 'detected-features',
+    paint: {
+      'fill-color': [
+        'case',
+        ['==', ['get', 'type'], 'hard_edge'], '#ff4444',
+        ['==', ['get', 'type'], 'edge'], '#ffaa00',
+        ['==', ['get', 'type'], 'eddy'], '#00aaff',
+        ['==', ['get', 'type'], 'filament'], '#aa00ff',
+        '#888888'
+      ],
+      'fill-opacity': 0.3
+    }
+  });
+  
+  // Add outline layer
+  map.addLayer({
+    id: 'detected-features-outline',
+    type: 'line',
+    source: 'detected-features',
+    paint: {
+      'line-color': [
+        'case',
+        ['==', ['get', 'type'], 'hard_edge'], '#ff0000',
+        ['==', ['get', 'type'], 'edge'], '#ff8800',
+        ['==', ['get', 'type'], 'eddy'], '#0088ff',
+        ['==', ['get', 'type'], 'filament'], '#8800ff',
+        '#666666'
+      ],
+      'line-width': 2,
+      'line-dasharray': [2, 1]
+    }
+  });
+}
+
+function clearMapOverlays(map: mapboxgl.Map) {
+  // Remove hotspot marker
+  if (map.getLayer('hotspot-marker')) {
+    map.removeLayer('hotspot-marker');
+  }
+  if (map.getSource('hotspot-marker')) {
+    map.removeSource('hotspot-marker');
+  }
+  
+  // Remove feature overlays
+  if (map.getLayer('detected-features')) {
+    map.removeLayer('detected-features');
+  }
+  if (map.getLayer('detected-features-outline')) {
+    map.removeLayer('detected-features-outline');
+  }
+  if (map.getSource('detected-features')) {
+    map.removeSource('detected-features');
+  }
+}
