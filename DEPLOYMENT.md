@@ -53,19 +53,11 @@ Test again
 # Mapbox
 NEXT_PUBLIC_MAPBOX_TOKEN=pk.eyJ1IjoiamVmZmpyODI4ODYiLCJhIjoiY21mOGw5bjJiMTFrZjJqcG40OGdueDg3ciJ9.bHHUsesnpWxWy271quBUYQ
 
-# === NASA GIBS MODIS SST - CORE FOUNDATION DATASET ===
-# This is the FOUNDATION of all water temperature analysis
-# WMS Configuration (corrected from WMTS - NASA GIBS SST uses WMS)
-ABFI_SST_WMS_BASE=https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi
-ABFI_SST_WMS_LAYER=MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily
-ABFI_SST_WMS_VERSION=1.3.0
-ABFI_SST_WMS_STYLES=default
-ABFI_SST_DEFAULT_TIME=today
-
-# LEGACY WMTS (do not use)
-# ABFI_SST_TILE_BASE=https://gibs.earthdata.nasa.gov/wmts/epsg3857/best
-# ABFI_SST_TILE_LAYER=MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily
-# ABFI_SST_TILE_MATRIX=GoogleMapsCompatible_Level9
+# === COPERNICUS MARINE DATA ===
+COPERNICUS_USER=your_copernicus_username
+COPERNICUS_PASS=your_copernicus_password
+CMEMS_SST_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001/cmems_obs-sst_glo_sst_l4_nrt_0.05deg_PT1H?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cmems_obs-sst_glo_sst_l4_nrt_0.05deg_PT1H&STYLE=default&FORMAT=image/png&TILEMATRIXSET=GoogleMapsCompatible&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}
+NEXT_PUBLIC_SST_TILES_URL=/api/tiles/sst/{z}/{x}/{y}.png
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xocxmgovdfrfdoicpovf.supabase.co/
