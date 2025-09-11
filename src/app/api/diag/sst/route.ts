@@ -9,17 +9,20 @@ export async function GET(req: NextRequest) {
     const z = url.searchParams.get('z') ?? '3';
     const x = url.searchParams.get('x') ?? '2';
     const y = url.searchParams.get('y') ?? '3';
-    const time = url.searchParams.get('time') ?? new Date(Date.now() - 24*3600*1000).toISOString().slice(0,10) + 'T12:00:00Z';
+    const time = url.searchParams.get('time') ?? (new Date(Date.now() - 24*3600*1000).toISOString().slice(0,10) + 'T00:00:00.000Z');
 
     const tpl = process.env.NEXT_PUBLIC_SST_WMTS_TEMPLATE || '';
     if (!tpl) {
       return new Response('NEXT_PUBLIC_SST_WMTS_TEMPLATE not set', { status: 500 });
     }
-    const wmts = tpl
+    // Ensure lowercase 'time=' in template is respected; if not, enforce here
+    let wmts = tpl
       .replace('{z}', z)
       .replace('{x}', x)
       .replace('{y}', y)
       .replace('{time}', encodeURIComponent(time));
+    // If template accidentally uses TIME=, normalize to time=
+    wmts = wmts.replace('TIME=', 'time=');
 
     const upstream = await fetch(wmts, { redirect: 'follow' });
     const buf = await upstream.arrayBuffer();
