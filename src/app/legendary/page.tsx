@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
+import SSTLegend from '@/components/SSTLegend';
 import { EAST_COAST_BOUNDS } from '@/lib/imagery/bounds';
 
 // Set Mapbox token
@@ -387,6 +388,9 @@ export default function LegendaryOceanPlatform() {
 
       {/* SST Layer component */}
       <SSTLayer map={map.current} on={sstActive} />
+      
+      {/* SST Temperature Legend */}
+      <SSTLegend visible={sstActive} />
 
     </div>
   );
