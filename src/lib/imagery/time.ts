@@ -15,3 +15,11 @@ export function resolveTime(selection: DaySel, mode: TimeMode): string | null {
   const dd = String(d.getUTCDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
 }
+
+// ODYSSEA daily product publishes at ~12:00 UTC; safest is yesterday 12:00Z
+export function dailyAtNoonUTCISO(offsetDays = 1): string {
+  const d = new Date();
+  d.setUTCHours(12, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - offsetDays);
+  return d.toISOString().replace('.000Z', 'Z');
+}

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { setVis } from '@/map/layerVis';
+import SSTLayer from '@/components/layers/SSTLayer';
+import { EAST_COAST_BOUNDS } from '@/lib/imagery/bounds';
 
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
@@ -37,6 +39,9 @@ export default function LegendaryOceanPlatform() {
 
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
+      // Constrain to East Coast AOI
+      mapInstance.fitBounds(EAST_COAST_BOUNDS as any, { padding: 40, duration: 0 });
+      mapInstance.setMaxBounds(EAST_COAST_BOUNDS as any);
       
       // Debug: List layers and confirm presence
       setTimeout(() => {
@@ -68,30 +73,9 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // SST via new imagery system - single point of wiring
-      if (!mapInstance.getSource('sst-src')) {
-        mapInstance.addSource('sst-src', {
-          type: 'raster',
-          tiles: ['/api/tiles/sst/{z}/{x}/{y}.png'],
-          tileSize: 512, // Updated to match environment
-          minzoom: 0,
-          maxzoom: 24
-        });
-      }
+      // SST now wired by SSTLayer component when toggled
 
-      if (!mapInstance.getLayer('sst-lyr')) {
-        mapInstance.addLayer({
-          id: 'sst-lyr',
-          type: 'raster',
-          source: 'sst-src',
-          layout: { visibility: 'none' },
-          paint: { 'raster-opacity': 1 },
-          minzoom: 0,
-          maxzoom: 24
-        });
-      }
-
-      // Copernicus Chlorophyll - via proxy
+      // Copernicus Chlorophyll - via proxy (left as-is for now)
       if (!mapInstance.getSource('chl-src')) {
         mapInstance.addSource('chl-src', {
           type: 'raster',
@@ -184,7 +168,6 @@ export default function LegendaryOceanPlatform() {
     if (!map.current) return;
     const newState = !sstActive;
     setSstActive(newState);
-    setVis(map.current, 'sst-lyr', newState);
     console.log(`🌡️ Copernicus SST ${newState ? 'ON' : 'OFF'}`);
   };
 
@@ -402,7 +385,8 @@ export default function LegendaryOceanPlatform() {
         </p>
       </div>
 
-      {/* Existing toggle buttons are already wired above */}
+      {/* SST Layer component */}
+      <SSTLayer map={map.current} on={sstActive} />
 
     </div>
   );

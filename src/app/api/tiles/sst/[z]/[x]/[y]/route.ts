@@ -24,12 +24,28 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     return new Response(`${tplKey} not configured`, { status: 500 });
   }
 
-  // Use proper ISO date format for TIME parameter
-  const now = new Date();
-  const isoTime = now.toISOString().split('T')[0]; // YYYY-MM-DD format
-  const target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{time}', isoTime);
+  // Build TIME for ODYSSEA daily product (expects ISO8601 midnight UTC)
+  const qTime = req.nextUrl.searchParams.get('time');
+  const buildDailyIso = (d: Date) => {
+    const dd = new Date(d);
+    dd.setUTCHours(0, 0, 0, 0);
+    return `${dd.toISOString().slice(0, 10)}T00:00:00Z`;
+  };
+  let timeParam: string;
+  if (!qTime || qTime === 'latest') {
+    timeParam = buildDailyIso(new Date());
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(qTime)) {
+    timeParam = `${qTime}T00:00:00Z`;
+  } else {
+    timeParam = qTime; // assume caller provided a full ISO timestamp
+  }
+  const target = base
+    .replace('{z}', z)
+    .replace('{x}', x)
+    .replace('{y}', y)
+    .replace('{time}', timeParam);
 
-  console.log(`🚨 SST DEBUG - Time param: ${isoTime}`);
+  console.log(`🚨 SST DEBUG - Time param: ${timeParam}`);
   console.log(`🚨 SST DEBUG - Final URL: ${target}`);
 
   const u = process.env.COPERNICUS_USER || '';
