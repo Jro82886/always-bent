@@ -55,16 +55,17 @@ export default function LegendaryOceanPlatform() {
         attribution: 'Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors'
       });
 
-      // NOAA CoastWatch SST - OPTIMIZED FOR EAST COAST
-      // Dataset: Multi-scale Ultra-high Resolution (MUR) SST
-      // Coverage: Global, but optimized for Atlantic East Coast
-      // Style: Rainbow colormap (red=cold, yellow=hot)
-      // Time: Daily composites at 12:00 UTC
+      // NASA GIBS SST - EAST COAST OPTIMIZED
+      // Dataset: MODIS Aqua L3 SST Thermal 4km Night Daily
+      // Coverage: Global with excellent East Coast coverage
+      // Style: Built-in NASA thermal colormap (red=cold, yellow=hot)
+      // Time: Daily composites optimized for fishing
+      // WMTS Format: epsg4326/best/{LAYER}/default/{DATE}/{MATRIX}/{z}/{y}/{x}.png
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request?service=WMS&request=GetMap&version=1.3.0&layers=jplMURSST41:analysed_sst&styles=boxfill/rainbow&format=image/png&transparent=true&crs=CRS:84&bbox={bbox-epsg-3857}&width=256&height=256&time=${selectedDate}T12:00:00.000Z`],
+        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`],
         tileSize: 256,
-        maxzoom: 9,  // Higher zoom for East Coast detail
+        maxzoom: 8,
         minzoom: 0
       });
 
@@ -79,21 +80,21 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // SST Layer (temperature - BRIGHT and VIVID)
+      // SST Layer (temperature - BRIGHT and VIVID - NASA GIBS)
       mapInstance.addLayer({
         id: 'sst-layer',
         type: 'raster',
         source: 'sst',
         layout: { visibility: 'none' },  // START HIDDEN
         paint: {
-          'raster-opacity': 0.85,  // High opacity for vivid colors
-          'raster-contrast': 0.3,   // Enhanced contrast
-          'raster-saturation': 0.8  // Vibrant colors
+          'raster-opacity': 0.9,   // Very high opacity for maximum visibility
+          'raster-contrast': 0.5,   // High contrast for thermal data
+          'raster-saturation': 1.0  // Full saturation for vibrant colors
         }
       });
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
-      console.log('🌡️ NOAA MUR SST layer added - EAST COAST OPTIMIZED - BRIGHT red/orange/yellow temperature gradients');
+      console.log('🌡️ NASA GIBS SST layer added - EAST COAST OPTIMIZED - BRIGHT red/orange/yellow temperature gradients');
       
       // Debug: Check if Copernicus is configured
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
@@ -125,10 +126,10 @@ export default function LegendaryOceanPlatform() {
   useEffect(() => {
     if (!map.current) return;
 
-    // Update SST layer tiles with new date - East Coast optimized
+    // Update SST layer tiles with new date - NASA GIBS WMTS
     const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
     if (sstSource && (sstSource as any).setTiles && sstActive) {
-      (sstSource as any).setTiles([`https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request?service=WMS&request=GetMap&version=1.3.0&layers=jplMURSST41:analysed_sst&styles=boxfill/rainbow&format=image/png&transparent=true&crs=CRS:84&bbox={bbox-epsg-3857}&width=256&height=256&time=${selectedDate}T12:00:00.000Z`]);
+      (sstSource as any).setTiles([`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`]);
       map.current.triggerRepaint();
     }
 
@@ -163,7 +164,7 @@ export default function LegendaryOceanPlatform() {
         map.current.moveLayer('sst-layer'); // Move to top
         map.current.triggerRepaint();
       }
-      console.log(`🌡️ NOAA MUR SST ${newState ? 'ON' : 'OFF'} - EAST COAST - BRIGHT red/orange/yellow temperature gradients`);
+      console.log(`🌡️ NASA GIBS SST ${newState ? 'ON' : 'OFF'} - EAST COAST - BRIGHT red/orange/yellow temperature gradients`);
     }
   };
 
@@ -238,7 +239,7 @@ export default function LegendaryOceanPlatform() {
           {/* SST Toggle (Temperature - BRIGHT!) */}
           <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4">
             <h2 className="text-lg font-bold mb-2">🌡️ Sea Surface Temperature</h2>
-            <p className="text-sm opacity-80 mb-3">NOAA MUR SST - East Coast Optimized - Red/Orange/Yellow Temperature</p>
+            <p className="text-sm opacity-80 mb-3">NASA GIBS MODIS SST - East Coast Optimized - Red/Orange/Yellow Temperature</p>
 
             <button
               onClick={toggleSST}
