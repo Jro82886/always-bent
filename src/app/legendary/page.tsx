@@ -55,10 +55,10 @@ export default function LegendaryOceanPlatform() {
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
-      // NASA GIBS MODIS SST - Simplified working format
+      // NASA GIBS MODIS SST - Official format from NASA docs
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/2025-09-05/EPSG4326_250m/{z}/{y}/{x}.jpg`],
+        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/2025-09-05/250m/{z}/{y}/{x}.png`],
         tileSize: 256,
         maxzoom: 8,
         minzoom: 0
@@ -197,10 +197,10 @@ export default function LegendaryOceanPlatform() {
       (slaSource as any).setTiles([`/api/copernicus-sla/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
     }
     
-    // Update SST tiles (NASA GIBS simplified)
+    // Update SST tiles (NASA GIBS official format)
     const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
     if (sstSource && (sstSource as any).setTiles) {
-      (sstSource as any).setTiles([`https://map1.vis.earthdata.nasa.gov/wmts-geo/1.0.0/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/EPSG4326_250m/{z}/{y}/{x}.jpg`]);
+      (sstSource as any).setTiles([`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`]);
     }
 
     // Update NOAA VIIRS tiles
