@@ -11,10 +11,12 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  // Ocean Basemap - Start OFF for better UX
-  const [sstActive, setSstActive] = useState(false); // Start with ocean layer OFF
+  // Ocean Basemap + SST layers
+  const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
+  const [sstActive, setSstActive] = useState(false); // NOAA SST (temperature)
   const [selectedDate, setSelectedDate] = useState('2025-09-10'); // Today's date
-  const [sstOpacity, setSstOpacity] = useState(90);
+  const [oceanOpacity, setOceanOpacity] = useState(60);
+  const [sstOpacity, setSstOpacity] = useState(85);
 
   // Initialize map
   useEffect(() => {
@@ -43,8 +45,8 @@ export default function LegendaryOceanPlatform() {
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
-      // SIMPLIFIED: Use ESRI Ocean Basemap SST - reliable XYZ tiles
-      mapInstance.addSource('sst', {
+      // ESRI Ocean Basemap (bathymetry/depth data)
+      mapInstance.addSource('ocean', {
         type: 'raster',
         tiles: [`https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}`],
         tileSize: 256,
@@ -53,17 +55,45 @@ export default function LegendaryOceanPlatform() {
         attribution: 'Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors'
       });
 
+      // NOAA CoastWatch SST - OPTIMIZED FOR EAST COAST
+      // Dataset: Multi-scale Ultra-high Resolution (MUR) SST
+      // Coverage: Global, but optimized for Atlantic East Coast
+      // Style: Rainbow colormap (red=cold, yellow=hot)
+      // Time: Daily composites at 12:00 UTC
+      mapInstance.addSource('sst', {
+        type: 'raster',
+        tiles: [`https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request?service=WMS&request=GetMap&version=1.3.0&layers=jplMURSST41:analysed_sst&styles=boxfill/rainbow&format=image/png&transparent=true&crs=CRS:84&bbox={bbox-epsg-3857}&width=256&height=256&time=${selectedDate}T12:00:00.000Z`],
+        tileSize: 256,
+        maxzoom: 9,  // Higher zoom for East Coast detail
+        minzoom: 0
+      });
+
+      // Ocean Basemap Layer (bathymetry)
+      mapInstance.addLayer({
+        id: 'ocean-layer',
+        type: 'raster',
+        source: 'ocean',
+        layout: { visibility: 'none' },  // START HIDDEN
+        paint: {
+          'raster-opacity': 0.6  // Moderate opacity for bathymetry
+        }
+      });
+
+      // SST Layer (temperature - BRIGHT and VIVID)
       mapInstance.addLayer({
         id: 'sst-layer',
         type: 'raster',
         source: 'sst',
-        layout: { visibility: 'none' },  // START HIDDEN (sstActive = false)
-        paint: { 
-          'raster-opacity': 0.9  // High visibility
+        layout: { visibility: 'none' },  // START HIDDEN
+        paint: {
+          'raster-opacity': 0.85,  // High opacity for vivid colors
+          'raster-contrast': 0.3,   // Enhanced contrast
+          'raster-saturation': 0.8  // Vibrant colors
         }
       });
 
-      console.log('🌡️ NASA GIBS SST layer added - FOUNDATION DATASET');
+      console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
+      console.log('🌡️ NOAA MUR SST layer added - EAST COAST OPTIMIZED - BRIGHT red/orange/yellow temperature gradients');
       
       // Debug: Check if Copernicus is configured
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
@@ -91,19 +121,37 @@ export default function LegendaryOceanPlatform() {
     };
   }, []);
 
-  // Handle date changes - ONLY SST (foundation dataset)
+  // Handle date changes - Update SST layer (ocean basemap doesn't need dates)
   useEffect(() => {
     if (!map.current) return;
-    
-    // ESRI Ocean Basemap doesn't need date updates - it's a static layer
-    // No tile updates needed for this service
-    
-    // Force map repaint
-    map.current.triggerRepaint();
-    console.log(`📅 Date changed to: ${selectedDate} - Ocean layer active`);
-  }, [selectedDate]);
 
-  // SST toggle - simple and fast
+    // Update SST layer tiles with new date - East Coast optimized
+    const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
+    if (sstSource && (sstSource as any).setTiles && sstActive) {
+      (sstSource as any).setTiles([`https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request?service=WMS&request=GetMap&version=1.3.0&layers=jplMURSST41:analysed_sst&styles=boxfill/rainbow&format=image/png&transparent=true&crs=CRS:84&bbox={bbox-epsg-3857}&width=256&height=256&time=${selectedDate}T12:00:00.000Z`]);
+      map.current.triggerRepaint();
+    }
+
+    console.log(`📅 Date changed to: ${selectedDate} - SST layer updated`);
+  }, [selectedDate, sstActive]);
+
+  // Ocean Basemap toggle (bathymetry)
+  const toggleOcean = () => {
+    if (!map.current) return;
+    const newState = !oceanActive;
+    setOceanActive(newState);
+
+    if (map.current.getLayer('ocean-layer')) {
+      map.current.setLayoutProperty('ocean-layer', 'visibility', newState ? 'visible' : 'none');
+      if (newState) {
+        map.current.moveLayer('ocean-layer'); // Move to bottom
+        map.current.triggerRepaint();
+      }
+    }
+    console.log(`🌊 ESRI Ocean Basemap ${newState ? 'ON' : 'OFF'}`);
+  };
+
+  // SST toggle - BRIGHT temperature layer
   const toggleSST = () => {
     if (!map.current) return;
     const newState = !sstActive;
@@ -115,7 +163,7 @@ export default function LegendaryOceanPlatform() {
         map.current.moveLayer('sst-layer'); // Move to top
         map.current.triggerRepaint();
       }
-      console.log(`🌊 ESRI Ocean Basemap ${newState ? 'ON' : 'OFF'}`);
+      console.log(`🌡️ NOAA MUR SST ${newState ? 'ON' : 'OFF'} - EAST COAST - BRIGHT red/orange/yellow temperature gradients`);
     }
   };
 
@@ -146,19 +194,61 @@ export default function LegendaryOceanPlatform() {
         <p className="text-sm opacity-80">Ocean Intelligence Platform</p>
         
         <div className="space-y-4">
-          <div className="bg-blue-500/20 border border-blue-500/40 rounded-lg p-4">
+          {/* Ocean Basemap Toggle (Bathymetry) */}
+          <div className="bg-blue-600/20 border border-blue-600/40 rounded-lg p-4">
             <h2 className="text-lg font-bold mb-2">🌊 Ocean Basemap</h2>
-            <p className="text-sm opacity-80 mb-3">ESRI World Ocean Base - Reliable SST Data</p>
-            
+            <p className="text-sm opacity-80 mb-3">ESRI Bathymetry - Ocean Depth Data</p>
+
+            <button
+              onClick={toggleOcean}
+              className={`w-full px-4 py-3 rounded-lg font-semibold ${
+                oceanActive ? 'bg-blue-600 text-white' : 'bg-white/20 text-white/80'
+              } transition-all`}
+            >
+              {oceanActive ? '🌊 OCEAN ACTIVE' : '🌊 SHOW OCEAN'}
+            </button>
+
+            {oceanActive && (
+              <div className="mt-3 px-2">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span>Opacity</span>
+                  <span>{oceanOpacity}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="20"
+                  max="80"
+                  value={oceanOpacity}
+                  onChange={(e) => {
+                    const newOpacity = parseInt(e.target.value);
+                    setOceanOpacity(newOpacity);
+                    if (map.current?.getLayer('ocean-layer')) {
+                      map.current.setPaintProperty('ocean-layer', 'raster-opacity', newOpacity / 100);
+                    }
+                  }}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #2563eb 0%, #2563eb ${oceanOpacity}%, rgba(255,255,255,0.2) ${oceanOpacity}%, rgba(255,255,255,0.2) 100%)`
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* SST Toggle (Temperature - BRIGHT!) */}
+          <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4">
+            <h2 className="text-lg font-bold mb-2">🌡️ Sea Surface Temperature</h2>
+            <p className="text-sm opacity-80 mb-3">NOAA MUR SST - East Coast Optimized - Red/Orange/Yellow Temperature</p>
+
             <button
               onClick={toggleSST}
               className={`w-full px-4 py-3 rounded-lg font-semibold ${
-                sstActive ? 'bg-blue-500 text-white' : 'bg-white/20 text-white/80'
+                sstActive ? 'bg-red-500 text-white' : 'bg-white/20 text-white/80'
               } transition-all`}
             >
-              {sstActive ? '🌊 OCEAN ACTIVE' : '🌊 SHOW OCEAN'}
+              {sstActive ? '🌡️ SST ACTIVE' : '🌡️ SHOW SST'}
             </button>
-            
+
             {sstActive && (
               <div className="mt-3 px-2">
                 <div className="flex items-center justify-between text-xs mb-2">
@@ -167,8 +257,8 @@ export default function LegendaryOceanPlatform() {
                 </div>
                 <input
                   type="range"
-                  min="10"
-                  max="100"
+                  min="50"
+                  max="95"
                   value={sstOpacity}
                   onChange={(e) => {
                     const newOpacity = parseInt(e.target.value);
@@ -179,7 +269,7 @@ export default function LegendaryOceanPlatform() {
                   }}
                   className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
                   style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
+                    background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
                   }}
                 />
               </div>
