@@ -5,7 +5,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ z: string; x: string; y: string }> }) {
   const resolvedParams = await params;
-  const { z, x, y } = resolvedParams;
+  const z = resolvedParams.z;
+  const x = resolvedParams.x;
+  const y = resolvedParams.y.replace('.png',''); // sanitize
   const isSst = req.nextUrl.pathname.includes('/sst/');
   const tplKey = isSst ? 'CMEMS_SST_WMTS_TEMPLATE' : 'CMEMS_CHL_WMTS_TEMPLATE';
   const base = process.env[tplKey];
