@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { resolveSstTime } from '@/lib/sst/resolveSstTime';
-import { setSstSource } from '@/lib/sst/applySstLayer';
 import { SstLegend } from '@/components/SstLegend';
 
 // Set Mapbox token
@@ -17,7 +15,7 @@ export default function LegendaryOceanPlatform() {
   // Ocean Basemap + SST layers with auto-fallback
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
   const [sstActive, setSstActive] = useState(false); // NASA SST (temperature)
-  const [selectedDate, setSelectedDate] = useState('2025-09-10'); // Today's date
+  const [selectedDate, setSelectedDate] = useState('2025-09-10');
   const [oceanOpacity, setOceanOpacity] = useState(60);
   const [sstOpacity, setSstOpacity] = useState(85);
   const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'degraded'>('online');
@@ -115,7 +113,7 @@ export default function LegendaryOceanPlatform() {
       const maxErrors = 5; // Allow up to 5 errors before marking as degraded
 
       mapInstance.on('sourcedata', (e: any) => {
-        if (e.sourceId === 'sst' && e.isSourceLoaded) {
+        if (e.sourceId === 'sst-src' && e.isSourceLoaded) {
           sstTileErrors = 0; // Reset error counter on successful load
           setConnectionStatus('online');
           console.log('✅ SST tiles loaded successfully');
@@ -124,7 +122,7 @@ export default function LegendaryOceanPlatform() {
 
       // 🔒 Track tile loading errors
       mapInstance.on('error', (e: any) => {
-        if (e.sourceId === 'sst' || e.error?.message?.includes('gibs.earthdata.nasa.gov')) {
+        if (e.sourceId === 'sst-src' || e.error?.message?.includes('gibs.earthdata.nasa.gov')) {
           sstTileErrors++;
           if (sstTileErrors >= maxErrors) {
             setConnectionStatus('degraded');
@@ -156,66 +154,15 @@ export default function LegendaryOceanPlatform() {
     };
   }, []);
 
-  // Handle date changes - Update SST layer (ocean basemap doesn't need dates) with SAFEGUARDS
+  // Date buttons now only update UI badge; SST tiles remain fixed WMTS date for stability
   useEffect(() => {
-    if (!map.current) {
-      console.warn('🚨 Date Change: Map not initialized');
-      return;
-    }
-
-    // SAFEGUARD: Validate date format (YYYY-MM-DD)
+    if (!map.current) return;
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(selectedDate)) {
-      console.error('🚨 Date Change: Invalid date format:', selectedDate);
-      return;
-    }
+    if (!dateRegex.test(selectedDate)) return;
+    console.log(`📅 Date changed to: ${selectedDate} - (UI only; WMTS fixed for stability)`);
+  }, [selectedDate]);
 
-    // SAFEGUARD: Only update if SST is active (prevents unnecessary requests)
-    if (!sstActive) {
-      console.log(`📅 Date changed to: ${selectedDate} - SST layer inactive, no update needed`);
-      return;
-    }
-
-    try {
-      // Update SST layer tiles with new date - VIA PROXY
-      const sstSource = map.current.getSource('sst-src') as mapboxgl.RasterTileSource;
-      if (sstSource && (sstSource as any).setTiles) {
-        const tileUrl = `/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`;
-        (sstSource as any).setTiles([tileUrl]);
-        map.current.triggerRepaint();
-        console.log(`📅 Date changed to: ${selectedDate} - SST layer updated via proxy`);
-      } else {
-        console.warn('⚠️ Date Change: SST source not available for update');
-      }
-    } catch (error) {
-      console.error('🚨 Date Change failed:', error);
-    }
-  }, [selectedDate, sstActive]);
-
-  // 🔄 AUTO-FALLBACK: Only for date changes (not initial load)
-  useEffect(() => {
-    if (!map.current || !sstActive) return;
-
-    // Only update tiles if SST is active and date changes
-    const updateTiles = async () => {
-      if (!map.current) return;
-
-      try {
-        const { timeUsed, badge } = await resolveSstTime(map.current, selectedDate);
-        if (map.current.getSource('sst-src')) {
-          const tiles = [`/api/tiles/sst/{z}/{x}/{y}.png?time=${encodeURIComponent(timeUsed)}`];
-          (map.current.getSource('sst-src') as any).setTiles(tiles);
-          map.current.triggerRepaint();
-        }
-        setSstBadge(badge);
-        console.log(`📅 Date changed to: ${selectedDate} - SST updated to ${timeUsed}${badge ? ` ${badge}` : ''}`);
-      } catch (error) {
-        console.error('🚨 Date change failed:', error);
-      }
-    };
-
-    updateTiles();
-  }, [selectedDate, sstActive]);
+  // Remove auto-fallback resolver for now to avoid proxy errors; stick to fixed WMTS date
 
   // Ocean Basemap toggle (bathymetry)
   const toggleOcean = () => {
@@ -245,20 +192,11 @@ export default function LegendaryOceanPlatform() {
 
     try {
       if (newState) {
-        // TURNING ON: Resolve time and set up source
-        console.log('🌡️ Turning ON SST - resolving latest data...');
-        setConnectionStatus('degraded'); // Show loading state
-
-        try {
-          const { timeUsed, badge } = await resolveSstTime(map.current, 'latest');
-          setSstSource(map.current, timeUsed);
-          setSstBadge(badge);
-          setConnectionStatus('online'); // Success
-          console.log(`🌡️ SST ON - resolved to ${timeUsed}${badge ? ` ${badge}` : ''}`);
-        } catch (error) {
-          console.error('🚨 SST resolution failed:', error);
-          setConnectionStatus('offline'); // Failed
-          setSstActive(false); // Reset toggle
+        // TURNING ON: just show the fixed WMTS layer
+        console.log('🌡️ Turning ON SST - showing WMTS layer');
+        setConnectionStatus('online');
+        if (map.current.getLayer('sst-lyr')) {
+          map.current.setLayoutProperty('sst-lyr', 'visibility', 'visible');
         }
       } else {
         // TURNING OFF: Just hide the layer
