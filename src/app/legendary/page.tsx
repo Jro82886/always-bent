@@ -88,6 +88,8 @@ export default function LegendaryOceanPlatform() {
         minzoom: 0,
         maxzoom: 9
       });
+      // ensure SST sits on top of other layers
+      try { mapInstance.moveLayer('sst-lyr'); } catch {}
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
       console.log('🌡️ NASA GIBS SST layer added - EAST COAST OPTIMIZED - BRIGHT red/orange/yellow temperature gradients');
@@ -199,6 +201,7 @@ export default function LegendaryOceanPlatform() {
         setConnectionStatus('degraded');
         if (map.current.getLayer('sst-lyr')) {
           map.current.setLayoutProperty('sst-lyr', 'visibility', 'visible');
+          try { map.current.moveLayer('sst-lyr'); } catch {}
         }
       } else {
         // TURNING OFF: Just hide the layer
