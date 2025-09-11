@@ -1,0 +1,34 @@
+{
+  "type": "Feature",
+  "properties": {
+    "name": "East Coast 150 nm Offshore Strip",
+    "description": "150 nautical miles seaward from U.S. East Coast (ME-FL, Atlantic only)"
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -85,
+          24
+        ],
+        [
+          -60,
+          24
+        ],
+        [
+          -60,
+          46
+        ],
+        [
+          -85,
+          46
+        ],
+        [
+          -85,
+          24
+        ]
+      ]
+    ]
+  }
+}

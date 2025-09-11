@@ -60,15 +60,12 @@ export default function LegendaryOceanPlatform() {
         attribution: 'Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors'
       });
 
-      // NASA GIBS SST - VIA PROXY (Most Reliable)
-      // Dataset: MODIS Aqua L3 SST Thermal 4km Night Daily
-      // Coverage: Global with excellent East Coast coverage
-      // Style: Built-in NASA thermal colormap (red=cold, yellow=hot)
-      // Time: Daily composites with auto-fallback
-      // Proxy: /api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}
-      mapInstance.addSource('sst-src', {
-        type: 'raster',
-        tiles: [`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`],
+      // NASA GIBS SST - DIRECT WMTS for immediate pixels (known-good date)
+      mapInstance.addSource("sst-src", {
+        type: "raster",
+        tiles: [
+          "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/2025-09-10/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png"
+        ],
         tileSize: 256,
         maxzoom: 9,
         minzoom: 0
@@ -85,19 +82,15 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // SST Layer (temperature - BRIGHT and VIVID - NASA GIBS)
+      // SST Layer (temperature)
       mapInstance.addLayer({
-        id: 'sst-lyr',
-        type: 'raster',
-        source: 'sst-src',
-        layout: { visibility: 'none' },  // START HIDDEN
-        paint: {
-          'raster-opacity': 0.9,   // Very high opacity for maximum visibility
-          'raster-contrast': 0.5,   // High contrast for thermal data
-          'raster-saturation': 1.0  // Full saturation for vibrant colors
-        },
+        id: "sst-lyr",
+        type: "raster",
+        source: "sst-src",
+        layout: { visibility: 'none' },
+        paint: { "raster-opacity": 1 },
         minzoom: 0,
-        maxzoom: 9  // 🚨 CRITICAL: Prevents 404s from requesting z>9
+        maxzoom: 9
       });
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');

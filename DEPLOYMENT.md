@@ -55,10 +55,17 @@ NEXT_PUBLIC_MAPBOX_TOKEN=pk.eyJ1IjoiamVmZmpyODI4ODYiLCJhIjoiY21mOGw5bjJiMTFrZjJq
 
 # === NASA GIBS MODIS SST - CORE FOUNDATION DATASET ===
 # This is the FOUNDATION of all water temperature analysis
-ABFI_SST_TILE_BASE=https://gibs.earthdata.nasa.gov/wmts/epsg3857/best
-ABFI_SST_TILE_LAYER=MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily
-ABFI_SST_TILE_MATRIX=GoogleMapsCompatible_Level9
+# WMS Configuration (corrected from WMTS - NASA GIBS SST uses WMS)
+ABFI_SST_WMS_BASE=https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi
+ABFI_SST_WMS_LAYER=MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily
+ABFI_SST_WMS_VERSION=1.3.0
+ABFI_SST_WMS_STYLES=default
 ABFI_SST_DEFAULT_TIME=today
+
+# LEGACY WMTS (do not use)
+# ABFI_SST_TILE_BASE=https://gibs.earthdata.nasa.gov/wmts/epsg3857/best
+# ABFI_SST_TILE_LAYER=MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily
+# ABFI_SST_TILE_MATRIX=GoogleMapsCompatible_Level9
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xocxmgovdfrfdoicpovf.supabase.co/
