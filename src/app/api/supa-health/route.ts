@@ -3,6 +3,9 @@ import { supabaseServer } from '@/lib/supabaseServer';
 
 export async function GET() {
   try {
+    if (!supabaseServer) {
+      return NextResponse.json({ ok: true, note: 'supabase disabled (no env)' });
+    }
     // Using admin API to verify service role is valid without relying on a specific table
     const { error } = await supabaseServer.auth.admin.listUsers({ page: 1, perPage: 1 });
 

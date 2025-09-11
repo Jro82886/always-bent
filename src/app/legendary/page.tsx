@@ -38,14 +38,12 @@ export default function LegendaryOceanPlatform() {
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
       
-      // Debug: List all layers after initialization
+      // Debug: List layers and confirm SST source/layer presence
       setTimeout(() => {
         const layers = mapInstance.getStyle().layers;
         console.log('🗺️ Available layers:', layers.map(l => l.id));
-        console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-layer'));
-        console.log('🌿 CHL layer exists:', !!mapInstance.getLayer('chl-layer'));
-        console.log('🌊 SLA layer exists:', !!mapInstance.getLayer('sla-layer'));
-        console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
+        console.log('🧩 SST source exists:', !!mapInstance.getSource('sst-src'));
+        console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-lyr'));
       }, 2000);
 
       // ESRI Ocean Basemap (bathymetry/depth data)
