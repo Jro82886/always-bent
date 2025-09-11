@@ -15,17 +15,20 @@ export async function GET(
   const url = new URL(req.url);
   const requested = url.searchParams.get("time") || process.env.ABFI_SST_DEFAULT_TIME || "today";
   let baseDateISO: string;
+  let timeGuardNote = "ok";
   try {
     baseDateISO = resolveSstDate(requested);
   } catch (e: any) {
-    return NextResponse.json({ error: "bad-time", detail: String(e?.message || e) }, { status: 400 });
+    // Coerce invalid inputs to 'today' to avoid client 400 spam
+    timeGuardNote = `coerced: ${String(e?.message || e)}`;
+    baseDateISO = resolveSstDate("today");
   }
 
   const base   = envOr("ABFI_SST_TILE_BASE", "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best");
   const layer  = envOr("ABFI_SST_TILE_LAYER", "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily");
   const matrix = envOr("ABFI_SST_TILE_MATRIX", "GoogleMapsCompatible_Level9");
 
-  const chain = [baseDateISO, ...chainFromBase(baseDateISO).slice(1)];
+  const chain = chainFromBase(baseDateISO);
   let lastStatus = 0, lastUrl = "";
 
   for (const timeISO of chain) {
@@ -42,7 +45,8 @@ export async function GET(
           "Cache-Control": "public, s-maxage=21600, max-age=0, stale-while-revalidate=21600",
           "X-Debug-Requested": requested,
           "X-Debug-Used": timeISO,
-          "X-Debug-GIBS": gibsUrl
+          "X-Debug-GIBS": gibsUrl,
+          "X-Debug-Time-Guard": timeGuardNote
         }
       });
     }
@@ -51,7 +55,7 @@ export async function GET(
 
   return NextResponse.json(
     { error: "upstream-failed", requested, lastStatus, lastUrl },
-    { status: lastStatus || 502, headers: { "Cache-Control": "public, s-maxage=60, max-age=0", "X-Debug-Requested": requested, "X-Debug-GIBS": lastUrl } }
+    { status: lastStatus || 502, headers: { "Cache-Control": "public, s-maxage=60, max-age=0", "X-Debug-Requested": requested, "X-Debug-GIBS": lastUrl, "X-Debug-Time-Guard": timeGuardNote } }
   );
 }
 
