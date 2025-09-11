@@ -11,22 +11,10 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  const [sstActive, setSstActive] = useState(false);
-  const [chlActive, setChlActive] = useState(false);
-  const [slaActive, setSlaActive] = useState(false); // Sea Level Anomaly (Altimetry)
-  const [thermoActive, setThermoActive] = useState(false); // Thermocline (Mixed Layer Depth)
-  const [noaaActive, setNoaaActive] = useState(false); // NOAA VIIRS 4km Chlorophyll
-  const [selectedDate, setSelectedDate] = useState('2025-09-09'); // Today
-  
-  // SST fallback system
-  const [sstBadge, setSstBadge] = useState<string | undefined>(undefined);
-  
-  // Opacity states for sliders
+  // ONLY SST - Foundation dataset
+  const [sstActive, setSstActive] = useState(true); // Start with SST visible
+  const [selectedDate, setSelectedDate] = useState('2025-09-05'); // Known good date
   const [sstOpacity, setSstOpacity] = useState(90);
-  const [chlOpacity, setChlOpacity] = useState(85);
-  const [slaOpacity, setSlaOpacity] = useState(80);
-  const [noaaOpacity, setNoaaOpacity] = useState(85);
-  const [thermoOpacity, setThermoOpacity] = useState(80);
 
   // Initialize map
   useEffect(() => {
@@ -55,10 +43,10 @@ export default function LegendaryOceanPlatform() {
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
-      // NASA GIBS MODIS SST - Official format from NASA docs
+      // NASA GIBS WMTS DIRECT - No proxy, pure WMTS tiles
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/2025-09-05/250m/{z}/{y}/{x}.png`],
+        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`],
         tileSize: 256,
         maxzoom: 8,
         minzoom: 0
@@ -68,92 +56,13 @@ export default function LegendaryOceanPlatform() {
         id: 'sst-layer',
         type: 'raster',
         source: 'sst',
-        layout: { visibility: 'none' },
+        layout: { visibility: 'visible' },  // START VISIBLE
         paint: { 
-          'raster-opacity': 0.9
+          'raster-opacity': 0.9  // High visibility
         }
       });
 
-      // Add chlorophyll source - ULTRA HIGH RESOLUTION (matching successful SST approach)
-      mapInstance.addSource('chl', {
-        type: 'raster',
-        tiles: [`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // ULTRA HIGH RESOLUTION TILES
-        maxzoom: 22,    // MAXIMUM ZOOM for pixel-perfect coastline detail
-        minzoom: 0      // Full zoom range
-      });
-
-      mapInstance.addLayer({
-        id: 'chl-layer',
-        type: 'raster',
-        source: 'chl',
-        layout: { visibility: 'none' },
-        paint: { 
-          'raster-opacity': 0.85
-        }
-      });
-
-      // Add Sea Level Anomaly (Altimetry) - Shows eddies, currents, upwelling!
-      mapInstance.addSource('sla', {
-        type: 'raster',
-        tiles: [`/api/copernicus-sla/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // HIGH RESOLUTION TILES (consistent with others)
-        maxzoom: 22,    // MAXIMUM ZOOM (consistent with others)
-        minzoom: 0      // Full zoom range
-      });
-
-      mapInstance.addLayer({
-        id: 'sla-layer',
-        type: 'raster',
-        source: 'sla',
-        layout: { visibility: 'none' },
-        paint: { 
-          'raster-opacity': 0.8
-        }
-      });
-
-      // Add NOAA VIIRS Chlorophyll layer - ULTRA HIGH RESOLUTION (4km native!)
-      mapInstance.addSource('noaa-viirs', {
-        type: 'raster',
-        tiles: [`/api/noaa-viirs/{z}/{x}/{y}?time=${selectedDate}`],
-        tileSize: 512,  // HIGH RESOLUTION TILES (matching successful SST approach)
-        maxzoom: 22,    // MAXIMUM ZOOM for 4km native resolution
-        minzoom: 0      // Full zoom range
-      });
-
-      mapInstance.addLayer({
-        id: 'noaa-viirs-layer',
-        type: 'raster',
-        source: 'noaa-viirs',
-        layout: { visibility: 'none' },
-        paint: { 
-          'raster-opacity': 0.85
-        }
-      });
-
-      // Add Thermocline (Mixed Layer Depth) - ABFI secret weapon!
-      mapInstance.addSource('thermocline', {
-        type: 'raster',
-        tiles: [`/api/copernicus-thermocline/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`],
-        tileSize: 512,  // HIGH RESOLUTION TILES (consistent with others)
-        maxzoom: 22,    // MAXIMUM ZOOM (consistent with others)
-        minzoom: 0
-      });
-
-      mapInstance.addLayer({
-        id: 'thermocline-layer',
-        type: 'raster',
-        source: 'thermocline',
-        layout: { visibility: 'none' },
-        paint: { 
-          'raster-opacity': 0.8
-        }
-      });
-
-      console.log('🌿 Chlorophyll layer added successfully');
-      console.log('🌊 Sea Level Anomaly layer added successfully');
-      console.log('🌡️ Thermocline layer added successfully');
-      console.log('🛰️ NOAA VIIRS 4km Chlorophyll layer added successfully');
+      console.log('🌡️ NASA GIBS SST layer added - FOUNDATION DATASET');
       
       // Debug: Check if Copernicus is configured
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
@@ -181,43 +90,19 @@ export default function LegendaryOceanPlatform() {
     };
   }, []);
 
-  // Handle date changes - update ALL ocean layers (iron-clad system)
+  // Handle date changes - ONLY SST (foundation dataset)
   useEffect(() => {
     if (!map.current) return;
     
-    // Update chlorophyll tiles
-    const chlSource = map.current.getSource('chl') as mapboxgl.RasterTileSource;
-    if (chlSource && (chlSource as any).setTiles) {
-      (chlSource as any).setTiles([`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
-    }
-    
-    // Update phytoplankton tiles  
-    const slaSource = map.current.getSource('sla') as mapboxgl.RasterTileSource;
-    if (slaSource && (slaSource as any).setTiles) {
-      (slaSource as any).setTiles([`/api/copernicus-sla/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
-    }
-    
-    // Update SST tiles (NASA GIBS official format)
+    // Update ONLY SST tiles (NASA GIBS WMTS direct)
     const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
     if (sstSource && (sstSource as any).setTiles) {
       (sstSource as any).setTiles([`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`]);
     }
-
-    // Update NOAA VIIRS tiles
-    const noaaSource = map.current.getSource('noaa-viirs') as mapboxgl.RasterTileSource;
-    if (noaaSource && (noaaSource as any).setTiles) {
-      (noaaSource as any).setTiles([`/api/noaa-viirs/{z}/{x}/{y}?time=${selectedDate}`]);
-    }
-
-    // Update Thermocline tiles
-    const thermoSource = map.current.getSource('thermocline') as mapboxgl.RasterTileSource;
-    if (thermoSource && (thermoSource as any).setTiles) {
-      (thermoSource as any).setTiles([`/api/copernicus-thermocline/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
-    }
     
-    // Force map repaint for all layers
+    // Force map repaint
     map.current.triggerRepaint();
-    console.log(`📅 Date changed to: ${selectedDate} - ALL layers updated`);
+    console.log(`📅 Date changed to: ${selectedDate} - SST updated`);
   }, [selectedDate]);
 
   // SST toggle - simple and fast
@@ -286,40 +171,46 @@ export default function LegendaryOceanPlatform() {
         </h1>
         <p className="text-sm opacity-80">Ocean Intelligence Platform</p>
         
-        <div className="space-y-2">
-          <button
-            onClick={toggleSST}
-            className={`w-full px-4 py-2 rounded ${
-              sstActive ? 'bg-blue-500' : 'bg-white/20'
-            } transition-colors`}
-          >
-            🌡️ Temperature {sstActive ? 'ON' : 'OFF'}
-          </button>
-          {sstActive && (
-            <div className="px-2">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span>Opacity</span>
-                <span>{sstOpacity}%</span>
+        <div className="space-y-4">
+          <div className="bg-blue-500/20 border border-blue-500/40 rounded-lg p-4">
+            <h2 className="text-lg font-bold mb-2">🌡️ Sea Surface Temperature</h2>
+            <p className="text-sm opacity-80 mb-3">NASA MODIS Aqua L3 - Foundation Dataset</p>
+            
+            <button
+              onClick={toggleSST}
+              className={`w-full px-4 py-3 rounded-lg font-semibold ${
+                sstActive ? 'bg-blue-500 text-white' : 'bg-white/20 text-white/80'
+              } transition-all`}
+            >
+              {sstActive ? '🌡️ SST ACTIVE' : '🌡️ SHOW SST'}
+            </button>
+            
+            {sstActive && (
+              <div className="mt-3 px-2">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span>Opacity</span>
+                  <span>{sstOpacity}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={sstOpacity}
+                  onChange={(e) => {
+                    const newOpacity = parseInt(e.target.value);
+                    setSstOpacity(newOpacity);
+                    if (map.current?.getLayer('sst-layer')) {
+                      map.current.setPaintProperty('sst-layer', 'raster-opacity', newOpacity / 100);
+                    }
+                  }}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
+                  }}
+                />
               </div>
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={sstOpacity}
-                onChange={(e) => {
-                  const newOpacity = parseInt(e.target.value);
-                  setSstOpacity(newOpacity);
-                  if (map.current?.getLayer('sst-layer')) {
-                    map.current.setPaintProperty('sst-layer', 'raster-opacity', newOpacity / 100);
-                  }
-                }}
-                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
-                }}
-              />
-            </div>
-          )}
+            )}
+          </div>
         </div>
         
         <div className="space-y-2">
