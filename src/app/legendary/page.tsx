@@ -11,12 +11,14 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  // Ocean Basemap + Copernicus SST
+  // Ocean Basemap + Copernicus layers
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
   const [sstActive, setSstActive] = useState(false); // Copernicus SST
+  const [chlActive, setChlActive] = useState(false); // Copernicus Chlorophyll
   const [selectedDate, setSelectedDate] = useState('today');
   const [oceanOpacity, setOceanOpacity] = useState(60);
   const [sstOpacity, setSstOpacity] = useState(90);
+  const [chlOpacity, setChlOpacity] = useState(85);
 
   // Initialize map
   useEffect(() => {
@@ -41,6 +43,7 @@ export default function LegendaryOceanPlatform() {
         console.log('🗺️ Available layers:', layers.map(l => l.id));
         console.log('🌊 Ocean layer exists:', !!mapInstance.getLayer('ocean-layer'));
         console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-lyr'));
+        console.log('🌿 CHL layer exists:', !!mapInstance.getLayer('chl-lyr'));
       }, 2000);
 
       // ESRI Ocean Basemap (bathymetry/depth data)
@@ -87,8 +90,32 @@ export default function LegendaryOceanPlatform() {
         });
       }
 
+      // Copernicus Chlorophyll - via proxy
+      if (!mapInstance.getSource('chl-src')) {
+        mapInstance.addSource('chl-src', {
+          type: 'raster',
+          tiles: ['/api/tiles/chl/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          minzoom: 0,
+          maxzoom: 24
+        });
+      }
+
+      if (!mapInstance.getLayer('chl-lyr')) {
+        mapInstance.addLayer({
+          id: 'chl-lyr',
+          type: 'raster',
+          source: 'chl-src',
+          layout: { visibility: 'none' },
+          paint: { 'raster-opacity': 1 },
+          minzoom: 0,
+          maxzoom: 24
+        });
+      }
+
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
       console.log('🌡️ Copernicus SST layer added - High resolution temperature data');
+      console.log('🌿 Copernicus Chlorophyll layer added - High resolution ocean color data');
 
       // Debug: Check if Copernicus is configured
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
@@ -146,6 +173,18 @@ export default function LegendaryOceanPlatform() {
     if (map.current.getLayer('sst-lyr')) {
       map.current.setLayoutProperty('sst-lyr', 'visibility', newState ? 'visible' : 'none');
       console.log(`🌡️ Copernicus SST ${newState ? 'ON' : 'OFF'}`);
+    }
+  };
+
+  // CHL toggle - Copernicus chlorophyll
+  const toggleCHL = () => {
+    if (!map.current) return;
+    const newState = !chlActive;
+    setChlActive(newState);
+
+    if (map.current.getLayer('chl-lyr')) {
+      map.current.setLayoutProperty('chl-lyr', 'visibility', newState ? 'visible' : 'none');
+      console.log(`🌿 Copernicus CHL ${newState ? 'ON' : 'OFF'}`);
     }
   };
 
@@ -267,6 +306,47 @@ export default function LegendaryOceanPlatform() {
                   className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
                   style={{
                     background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Chlorophyll Toggle (Copernicus) */}
+          <div className="bg-green-500/20 border border-green-500/40 rounded-lg p-4">
+            <h2 className="text-lg font-bold mb-2">🌿 Chlorophyll</h2>
+            <p className="text-sm opacity-80 mb-3">Copernicus Marine - Ocean Color Data</p>
+
+            <button
+              onClick={toggleCHL}
+              className={`w-full px-4 py-3 rounded-lg font-semibold ${
+                chlActive ? 'bg-green-500 text-white' : 'bg-white/20 text-white/80'
+              } transition-all`}
+            >
+              {chlActive ? '🌿 CHL ACTIVE' : '🌿 SHOW CHL'}
+            </button>
+
+            {chlActive && (
+              <div className="mt-3 px-2">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span>Opacity</span>
+                  <span>{chlOpacity}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="100"
+                  value={chlOpacity}
+                  onChange={(e) => {
+                    const newOpacity = parseInt(e.target.value);
+                    setChlOpacity(newOpacity);
+                    if (map.current?.getLayer('chl-lyr')) {
+                      map.current.setPaintProperty('chl-lyr', 'raster-opacity', newOpacity / 100);
+                    }
+                  }}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #22c55e 0%, #22c55e ${chlOpacity}%, rgba(255,255,255,0.2) ${chlOpacity}%, rgba(255,255,255,0.2) 100%)`
                   }}
                 />
               </div>
