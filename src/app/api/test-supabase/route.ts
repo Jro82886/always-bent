@@ -1,0 +1,39 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+export async function GET() {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    // Test connection and check our ML tables exist
+    const tables = [
+      'snip_analyses',
+      'catch_reports', 
+      'vessel_tracks',
+      'ml_patterns',
+      'hotspot_intelligence'
+    ];
+
+    const results: Record<string, boolean> = {};
+    
+    for (const table of tables) {
+      const { error } = await supabase.from(table).select('id').limit(1);
+      results[table] = !error;
+    }
+
+    return NextResponse.json({
+      status: 'connected',
+      project: 'hobvjmmambhonsugehge',
+      tables: results,
+      ready: Object.values(results).every(v => v)
+    });
+  } catch (error) {
+    return NextResponse.json({ 
+      status: 'error', 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
+  }
+}
