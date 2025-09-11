@@ -27,21 +27,19 @@ export async function GET(
   const base   = envOr("ABFI_SST_TILE_BASE", "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best").trim();
   const layer  = envOr("ABFI_SST_TILE_LAYER", "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily").trim();
   const envMatrix = envOr("ABFI_SST_TILE_MATRIX", "GoogleMapsCompatible_Level9").trim();
-  const detectedMatrix = await detectMatrixSet(base, layer);
-  const matrixPreferred = (detectedMatrix || envMatrix).trim();
-  const matrixCandidates = [matrixPreferred];
+  // WMS-only mode: we won't use WMTS matrix; keep envs for future but unused now
 
   const chain = chainFromBase(baseDateISO);
   let lastStatus = 0, lastUrl = "";
 
   for (const timeISO of chain) {
-    for (const matrix of matrixCandidates) {
-      const gibsUrl = `${strip(base)}/${layer}/default/${timeISO}/${matrix}/${z}/${y}/${x}.png`;
-      lastUrl = gibsUrl;
-      const r = await fetch(gibsUrl, { headers: { "User-Agent": "ABFI/1.0" }, next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) });
-      lastStatus = r.status;
-      if (r.ok) {
-        const buf = await r.arrayBuffer();
+    const wmsUrl = buildWmsUrlFromBase(base, layer, xyzToBbox3857(z, x, y), timeISO);
+    lastUrl = wmsUrl;
+    try {
+      const w = await fetch(wmsUrl, { headers: { "User-Agent": "ABFI/1.0" }, next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) });
+      lastStatus = w.status;
+      if (w.ok) {
+        const buf = await w.arrayBuffer();
         return new NextResponse(buf, {
           status: 200,
           headers: {
@@ -49,43 +47,21 @@ export async function GET(
             "Cache-Control": "public, s-maxage=21600, max-age=0, stale-while-revalidate=21600",
             "X-Debug-Requested": requested,
             "X-Debug-Used": timeISO,
-            "X-Debug-GIBS": gibsUrl,
+            "X-Debug-GIBS": wmsUrl,
             "X-Debug-Time-Guard": timeGuardNote,
-            "X-Debug-Matrix-Used": matrix,
-            "X-Debug-Matrix-Candidates": matrixCandidates.join(",")
+            "X-Debug-WMS-Only": "1"
           }
         });
       }
-      // On 400 invalid WMTS request, try WMS fallback in EPSG:3857 for this tile/date
-      if (r.status === 400) {
-        const wmsUrl = buildWmsUrlFromBase(base, layer, xyzToBbox3857(z, x, y), timeISO);
-        try {
-          const w = await fetch(wmsUrl, { headers: { "User-Agent": "ABFI/1.0" }, next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) });
-          if (w.ok) {
-            const buf = await w.arrayBuffer();
-            return new NextResponse(buf, {
-              status: 200,
-              headers: {
-                "Content-Type": "image/png",
-                "Cache-Control": "public, s-maxage=21600, max-age=0, stale-while-revalidate=21600",
-                "X-Debug-Requested": requested,
-                "X-Debug-Used": timeISO,
-                "X-Debug-GIBS": wmsUrl,
-                "X-Debug-Time-Guard": timeGuardNote,
-                "X-Debug-WMS-Fallback": "1"
-              }
-            });
-          }
-        } catch {}
-      }
-      // continue fallback chain only for not-available statuses
-      if (r.status !== 404 && r.status !== 204 && r.status !== 400) break;
+      if (w.status !== 404 && w.status !== 204) break;
+    } catch (e) {
+      lastStatus = 502;
     }
   }
 
   return NextResponse.json(
     { error: "upstream-failed", requested, lastStatus, lastUrl },
-    { status: lastStatus || 502, headers: { "Cache-Control": "public, s-maxage=60, max-age=0", "X-Debug-Requested": requested, "X-Debug-GIBS": lastUrl, "X-Debug-Time-Guard": timeGuardNote, "X-Debug-Matrix-Candidates": matrixCandidates.join(",") } }
+    { status: lastStatus || 502, headers: { "Cache-Control": "public, s-maxage=60, max-age=0", "X-Debug-Requested": requested, "X-Debug-GIBS": lastUrl, "X-Debug-Time-Guard": timeGuardNote } }
   );
 }
 
