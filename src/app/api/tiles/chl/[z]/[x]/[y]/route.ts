@@ -1,64 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from 'next/server';
 
-export const dynamic = "force-dynamic";
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ z: string; x: string; y: string }> }
-) {
-  const resolvedParams = await params;
-  const z = parseInt(resolvedParams.z, 10);
-  const x = parseInt(resolvedParams.x, 10);
-  const y = parseInt(resolvedParams.y, 10);
+export async function GET(req: NextRequest, { params }: { params: { z: string; x: string; y: string } }) {
+  const { z, x, y } = params;
+  const isSst = req.nextUrl.pathname.includes('/sst/');
+  const tplKey = isSst ? 'CMEMS_SST_WMTS_TEMPLATE' : 'CMEMS_CHL_WMTS_TEMPLATE';
+  const base = process.env[tplKey];
 
-  // Get Copernicus CHL WMTS template
-  const template = process.env.CMEMS_CHL_WMTS_TEMPLATE;
-  if (!template) {
-    return NextResponse.json({ error: "CMEMS_CHL_WMTS_TEMPLATE not configured" }, { status: 500 });
-  }
+  if (!base) return new Response(`${tplKey} not configured`, { status: 500 });
 
-  // Build target URL by replacing placeholders
-  const targetUrl = template
-    .replace("{z}", z.toString())
-    .replace("{x}", x.toString())
-    .replace("{y}", y.toString());
+  const target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+
+  const u = process.env.COPERNICUS_USER || '';
+  const p = process.env.COPERNICUS_PASS || '';
+  const auth = 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64');
 
   try {
-    // Add auth if credentials are available
-    const headers: Record<string, string> = { "User-Agent": "ABFI/1.0" };
-    const user = process.env.COPERNICUS_USER;
-    const pass = process.env.COPERNICUS_PASS;
-    if (user && pass) {
-      headers.Authorization = `Basic ${Buffer.from(`${user}:${pass}`).toString('base64')}`;
-    }
-
-    // Fetch from Copernicus and stream back
-    const response = await fetch(targetUrl, {
-      headers,
-      next: { revalidate: 3600 } // 1 hour cache
+    const upstream = await fetch(target, {
+      headers: {
+        Authorization: auth,
+        Accept: 'image/png',
+        'User-Agent': 'alwaysbent-abfi'
+      },
+      redirect: 'follow',
+      cache: 'no-store'
     });
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: `Copernicus CHL ${response.status}`, targetUrl },
-        { status: 502 }
-      );
+    if (!upstream.ok) {
+      const text = await upstream.text();
+      return new Response(text || `Upstream ${upstream.status}`, {
+        status: upstream.status,
+        headers: { 'x-upstream-url': target }
+      });
     }
 
-    const buffer = await response.arrayBuffer();
-    return new NextResponse(buffer, {
-      status: 200,
+    return new Response(upstream.body, {
       headers: {
-        "Content-Type": "image/png",
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
-        "X-Debug-Copernicus-CHL": targetUrl
+        'Content-Type': 'image/png',
+        'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+        'x-upstream-url': target
       }
     });
-
-  } catch (error) {
-    return NextResponse.json(
-      { error: "chl-proxy-failure", detail: String(error) },
-      { status: 500 }
-    );
+  } catch (e: any) {
+    return new Response(`Fetch failed: ${e?.message || e}`, {
+      status: 502,
+      headers: { 'x-upstream-url': target }
+    });
   }
 }
