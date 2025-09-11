@@ -3,8 +3,9 @@ import { NextRequest } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest, { params }: { params: { z: string; x: string; y: string } }) {
-  const { z, x, y } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ z: string; x: string; y: string }> }) {
+  const resolvedParams = await params;
+  const { z, x, y } = resolvedParams;
   const isSst = req.nextUrl.pathname.includes('/sst/');
   const tplKey = isSst ? 'CMEMS_SST_WMTS_TEMPLATE' : 'CMEMS_CHL_WMTS_TEMPLATE';
   const base = process.env[tplKey];
