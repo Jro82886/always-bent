@@ -14,8 +14,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
 
   if (!base) return new Response(`${tplKey} not configured`, { status: 500 });
 
-  // Handle time parameter - use latest if not specified
-  const time = req.nextUrl.searchParams.get('time') || 'latest';
+  // Handle time parameter - use default if not specified  
+  const time = req.nextUrl.searchParams.get('time') || 'default';
   const target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{time}', time);
 
   const u = process.env.COPERNICUS_USER || '';
