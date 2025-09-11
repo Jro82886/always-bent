@@ -15,7 +15,7 @@ export default function LegendaryOceanPlatform() {
   // Ocean Basemap + SST layers with auto-fallback
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
   const [sstActive, setSstActive] = useState(false); // NASA SST (temperature)
-  const [selectedDate, setSelectedDate] = useState('2025-09-10');
+  const [selectedDate, setSelectedDate] = useState('today');
   const [oceanOpacity, setOceanOpacity] = useState(60);
   const [sstOpacity, setSstOpacity] = useState(85);
   const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'degraded'>('offline');
@@ -58,17 +58,6 @@ export default function LegendaryOceanPlatform() {
         attribution: 'Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors'
       });
 
-      // NASA GIBS SST - via proxy with time=today (proxy handles fallback)
-      mapInstance.addSource("sst-src", {
-        type: "raster",
-        tiles: [
-          "/api/tiles/sst/{z}/{x}/{y}.png?time=today"
-        ],
-        tileSize: 256,
-        maxzoom: 9,
-        minzoom: 0
-      });
-
       // Ocean Basemap Layer (bathymetry)
       mapInstance.addLayer({
         id: 'ocean-layer',
@@ -80,13 +69,24 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
+      // NASA GIBS SST - via proxy with time=today (proxy handles fallback)
+      mapInstance.addSource('sst-src', {
+        type: 'raster',
+        tiles: [
+          `/api/tiles/sst/{z}/{x}/{y}.png?time=today`
+        ],
+        tileSize: 256,
+        maxzoom: 9,
+        minzoom: 0
+      });
+
       // SST Layer (temperature)
       mapInstance.addLayer({
-        id: "sst-lyr",
-        type: "raster",
-        source: "sst-src",
+        id: 'sst-lyr',
+        type: 'raster',
+        source: 'sst-src',
         layout: { visibility: 'none' },
-        paint: { "raster-opacity": 1 },
+        paint: { 'raster-opacity': 1 },
         minzoom: 0,
         maxzoom: 9
       });
