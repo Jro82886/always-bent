@@ -23,3 +23,11 @@ export function dailyAtNoonUTCISO(offsetDays = 1): string {
   d.setUTCDate(d.getUTCDate() - offsetDays);
   return d.toISOString().replace('.000Z', 'Z');
 }
+
+// ODYSSEA daily product: use midnight (00:00Z) per Capabilities for GetTile
+export function dailyAtMidnightUTCISO(offsetDays = 1): string {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - offsetDays);
+  return `${d.toISOString().slice(0, 10)}T00:00:00Z`;
+}

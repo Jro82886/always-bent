@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from 'react';
 import type mapboxgl from 'mapbox-gl';
-import { dailyAtNoonUTCISO } from '@/lib/imagery/time';
+import { dailyAtMidnightUTCISO } from '@/lib/imagery/time';
 import { buildWMTS } from '@/lib/imagery/url';
 
 type Props = { map: mapboxgl.Map | null; on: boolean };
@@ -21,7 +21,7 @@ export default function SSTLayer({ map, on }: Props) {
       return;
     }
 
-    const url = buildWMTS(template, dailyAtNoonUTCISO(1));
+    const url = buildWMTS(template, dailyAtMidnightUTCISO(1));
 
     if (map.getLayer(lyrId)) map.removeLayer(lyrId);
     if (map.getSource(srcId)) (map as any).removeSource(srcId);
