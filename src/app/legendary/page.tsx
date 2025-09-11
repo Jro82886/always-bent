@@ -168,13 +168,13 @@ export default function LegendaryOceanPlatform() {
   // Initialize layer defaults
   useEffect(() => {
     if (!map.current) return;
-    // Default states: SST on, CHL off
+    // Layers start hidden - user must manually toggle
     setTimeout(() => {
       if (map.current) {
-        setVis(map.current, 'sst-lyr', true);
-        setVis(map.current, 'chl-lyr', false);
-        setSstActive(true);
-        setChlActive(false);
+        setVis(map.current, 'sst-lyr', false);  // Start SST OFF
+        setVis(map.current, 'chl-lyr', false);  // Start CHL OFF
+        setSstActive(false);  // SST state OFF
+        setChlActive(false);  // CHL state OFF
       }
     }, 1000);
   }, []);
