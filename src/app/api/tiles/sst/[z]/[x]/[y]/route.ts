@@ -26,31 +26,36 @@ export async function GET(
 
   const base   = envOr("ABFI_SST_TILE_BASE", "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best");
   const layer  = envOr("ABFI_SST_TILE_LAYER", "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily");
-  const matrix = envOr("ABFI_SST_TILE_MATRIX", "GoogleMapsCompatible_Level9");
+  const envMatrix = envOr("ABFI_SST_TILE_MATRIX", "GoogleMapsCompatible_Level9");
+  const matrixCandidates = [envMatrix, "GoogleMapsCompatible_Level8", "GoogleMapsCompatible_Level7", "GoogleMapsCompatible"]; // try alternates if invalid
 
   const chain = chainFromBase(baseDateISO);
   let lastStatus = 0, lastUrl = "";
 
   for (const timeISO of chain) {
-    const gibsUrl = `${strip(base)}/${layer}/default/${timeISO}/${matrix}/${z}/${y}/${x}.png`;
-    lastUrl = gibsUrl;
-    const r = await fetch(gibsUrl, { headers: { "User-Agent": "ABFI/1.0" }, next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) });
-    lastStatus = r.status;
-    if (r.ok) {
-      const buf = await r.arrayBuffer();
-      return new NextResponse(buf, {
-        status: 200,
-        headers: {
-          "Content-Type": "image/png",
-          "Cache-Control": "public, s-maxage=21600, max-age=0, stale-while-revalidate=21600",
-          "X-Debug-Requested": requested,
-          "X-Debug-Used": timeISO,
-          "X-Debug-GIBS": gibsUrl,
-          "X-Debug-Time-Guard": timeGuardNote
-        }
-      });
+    for (const matrix of matrixCandidates) {
+      const gibsUrl = `${strip(base)}/${layer}/default/${timeISO}/${matrix}/${z}/${y}/${x}.png`;
+      lastUrl = gibsUrl;
+      const r = await fetch(gibsUrl, { headers: { "User-Agent": "ABFI/1.0" }, next: { revalidate: 3600 }, signal: AbortSignal.timeout(5000) });
+      lastStatus = r.status;
+      if (r.ok) {
+        const buf = await r.arrayBuffer();
+        return new NextResponse(buf, {
+          status: 200,
+          headers: {
+            "Content-Type": "image/png",
+            "Cache-Control": "public, s-maxage=21600, max-age=0, stale-while-revalidate=21600",
+            "X-Debug-Requested": requested,
+            "X-Debug-Used": timeISO,
+            "X-Debug-GIBS": gibsUrl,
+            "X-Debug-Time-Guard": timeGuardNote,
+            "X-Debug-Matrix-Used": matrix
+          }
+        });
+      }
+      // continue on typical "not available" or invalid matrix errors
+      if (r.status !== 404 && r.status !== 204 && r.status !== 400) break;
     }
-    if (r.status !== 404 && r.status !== 204) break;
   }
 
   return NextResponse.json(
