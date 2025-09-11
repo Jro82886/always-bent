@@ -58,11 +58,11 @@ export default function LegendaryOceanPlatform() {
         attribution: 'Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors'
       });
 
-      // NASA GIBS SST - DIRECT WMTS for immediate pixels (known-good date)
+      // NASA GIBS SST - via proxy with time=today (proxy handles fallback)
       mapInstance.addSource("sst-src", {
         type: "raster",
         tiles: [
-          "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/2025-09-10/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png"
+          "/api/tiles/sst/{z}/{x}/{y}.png?time=today"
         ],
         tileSize: 256,
         maxzoom: 9,
