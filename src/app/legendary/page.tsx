@@ -197,10 +197,10 @@ export default function LegendaryOceanPlatform() {
       (slaSource as any).setTiles([`/api/copernicus-sla/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
     }
     
-    // Update SST tiles (NASA GIBS proxy)
+    // Update SST tiles (NASA GIBS direct)
     const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
     if (sstSource && (sstSource as any).setTiles) {
-      (sstSource as any).setTiles([`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`]);
+      (sstSource as any).setTiles([`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png`]);
     }
 
     // Update NOAA VIIRS tiles
