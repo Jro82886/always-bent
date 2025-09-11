@@ -14,7 +14,10 @@ export async function GET(
   // Get Copernicus WMTS template
   const template = process.env.CMEMS_SST_WMTS_TEMPLATE;
   if (!template) {
-    return NextResponse.json({ error: "CMEMS_SST_WMTS_TEMPLATE not configured" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "CMEMS_SST_WMTS_TEMPLATE not configured",
+      availableEnvs: Object.keys(process.env).filter(k => k.includes('CMEMS') || k.includes('COPERNICUS'))
+    }, { status: 500 });
   }
 
   // Build target URL by replacing placeholders
@@ -39,9 +42,22 @@ export async function GET(
     });
 
     if (!response.ok) {
+      const errorText = await response.text().catch(() => 'no error text');
       return NextResponse.json(
-        { error: `Copernicus ${response.status}`, targetUrl },
-        { status: 502 }
+        { 
+          error: `Copernicus ${response.status}`, 
+          targetUrl,
+          upstreamError: errorText,
+          hasAuth: !!(user && pass),
+          templateLength: template.length
+        },
+        { 
+          status: 502,
+          headers: {
+            "X-Debug-Copernicus": targetUrl,
+            "X-Debug-Auth": !!(user && pass) ? "present" : "missing"
+          }
+        }
       );
     }
 
