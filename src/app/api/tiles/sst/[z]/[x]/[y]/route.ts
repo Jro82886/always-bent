@@ -24,12 +24,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     return new Response(`${tplKey} not configured`, { status: 500 });
   }
 
-  // Remove TIME parameter - many WMTS services work without it
-  let target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y);
-  // Strip TIME parameter completely
-  target = target.replace(/[&?]TIME=\{time\}/, '');
+  // Use proper ISO date format for TIME parameter
+  const now = new Date();
+  const isoTime = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+  const target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{time}', isoTime);
 
-  console.log(`🚨 SST DEBUG - Final URL (no TIME): ${target}`);
+  console.log(`🚨 SST DEBUG - Time param: ${isoTime}`);
+  console.log(`🚨 SST DEBUG - Final URL: ${target}`);
 
   const u = process.env.COPERNICUS_USER || '';
   const p = process.env.COPERNICUS_PASS || '';
