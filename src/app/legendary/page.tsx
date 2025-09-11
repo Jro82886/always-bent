@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { resolveSstTime } from '@/lib/sst/resolveSstTime';
+import { setSstSource } from '@/lib/sst/applySstLayer';
+import { SstLegend } from '@/components/SstLegend';
 
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
@@ -11,13 +14,14 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  // Ocean Basemap + SST layers
+  // Ocean Basemap + SST layers with auto-fallback
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
-  const [sstActive, setSstActive] = useState(false); // NOAA SST (temperature)
+  const [sstActive, setSstActive] = useState(false); // NASA SST (temperature)
   const [selectedDate, setSelectedDate] = useState('2025-09-10'); // Today's date
   const [oceanOpacity, setOceanOpacity] = useState(60);
   const [sstOpacity, setSstOpacity] = useState(85);
   const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'degraded'>('online');
+  const [sstBadge, setSstBadge] = useState<string | undefined>(undefined);
 
   // Initialize map
   useEffect(() => {
@@ -56,15 +60,15 @@ export default function LegendaryOceanPlatform() {
         attribution: 'Esri, GEBCO, NOAA, National Geographic, DeLorme, HERE, Geonames.org, and other contributors'
       });
 
-      // NASA GIBS SST - CORRECT WEB MERCATOR FORMAT
+      // NASA GIBS SST - VIA PROXY (Most Reliable)
       // Dataset: MODIS Aqua L3 SST Thermal 4km Night Daily
       // Coverage: Global with excellent East Coast coverage
       // Style: Built-in NASA thermal colormap (red=cold, yellow=hot)
-      // Time: Daily composites optimized for fishing
-      // CORRECT WMTS Format: epsg3857/best/{LAYER}/default/{DATE}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png
-      mapInstance.addSource('sst', {
+      // Time: Daily composites with auto-fallback
+      // Proxy: /api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}
+      mapInstance.addSource('sst-src', {
         type: 'raster',
-        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png`],
+        tiles: [`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`],
         tileSize: 256,
         maxzoom: 9,
         minzoom: 0
@@ -83,9 +87,9 @@ export default function LegendaryOceanPlatform() {
 
       // SST Layer (temperature - BRIGHT and VIVID - NASA GIBS)
       mapInstance.addLayer({
-        id: 'sst-layer',
+        id: 'sst-lyr',
         type: 'raster',
-        source: 'sst',
+        source: 'sst-src',
         layout: { visibility: 'none' },  // START HIDDEN
         paint: {
           'raster-opacity': 0.9,   // Very high opacity for maximum visibility
@@ -178,13 +182,13 @@ export default function LegendaryOceanPlatform() {
     }
 
     try {
-      // Update SST layer tiles with new date - NASA GIBS WMTS
-      const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
+      // Update SST layer tiles with new date - VIA PROXY
+      const sstSource = map.current.getSource('sst-src') as mapboxgl.RasterTileSource;
       if (sstSource && (sstSource as any).setTiles) {
-        const tileUrl = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png`;
+        const tileUrl = `/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`;
         (sstSource as any).setTiles([tileUrl]);
         map.current.triggerRepaint();
-        console.log(`📅 Date changed to: ${selectedDate} - SST layer updated successfully`);
+        console.log(`📅 Date changed to: ${selectedDate} - SST layer updated via proxy`);
       } else {
         console.warn('⚠️ Date Change: SST source not available for update');
       }
@@ -192,6 +196,41 @@ export default function LegendaryOceanPlatform() {
       console.error('🚨 Date Change failed:', error);
     }
   }, [selectedDate, sstActive]);
+
+  // 🔄 AUTO-FALLBACK: Resolve SST time and apply layer
+  useEffect(() => {
+    if (!map.current) return;
+
+    let cancelled = false;
+    const apply = async () => {
+      try {
+        const { timeUsed, badge } = await resolveSstTime(map.current, 'latest');
+        if (cancelled) return;
+        setSstSource(map.current, timeUsed);
+        setSstBadge(badge);
+        console.log(`🔄 SST Auto-resolved to: ${timeUsed}${badge ? ` ${badge}` : ''}`);
+      } catch (error) {
+        console.error('🚨 SST Auto-fallback failed:', error);
+      }
+    };
+
+    if (map.current.loaded()) {
+      apply();
+    } else {
+      map.current.once('load', apply);
+    }
+
+    // Optional: re-check after big moves (helps when panning to new regions)
+    const onMoveEnd = () => {
+      if (sstActive) apply(); // Only if SST is active
+    };
+    map.current.on('moveend', onMoveEnd);
+
+    return () => {
+      cancelled = true;
+      if (map.current) map.current.off('moveend', onMoveEnd);
+    };
+  }, [map, sstActive]);
 
   // Ocean Basemap toggle (bathymetry)
   const toggleOcean = () => {
@@ -221,26 +260,26 @@ export default function LegendaryOceanPlatform() {
 
     try {
       // SAFEGUARD: Check if layer exists before manipulating
-      if (!map.current.getLayer('sst-layer')) {
-        console.error('🚨 SST Toggle: sst-layer not found on map');
+      if (!map.current.getLayer('sst-lyr')) {
+        console.error('🚨 SST Toggle: sst-lyr not found on map');
         // Reset state if layer doesn't exist
         setSstActive(false);
         return;
       }
 
       // SAFEGUARD: Check if source exists
-      if (!map.current.getSource('sst')) {
-        console.error('🚨 SST Toggle: sst source not found on map');
+      if (!map.current.getSource('sst-src')) {
+        console.error('🚨 SST Toggle: sst-src source not found on map');
         setSstActive(false);
         return;
       }
 
-      map.current.setLayoutProperty('sst-layer', 'visibility', newState ? 'visible' : 'none');
+      map.current.setLayoutProperty('sst-lyr', 'visibility', newState ? 'visible' : 'none');
 
       if (newState) {
         // SAFEGUARD: Move layer safely
         try {
-          map.current.moveLayer('sst-layer'); // Move to top
+          map.current.moveLayer('sst-lyr'); // Move to top
           map.current.triggerRepaint();
         } catch (moveError) {
           console.warn('⚠️ SST Layer move failed, continuing anyway:', moveError);
@@ -377,9 +416,9 @@ export default function LegendaryOceanPlatform() {
                     setSstOpacity(clampedOpacity);
 
                     // SAFEGUARD: Check map and layer exist before updating
-                    if (map.current?.getLayer('sst-layer')) {
+                    if (map.current?.getLayer('sst-lyr')) {
                       try {
-                        map.current.setPaintProperty('sst-layer', 'raster-opacity', clampedOpacity / 100);
+                        map.current.setPaintProperty('sst-lyr', 'raster-opacity', clampedOpacity / 100);
                       } catch (error) {
                         console.error('🚨 SST opacity update failed:', error);
                       }
@@ -435,7 +474,10 @@ export default function LegendaryOceanPlatform() {
           ⚡ Powered by Claude & Cursor
         </p>
       </div>
-      
+
+      {/* 🔄 SST Legend with auto-fallback badge */}
+      {sstActive && <SstLegend badge={sstBadge} />}
+
     </div>
   );
 }
