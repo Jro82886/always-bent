@@ -36,3 +36,4 @@ Returns: HTTP 200 with image/png
 1. Trigger a new deployment
 2. Clear browser cache
 3. Test at /legendary
+# SST Working! 🌊
