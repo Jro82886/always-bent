@@ -55,10 +55,10 @@ export default function LegendaryOceanPlatform() {
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
-      // NASA GIBS MODIS SST - Proper proxy with time support
+      // NASA GIBS MODIS SST - Direct tiles, no proxy needed
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`],
+        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/2025-09-07/GoogleMapsCompatible_Level9/{z}/{y}/{x}.png`],
         tileSize: 256,
         maxzoom: 9,  // MODIS 4km is limited to Level 9
         minzoom: 0
@@ -220,48 +220,19 @@ export default function LegendaryOceanPlatform() {
     console.log(`📅 Date changed to: ${selectedDate} - ALL layers updated`);
   }, [selectedDate]);
 
-  // SST toggle with intelligent fallback system
-  const toggleSST = async () => {
+  // SST toggle - simple and fast
+  const toggleSST = () => {
     if (!map.current) return;
     const newState = !sstActive;
     setSstActive(newState);
     
-    if (newState) {
-      // Import the fallback system
-      const { resolveSstTime } = await import('@/lib/sst/resolveSstDate');
-      const { setSstSource } = await import('@/lib/sst/applySstLayer');
-      
-      // Convert selectedDate to fallback format
-      const requestedTime = selectedDate === '2025-09-09' ? 'latest' : selectedDate;
-      
-      try {
-        const { timeUsed, badge } = await resolveSstTime(map.current, requestedTime);
-        setSstSource(map.current, timeUsed);
-        setSstBadge(badge);
-        console.log(`🌡️ SST ON - Using ${timeUsed}${badge ? ' ' + badge : ''}`);
-      } catch (error) {
-        console.error('SST fallback failed:', error);
-        // Fallback to basic implementation
-        const tiles = [`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`];
-        if (map.current.getSource('sst')) {
-          try { map.current.removeLayer('sst-layer'); } catch {}
-          try { map.current.removeSource('sst'); } catch {}
-        }
-        map.current.addSource('sst', { type: 'raster', tiles, tileSize: 256 });
-        map.current.addLayer({
-          id: 'sst-layer',
-          type: 'raster', 
-          source: 'sst',
-          paint: { 'raster-opacity': 0.9 }
-        });
+    if (map.current.getLayer('sst-layer')) {
+      map.current.setLayoutProperty('sst-layer', 'visibility', newState ? 'visible' : 'none');
+      if (newState) {
+        map.current.moveLayer('sst-layer'); // Move to top
+        map.current.triggerRepaint();
       }
-    } else {
-      // Turn off SST
-      if (map.current.getLayer('sst-layer')) {
-        map.current.setLayoutProperty('sst-layer', 'visibility', 'none');
-      }
-      setSstBadge(undefined);
-      console.log('🌡️ SST OFF');
+      console.log(`🌡️ NASA MODIS SST ${newState ? 'ON' : 'OFF'}`);
     }
   };
 
