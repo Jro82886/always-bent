@@ -197,40 +197,30 @@ export default function LegendaryOceanPlatform() {
     }
   }, [selectedDate, sstActive]);
 
-  // 🔄 AUTO-FALLBACK: Resolve SST time and apply layer
+  // 🔄 AUTO-FALLBACK: Only for date changes (not initial load)
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !sstActive) return;
 
-    let cancelled = false;
-    const apply = async () => {
+    // Only update tiles if SST is active and date changes
+    const updateTiles = async () => {
+      if (!map.current) return;
+
       try {
-        const { timeUsed, badge } = await resolveSstTime(map.current, 'latest');
-        if (cancelled) return;
-        setSstSource(map.current, timeUsed);
+        const { timeUsed, badge } = await resolveSstTime(map.current, selectedDate);
+        if (map.current.getSource('sst-src')) {
+          const tiles = [`/api/tiles/sst/{z}/{x}/{y}.png?time=${encodeURIComponent(timeUsed)}`];
+          (map.current.getSource('sst-src') as any).setTiles(tiles);
+          map.current.triggerRepaint();
+        }
         setSstBadge(badge);
-        console.log(`🔄 SST Auto-resolved to: ${timeUsed}${badge ? ` ${badge}` : ''}`);
+        console.log(`📅 Date changed to: ${selectedDate} - SST updated to ${timeUsed}${badge ? ` ${badge}` : ''}`);
       } catch (error) {
-        console.error('🚨 SST Auto-fallback failed:', error);
+        console.error('🚨 Date change failed:', error);
       }
     };
 
-    if (map.current.loaded()) {
-      apply();
-    } else {
-      map.current.once('load', apply);
-    }
-
-    // Optional: re-check after big moves (helps when panning to new regions)
-    const onMoveEnd = () => {
-      if (sstActive) apply(); // Only if SST is active
-    };
-    map.current.on('moveend', onMoveEnd);
-
-    return () => {
-      cancelled = true;
-      if (map.current) map.current.off('moveend', onMoveEnd);
-    };
-  }, [map, sstActive]);
+    updateTiles();
+  }, [selectedDate, sstActive]);
 
   // Ocean Basemap toggle (bathymetry)
   const toggleOcean = () => {
@@ -249,7 +239,7 @@ export default function LegendaryOceanPlatform() {
   };
 
   // SST toggle - BRIGHT temperature layer with SAFEGUARDS
-  const toggleSST = () => {
+  const toggleSST = async () => {
     if (!map.current) {
       console.warn('🚨 SST Toggle: Map not initialized');
       return;
@@ -259,39 +249,34 @@ export default function LegendaryOceanPlatform() {
     setSstActive(newState);
 
     try {
-      // SAFEGUARD: Check if layer exists before manipulating
-      if (!map.current.getLayer('sst-lyr')) {
-        console.error('🚨 SST Toggle: sst-lyr not found on map');
-        // Reset state if layer doesn't exist
-        setSstActive(false);
-        return;
-      }
-
-      // SAFEGUARD: Check if source exists
-      if (!map.current.getSource('sst-src')) {
-        console.error('🚨 SST Toggle: sst-src source not found on map');
-        setSstActive(false);
-        return;
-      }
-
-      map.current.setLayoutProperty('sst-lyr', 'visibility', newState ? 'visible' : 'none');
-
       if (newState) {
-        // SAFEGUARD: Move layer safely
-        try {
-          map.current.moveLayer('sst-lyr'); // Move to top
-          map.current.triggerRepaint();
-        } catch (moveError) {
-          console.warn('⚠️ SST Layer move failed, continuing anyway:', moveError);
+        // TURNING ON: Resolve time and set up source
+        console.log('🌡️ Turning ON SST - resolving latest data...');
+        const { timeUsed, badge } = await resolveSstTime(map.current, 'latest');
+        setSstSource(map.current, timeUsed);
+        setSstBadge(badge);
+        setConnectionStatus('online');
+        console.log(`🌡️ SST ON - resolved to ${timeUsed}${badge ? ` ${badge}` : ''}`);
+      } else {
+        // TURNING OFF: Just hide the layer
+        if (map.current.getLayer('sst-lyr')) {
+          map.current.setLayoutProperty('sst-lyr', 'visibility', 'none');
+          console.log('🌡️ SST OFF');
         }
       }
 
-      console.log(`🌡️ NASA GIBS SST ${newState ? 'ON' : 'OFF'} - EAST COAST - BRIGHT red/orange/yellow temperature gradients`);
+      // Update connection status based on toggle state
+      if (newState) {
+        setConnectionStatus('online');
+      } else {
+        setConnectionStatus('offline');
+      }
 
     } catch (error) {
       console.error('🚨 SST Toggle failed:', error);
       // SAFEGUARD: Reset state on error
       setSstActive(false);
+      setConnectionStatus('degraded');
     }
   };
 

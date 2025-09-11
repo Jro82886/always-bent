@@ -17,9 +17,10 @@ export async function GET(
     const timeParam = url.searchParams.get("time") || process.env.ABFI_SST_DEFAULT_TIME || "today";
     const timeISO = resolveUtcDate(timeParam);
 
-    const base   = mustEnv("ABFI_SST_TILE_BASE");
-    const layer  = mustEnv("ABFI_SST_TILE_LAYER");
-    const matrix = mustEnv("ABFI_SST_TILE_MATRIX");
+    // HARDCODED NASA GIBS VALUES FOR RELIABILITY
+    const base   = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
+    const layer  = "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily";
+    const matrix = "GoogleMapsCompatible_Level9";
 
     // GIBS path: {base}/{layer}/default/{date}/{matrix}/{z}/{y}/{x}.png
     const gibsUrl = `${stripSlash(base)}/${layer}/default/${timeISO}/${matrix}/${z}/${y}/${x}.png`;

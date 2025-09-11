@@ -13,8 +13,7 @@ export function setSstSource(map: any, timeUsed: string) {
     source: "sst-src",
     paint: { "raster-opacity": 1 },
     minzoom: 0,
-    maxzoom: 9 // MODIS Level9 cap to avoid 404s
+    maxzoom: 9, // MODIS Level9 cap to avoid 404s
+    layout: { visibility: "none" } // Let toggle control visibility
   });
-
-  map.setLayoutProperty("sst-lyr", "visibility", "visible");
 }
