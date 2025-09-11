@@ -195,7 +195,7 @@ export default function LegendaryOceanPlatform() {
     try {
       if (newState) {
         // TURNING ON: just show the fixed WMTS layer
-        console.log('🌡️ Turning ON SST - showing WMTS layer');
+        console.log('🌡️ Turning ON SST - showing SST layer');
         setConnectionStatus('degraded');
         if (map.current.getLayer('sst-lyr')) {
           map.current.setLayoutProperty('sst-lyr', 'visibility', 'visible');
