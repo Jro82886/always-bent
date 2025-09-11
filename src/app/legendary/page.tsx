@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import LayerToggles from '@/components/LayerToggles';
+import { setVis } from '@/map/layerVis';
 
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
@@ -165,16 +165,27 @@ export default function LegendaryOceanPlatform() {
     console.log(`🌊 ESRI Ocean Basemap ${newState ? 'ON' : 'OFF'}`);
   };
 
+  // Initialize layer defaults
+  useEffect(() => {
+    if (!map.current) return;
+    // Default states: SST on, CHL off
+    setTimeout(() => {
+      if (map.current) {
+        setVis(map.current, 'sst-lyr', true);
+        setVis(map.current, 'chl-lyr', false);
+        setSstActive(true);
+        setChlActive(false);
+      }
+    }, 1000);
+  }, []);
+
   // SST toggle - Copernicus high-resolution temperature
   const toggleSST = () => {
     if (!map.current) return;
     const newState = !sstActive;
     setSstActive(newState);
-
-    if (map.current.getLayer('sst-lyr')) {
-      map.current.setLayoutProperty('sst-lyr', 'visibility', newState ? 'visible' : 'none');
-      console.log(`🌡️ Copernicus SST ${newState ? 'ON' : 'OFF'}`);
-    }
+    setVis(map.current, 'sst-lyr', newState);
+    console.log(`🌡️ Copernicus SST ${newState ? 'ON' : 'OFF'}`);
   };
 
   // CHL toggle - Copernicus chlorophyll
@@ -182,11 +193,8 @@ export default function LegendaryOceanPlatform() {
     if (!map.current) return;
     const newState = !chlActive;
     setChlActive(newState);
-
-    if (map.current.getLayer('chl-lyr')) {
-      map.current.setLayoutProperty('chl-lyr', 'visibility', newState ? 'visible' : 'none');
-      console.log(`🌿 Copernicus CHL ${newState ? 'ON' : 'OFF'}`);
-    }
+    setVis(map.current, 'chl-lyr', newState);
+    console.log(`🌿 Copernicus CHL ${newState ? 'ON' : 'OFF'}`);
   };
 
 
@@ -394,8 +402,7 @@ export default function LegendaryOceanPlatform() {
         </p>
       </div>
 
-      {/* Layer Toggles */}
-      <LayerToggles map={map.current} />
+      {/* Existing toggle buttons are already wired above */}
 
     </div>
   );
