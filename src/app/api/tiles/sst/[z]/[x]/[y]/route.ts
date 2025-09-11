@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveUtcDate } from "@/lib/sst/resolveUtcDate";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function GET(
 
     const url = new URL(req.url);
     const timeParam = url.searchParams.get("time") || process.env.ABFI_SST_DEFAULT_TIME || "today";
-    const timeISO = normalizeTimeParam(timeParam);
+    const timeISO = resolveUtcDate(timeParam);
 
     const base   = mustEnv("ABFI_SST_TILE_BASE");
     const layer  = mustEnv("ABFI_SST_TILE_LAYER");
@@ -55,22 +56,6 @@ export async function GET(
   }
 }
 
-function normalizeTimeParam(t: string) {
-  if (t === "today") return isoTodayUTC();
-  if (/^-\d+d$/.test(t)) {
-    const days = parseInt(t.slice(1));
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() - days);
-    return toISO(d);
-  }
-  return t; // assume YYYY-MM-DD
-}
-
-function isoTodayUTC() { return toISO(new Date()); }
-
-function toISO(d: Date) {
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
-}
 
 function mustEnv(k: string) {
   const v = process.env[k];
