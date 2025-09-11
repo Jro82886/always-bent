@@ -24,18 +24,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     return new Response(`${tplKey} not configured`, { status: 500 });
   }
 
-  // Build TIME for ODYSSEA daily product (expects ISO8601 midnight UTC)
+  // Build TIME for ODYSSEA daily product (expects ISO8601 with milliseconds)
   const qTime = req.nextUrl.searchParams.get('time');
   const buildDailyIso = (d: Date) => {
     const dd = new Date(d);
     dd.setUTCHours(0, 0, 0, 0);
-    return `${dd.toISOString().slice(0, 10)}T00:00:00Z`;
+    return dd.toISOString(); // Returns YYYY-MM-DDTHH:mm:ss.sssZ format
   };
   let timeParam: string;
   if (!qTime || qTime === 'latest') {
-    timeParam = buildDailyIso(new Date());
+    // Use yesterday for better data availability
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    timeParam = buildDailyIso(yesterday);
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(qTime)) {
-    timeParam = `${qTime}T00:00:00Z`;
+    timeParam = `${qTime}T00:00:00.000Z`;
   } else {
     timeParam = qTime; // assume caller provided a full ISO timestamp
   }
@@ -43,7 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     .replace('{z}', z)
     .replace('{x}', x)
     .replace('{y}', y)
-    .replace('{time}', timeParam);
+    .replace('{TIME}', timeParam); // Note: uppercase TIME for consistency
 
   console.log(`🚨 SST DEBUG - Time param: ${timeParam}`);
   console.log(`🚨 SST DEBUG - Final URL: ${target}`);

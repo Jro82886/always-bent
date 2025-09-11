@@ -1,5 +1,9 @@
 export function buildWMTS(template: string, isoTime: string): string {
-  return template.replace('{time}', encodeURIComponent(isoTime)).trim();
+  // Replace both {time} and {TIME} placeholders
+  return template
+    .replace('{time}', encodeURIComponent(isoTime))
+    .replace('{TIME}', encodeURIComponent(isoTime))
+    .trim();
 }
 
 
