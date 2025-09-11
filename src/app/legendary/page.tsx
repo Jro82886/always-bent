@@ -11,10 +11,12 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  // Ocean Basemap only (Copernicus layers to be added)
+  // Ocean Basemap + Copernicus SST
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
+  const [sstActive, setSstActive] = useState(false); // Copernicus SST
   const [selectedDate, setSelectedDate] = useState('today');
   const [oceanOpacity, setOceanOpacity] = useState(60);
+  const [sstOpacity, setSstOpacity] = useState(90);
 
   // Initialize map
   useEffect(() => {
@@ -33,11 +35,12 @@ export default function LegendaryOceanPlatform() {
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
       
-      // Debug: List layers and confirm ocean layer presence
+      // Debug: List layers and confirm presence
       setTimeout(() => {
         const layers = mapInstance.getStyle().layers;
         console.log('🗺️ Available layers:', layers.map(l => l.id));
         console.log('🌊 Ocean layer exists:', !!mapInstance.getLayer('ocean-layer'));
+        console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-lyr'));
       }, 2000);
 
       // ESRI Ocean Basemap (bathymetry/depth data)
@@ -61,9 +64,31 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // Copernicus layers to be added here
+      // Copernicus SST - via proxy
+      if (!mapInstance.getSource('sst-src')) {
+        mapInstance.addSource('sst-src', {
+          type: 'raster',
+          tiles: ['/api/tiles/sst/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          minzoom: 0,
+          maxzoom: 24
+        });
+      }
+
+      if (!mapInstance.getLayer('sst-lyr')) {
+        mapInstance.addLayer({
+          id: 'sst-lyr',
+          type: 'raster',
+          source: 'sst-src',
+          layout: { visibility: 'none' },
+          paint: { 'raster-opacity': 1 },
+          minzoom: 0,
+          maxzoom: 24
+        });
+      }
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
+      console.log('🌡️ Copernicus SST layer added - High resolution temperature data');
 
       // Debug: Check if Copernicus is configured
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
@@ -112,7 +137,17 @@ export default function LegendaryOceanPlatform() {
     console.log(`🌊 ESRI Ocean Basemap ${newState ? 'ON' : 'OFF'}`);
   };
 
-  // Copernicus layer toggles to be added here
+  // SST toggle - Copernicus high-resolution temperature
+  const toggleSST = () => {
+    if (!map.current) return;
+    const newState = !sstActive;
+    setSstActive(newState);
+
+    if (map.current.getLayer('sst-lyr')) {
+      map.current.setLayoutProperty('sst-lyr', 'visibility', newState ? 'visible' : 'none');
+      console.log(`🌡️ Copernicus SST ${newState ? 'ON' : 'OFF'}`);
+    }
+  };
 
 
   return (
@@ -197,15 +232,45 @@ export default function LegendaryOceanPlatform() {
             )}
           </div>
 
-          {/* Copernicus Layer Toggles - To be added */}
-          <div className="bg-gray-500/20 border border-gray-500/40 rounded-lg p-4">
-            <h2 className="text-lg font-bold mb-2">🛰️ Copernicus Marine</h2>
-            <p className="text-sm opacity-80 mb-3">High-resolution ocean data layers</p>
-            <div className="text-center py-4 text-white/60">
-              SST • Chlorophyll • Altimetry • Thermocline
-              <br />
-              <span className="text-xs">Coming soon...</span>
-            </div>
+          {/* SST Toggle (Copernicus) */}
+          <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4">
+            <h2 className="text-lg font-bold mb-2">🌡️ Sea Surface Temperature</h2>
+            <p className="text-sm opacity-80 mb-3">Copernicus Marine - High Resolution SST</p>
+
+            <button
+              onClick={toggleSST}
+              className={`w-full px-4 py-3 rounded-lg font-semibold ${
+                sstActive ? 'bg-red-500 text-white' : 'bg-white/20 text-white/80'
+              } transition-all`}
+            >
+              {sstActive ? '🌡️ SST ACTIVE' : '🌡️ SHOW SST'}
+            </button>
+
+            {sstActive && (
+              <div className="mt-3 px-2">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span>Opacity</span>
+                  <span>{sstOpacity}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="100"
+                  value={sstOpacity}
+                  onChange={(e) => {
+                    const newOpacity = parseInt(e.target.value);
+                    setSstOpacity(newOpacity);
+                    if (map.current?.getLayer('sst-lyr')) {
+                      map.current.setPaintProperty('sst-lyr', 'raster-opacity', newOpacity / 100);
+                    }
+                  }}
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
         
