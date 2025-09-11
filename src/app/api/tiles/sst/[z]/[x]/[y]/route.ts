@@ -12,17 +12,31 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const tplKey = isSst ? 'CMEMS_SST_WMTS_TEMPLATE' : 'CMEMS_CHL_WMTS_TEMPLATE';
   const base = process.env[tplKey];
 
-  if (!base) return new Response(`${tplKey} not configured`, { status: 500 });
+  // DEBUG LOGGING
+  console.log(`🚨 SST DEBUG - Tile: ${z}/${x}/${y}`);
+  console.log(`🚨 SST DEBUG - Template Key: ${tplKey}`);
+  console.log(`🚨 SST DEBUG - Template: ${base ? 'SET' : 'MISSING'}`);
+  console.log(`🚨 SST DEBUG - User: ${process.env.COPERNICUS_USER ? 'SET' : 'MISSING'}`);
+  console.log(`🚨 SST DEBUG - Pass: ${process.env.COPERNICUS_PASS ? 'SET' : 'MISSING'}`);
+
+  if (!base) {
+    console.log(`🚨 SST ERROR - ${tplKey} not configured`);
+    return new Response(`${tplKey} not configured`, { status: 500 });
+  }
 
   // Handle time parameter - use default for PT1H as Jeff specified
   const time = req.nextUrl.searchParams.get('time') || 'default';
   const target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{time}', time);
+
+  console.log(`🚨 SST DEBUG - Time param: ${time}`);
+  console.log(`🚨 SST DEBUG - Final URL: ${target}`);
 
   const u = process.env.COPERNICUS_USER || '';
   const p = process.env.COPERNICUS_PASS || '';
   const auth = 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64');
 
   try {
+    console.log(`🚨 SST DEBUG - Making request to Copernicus...`);
     const upstream = await fetch(target, {
       headers: {
         Authorization: auth,
@@ -33,13 +47,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       cache: 'no-store'
     });
 
+    console.log(`🚨 SST DEBUG - Response status: ${upstream.status}`);
+    
     if (!upstream.ok) {
       const text = await upstream.text();
+      console.log(`🚨 SST ERROR - Upstream failed: ${upstream.status}`);
+      console.log(`🚨 SST ERROR - Response: ${text.substring(0, 200)}...`);
       return new Response(text || `Upstream ${upstream.status}`, {
         status: upstream.status,
         headers: { 'x-upstream-url': target }
       });
     }
+
+    console.log(`🚨 SST SUCCESS - Tile loaded successfully`);
 
     return new Response(upstream.body, {
       headers: {
@@ -49,6 +69,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       }
     });
   } catch (e: any) {
+    console.log(`🚨 SST ERROR - Fetch failed: ${e?.message || e}`);
     return new Response(`Fetch failed: ${e?.message || e}`, {
       status: 502,
       headers: { 'x-upstream-url': target }
