@@ -58,6 +58,8 @@ COPERNICUS_USER=your_copernicus_username
 COPERNICUS_PASS=your_copernicus_password
 CMEMS_SST_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001/cmems_obs-sst_glo_sst_l4_nrt_0.05deg_PT1H?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cmems_obs-sst_glo_sst_l4_nrt_0.05deg_PT1H&STYLE=default&FORMAT=image/png&TILEMATRIXSET=GoogleMapsCompatible&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}
 NEXT_PUBLIC_SST_TILES_URL=/api/tiles/sst/{z}/{x}/{y}.png
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/cmems_obs-oc_glo_bgc-plankton_nrt_l4-gapfree-multi-1km_P1D?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cmems_obs-oc_glo_bgc-plankton_nrt_l4-gapfree-multi-1km_P1D&STYLE=default&FORMAT=image/png&TILEMATRIXSET=GoogleMapsCompatible&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}
+NEXT_PUBLIC_CHL_TILES_URL=/api/tiles/chl/{z}/{x}/{y}.png
 
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xocxmgovdfrfdoicpovf.supabase.co/
