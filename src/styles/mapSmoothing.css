@@ -1,0 +1,20 @@
+/* Coastal smoothing for SST layer */
+.mapboxgl-canvas {
+  image-rendering: auto !important;
+  /* Subtle smoothing without losing detail */
+  filter: contrast(1.01) !important;
+}
+
+/* When SST is active, apply edge smoothing */
+.sst-active .mapboxgl-canvas {
+  /* Very subtle blur to smooth harsh pixel edges */
+  filter: contrast(1.02) saturate(1.03) !important;
+  /* Ensure smooth rendering */
+  image-rendering: optimizeQuality !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth transitions when toggling layers */
+.mapboxgl-canvas {
+  transition: filter 0.3s ease-in-out;
+}

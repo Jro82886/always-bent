@@ -6,7 +6,9 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
 import SSTLegend from '@/components/SSTLegend';
+import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
 import { EAST_COAST_BOUNDS } from '@/lib/imagery/bounds';
+import '@/styles/mapSmoothing.css';
 
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
@@ -183,7 +185,7 @@ export default function LegendaryOceanPlatform() {
 
 
   return (
-    <div className="w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+    <div className={`w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 ${sstActive ? 'sst-active' : ''}`}>
       {/* Map Container with enhanced rendering */}
       <div 
         ref={mapContainer} 
@@ -388,6 +390,9 @@ export default function LegendaryOceanPlatform() {
 
       {/* SST Layer component */}
       <SSTLayer map={map.current} on={sstActive} />
+      
+      {/* Coastline Smoother - active when SST is shown */}
+      <CoastlineSmoother map={map.current} enabled={sstActive} />
       
       {/* SST Temperature Legend */}
       <SSTLegend visible={sstActive} />

@@ -32,7 +32,13 @@ export default function SSTLayer({ map, on }: Props) {
       type: 'raster',
       source: srcId,
       layout: { visibility: 'visible' },
-      paint: { 'raster-opacity': 1, 'raster-resampling': 'linear' },
+      paint: { 
+        'raster-opacity': 1, 
+        'raster-resampling': 'linear',
+        'raster-fade-duration': 300,
+        'raster-contrast': -0.02,  // Subtle contrast reduction to smooth edges
+        'raster-saturation': 0.02   // Slight saturation boost for clarity
+      },
     } as any);
 
     const top = map.getStyle().layers?.at(-1)?.id;
