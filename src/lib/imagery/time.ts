@@ -25,7 +25,7 @@ export function dailyAtNoonUTCISO(offsetDays = 1): string {
 }
 
 // ODYSSEA daily product: use midnight (00:00Z) per Capabilities for GetTile
-export function dailyAtMidnightUTCISO(offsetDays = 1): string {
+export function dailyAtMidnightUTCISO(offsetDays = 2): string {
   const d = new Date();
   d.setUTCHours(0, 0, 0, 0);
   d.setUTCDate(d.getUTCDate() - offsetDays);

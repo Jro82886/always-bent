@@ -33,10 +33,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   };
   let timeParam: string;
   if (!qTime || qTime === 'latest') {
-    // Use yesterday for better data availability
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    timeParam = buildDailyIso(yesterday);
+    // Use 2 days ago for better NRT data availability
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    timeParam = buildDailyIso(twoDaysAgo);
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(qTime)) {
     timeParam = `${qTime}T00:00:00.000Z`;
   } else {
