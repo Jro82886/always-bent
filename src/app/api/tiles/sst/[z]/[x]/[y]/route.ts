@@ -52,7 +52,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     if (!upstream.ok) {
       const text = await upstream.text();
       console.log(`🚨 SST ERROR - Upstream failed: ${upstream.status}`);
-      console.log(`🚨 SST ERROR - Response: ${text.substring(0, 200)}...`);
+      console.log(`🚨 SST ERROR - Full Response: ${text}`);
       return new Response(text || `Upstream ${upstream.status}`, {
         status: upstream.status,
         headers: { 'x-upstream-url': target }

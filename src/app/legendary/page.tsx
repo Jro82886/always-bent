@@ -119,8 +119,8 @@ export default function LegendaryOceanPlatform() {
       console.log('🌿 Copernicus Chlorophyll layer added - High resolution ocean color data');
 
       // Debug: Check if Copernicus is configured
-      console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
-      console.log('🔍 Copernicus config check - Pass:', !!process.env.COPERNICUS_PASS);
+      // Copernicus credentials are backend-only, frontend doesn't need them
+      console.log('🔍 SST tiles configured - using backend API proxy');
       (window as any).map = mapInstance;
     });
 
