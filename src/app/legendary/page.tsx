@@ -43,12 +43,12 @@ export default function LegendaryOceanPlatform() {
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
-      // NASA GIBS WMTS DIRECT - No proxy, pure WMTS tiles
+      // SIMPLIFIED APPROACH: Use Copernicus Marine SST instead - more reliable
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`],
+        tiles: [`https://wmts.marine.copernicus.eu/teroWmts/METEOFRANCE__GLOBAL_ANALYSIS_FORECAST_PHY_001_024__SST/ows?service=WMTS&request=GetTile&version=1.0.0&tilematrixset=EPSG:3857&tilematrix=EPSG:3857:{z}&tilecol={x}&tilerow={y}&format=image/png&layer=METEOFRANCE__GLOBAL_ANALYSIS_FORECAST_PHY_001_024__SST&style= SST_surface&time=${selectedDate}T12:00:00.000Z`],
         tileSize: 256,
-        maxzoom: 8,
+        maxzoom: 10,
         minzoom: 0
       });
 
@@ -94,10 +94,10 @@ export default function LegendaryOceanPlatform() {
   useEffect(() => {
     if (!map.current) return;
     
-    // Update ONLY SST tiles (NASA GIBS WMTS direct)
+    // Update ONLY SST tiles (Copernicus Marine SST)
     const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
     if (sstSource && (sstSource as any).setTiles) {
-      (sstSource as any).setTiles([`https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily/default/${selectedDate}/250m/{z}/{y}/{x}.png`]);
+      (sstSource as any).setTiles([`https://wmts.marine.copernicus.eu/teroWmts/METEOFRANCE__GLOBAL_ANALYSIS_FORECAST_PHY_001_024__SST/ows?service=WMTS&request=GetTile&version=1.0.0&tilematrixset=EPSG:3857&tilematrix=EPSG:3857:{z}&tilecol={x}&tilerow={y}&format=image/png&layer=METEOFRANCE__GLOBAL_ANALYSIS_FORECAST_PHY_001_024__SST&style= SST_surface&time=${selectedDate}T12:00:00.000Z`]);
     }
     
     // Force map repaint
@@ -150,7 +150,7 @@ export default function LegendaryOceanPlatform() {
         <div className="space-y-4">
           <div className="bg-blue-500/20 border border-blue-500/40 rounded-lg p-4">
             <h2 className="text-lg font-bold mb-2">🌡️ Sea Surface Temperature</h2>
-            <p className="text-sm opacity-80 mb-3">NASA MODIS Aqua L3 - Foundation Dataset</p>
+            <p className="text-sm opacity-80 mb-3">Copernicus Marine - Global Analysis SST</p>
             
             <button
               onClick={toggleSST}
