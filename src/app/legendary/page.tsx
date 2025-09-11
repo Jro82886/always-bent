@@ -11,9 +11,9 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  // ONLY SST - Foundation dataset
-  const [sstActive, setSstActive] = useState(true); // Start with SST visible
-  const [selectedDate, setSelectedDate] = useState('2025-09-05'); // Known good date
+  // Ocean Basemap - Start OFF for better UX
+  const [sstActive, setSstActive] = useState(false); // Start with ocean layer OFF
+  const [selectedDate, setSelectedDate] = useState('2025-09-10'); // Today's date
   const [sstOpacity, setSstOpacity] = useState(90);
 
   // Initialize map
@@ -57,7 +57,7 @@ export default function LegendaryOceanPlatform() {
         id: 'sst-layer',
         type: 'raster',
         source: 'sst',
-        layout: { visibility: 'visible' },  // START VISIBLE
+        layout: { visibility: 'none' },  // START HIDDEN (sstActive = false)
         paint: { 
           'raster-opacity': 0.9  // High visibility
         }
