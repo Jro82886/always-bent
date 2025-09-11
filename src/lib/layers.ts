@@ -46,22 +46,22 @@ const CLIENT_TILE_SIZE = (() => {
 export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "sst",
-    name: "Sea Surface Temp (MUR)",
-    url: `/api/sst/{z}/{x}/{y}.png?time={DATE}`,
+    name: "Sea Surface Temp (Copernicus)",
+    url: `/api/tiles/sst/{z}/{x}/{y}.png`,
     opacity: 0.9,
     minzoom: 0,
-    maxzoom: 22, // allow display beyond WMTS matrix via upsampling
+    maxzoom: 24,
     tileSize: 256,
     resampling: 'linear',
   },
   {
     id: "chl",
-    name: "Chlorophyll (daily)",
-    url: `${process.env.NEXT_PUBLIC_TILES_BASE ?? "/api/tiles"}/chl_daily/{z}/{x}/{y}.png?time={DATE}&style=default`,
+    name: "Chlorophyll (Copernicus)",
+    url: `/api/tiles/chl/{z}/{x}/{y}.png`,
     opacity: 0.85,
     minzoom: 0,
-    maxzoom: 22,
-    tileSize: CLIENT_TILE_SIZE,
+    maxzoom: 24,
+    tileSize: 256,
   },
   {
     id: "abfi",

@@ -2,7 +2,7 @@
 import dynamic from 'next/dynamic';
 import Map from '@/components/Map';
 import { useUI } from '@/state/ui';
-const SSTRasterInner = dynamic(() => import('@/components/SSTRasterInner'), { ssr: false });
+// SSTRasterInner removed - using main legendary page Copernicus integration
 const PolysLayer = dynamic(() => import('@/components/polygons/PolysLayer'), { ssr: false });
 
 export default function AnalysisPage(){
@@ -27,7 +27,7 @@ export default function AnalysisPage(){
         <div className="px-2 py-1 bg-neutral-900/60 rounded border border-neutral-700/60">ISO: {iso || 'resolving…'}</div>
       </div>
       <Map />
-      {sstOn && iso ? <SSTRasterInner iso={iso} /> : null}
+      {/* SST handled by main legendary page Copernicus integration */}
       {polygonsOn && iso ? <PolysLayer iso={iso} /> : null}
       {polygonsOn ? (
         <div className="absolute left-2 bottom-2 z-10 rounded bg-black/60 border border-white/10 text-xs text-white px-2 py-1">

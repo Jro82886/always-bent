@@ -11,28 +11,23 @@ export type LayerEntry = {
 const TILES_BASE = process.env.NEXT_PUBLIC_TILES_BASE || "";
 
 export const LAYERS: LayerEntry[] = [
-  // Copernicus layers removed for MUR-only MVP
   {
-    id: "chlorophyll",
-    label: "Chlorophyll",
-    tiles: [
-      `${TILES_BASE}/copernicus/chl/{z}/{x}/{y}.png`,
-    ],
+    id: "sst",
+    label: "SST (Copernicus)",
+    tiles: ["/api/tiles/sst/{z}/{x}/{y}.png"],
     opacity: 0.9,
-    attribution: "© Copernicus",
+    attribution: "© Copernicus Marine Service",
     minzoom: 0,
-    maxzoom: 10,
+    maxzoom: 24,
   },
   {
-    id: "waves_3h",
-    label: "Waves (3-hour)",
-    tiles: [
-      `${TILES_BASE}/copernicus/waves_3h/{z}/{x}/{y}.png`,
-    ],
-    opacity: 0.7,
-    attribution: "© Copernicus",
+    id: "chlorophyll",
+    label: "Chlorophyll (Copernicus)",
+    tiles: ["/api/tiles/chl/{z}/{x}/{y}.png"],
+    opacity: 0.85,
+    attribution: "© Copernicus Marine Service",
     minzoom: 0,
-    maxzoom: 10,
+    maxzoom: 24,
   },
 ];
 
