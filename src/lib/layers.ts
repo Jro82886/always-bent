@@ -72,7 +72,7 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
     maxzoom: 10,
     tileSize: 256,
   },
-  // sst_raw removed in favor of single MUR SST
+  // Legacy SST layers removed - now using Copernicus
 ];
 
 // Compatibility exports for components that import { LAYERS }

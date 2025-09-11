@@ -8,7 +8,7 @@ WORKDIR /app
 COPY python/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-COPY python/app /app/app
+# COPY python/app /app/app  # Removed - now using Copernicus Marine Data directly
 
 # NASA MODIS SST is the core dataset - no environment variables needed
 

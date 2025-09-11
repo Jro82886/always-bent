@@ -11,7 +11,7 @@ export default function AnalysisPage(){
     <div className="relative h-full w-full">
       {/* Minimal header */}
       <div className="absolute left-2 top-2 z-10 flex gap-2">
-        <button onClick={() => setSstOn((v:any)=>!v)} className="px-3 py-1 bg-neutral-800 rounded border border-neutral-700">SST (MUR) {sstOn? 'ON':'OFF'}</button>
+        <button onClick={() => setSstOn((v:any)=>!v)} className="px-3 py-1 bg-neutral-800 rounded border border-neutral-700">SST (Copernicus) {sstOn? 'ON':'OFF'}</button>
         <button disabled className="px-3 py-1 bg-neutral-800/50 text-neutral-400 rounded border border-neutral-700">CHL</button>
         <label className="flex items-center gap-1 px-2 py-1 bg-neutral-900/60 rounded border border-neutral-700/60">
           <input type="checkbox" checked={!!polygonsOn} onChange={(e)=> setPolygonsOn(!!e.target.checked)} />

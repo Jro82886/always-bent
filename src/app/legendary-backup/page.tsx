@@ -54,7 +54,7 @@ export default function LegendaryOceanPlatform() {
       // SST layer with cinematic effects
       mapInstance.addSource('sst', {
         type: 'raster',
-        tiles: [`/api/sst/{z}/{x}/{y}?time=${currentDate}`],
+        tiles: [`/api/tiles/sst/{z}/{x}/{y}.png`],
         tileSize: 256
       });
 
@@ -304,7 +304,7 @@ export default function LegendaryOceanPlatform() {
                 </div>
                 <div>
                   <h3 className="text-white font-black text-xl">Sea Surface Temperature</h3>
-                  <p className="text-blue-200/90 text-sm font-medium">NOAA CoastWatch MUR • Live Satellite Feed</p>
+                  <p className="text-blue-200/90 text-sm font-medium">Copernicus Marine SST • Live Satellite Feed</p>
                 </div>
               </div>
               <button
@@ -505,7 +505,7 @@ export default function LegendaryOceanPlatform() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
-                <span className="text-white/90 text-sm font-medium">NOAA Feed</span>
+                <span className="text-white/90 text-sm font-medium">Copernicus Feed</span>
               </div>
               <span className="text-xs font-bold text-green-400">LIVE</span>
             </div>

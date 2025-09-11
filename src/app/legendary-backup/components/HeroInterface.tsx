@@ -81,7 +81,7 @@ export default function HeroInterface({
               </div>
               <div>
                 <h3 className="text-white font-bold text-lg">Sea Surface Temperature</h3>
-                <p className="text-blue-200/80 text-xs">NOAA CoastWatch MUR • Real-time</p>
+                <p className="text-blue-200/80 text-xs">Copernicus Marine SST • Real-time</p>
               </div>
             </div>
             <button

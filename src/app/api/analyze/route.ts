@@ -55,16 +55,17 @@ export async function POST(req: NextRequest) {
         const [lng, lat] = p;
         const s = synthScores(lng, lat, i + 1);
         return {
-        type: "Feature" as const,
-        geometry: { type: "Point" as const, coordinates: p },
-        properties: {
-          id: `hotspot-${i + 1}`,
-          title: i === 0 ? "Hot" : i === 1 ? "Warm" : "Interesting",
-          confidence: s.confidence,
-          rationale: "SST/CHL synthetic scoring (MVP)",
-          factors: s.factors,
-        },
-      }}),
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: p },
+          properties: {
+            id: `hotspot-${i + 1}`,
+            title: i === 0 ? "Hot" : i === 1 ? "Warm" : "Interesting",
+            confidence: s.confidence,
+            rationale: "SST/CHL synthetic scoring (MVP)",
+            factors: s.factors,
+          },
+        };
+      }),
     };
 
     // Build a basic report object (placeholder values derived from bbox + hotspots)

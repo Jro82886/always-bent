@@ -17,7 +17,7 @@ export default function SnipAnalysisCard(){
     setSummary({ coords, date: dateISO });
     (async ()=>{
       try{
-        const res = await fetch('/api/analyze/sst', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ bbox, date: dateISO }) });
+        const res = await fetch('/api/analyze', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ bbox, date: dateISO }) });
         if(res.ok){ const data = await res.json(); setSummary(prev => prev ? { ...prev, ...data } : prev); }
       }catch{}
     })();

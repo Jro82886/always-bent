@@ -177,7 +177,7 @@ export default function AnalysisPage() {
     else map.once('style.load', addLayers);
   }, [map]);
 
-  // SST temporarily disabled to avoid network calls while endpoints are being sorted
+  // SST now enabled via Copernicus Marine Data
 
   async function runAnalyze() {
     if (!map || !bbox) return;
