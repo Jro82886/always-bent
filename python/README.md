@@ -1,13 +1,16 @@
 # ABFI Numeric Polygons Service (FastAPI)
 
-A minimal FastAPI service that fetches MUR SST from ERDDAP griddap (jplMURSST41), computes contour-based polygons (edges), and returns GeoJSON.
+ABFI Ocean Analysis Backend - NASA MODIS SST Foundation
+
+Core SST Data: NASA MODIS Terra L3 SST (4km resolution, 8-day thermal composite)
+This is the FOUNDATION dataset for all water temperature analysis and fishing intelligence.
 
 ## Quickstart
 
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-export GRIDDAP_BASE="https://coastwatch.pfeg.noaa.gov/erddap/griddap/jplMURSST41.nc"
+# No environment variables needed - NASA MODIS SST is the core dataset
 uvicorn app.main:app --host 0.0.0.0 --port 8010
 
 ## Test

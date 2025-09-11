@@ -18,6 +18,9 @@ export default function LegendaryOceanPlatform() {
   const [noaaActive, setNoaaActive] = useState(false); // NOAA VIIRS 4km Chlorophyll
   const [selectedDate, setSelectedDate] = useState('2025-09-09'); // Today
   
+  // SST fallback system
+  const [sstBadge, setSstBadge] = useState<string | undefined>(undefined);
+  
   // Opacity states for sliders
   const [sstOpacity, setSstOpacity] = useState(90);
   const [chlOpacity, setChlOpacity] = useState(85);
@@ -52,12 +55,12 @@ export default function LegendaryOceanPlatform() {
         console.log('🛰️ NOAA layer exists:', !!mapInstance.getLayer('noaa-viirs-layer'));
       }, 2000);
 
-      // REAL NOAA SST via proper proxy system
+      // NASA GIBS MODIS SST - Proper proxy with time support
       mapInstance.addSource('sst', {
         type: 'raster',
         tiles: [`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`],
-        tileSize: 256,  // Standard tile size for NOAA proxy
-        maxzoom: 18,    // Reasonable zoom for SST data
+        tileSize: 256,
+        maxzoom: 9,  // MODIS 4km is limited to Level 9
         minzoom: 0
       });
 
@@ -194,7 +197,7 @@ export default function LegendaryOceanPlatform() {
       (slaSource as any).setTiles([`/api/copernicus-sla/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
     }
     
-    // Update SST tiles
+    // Update SST tiles (NASA GIBS proxy)
     const sstSource = map.current.getSource('sst') as mapboxgl.RasterTileSource;
     if (sstSource && (sstSource as any).setTiles) {
       (sstSource as any).setTiles([`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`]);
@@ -217,21 +220,48 @@ export default function LegendaryOceanPlatform() {
     console.log(`📅 Date changed to: ${selectedDate} - ALL layers updated`);
   }, [selectedDate]);
 
-  // SST toggle with forced visibility
-  const toggleSST = () => {
+  // SST toggle with intelligent fallback system
+  const toggleSST = async () => {
     if (!map.current) return;
     const newState = !sstActive;
     setSstActive(newState);
     
-    if (map.current.getLayer('sst-layer')) {
-      map.current.setLayoutProperty('sst-layer', 'visibility', newState ? 'visible' : 'none');
-      if (newState) {
-        // Force layer properties to ensure visibility
-        map.current.setPaintProperty('sst-layer', 'raster-opacity', 0.8);
-        map.current.moveLayer('sst-layer'); // Move to top
-        map.current.triggerRepaint();
+    if (newState) {
+      // Import the fallback system
+      const { resolveSstTime } = await import('@/lib/sst/resolveSstDate');
+      const { setSstSource } = await import('@/lib/sst/applySstLayer');
+      
+      // Convert selectedDate to fallback format
+      const requestedTime = selectedDate === '2025-09-09' ? 'latest' : selectedDate;
+      
+      try {
+        const { timeUsed, badge } = await resolveSstTime(map.current, requestedTime);
+        setSstSource(map.current, timeUsed);
+        setSstBadge(badge);
+        console.log(`🌡️ SST ON - Using ${timeUsed}${badge ? ' ' + badge : ''}`);
+      } catch (error) {
+        console.error('SST fallback failed:', error);
+        // Fallback to basic implementation
+        const tiles = [`/api/tiles/sst/{z}/{x}/{y}.png?time=${selectedDate}`];
+        if (map.current.getSource('sst')) {
+          try { map.current.removeLayer('sst-layer'); } catch {}
+          try { map.current.removeSource('sst'); } catch {}
+        }
+        map.current.addSource('sst', { type: 'raster', tiles, tileSize: 256 });
+        map.current.addLayer({
+          id: 'sst-layer',
+          type: 'raster', 
+          source: 'sst',
+          paint: { 'raster-opacity': 0.9 }
+        });
       }
-      console.log(`🌡️ SST ${newState ? 'ON' : 'OFF'} - Forced visible`);
+    } else {
+      // Turn off SST
+      if (map.current.getLayer('sst-layer')) {
+        map.current.setLayoutProperty('sst-layer', 'visibility', 'none');
+      }
+      setSstBadge(undefined);
+      console.log('🌡️ SST OFF');
     }
   };
 
@@ -532,6 +562,27 @@ export default function LegendaryOceanPlatform() {
           ⚡ Powered by Claude & Cursor
         </p>
       </div>
+      
+      {/* SST Legend with fallback badge */}
+      {sstActive && sstBadge && (
+        <div
+          style={{
+            position: "absolute",
+            right: 12,
+            bottom: 12,
+            padding: "8px 10px",
+            background: "rgba(0,0,0,0.55)",
+            color: "#fff",
+            borderRadius: 8,
+            backdropFilter: "blur(6px)",
+            fontSize: 12,
+            lineHeight: 1.2
+          }}
+        >
+          <div style={{ fontWeight: 600 }}>Sea Surface Temp</div>
+          <div style={{ opacity: 0.85 }}>{sstBadge}</div>
+        </div>
+      )}
     </div>
   );
 }

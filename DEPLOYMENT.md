@@ -50,12 +50,17 @@ Test again
 
 ### Production (`alwaysbent.com`):
 ```
+# Mapbox
 NEXT_PUBLIC_MAPBOX_TOKEN=pk.eyJ1IjoiamVmZmpyODI4ODYiLCJhIjoiY21mOGw5bjJiMTFrZjJqcG40OGdueDg3ciJ9.bHHUsesnpWxWy271quBUYQ
-ERDDAP_WMS_BASE=https://coastwatch.pfeg.noaa.gov/erddap/wms/jplMURSST41/request
-ERDDAP_WMS_LAYER=jplMURSST41:analysed_sst
-ERDDAP_WMS_STYLES=boxfill/rainbow
-ERDDAP_WMS_COLORSCALERANGE=10,30
-ERDDAP_WMS_NUMCOLORBANDS=254
+
+# === NASA GIBS MODIS SST - CORE FOUNDATION DATASET ===
+# This is the FOUNDATION of all water temperature analysis
+ABFI_SST_TILE_BASE=https://gibs.earthdata.nasa.gov/wmts/epsg3857/best
+ABFI_SST_TILE_LAYER=MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily
+ABFI_SST_TILE_MATRIX=GoogleMapsCompatible_Level9
+ABFI_SST_DEFAULT_TIME=today
+
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xocxmgovdfrfdoicpovf.supabase.co/
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvY3htZ292ZGZyZmRvaWNwb3ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzODQxNjAsImV4cCI6MjA3MDk2MDE2MH0.Pe0rt8xqje6c2iH87_o6KAEV4Hdc5gFCid8gHmBh_y0
 ```

@@ -34,17 +34,6 @@ export const LAYERS: LayerEntry[] = [
     minzoom: 0,
     maxzoom: 10,
   },
-  {
-    id: "noaa_sst_raw",
-    label: "NOAA SST (Raw)",
-    tiles: [
-      `${TILES_BASE}/noaa/sst_raw/{z}/{x}/{y}.png`,
-    ],
-    opacity: 0.85,
-    attribution: "© NOAA",
-    minzoom: 0,
-    maxzoom: 10,
-  },
 ];
 
 

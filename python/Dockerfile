@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY python/app /app/app
 
-ENV GRIDDAP_BASE=https://coastwatch.pfeg.noaa.gov/erddap/griddap/jplMURSST41
+# NASA MODIS SST is the core dataset - no environment variables needed
 
 EXPOSE 8010
 
