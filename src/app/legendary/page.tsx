@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { SstLegend } from '@/components/SstLegend';
 
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
@@ -12,14 +11,10 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
-  // Ocean Basemap + SST layers with auto-fallback
+  // Ocean Basemap only (Copernicus layers to be added)
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
-  const [sstActive, setSstActive] = useState(false); // NASA SST (temperature)
   const [selectedDate, setSelectedDate] = useState('today');
   const [oceanOpacity, setOceanOpacity] = useState(60);
-  const [sstOpacity, setSstOpacity] = useState(85);
-  const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'degraded'>('offline');
-  const [sstBadge, setSstBadge] = useState<string | undefined>(undefined);
 
   // Initialize map
   useEffect(() => {
@@ -38,12 +33,11 @@ export default function LegendaryOceanPlatform() {
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
       
-      // Debug: List layers and confirm SST source/layer presence
+      // Debug: List layers and confirm ocean layer presence
       setTimeout(() => {
         const layers = mapInstance.getStyle().layers;
         console.log('🗺️ Available layers:', layers.map(l => l.id));
-        console.log('🧩 SST source exists:', !!mapInstance.getSource('sst-src'));
-        console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-lyr'));
+        console.log('🌊 Ocean layer exists:', !!mapInstance.getLayer('ocean-layer'));
       }, 2000);
 
       // ESRI Ocean Basemap (bathymetry/depth data)
@@ -67,73 +61,9 @@ export default function LegendaryOceanPlatform() {
         }
       });
 
-      // NASA GIBS SST - via proxy with time=today (proxy handles fallback)
-      mapInstance.addSource('sst-src', {
-        type: 'raster',
-        tiles: [
-          `/api/tiles/sst/{z}/{x}/{y}.png?time=today`
-        ],
-        tileSize: 256,
-        maxzoom: 9,
-        minzoom: 0
-      });
-
-      // SST Layer (temperature)
-      mapInstance.addLayer({
-        id: 'sst-lyr',
-        type: 'raster',
-        source: 'sst-src',
-        layout: { visibility: 'none' },
-        paint: { 'raster-opacity': 1 },
-        minzoom: 0,
-        maxzoom: 9
-      });
-      // ensure SST sits on top of other layers
-      try { mapInstance.moveLayer('sst-lyr'); } catch {}
+      // Copernicus layers to be added here
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
-      console.log('🌡️ NASA GIBS SST layer added - EAST COAST OPTIMIZED - BRIGHT red/orange/yellow temperature gradients');
-
-      // 🔒 SAFEGUARD: Add error handlers for tile loading failures
-      mapInstance.on('error', (e: any) => {
-        console.error('🚨 Map error:', e.error);
-        if (e.error?.message?.includes('sst')) {
-          console.warn('⚠️ SST tile loading failed - may be temporary NASA GIBS issue');
-        }
-      });
-
-      mapInstance.on('sourcedataabort', (e: any) => {
-        if (e.sourceId === 'sst') {
-          console.warn('⚠️ SST tile request aborted - network or service issue');
-        }
-      });
-
-      // 🔒 SAFEGUARD: Monitor tile loading for SST with connection status
-      let sstTileErrors = 0;
-      const maxErrors = 5; // Allow up to 5 errors before marking as degraded
-
-      mapInstance.on('sourcedata', (e: any) => {
-        if (e.sourceId === 'sst-src' && e.isSourceLoaded) {
-          sstTileErrors = 0; // Reset error counter on successful load
-          const vis = mapInstance.getLayoutProperty('sst-lyr', 'visibility');
-          if (vis === 'visible') setConnectionStatus('online');
-          console.log('✅ SST tiles loaded successfully');
-        }
-      });
-
-      // 🔒 Track tile loading errors
-      mapInstance.on('error', (e: any) => {
-        if (e.sourceId === 'sst-src' || e.error?.message?.includes('gibs.earthdata.nasa.gov')) {
-          const vis = mapInstance.getLayoutProperty('sst-lyr', 'visibility');
-          if (vis === 'visible') {
-            sstTileErrors++;
-            if (sstTileErrors >= maxErrors) {
-              setConnectionStatus('degraded');
-              console.warn(`⚠️ NASA GIBS connection degraded (${sstTileErrors} errors)`);
-            }
-          }
-        }
-      });
 
       // Debug: Check if Copernicus is configured
       console.log('🔍 Copernicus config check - User:', !!process.env.COPERNICUS_USER);
@@ -158,15 +88,13 @@ export default function LegendaryOceanPlatform() {
     };
   }, []);
 
-  // Date buttons now only update UI badge; SST tiles remain fixed WMTS date for stability
+  // Date selection for future Copernicus layers
   useEffect(() => {
     if (!map.current) return;
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(selectedDate)) return;
-    console.log(`📅 Date changed to: ${selectedDate} - (UI only; WMTS fixed for stability)`);
+    console.log(`📅 Date changed to: ${selectedDate} - ready for Copernicus layers`);
   }, [selectedDate]);
-
-  // Remove auto-fallback resolver for now to avoid proxy errors; stick to fixed WMTS date
 
   // Ocean Basemap toggle (bathymetry)
   const toggleOcean = () => {
@@ -184,41 +112,7 @@ export default function LegendaryOceanPlatform() {
     console.log(`🌊 ESRI Ocean Basemap ${newState ? 'ON' : 'OFF'}`);
   };
 
-  // SST toggle - BRIGHT temperature layer with SAFEGUARDS
-  const toggleSST = async () => {
-    if (!map.current) {
-      console.warn('🚨 SST Toggle: Map not initialized');
-      return;
-    }
-
-    const newState = !sstActive;
-    setSstActive(newState);
-
-    try {
-      if (newState) {
-        // TURNING ON: just show the fixed WMTS layer
-        console.log('🌡️ Turning ON SST - showing SST layer');
-        setConnectionStatus('degraded');
-        if (map.current.getLayer('sst-lyr')) {
-          map.current.setLayoutProperty('sst-lyr', 'visibility', 'visible');
-          try { map.current.moveLayer('sst-lyr'); } catch {}
-        }
-      } else {
-        // TURNING OFF: Just hide the layer
-        if (map.current.getLayer('sst-lyr')) {
-          map.current.setLayoutProperty('sst-lyr', 'visibility', 'none');
-          console.log('🌡️ SST OFF');
-        }
-        setConnectionStatus('offline');
-      }
-
-    } catch (error) {
-      console.error('🚨 SST Toggle failed:', error);
-      // SAFEGUARD: Reset state on error
-      setSstActive(false);
-      setConnectionStatus('degraded');
-    }
-  };
+  // Copernicus layer toggles to be added here
 
 
   return (
@@ -247,14 +141,8 @@ export default function LegendaryOceanPlatform() {
         <p className="text-sm opacity-80">Ocean Intelligence Platform</p>
 
         {/* 🔒 Connection Status Indicator */}
-        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-          connectionStatus === 'online' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-          connectionStatus === 'degraded' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-          'bg-red-500/20 text-red-400 border border-red-500/30'
-        }`}>
-          {connectionStatus === 'online' ? '🟢 NASA GIBS Online' :
-           connectionStatus === 'degraded' ? '🟡 NASA GIBS Degraded' :
-           '🔴 NASA GIBS Offline'}
+        <div className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+          🟢 Copernicus Ready
         </div>
         
         <div className="space-y-4">
@@ -309,55 +197,15 @@ export default function LegendaryOceanPlatform() {
             )}
           </div>
 
-          {/* SST Toggle (Temperature - BRIGHT!) */}
-          <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4">
-            <h2 className="text-lg font-bold mb-2">🌡️ Sea Surface Temperature</h2>
-            <p className="text-sm opacity-80 mb-3">NASA GIBS MODIS SST - East Coast Optimized - Red/Orange/Yellow Temperature</p>
-
-            <button
-              onClick={toggleSST}
-              className={`w-full px-4 py-3 rounded-lg font-semibold ${
-                sstActive ? 'bg-red-500 text-white' : 'bg-white/20 text-white/80'
-              } transition-all`}
-            >
-              {sstActive ? '🌡️ SST ACTIVE' : '🌡️ SHOW SST'}
-            </button>
-
-            {sstActive && (
-              <div className="mt-3 px-2">
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span>Opacity</span>
-                  <span>{sstOpacity}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="95"
-                  value={sstOpacity}
-                  onChange={(e) => {
-                    const newOpacity = parseInt(e.target.value);
-                    // SAFEGUARD: Validate opacity range
-                    const clampedOpacity = Math.max(50, Math.min(95, newOpacity));
-                    setSstOpacity(clampedOpacity);
-
-                    // SAFEGUARD: Check map and layer exist before updating
-                    if (map.current?.getLayer('sst-lyr')) {
-                      try {
-                        map.current.setPaintProperty('sst-lyr', 'raster-opacity', clampedOpacity / 100);
-                      } catch (error) {
-                        console.error('🚨 SST opacity update failed:', error);
-                      }
-                    } else {
-                      console.warn('⚠️ SST layer not available for opacity update');
-                    }
-                  }}
-                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
-                  }}
-                />
-              </div>
-            )}
+          {/* Copernicus Layer Toggles - To be added */}
+          <div className="bg-gray-500/20 border border-gray-500/40 rounded-lg p-4">
+            <h2 className="text-lg font-bold mb-2">🛰️ Copernicus Marine</h2>
+            <p className="text-sm opacity-80 mb-3">High-resolution ocean data layers</p>
+            <div className="text-center py-4 text-white/60">
+              SST • Chlorophyll • Altimetry • Thermocline
+              <br />
+              <span className="text-xs">Coming soon...</span>
+            </div>
           </div>
         </div>
         
@@ -400,8 +248,7 @@ export default function LegendaryOceanPlatform() {
         </p>
       </div>
 
-      {/* 🔄 SST Legend with auto-fallback badge */}
-      {sstActive && <SstLegend badge={sstBadge} />}
+      {/* Copernicus legends to be added */}
 
     </div>
   );
