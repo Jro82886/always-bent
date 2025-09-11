@@ -121,30 +121,6 @@ export default function LegendaryOceanPlatform() {
     }
   };
 
-  // Chlorophyll toggle - bulletproof version
-  const toggleChlorophyll = () => {
-    if (!map.current) return;
-    const newState = !chlActive;
-    setChlActive(newState);
-    
-    if (map.current.getLayer('chl-layer')) {
-      map.current.setLayoutProperty('chl-layer', 'visibility', newState ? 'visible' : 'none');
-      if (newState) {
-        // Force layer to be visible and reload tiles
-        map.current.setPaintProperty('chl-layer', 'raster-opacity', 0.8);
-        map.current.moveLayer('chl-layer');
-        // Force tile reload to ensure data appears
-        const source = map.current.getSource('chl') as mapboxgl.RasterTileSource;
-        if (source && (source as any).setTiles) {
-          (source as any).setTiles([`/api/copernicus/{z}/{x}/{y}?time=${selectedDate}T00:00:00.000Z`]);
-          map.current.triggerRepaint();
-        }
-      }
-      console.log(`🌿 Chlorophyll ${newState ? 'ON' : 'OFF'} - Layer visibility: ${newState ? 'visible' : 'none'}`);
-    } else {
-      console.error('🚨 Chlorophyll layer not found!');
-    }
-  };
 
   return (
     <div className="w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
@@ -213,184 +189,11 @@ export default function LegendaryOceanPlatform() {
           </div>
         </div>
         
-        <div className="space-y-2">
-          <button
-            onClick={toggleChlorophyll}
-            className={`w-full px-4 py-2 rounded ${
-              chlActive ? 'bg-green-500' : 'bg-white/20'
-            } transition-colors`}
-          >
-            🌿 Chlorophyll {chlActive ? 'ON' : 'OFF'}
-          </button>
-          {chlActive && (
-            <div className="px-2">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span>Opacity</span>
-                <span>{chlOpacity}%</span>
-              </div>
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={chlOpacity}
-                onChange={(e) => {
-                  const newOpacity = parseInt(e.target.value);
-                  setChlOpacity(newOpacity);
-                  if (map.current?.getLayer('chl-layer')) {
-                    map.current.setPaintProperty('chl-layer', 'raster-opacity', newOpacity / 100);
-                  }
-                }}
-                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                style={{
-                  background: `linear-gradient(to right, #10b981 0%, #10b981 ${chlOpacity}%, rgba(255,255,255,0.2) ${chlOpacity}%, rgba(255,255,255,0.2) 100%)`
-                }}
-              />
-            </div>
-          )}
-        </div>
         
-        <div className="space-y-2">
-          <button
-            onClick={() => {
-              const newState = !slaActive;
-              setSlaActive(newState);
-              if (map.current?.getLayer('sla-layer')) {
-                map.current.setLayoutProperty('sla-layer', 'visibility', newState ? 'visible' : 'none');
-                if (newState) {
-                  map.current.moveLayer('sla-layer'); // Move to top
-                  map.current.triggerRepaint();
-                }
-                console.log(`🌊 Sea Level Anomaly ${newState ? 'ON' : 'OFF'}`);
-              }
-            }}
-            className={`w-full px-4 py-2 rounded ${
-              slaActive ? 'bg-blue-600' : 'bg-white/20'
-            } transition-colors`}
-          >
-            🌊 Altimetry {slaActive ? 'ON' : 'OFF'}
-          </button>
-          {slaActive && (
-            <div className="px-2">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span>Opacity</span>
-                <span>{slaOpacity}%</span>
-              </div>
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={slaOpacity}
-                onChange={(e) => {
-                  const newOpacity = parseInt(e.target.value);
-                  setSlaOpacity(newOpacity);
-                  if (map.current?.getLayer('sla-layer')) {
-                    map.current.setPaintProperty('sla-layer', 'raster-opacity', newOpacity / 100);
-                  }
-                }}
-                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                style={{
-                  background: `linear-gradient(to right, #2563eb 0%, #2563eb ${slaOpacity}%, rgba(255,255,255,0.2) ${slaOpacity}%, rgba(255,255,255,0.2) 100%)`
-                }}
-              />
-            </div>
-          )}
-        </div>
         
-        <div className="space-y-2">
-          <button
-            onClick={() => {
-              const newState = !noaaActive;
-              setNoaaActive(newState);
-              if (map.current?.getLayer('noaa-viirs-layer')) {
-                map.current.setLayoutProperty('noaa-viirs-layer', 'visibility', newState ? 'visible' : 'none');
-                if (newState) {
-                  map.current.moveLayer('noaa-viirs-layer'); // Move to top
-                  map.current.triggerRepaint();
-                }
-                console.log(`🛰️ NOAA VIIRS 4km ${newState ? 'ON' : 'OFF'}`);
-              }
-            }}
-            className={`w-full px-4 py-2 rounded ${
-              noaaActive ? 'bg-cyan-500' : 'bg-white/20'
-            } transition-colors`}
-          >
-            🛰️ NOAA 4km {noaaActive ? 'ON' : 'OFF'}
-          </button>
-          {noaaActive && (
-            <div className="px-2">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span>Opacity</span>
-                <span>{noaaOpacity}%</span>
-              </div>
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={noaaOpacity}
-                onChange={(e) => {
-                  const newOpacity = parseInt(e.target.value);
-                  setNoaaOpacity(newOpacity);
-                  if (map.current?.getLayer('noaa-viirs-layer')) {
-                    map.current.setPaintProperty('noaa-viirs-layer', 'raster-opacity', newOpacity / 100);
-                  }
-                }}
-                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                style={{
-                  background: `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${noaaOpacity}%, rgba(255,255,255,0.2) ${noaaOpacity}%, rgba(255,255,255,0.2) 100%)`
-                }}
-              />
-            </div>
-          )}
-        </div>
         
         <div className="border-t border-white/20 pt-4">
           <p className="text-xs font-bold text-yellow-400 mb-2">⚡ ABFI EXCLUSIVE</p>
-          <div className="space-y-2">
-            <button
-              onClick={() => {
-                const newState = !thermoActive;
-                setThermoActive(newState);
-                if (map.current?.getLayer('thermocline-layer')) {
-                  map.current.setLayoutProperty('thermocline-layer', 'visibility', newState ? 'visible' : 'none');
-                  if (newState) {
-                    map.current.moveLayer('thermocline-layer');
-                    map.current.triggerRepaint();
-                  }
-                  console.log(`🌡️ Thermocline ${newState ? 'ON' : 'OFF'}`);
-                }
-              }}
-              className={`w-full px-4 py-2 rounded ${
-                thermoActive ? 'bg-yellow-500' : 'bg-white/20'
-              } transition-colors`}
-            >
-              🌡️ Thermocline {thermoActive ? 'ON' : 'OFF'}
-            </button>
-            {thermoActive && (
-              <div className="px-2">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span>Opacity</span>
-                  <span>{thermoOpacity}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  value={thermoOpacity}
-                  onChange={(e) => {
-                    const newOpacity = parseInt(e.target.value);
-                    setThermoOpacity(newOpacity);
-                    if (map.current?.getLayer('thermocline-layer')) {
-                      map.current.setPaintProperty('thermocline-layer', 'raster-opacity', newOpacity / 100);
-                    }
-                  }}
-                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
-                  style={{
-                    background: `linear-gradient(to right, #eab308 0%, #eab308 ${thermoOpacity}%, rgba(255,255,255,0.2) ${thermoOpacity}%, rgba(255,255,255,0.2) 100%)`
-                  }}
-                />
-              </div>
-            )}
-          </div>
         </div>
         
         <div className="border-t border-white/20 pt-4">
@@ -425,26 +228,6 @@ export default function LegendaryOceanPlatform() {
         </p>
       </div>
       
-      {/* SST Legend with fallback badge */}
-      {sstActive && sstBadge && (
-        <div
-          style={{
-            position: "absolute",
-            right: 12,
-            bottom: 12,
-            padding: "8px 10px",
-            background: "rgba(0,0,0,0.55)",
-            color: "#fff",
-            borderRadius: 8,
-            backdropFilter: "blur(6px)",
-            fontSize: 12,
-            lineHeight: 1.2
-          }}
-        >
-          <div style={{ fontWeight: 600 }}>Sea Surface Temp</div>
-          <div style={{ opacity: 0.85 }}>{sstBadge}</div>
-        </div>
-      )}
     </div>
   );
 }
