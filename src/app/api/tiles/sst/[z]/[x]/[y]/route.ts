@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveSstDate } from "@/lib/sst/resolveSstDate";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +14,18 @@ export async function GET(
   }
   const url = new URL(req.url);
   const requested = url.searchParams.get("time") || process.env.ABFI_SST_DEFAULT_TIME || "today";
+  let baseDateISO: string;
+  try {
+    baseDateISO = resolveSstDate(requested);
+  } catch (e: any) {
+    return NextResponse.json({ error: "bad-time", detail: String(e?.message || e) }, { status: 400 });
+  }
 
   const base   = envOr("ABFI_SST_TILE_BASE", "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best");
   const layer  = envOr("ABFI_SST_TILE_LAYER", "MODIS_Aqua_L3_SST_Thermal_4km_Night_Daily");
   const matrix = envOr("ABFI_SST_TILE_MATRIX", "GoogleMapsCompatible_Level9");
 
-  const chain = resolveChain(requested);
+  const chain = [baseDateISO, ...chainFromBase(baseDateISO).slice(1)];
   let lastStatus = 0, lastUrl = "";
 
   for (const timeISO of chain) {
@@ -61,12 +68,16 @@ function toInt(s: string) { const n = parseInt(s, 10); return Number.isFinite(n)
 function envOr(k: string, d: string) { const v = process.env[k]; return v && v.length > 0 ? v : d; }
 function strip(s: string) { return s.endsWith("/") ? s.slice(0, -1) : s; }
 
-function resolveChain(reqTime: string) {
-  const toISO = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,"0")}-${String(d.getUTCDate()).padStart(2,"0")}`;
-  const today = () => toISO(new Date());
-  const minus = (days: number) => { const d = new Date(); d.setUTCDate(d.getUTCDate()-days); return toISO(d); };
-
-  if (reqTime === "today") return [today(), minus(1), minus(2)];
-  const m = reqTime.match(/^-(\d+)d$/); if (m) return [minus(parseInt(m[1], 10))];
-  return [reqTime]; // YYYY-MM-DD passthrough
+function chainFromBase(baseISO: string) {
+  // baseISO is already validated; add -1d/-2d/-3d as needed
+  const [y, m, d] = baseISO.split('-').map(Number);
+  const base = new Date(Date.UTC(y, (m as number) - 1, d));
+  const toISO = (dt: Date) => `${dt.getUTCFullYear()}-${String(dt.getUTCMonth()+1).padStart(2,"0")}-${String(dt.getUTCDate()).padStart(2,"0")}`;
+  const out = [toISO(base)];
+  for (let k = 1; k <= 3; k++) {
+    const t = new Date(base);
+    t.setUTCDate(base.getUTCDate() - k);
+    out.push(toISO(t));
+  }
+  return out;
 }
