@@ -18,7 +18,7 @@ export default function LegendaryOceanPlatform() {
   const [selectedDate, setSelectedDate] = useState('2025-09-10');
   const [oceanOpacity, setOceanOpacity] = useState(60);
   const [sstOpacity, setSstOpacity] = useState(85);
-  const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'degraded'>('online');
+  const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'degraded'>('offline');
   const [sstBadge, setSstBadge] = useState<string | undefined>(undefined);
 
   // Initialize map
@@ -115,7 +115,8 @@ export default function LegendaryOceanPlatform() {
       mapInstance.on('sourcedata', (e: any) => {
         if (e.sourceId === 'sst-src' && e.isSourceLoaded) {
           sstTileErrors = 0; // Reset error counter on successful load
-          setConnectionStatus('online');
+          const vis = mapInstance.getLayoutProperty('sst-lyr', 'visibility');
+          if (vis === 'visible') setConnectionStatus('online');
           console.log('✅ SST tiles loaded successfully');
         }
       });
@@ -123,10 +124,13 @@ export default function LegendaryOceanPlatform() {
       // 🔒 Track tile loading errors
       mapInstance.on('error', (e: any) => {
         if (e.sourceId === 'sst-src' || e.error?.message?.includes('gibs.earthdata.nasa.gov')) {
-          sstTileErrors++;
-          if (sstTileErrors >= maxErrors) {
-            setConnectionStatus('degraded');
-            console.warn(`⚠️ NASA GIBS connection degraded (${sstTileErrors} errors)`);
+          const vis = mapInstance.getLayoutProperty('sst-lyr', 'visibility');
+          if (vis === 'visible') {
+            sstTileErrors++;
+            if (sstTileErrors >= maxErrors) {
+              setConnectionStatus('degraded');
+              console.warn(`⚠️ NASA GIBS connection degraded (${sstTileErrors} errors)`);
+            }
           }
         }
       });
@@ -194,7 +198,7 @@ export default function LegendaryOceanPlatform() {
       if (newState) {
         // TURNING ON: just show the fixed WMTS layer
         console.log('🌡️ Turning ON SST - showing WMTS layer');
-        setConnectionStatus('online');
+        setConnectionStatus('degraded');
         if (map.current.getLayer('sst-lyr')) {
           map.current.setLayoutProperty('sst-lyr', 'visibility', 'visible');
         }
