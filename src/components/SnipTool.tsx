@@ -161,8 +161,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
   return (
     <div className="absolute top-20 right-4 bg-black/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-      <h3 className="text-white font-semibold mb-1">🎯 ABFI Analysis Zone</h3>
-      <p className="text-xs text-gray-400 mb-3">Fishing Intelligence Scanner</p>
+      <h3 className="text-white font-semibold mb-3">🎯 Analyze Area</h3>
       
       <div className="space-y-2">
         <button
