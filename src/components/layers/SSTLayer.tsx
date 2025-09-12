@@ -21,7 +21,8 @@ export default function SSTLayer({ map, on }: Props) {
       return;
     }
 
-    const url = buildWMTS(template, dailyAtMidnightUTCISO(2));
+    // Use yesterday (1 day ago) by default - server will fallback to 2 days if needed
+    const url = buildWMTS(template, dailyAtMidnightUTCISO(1));
 
     if (map.getLayer(lyrId)) map.removeLayer(lyrId);
     if (map.getSource(srcId)) (map as any).removeSource(srcId);
