@@ -47,11 +47,21 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
     // Add sources and layers for rectangle visualization
     const setupLayers = () => {
+      console.log('🔧 Setting up rectangle layers...');
       try {
         // Remove existing if any
-        if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
-        if (map.getLayer('rectangle-outline')) map.removeLayer('rectangle-outline');
-        if (map.getSource('rectangle')) map.removeSource('rectangle');
+        if (map.getLayer('rectangle-fill')) {
+          console.log('🗑️ Removing existing fill layer');
+          map.removeLayer('rectangle-fill');
+        }
+        if (map.getLayer('rectangle-outline')) {
+          console.log('🗑️ Removing existing outline layer');
+          map.removeLayer('rectangle-outline');
+        }
+        if (map.getSource('rectangle')) {
+          console.log('🗑️ Removing existing source');
+          map.removeSource('rectangle');
+        }
 
         // Add source for rectangle
         map.addSource('rectangle', {
@@ -139,17 +149,22 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
         
         console.log('📍 Second corner set:', coords);
         
-        // Create rectangle from two corners
+        // Create rectangle from two corners (ensure proper ordering)
+        const minX = Math.min(corner1[0], corner2[0]);
+        const maxX = Math.max(corner1[0], corner2[0]);
+        const minY = Math.min(corner1[1], corner2[1]);
+        const maxY = Math.max(corner1[1], corner2[1]);
+        
         const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
           type: 'Feature',
           geometry: {
             type: 'Polygon',
             coordinates: [[
-              corner1,
-              [corner1[0], corner2[1]],
-              corner2,
-              [corner2[0], corner1[1]],
-              corner1
+              [minX, minY],  // bottom-left
+              [maxX, minY],  // bottom-right
+              [maxX, maxY],  // top-right
+              [minX, maxY],  // top-left
+              [minX, minY]   // close the polygon
             ]]
           },
           properties: {}
@@ -185,6 +200,8 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
         setIsDrawing(false);
         setIsAnalyzing(true);
         firstCorner.current = null;
+        
+        console.log('🎯 Analysis state set, isAnalyzing:', true);
 
         // Add pulsing animation to the rectangle
         if (map.getLayer('rectangle-fill')) {
@@ -225,12 +242,16 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
         // Trigger analysis
         if (onAnalyze) {
-          console.log('🔄 Triggering analysis...');
+          console.log('🔄 Triggering analysis with rectangle:', rectangle);
           // Simulate analysis delay then call the callback
           setTimeout(() => {
+            console.log('📊 Calling onAnalyze callback...');
             onAnalyze(rectangle);
             setIsAnalyzing(false);
           }, 2000); // 2 second analysis time
+        } else {
+          console.error('⚠️ No onAnalyze callback provided!');
+          setIsAnalyzing(false);
         }
       }
     };
@@ -242,17 +263,22 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
       const corner1 = firstCorner.current;
       const corner2: [number, number] = [e.lngLat.lng, e.lngLat.lat];
 
-      // Create preview rectangle
+      // Create preview rectangle (ensure proper ordering)
+      const minX = Math.min(corner1[0], corner2[0]);
+      const maxX = Math.max(corner1[0], corner2[0]);
+      const minY = Math.min(corner1[1], corner2[1]);
+      const maxY = Math.max(corner1[1], corner2[1]);
+      
       const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
         type: 'Feature',
         geometry: {
           type: 'Polygon',
           coordinates: [[
-            corner1,
-            [corner1[0], corner2[1]],
-            corner2,
-            [corner2[0], corner1[1]],
-            corner1
+            [minX, minY],
+            [maxX, minY],
+            [maxX, maxY],
+            [minX, maxY],
+            [minX, minY]
           ]]
         },
         properties: {}
