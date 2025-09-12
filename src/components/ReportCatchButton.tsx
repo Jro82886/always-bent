@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import type mapboxgl from 'mapbox-gl';
+import CatchReportForm from './CatchReportForm';
 
 interface ReportCatchButtonProps {
   map?: mapboxgl.Map | null;
@@ -10,8 +11,8 @@ interface ReportCatchButtonProps {
 }
 
 export default function ReportCatchButton({ map, boatName, inlet, disabled }: ReportCatchButtonProps) {
-  const [isReporting, setIsReporting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationEnabled, setLocationEnabled] = useState(false);
   
   useEffect(() => {
@@ -20,125 +21,33 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
     setLocationEnabled(enabled);
   }, []);
   
-  const handleReportCatch = async () => {
+  const handleReportCatch = () => {
     if (!locationEnabled) {
       alert('Enable location services to report catches and contribute to community intelligence!');
       return;
     }
     
-    if (!map) {
-      console.error('Map not available');
-      return;
-    }
-    
-    setIsReporting(true);
-    
-    try {
-      // Get current location
+    // Get current location
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          console.log('🎣 FISH ON! Location:', latitude, longitude);
-          
-          // Get current map center (in case GPS is off)
-          const mapCenter = map.getCenter();
-          const finalLat = latitude || mapCenter.lat;
-          const finalLng = longitude || mapCenter.lng;
-          
-          // Get current conditions at this spot
-          const catchData = {
-            boat_name: boatName || localStorage.getItem('abfi_boat_name'),
-            inlet: inlet || localStorage.getItem('abfi_current_inlet'),
-            location: {
-              lat: finalLat,
-              lng: finalLng
-            },
-            timestamp: new Date().toISOString(),
-            
-            // Water conditions at catch location
-            conditions: {
-              // TODO: Extract real SST/CHL from map tiles at this location
-              sst_temp: 74.5, // Mock for now
-              chl_level: 0.3, // Mock for now
-              time_of_day: new Date().getHours() < 12 ? 'morning' : 
-                          new Date().getHours() < 17 ? 'afternoon' : 'evening',
-              
-              // Get current layer visibility
-              layers_active: {
-                sst: map.getLayer('sst-lyr') && 
-                     map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
-                chl: map.getLayer('chl-lyr') && 
-                     map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
-                ocean: map.getLayer('ocean-layer') && 
-                       map.getLayoutProperty('ocean-layer', 'visibility') === 'visible'
-              }
-            }
-          };
-          
-          console.log('📊 Catch report data:', catchData);
-          
-          // TODO: Save to Supabase
-          // For now, just store locally
-          const catches = JSON.parse(localStorage.getItem('abfi_catches') || '[]');
-          catches.push(catchData);
-          localStorage.setItem('abfi_catches', JSON.stringify(catches));
-          
-          // Add a temporary marker on the map
-          const el = document.createElement('div');
-          el.className = 'catch-marker';
-          el.innerHTML = `
-            <div style="
-              width: 30px;
-              height: 30px;
-              background: radial-gradient(circle, #FFD700, #FFA500);
-              border-radius: 50%;
-              border: 3px solid white;
-              box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-              animation: pulse 2s infinite;
-            ">
-              <div style="
-                position: absolute;
-                top: -5px;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 20px;
-              ">🎣</div>
-            </div>
-          `;
-          
-          // Add CSS animation
-          const style = document.createElement('style');
-          style.textContent = `
-            @keyframes pulse {
-              0% { transform: scale(1); opacity: 1; }
-              50% { transform: scale(1.2); opacity: 0.8; }
-              100% { transform: scale(1); opacity: 1; }
-            }
-          `;
-          document.head.appendChild(style);
-          
-          const marker = new (window as any).mapboxgl.Marker(el)
-            .setLngLat([finalLng, finalLat])
-            .addTo(map);
-          
-          // Remove marker after 10 seconds
-          setTimeout(() => {
-            marker.remove();
-          }, 10000);
-          
-          // Show success message
-          setShowSuccess(true);
-          setTimeout(() => {
-            setShowSuccess(false);
-          }, 3000);
-          
-          console.log('✅ Catch reported successfully!');
-          console.log('🧠 This data will train the AI to predict future hotspots');
-          
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          setShowForm(true);
         },
         (error) => {
-          console.error('📍 Location error:', error);
-          alert('Could not get your location. Make sure GPS is enabled.');
+          console.error('Location error:', error);
+          // Use map center as fallback
+          if (map) {
+            const center = map.getCenter();
+            setCurrentLocation({
+              lat: center.lat,
+              lng: center.lng
+            });
+          }
+          setShowForm(true);
         },
         {
           enableHighAccuracy: true,
@@ -146,12 +55,79 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
           maximumAge: 0
         }
       );
-    } catch (error) {
-      console.error('Error reporting catch:', error);
-      alert('Failed to report catch. Please try again.');
-    } finally {
-      setIsReporting(false);
+    } else {
+      // Use map center as fallback
+      if (map) {
+        const center = map.getCenter();
+        setCurrentLocation({
+          lat: center.lat,
+          lng: center.lng
+        });
+      }
+      setShowForm(true);
     }
+  };
+  
+  const handleConfirmCatch = (data: any) => {
+    console.log('📊 Catch confirmed:', data);
+    
+    // Add a temporary marker on the map
+    if (map && data.location) {
+      const el = document.createElement('div');
+      el.className = 'catch-marker';
+      el.innerHTML = `
+        <div style="
+          width: 30px;
+          height: 30px;
+          background: radial-gradient(circle, #FFD700, #FFA500);
+          border-radius: 50%;
+          border: 3px solid white;
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+          animation: pulse 2s infinite;
+        ">
+          <div style="
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+          ">🎣</div>
+        </div>
+      `;
+      
+      // Add CSS animation if not already present
+      if (!document.getElementById('catch-pulse-animation')) {
+        const style = document.createElement('style');
+        style.id = 'catch-pulse-animation';
+        style.textContent = `
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      const marker = new (window as any).mapboxgl.Marker(el)
+        .setLngLat([data.location.lng, data.location.lat])
+        .addTo(map);
+      
+      // Remove marker after 10 seconds
+      setTimeout(() => {
+        marker.remove();
+      }, 10000);
+    }
+    
+    // Show success toast
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-600 to-cyan-600 text-white px-8 py-4 rounded-full shadow-2xl z-50 animate-slide-down';
+    toast.innerHTML = '✅ Catch logged successfully! Your data helps predict future hotspots 🧠';
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.remove();
+    }, 4000);
   };
   
   // Don't show button if disabled or location is disabled

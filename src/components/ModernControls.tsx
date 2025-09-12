@@ -166,9 +166,40 @@ export default function ModernControls({
           </div>
         </div>
         
-        {/* Right Section: Layer Controls and Settings */}
+        {/* Right Section: Date First, Then Layers */}
         <div className="flex items-center gap-2">
-          {/* Layer Toggle Group */}
+          {/* Date Selector - FIRST for workflow */}
+          <div className="relative">
+            <button
+              onClick={() => setShowLayerPanel(!showLayerPanel)}
+              className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-md rounded-full px-4 py-1.5 border border-purple-500/30 text-xs text-purple-300 font-medium flex items-center gap-1.5"
+            >
+              <Calendar size={14} />
+              {selectedDate === 'today' ? '📅 Today' : selectedDate === 'yesterday' ? '📅 Yesterday' : '📅 2 Days Ago'}
+              <ChevronDown size={14} />
+            </button>
+            
+            {showLayerPanel && (
+              <div className="absolute top-full mt-2 right-0 bg-black/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[150px]">
+                {['today', 'yesterday', '2days'].map((date) => (
+                  <button
+                    key={date}
+                    onClick={() => {
+                      setSelectedDate(date);
+                      setShowLayerPanel(false);
+                    }}
+                    className={`w-full px-3 py-2 text-left text-xs rounded hover:bg-white/10 transition-colors ${
+                      selectedDate === date ? 'text-cyan-300' : 'text-gray-400'
+                    }`}
+                  >
+                    {date === 'today' ? 'Today' : date === 'yesterday' ? 'Yesterday' : '2 Days Ago'}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Layer Toggle Group - SECOND in workflow */}
           <div className="bg-black/70 backdrop-blur-md rounded-full px-2 py-1 border border-cyan-500/20 flex items-center gap-1">
             <button
               onClick={() => toggleLayer('ocean')}
@@ -218,37 +249,6 @@ export default function ModernControls({
             >
               <Sliders size={14} />
             </button>
-          </div>
-          
-          {/* Date Selector */}
-          <div className="relative">
-            <button
-              onClick={() => setShowLayerPanel(!showLayerPanel)}
-              className="bg-black/70 backdrop-blur-md rounded-full px-3 py-1.5 border border-cyan-500/20 text-xs text-cyan-300 flex items-center gap-1"
-            >
-              <Calendar size={14} />
-              {selectedDate === 'today' ? 'Today' : selectedDate === 'yesterday' ? 'Yesterday' : '2 Days Ago'}
-              <ChevronDown size={14} />
-            </button>
-            
-            {showLayerPanel && (
-              <div className="absolute top-full mt-2 right-0 bg-black/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[150px]">
-                {['today', 'yesterday', '2days'].map((date) => (
-                  <button
-                    key={date}
-                    onClick={() => {
-                      setSelectedDate(date);
-                      setShowLayerPanel(false);
-                    }}
-                    className={`w-full px-3 py-2 text-left text-xs rounded hover:bg-white/10 transition-colors ${
-                      selectedDate === date ? 'text-cyan-300' : 'text-gray-400'
-                    }`}
-                  >
-                    {date === 'today' ? 'Today' : date === 'yesterday' ? 'Yesterday' : '2 Days Ago'}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

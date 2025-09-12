@@ -7,19 +7,19 @@ interface SSTLegendProps {
 export default function SSTLegend({ visible }: SSTLegendProps) {
   if (!visible) return null;
 
-  // Temperature range in Celsius (approximate for typical SST range)
-  // Copernicus data is in Kelvin, but we'll show Celsius for users
-  const minTemp = 0;  // 0°C (cold)
-  const maxTemp = 30; // 30°C (warm)
+  // Temperature range in Fahrenheit for US East Coast waters
+  // Typical range: 32°F (winter) to 86°F (summer Gulf Stream)
+  const minTemp = 32;  // 32°F (freezing)
+  const maxTemp = 86;  // 86°F (warm Gulf Stream)
 
   return (
-    <div className="absolute bottom-20 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-      <div className="text-white text-sm font-semibold mb-2">
-        Sea Surface Temperature
+    <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+      <div className="text-white text-xs font-semibold mb-1.5">
+        SST (°F)
       </div>
       
       {/* Gradient bar */}
-      <div className="relative w-48 h-6 rounded overflow-hidden">
+      <div className="relative w-32 h-4 rounded overflow-hidden">
         <div 
           className="absolute inset-0"
           style={{
@@ -41,15 +41,15 @@ export default function SSTLegend({ visible }: SSTLegendProps) {
       </div>
 
       {/* Temperature labels */}
-      <div className="flex justify-between mt-1 text-xs text-white/90">
-        <span>{minTemp}°C</span>
-        <span>{Math.round((minTemp + maxTemp) / 2)}°C</span>
-        <span>{maxTemp}°C</span>
+      <div className="flex justify-between mt-1 text-[10px] text-white/90">
+        <span>{minTemp}</span>
+        <span>{Math.round((minTemp + maxTemp) / 2)}</span>
+        <span>{maxTemp}</span>
       </div>
 
       {/* Additional info */}
-      <div className="text-xs text-white/60 mt-2">
-        ODYSSEA L4 NRT • Daily
+      <div className="text-[10px] text-white/60 mt-1">
+        ODYSSEA L4
       </div>
     </div>
   );

@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         bbox: [south, west, north, east],
         date,
         feature_type: "thermal_fronts",
-        threshold: "0.5°C/km",
+        threshold: "0.9°F/km",
         source: "SST gradient analysis"
       }
     });

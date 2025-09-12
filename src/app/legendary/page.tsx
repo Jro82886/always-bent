@@ -11,7 +11,7 @@ import SnipController from '@/components/SnipController';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import TutorialOverlay from '@/components/TutorialOverlay';
 import ModernControls from '@/components/ModernControls';
-import { EAST_COAST_BOUNDS } from '@/lib/imagery/bounds';
+import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import '@/styles/mapSmoothing.css';
 
 // Set Mapbox token
@@ -49,8 +49,8 @@ export default function LegendaryOceanPlatform() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/satellite-streets-v12',
-      center: [-75, 36],
-      zoom: 6,
+      center: [-72, 37],  // Shifted east to show more ocean
+      zoom: 5.5,  // Slightly zoomed out to see more water
       pitch: 0,  // Ensure flat map (no 3D tilt)
       bearing: 0, // Ensure north is up (no rotation)
       cooperativeGestures: false  // Allow normal scroll zoom
@@ -63,9 +63,12 @@ export default function LegendaryOceanPlatform() {
 
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
-      // Constrain to East Coast AOI
-      mapInstance.fitBounds(EAST_COAST_BOUNDS as any, { padding: 40, duration: 0 });
-      mapInstance.setMaxBounds(EAST_COAST_BOUNDS as any);
+      // Use ocean-focused bounds for better fishing view
+      mapInstance.fitBounds(OCEAN_FOCUSED_BOUNDS as any, { 
+        padding: { top: 20, bottom: 20, left: 100, right: 20 },  // More padding on left to push view east
+        duration: 0 
+      });
+      mapInstance.setMaxBounds(EAST_COAST_BOUNDS as any);  // Still constrain to full East Coast
       
       // Ensure map stays flat
       mapInstance.setPitch(0);

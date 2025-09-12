@@ -436,7 +436,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   };
 
   return (
-    <div className="absolute top-20 right-4 bg-black/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+    <div className="absolute bottom-32 right-4 bg-black/90 backdrop-blur-sm rounded-lg p-4 shadow-lg z-20">
       <h3 className="text-white font-semibold mb-3">🎯 Analyze Area</h3>
       
       <div className="space-y-2">

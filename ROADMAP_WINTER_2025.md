@@ -21,6 +21,13 @@
 - [ ] **Preset Sizes**: Quick buttons (1km², 5km², 10km²)
 - [ ] **Double-click expand/contract**: Oval that adjusts with double-click
 
+### Temperature Units Toggle (Global Expansion)
+- [ ] Add F/C toggle switch in settings
+- [ ] Convert all temperature displays dynamically
+- [ ] Store user preference in localStorage
+- [ ] Default based on user's location/browser locale
+- [ ] Apply to SST legend, analysis reports, catch forms
+
 ### Jeff's Vision: Community Intelligence Heat Map
 - [ ] Aggregate all catch reports into heat map overlay
 - [ ] Time-based filtering (last 24h, 7 days, 30 days)
