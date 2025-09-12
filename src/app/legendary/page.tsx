@@ -26,6 +26,7 @@ export default function LegendaryOceanPlatform() {
   const [oceanOpacity, setOceanOpacity] = useState(60);
   const [sstOpacity, setSstOpacity] = useState(90);
   const [chlOpacity, setChlOpacity] = useState(70);
+  const [edgeMode, setEdgeMode] = useState(false); // Edge enhancement mode
 
   // Initialize map
   useEffect(() => {
@@ -107,9 +108,11 @@ export default function LegendaryOceanPlatform() {
           source: 'chl-src',
           layout: { visibility: 'none' },
           paint: { 
-            'raster-opacity': 0.7,  // Start at 70% to blend better
-            'raster-contrast': 0.2,  // Enhance color differences
-            'raster-saturation': 0.3  // Boost the green colors
+            'raster-opacity': 0.8,  // Bumped up to see edges better
+            'raster-contrast': 0.5,  // BOOST contrast to make edges sharp!
+            'raster-saturation': 0.6,  // MORE saturation for vibrant greens!
+            'raster-brightness-min': -0.1,  // Darken the blues slightly
+            'raster-brightness-max': 1.1  // Brighten the greens
           },
           minzoom: 0,
           maxzoom: 24
@@ -337,28 +340,60 @@ export default function LegendaryOceanPlatform() {
             </button>
 
             {chlActive && (
-              <div className="mt-3 px-2">
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span>Opacity</span>
-                  <span>{chlOpacity}%</span>
+              <div className="mt-3 px-2 space-y-3">
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <span>Opacity</span>
+                    <span>{chlOpacity}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="100"
+                    value={chlOpacity}
+                    onChange={(e) => {
+                      const newOpacity = parseInt(e.target.value);
+                      setChlOpacity(newOpacity);
+                      if (map.current?.getLayer('chl-lyr')) {
+                        map.current.setPaintProperty('chl-lyr', 'raster-opacity', newOpacity / 100);
+                      }
+                    }}
+                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #22c55e 0%, #22c55e ${chlOpacity}%, rgba(255,255,255,0.2) ${chlOpacity}%, rgba(255,255,255,0.2) 100%)`
+                    }}
+                  />
                 </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="100"
-                  value={chlOpacity}
-                  onChange={(e) => {
-                    const newOpacity = parseInt(e.target.value);
-                    setChlOpacity(newOpacity);
+                
+                {/* Edge Enhancement Mode */}
+                <button
+                  onClick={() => {
+                    const newMode = !edgeMode;
+                    setEdgeMode(newMode);
                     if (map.current?.getLayer('chl-lyr')) {
-                      map.current.setPaintProperty('chl-lyr', 'raster-opacity', newOpacity / 100);
+                      if (newMode) {
+                        // EDGE MODE: Maximum contrast for finding boundaries!
+                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 0.9);
+                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 1.0);
+                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', -0.2);
+                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1.2);
+                      } else {
+                        // Normal mode
+                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 0.5);
+                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 0.6);
+                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', -0.1);
+                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1.1);
+                      }
                     }
                   }}
-                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #22c55e 0%, #22c55e ${chlOpacity}%, rgba(255,255,255,0.2) ${chlOpacity}%, rgba(255,255,255,0.2) 100%)`
-                  }}
-                />
+                  className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    edgeMode 
+                      ? 'bg-yellow-500 text-black animate-pulse' 
+                      : 'bg-green-900/50 text-green-300 hover:bg-green-800/50'
+                  }`}
+                >
+                  {edgeMode ? '⚡ EDGE MODE ACTIVE' : '🔍 Find Green Edges'}
+                </button>
               </div>
             )}
           </div>
