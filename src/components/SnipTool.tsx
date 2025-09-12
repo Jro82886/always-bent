@@ -33,6 +33,8 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
   useEffect(() => {
     if (!map) return;
+    
+    let initialized = false;
 
     // Add sources and layers for rectangle visualization
     const setupLayers = () => {
@@ -73,6 +75,16 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
             'line-dasharray': [2, 2]
           }
         });
+        
+        // Ensure layers are on top
+        const layers = map.getStyle().layers;
+        if (layers && layers.length > 0) {
+          const topLayerId = layers[layers.length - 1].id;
+          if (topLayerId !== 'rectangle-outline') {
+            map.moveLayer('rectangle-fill');
+            map.moveLayer('rectangle-outline');
+          }
+        }
         
         console.log('✅ Rectangle layers setup complete');
       } catch (error) {
@@ -196,17 +208,25 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
       }
     };
 
-    // Setup on map load
-    if (map.loaded()) {
+    // Setup on map load - ensure layers are ready
+    const initializeLayers = () => {
+      if (initialized) return;
+      initialized = true;
+      
       setupLayers();
-    } else {
-      map.on('load', setupLayers);
-    }
+      
+      // Add event listeners after setup
+      map.on('click', handleMapClick);
+      map.on('mousemove', handleMouseMove);
+      document.addEventListener('keydown', handleKeyDown);
+    };
 
-    // Add event listeners
-    map.on('click', handleMapClick);
-    map.on('mousemove', handleMouseMove);
-    document.addEventListener('keydown', handleKeyDown);
+    if (map.loaded()) {
+      // Small delay to ensure map is fully ready
+      setTimeout(initializeLayers, 100);
+    } else {
+      map.once('load', initializeLayers);
+    }
 
     // Change cursor and disable map dragging when drawing
     if (isDrawing) {
