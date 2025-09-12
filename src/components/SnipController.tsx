@@ -221,14 +221,29 @@ export default function SnipController({ map }: SnipControllerProps) {
         shouldClear={shouldClearTool}
       />
       
-      {/* Test button - remove after debugging */}
+      {/* Test buttons - remove after debugging */}
       {process.env.NODE_ENV === 'development' && (
-        <button
-          onClick={testAnalysis}
-          className="fixed bottom-4 right-4 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-purple-700 z-50"
-        >
-          🧪 Test Analysis
-        </button>
+        <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+          <button
+            onClick={testAnalysis}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-purple-700"
+          >
+            🧪 Test Analysis
+          </button>
+          <button
+            onClick={() => {
+              console.log('🔍 Checking SnipTool state...');
+              console.log('Map exists:', !!map);
+              if (map) {
+                console.log('Rectangle source exists:', !!map.getSource('rectangle'));
+                console.log('Rectangle layers exist:', !!map.getLayer('rectangle-fill'));
+              }
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700"
+          >
+            🔍 Check State
+          </button>
+        </div>
       )}
       
       <HotspotMarker
