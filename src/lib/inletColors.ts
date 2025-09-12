@@ -1,31 +1,61 @@
-// Neutral/masculine palette (no pinks/purples)
-const PALETTE = [
-  '#2E86AB', // Ocean Blue
-  '#2A9D8F', // Deep Green
-  '#6C757D', // Steel Gray
-  '#A23B3B', // Rust Red
-  '#1B263B', // Navy
-  '#C2B280', // Sandstone
-  '#264653', // Dark Teal
-  '#343A40', // Charcoal
-  '#3E5C76', // Slate Blue (muted)
-  '#556B2F', // Olive Drab
-];
+/**
+ * Masculine color palette for inlet identification
+ * No pink, no purple - just strong fishing colors!
+ */
 
-export function inletColorFromIndex(idx: number) {
-  return PALETTE[idx % PALETTE.length];
-}
-
-// Assign deterministically by inlet order, with an explicit override if desired.
-export function buildInletColorMap(inletIds: string[], overrides?: Record<string, string>) {
-  const map: Record<string, string> = {};
-  inletIds.forEach((id, i) => { map[id] = inletColorFromIndex(i); });
-  if (overrides) {
-    for (const k in overrides) map[k] = overrides[k];
+export const INLET_COLORS = {
+  'Manasquan': {
+    color: '#0066CC',      // Deep Blue
+    hex: '0066CC',
+    name: 'Deep Blue'
+  },
+  'Barnegat': {
+    color: '#228B22',      // Forest Green
+    hex: '228B22',
+    name: 'Forest Green'
+  },
+  'Cape May': {
+    color: '#DC143C',      // Crimson Red
+    hex: 'DC143C',
+    name: 'Crimson'
+  },
+  'Shark River': {
+    color: '#FF8C00',      // Dark Orange
+    hex: 'FF8C00',
+    name: 'Dark Orange'
+  },
+  'Absecon': {
+    color: '#4B0082',      // Indigo
+    hex: '4B0082',
+    name: 'Indigo'
+  },
+  'Great Egg': {
+    color: '#2F4F4F',      // Dark Slate Gray
+    hex: '2F4F4F',
+    name: 'Slate Gray'
+  },
+  'Townsends': {
+    color: '#8B4513',      // Saddle Brown
+    hex: '8B4513',
+    name: 'Saddle Brown'
+  },
+  'Atlantic City': {
+    color: '#000080',      // Navy
+    hex: '000080',
+    name: 'Navy'
+  },
+  'Brigantine': {
+    color: '#B8860B',      // Dark Goldenrod
+    hex: 'B8860B',
+    name: 'Goldenrod'
+  },
+  'Little Egg': {
+    color: '#556B2F',      // Dark Olive Green
+    hex: '556B2F',
+    name: 'Olive'
   }
-  // Special case: overview neutral
-  if (map['overview']) map['overview'] = '#343A40';
-  return map;
-}
+} as const;
 
+export type InletName = keyof typeof INLET_COLORS;
 
+export const INLET_LIST = Object.keys(INLET_COLORS) as InletName[];

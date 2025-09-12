@@ -1,167 +1,181 @@
-// src/app/welcome/page.tsx
-'use client';
-
-import { useEffect, useMemo, useState } from 'react';
-import BrandMark from '@/components/BrandMark';
+"use client";
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppState } from '@/store/appState';
-import { DEFAULT_INLET } from '@/lib/inlets';
 
-type GeoStatus = 'idle' | 'prompt' | 'granted' | 'denied' | 'error';
-
-export default function Welcome() {
+export default function WelcomePage() {
   const router = useRouter();
-  const { setUsername: setUsernameStore, hydrateOnce, setSelectedInletId } = useAppState();
-
-  const [username, setUsername] = useState('');
-  const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle');
-  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
-  const [busy, setBusy] = useState(false);
-
+  const [boatName, setBoatName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [locationChoice, setLocationChoice] = useState<boolean | null>(null);
+  
+  // Glowing animation for the logo
+  const [glowIntensity, setGlowIntensity] = useState(0);
+  
   useEffect(() => {
-    hydrateOnce();
-    const saved = localStorage.getItem('abfi_username') || '';
-    if (saved) setUsername(saved);
-
-    const savedGeo = localStorage.getItem('abfi_location');
-    if (savedGeo) {
-      try {
-        const { lat, lon } = JSON.parse(savedGeo);
-        setCoords({ lat, lon });
-        setGeoStatus('granted');
-      } catch {}
-    }
+    const interval = setInterval(() => {
+      setGlowIntensity(prev => (prev + 1) % 100);
+    }, 50);
+    return () => clearInterval(interval);
   }, []);
-
-  const requestLocation = () => {
-    if (!('geolocation' in navigator)) {
-      setGeoStatus('error');
+  
+  const handleEnterApp = async () => {
+    if (!boatName.trim()) {
+      alert('Captain, we need your boat name!');
       return;
     }
-    setBusy(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        setCoords({ lat, lon });
-        localStorage.setItem('abfi_location', JSON.stringify({ lat, lon, ts: Date.now() }));
-        setGeoStatus('granted');
-        setBusy(false);
-      },
-      () => {
-        setGeoStatus('denied');
-        setBusy(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+    
+    if (locationChoice === null) {
+      alert('Please choose whether to enable location services');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    // Store user preferences
+    localStorage.setItem('abfi_boat_name', boatName);
+    localStorage.setItem('abfi_location_enabled', locationChoice.toString());
+    
+    // If location enabled, request permission
+    if (locationChoice) {
+      try {
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        if (permission.state === 'prompt' || permission.state === 'granted') {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              console.log('📍 Location acquired:', position.coords);
+              localStorage.setItem('abfi_last_location', JSON.stringify({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              }));
+            },
+            (error) => {
+              console.warn('📍 Location denied:', error);
+            }
+          );
+        }
+      } catch (error) {
+        console.warn('Location permission check failed:', error);
+      }
+    }
+    
+    // Navigate to main app
+    setTimeout(() => {
+      router.push('/legendary');
+    }, 1000);
   };
-
-  const onContinue = () => {
-    const clean = username.trim();
-    if (!clean) return;
-    try { localStorage.setItem('abfi_username', clean); } catch {}
-    setUsernameStore(clean);
-    try { localStorage.removeItem('abfi_selected_inlet'); } catch {}
-    setSelectedInletId(DEFAULT_INLET.id);
-    router.push('/imagery');
-  };
-
-  const canContinue = useMemo(() => username.trim().length > 0, [username]);
-
+  
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#0C0F1C] to-black text-white">
-      {/* Subtle background contrast layers */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-30"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 1px 1px, rgba(0,221,235,0.22) 1px, transparent 1px)',
-          backgroundSize: '26px 26px',
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(60% 50% at 50% 30%, rgba(0,221,235,0.24) 0%, rgba(0,0,0,0) 60%)',
-        }}
-      />
-      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center justify-center px-6 text-center">
-        
-        {/* Brand */}
-        <div className="mb-10 flex flex-col items-center">
-          <BrandMark className="h-20 w-auto sm:h-24 md:h-28 brand-glow-xl" />
-          <p className="mt-4 text-sm sm:text-base text-cyan-200/80 tracking-wide">
-            Precision fishing starts here.
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-cyan-950 flex items-center justify-center p-4">
+      {/* Ocean wave animation background */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/20 to-transparent animate-pulse" />
+      </div>
+      
+      <div className="relative max-w-md w-full">
+        {/* Logo and Title */}
+        <div className="text-center mb-8">
+          <div 
+            className="inline-block mb-4 relative"
+            style={{
+              filter: `drop-shadow(0 0 ${20 + glowIntensity / 5}px rgba(0, 255, 255, ${0.5 + glowIntensity / 200}))`
+            }}
+          >
+            <div className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              ALWAYS BENT
+            </div>
+          </div>
+          <p className="text-cyan-300/80 text-lg tracking-wider">
+            FISHING INTELLIGENCE
+          </p>
+          <p className="text-cyan-400/60 text-sm mt-2">
+            Where Ocean Data Becomes Intuition
           </p>
         </div>
-
         
-
-        {/* Username input */}
-        <div className="mb-4 w-full">
-          <input
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username (boat name recommended)"
-            className="w-full rounded-xl border border-cyan-400/30 bg-white/5 px-4 py-3 text-base text-white outline-none placeholder:text-cyan-200/50 focus:border-cyan-300/80"
-          />
-        </div>
-
-        {/* Location */}
-        <div className="mb-6 w-full rounded-xl border border-cyan-400/20 bg-white/5 p-4 text-left backdrop-blur">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-white/90">Location</span>
-            <StatusPill status={geoStatus} />
+        {/* Main Card */}
+        <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-2xl">
+          {/* Boat Name Input */}
+          <div className="mb-6">
+            <label className="flex items-center gap-2 text-cyan-300 text-sm font-semibold mb-2">
+              <span className="text-xl">🚤</span> Enter Your Boat Name
+            </label>
+            <input
+              type="text"
+              value={boatName}
+              onChange={(e) => setBoatName(e.target.value)}
+              placeholder="Enter boat name"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+              maxLength={30}
+            />
           </div>
-          {coords && (
-            <p className="text-xs text-white/60">
-              {coords.lat.toFixed(4)}, {coords.lon.toFixed(4)}
+          
+          {/* Location Services Choice */}
+          <div className="mb-8">
+            <label className="flex items-center gap-2 text-cyan-300 text-sm font-semibold mb-3">
+              <span className="text-xl">📍</span> Enable Location Services?
+            </label>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => setLocationChoice(true)}
+                className={`w-full p-4 rounded-lg border-2 transition-all ${
+                  locationChoice === true 
+                    ? 'bg-green-500/20 border-green-400 text-green-300' 
+                    : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
+                }`}
+              >
+                <div className="font-semibold mb-1">YES - Join ABFI Community</div>
+                <div className="text-xs opacity-80">
+                  Share location • See other boats • Save analyses • Full access
+                </div>
+              </button>
+              
+              <button
+                onClick={() => setLocationChoice(false)}
+                className={`w-full p-4 rounded-lg border-2 transition-all ${
+                  locationChoice === false 
+                    ? 'bg-blue-500/20 border-blue-400 text-blue-300' 
+                    : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
+                }`}
+              >
+                <div className="font-semibold mb-1">NO - Private Mode</div>
+                <div className="text-xs opacity-80">
+                  Browse layers • Use tools • Chat only • No tracking
+                </div>
+              </button>
+            </div>
+            
+            <p className="text-cyan-400/60 text-xs mt-3 text-center">
+              Share your location to see other boats from your inlet<br/>
+              and contribute to community intelligence
             </p>
-          )}
+          </div>
+          
+          {/* Enter Button */}
           <button
-            type="button"
-            onClick={requestLocation}
-            disabled={busy}
-            className="mt-3 rounded-lg border border-cyan-300/40 px-3 py-2 text-sm text-cyan-200 hover:border-cyan-200/80 hover:text-cyan-100 disabled:opacity-60"
+            onClick={handleEnterApp}
+            disabled={!boatName.trim() || locationChoice === null || isLoading}
+            className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${
+              boatName.trim() && locationChoice !== null && !isLoading
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 shadow-lg shadow-cyan-500/30'
+                : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+            }`}
           >
-            {busy ? 'Getting location…' : geoStatus === 'granted' ? 'Refresh location' : 'Enable location'}
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin">⚓</span> Setting Sail...
+              </span>
+            ) : (
+              'Enter ABFI Platform'
+            )}
           </button>
         </div>
-
-        {/* Main button */}
-        <button
-          onClick={onContinue}
-          disabled={!canContinue}
-          className="w-full rounded-2xl px-5 py-3 text-base font-medium text-black disabled:opacity-60"
-          style={{ background: 'linear-gradient(90deg, #00DDEB 0%, #00AACC 100%)' }}
-        >
-          Analyze Ocean Data
-        </button>
-
-        {/* No guest path; username required */}
-      </section>
-    </main>
+        
+        {/* Footer */}
+        <div className="text-center mt-6 text-cyan-400/40 text-xs">
+          By entering, you agree to share the stoke responsibly
+        </div>
+      </div>
+    </div>
   );
 }
-
-function StatusPill({ status }: { status: GeoStatus }) {
-  const map: Record<GeoStatus, { label: string; dot: string; tone: string }> = {
-    idle:   { label: 'Idle', dot: 'bg-white/40', tone: 'text-white/70 border-white/20' },
-    prompt: { label: 'Needs permission', dot: 'bg-amber-400', tone: 'text-amber-200 border-amber-400/30' },
-    granted:{ label: 'Enabled', dot: 'bg-emerald-400', tone: 'text-emerald-200 border-emerald-400/30' },
-    denied: { label: 'Denied', dot: 'bg-rose-400', tone: 'text-rose-200 border-rose-400/30' },
-    error:  { label: 'Not supported', dot: 'bg-rose-400', tone: 'text-rose-200 border-rose-400/30' },
-  };
-  const { label, dot, tone } = map[status] ?? map.idle;
-  return (
-    <span className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs ${tone}`}>
-      <span className={`h-2 w-2 rounded-full ${dot}`} />
-      {label}
-    </span>
-  );
-}
-
