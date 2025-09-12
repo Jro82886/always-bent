@@ -161,14 +161,15 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
   return (
     <div className="absolute top-20 right-4 bg-black/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-      <h3 className="text-white font-semibold mb-3">📐 Snip-It Tool</h3>
+      <h3 className="text-white font-semibold mb-1">🎯 ABFI Analysis Zone</h3>
+      <p className="text-xs text-gray-400 mb-3">Fishing Intelligence Scanner</p>
       
       <div className="space-y-2">
         <button
           onClick={startDrawing}
           className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
         >
-          <span>▭</span> Draw Rectangle
+          <span>▭</span> Select Area to Analyze
         </button>
 
         {currentArea > 0 && (
@@ -192,7 +193,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
       {isDrawing && (
         <div className="text-xs text-green-400 mt-2 animate-pulse">
-          Click and drag to draw rectangle
+          Drag to select analysis area
         </div>
       )}
     </div>
