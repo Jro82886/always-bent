@@ -16,6 +16,7 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
   const [formData, setFormData] = useState({
     boatName: '',
     inlet: '',
+    activityType: 'bite', // 'bite', 'landed', 'spotted', 'feeding'
     species: '',
     quantity: 1,
     notes: '',
@@ -92,13 +93,13 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
         onClick={onClose}
       />
       
-      {/* Congrats Animation */}
+      {/* Activity Animation */}
       <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ${
         isAnimating ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
       }`}>
         <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-full shadow-2xl">
           <h2 className="text-2xl font-bold flex items-center gap-3">
-            🎉 Congrats on Your Catch! 🎣
+            🎯 Fish Activity Detected! 🐟
           </h2>
         </div>
       </div>
@@ -113,7 +114,7 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <Fish className="text-cyan-400" />
-                Log Your Catch
+                Log Fish Activity
               </h3>
               <button
                 onClick={onClose}
@@ -169,6 +170,60 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
                   </span>
                 )}
               </div>
+            </div>
+            
+            {/* Activity Type Selector - IMPORTANT! */}
+            <div className="mb-4">
+              <label className="text-sm text-cyan-300 font-semibold block mb-2">What happened? (All data helps!)</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, activityType: 'bite'})}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    formData.activityType === 'bite' 
+                      ? 'bg-orange-500/30 text-orange-300 border border-orange-400' 
+                      : 'bg-black/30 text-gray-400 border border-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  🎣 Got a Bite
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, activityType: 'landed'})}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    formData.activityType === 'landed' 
+                      ? 'bg-green-500/30 text-green-300 border border-green-400' 
+                      : 'bg-black/30 text-gray-400 border border-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  🐟 Fish Landed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, activityType: 'spotted'})}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    formData.activityType === 'spotted' 
+                      ? 'bg-blue-500/30 text-blue-300 border border-blue-400' 
+                      : 'bg-black/30 text-gray-400 border border-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  👀 Fish Spotted
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, activityType: 'feeding'})}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    formData.activityType === 'feeding' 
+                      ? 'bg-purple-500/30 text-purple-300 border border-purple-400' 
+                      : 'bg-black/30 text-gray-400 border border-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  💫 Fish Feeding
+                </button>
+              </div>
+              <p className="text-[10px] text-cyan-400/70 mt-2">
+                💡 Even nibbles help us predict hotspots! Every data point makes our AI smarter.
+              </p>
             </div>
             
             {/* Optional Fields */}
@@ -235,7 +290,7 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
               className="px-6 py-2 bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-2"
             >
               <Check size={18} />
-              Confirm Catch
+              Log Activity
             </button>
           </div>
         </div>

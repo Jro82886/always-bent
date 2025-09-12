@@ -137,41 +137,18 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   
   return (
     <>
-      {/* Report Catch Button */}
+      {/* Report Activity Button */}
       <button
         onClick={handleReportCatch}
-        disabled={isReporting}
-        className={`fixed bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-105 z-30 ${
-          isReporting 
-            ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-            : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-400 hover:to-orange-400'
-        }`}
+        className="fixed bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-105 z-30 bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-400 hover:to-orange-400"
         style={{
           boxShadow: '0 10px 40px rgba(255, 193, 7, 0.4)'
         }}
       >
-        {isReporting ? (
-          <span className="flex items-center gap-2">
-            <span className="animate-spin">⏳</span> Reporting...
-          </span>
-        ) : (
-          <span className="flex items-center gap-2">
-            <span className="text-2xl">🎣</span> REPORT CATCH!
-          </span>
-        )}
+        <span className="flex items-center gap-2">
+          <span className="text-2xl">🎣</span> FISH ACTIVITY!
+        </span>
       </button>
-      
-      {/* Success Message */}
-      {showSuccess && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-green-500/90 to-cyan-500/90 text-white px-8 py-6 rounded-2xl shadow-2xl z-50 animate-bounce">
-          <div className="text-center">
-            <div className="text-4xl mb-2">🎉</div>
-            <div className="text-xl font-bold">FISH ON!</div>
-            <div className="text-sm mt-2">Catch reported to ABFI Intelligence</div>
-            <div className="text-xs mt-1 opacity-80">Your data helps predict future hotspots</div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
