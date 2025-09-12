@@ -16,11 +16,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   useEffect(() => {
     if (visible && analysis) {
-      // Delay for dramatic effect after hotspot appears
+      // Show immediately when visible prop is true (user clicked)
+      setIsVisible(true);
       setTimeout(() => {
-        setIsVisible(true);
         setIsAnimating(true);
-      }, 1500); // Wait 1.5s after hotspot to auto-show report
+      }, 50); // Small delay for animation
     } else {
       setIsAnimating(false);
       setTimeout(() => setIsVisible(false), 300);

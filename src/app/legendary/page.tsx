@@ -19,6 +19,9 @@ export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   
+  // Get boat name from localStorage
+  const [boatName, setBoatName] = useState<string>('');
+  
   // Ocean Basemap + Copernicus layers
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
   const [sstActive, setSstActive] = useState(false); // Copernicus SST
@@ -28,6 +31,14 @@ export default function LegendaryOceanPlatform() {
   const [sstOpacity, setSstOpacity] = useState(90);
   const [chlOpacity, setChlOpacity] = useState(70);
   const [edgeMode, setEdgeMode] = useState(false); // Edge enhancement mode
+  
+  // Get boat name on mount
+  useEffect(() => {
+    const storedBoatName = localStorage.getItem('abfi_boat_name');
+    if (storedBoatName) {
+      setBoatName(storedBoatName);
+    }
+  }, []);
 
   // Initialize map
   useEffect(() => {
@@ -40,10 +51,13 @@ export default function LegendaryOceanPlatform() {
       zoom: 6,
       pitch: 0,  // Ensure flat map (no 3D tilt)
       bearing: 0, // Ensure north is up (no rotation)
-      cooperativeGestures: true
+      cooperativeGestures: false  // Allow normal scroll zoom
     });
 
     const mapInstance = map.current;
+    
+    // Add zoom controls
+    mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
@@ -230,6 +244,13 @@ export default function LegendaryOceanPlatform() {
           msImageRendering?: string;
         }}
       />
+      
+      {/* Boat Name Greeting */}
+      {boatName && (
+        <div className="absolute top-4 right-4 bg-black/70 backdrop-blur rounded-full px-4 py-2 text-cyan-300 text-sm font-medium">
+          ⚓ Hi, {boatName}!
+        </div>
+      )}
       
       {/* Simple Control Panel */}
       <div className="absolute top-8 left-8 bg-black/80 backdrop-blur rounded-2xl p-6 text-white space-y-4">

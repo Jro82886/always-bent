@@ -165,7 +165,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       <button
         onClick={handleReportCatch}
         disabled={isReporting}
-        className={`fixed bottom-32 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-full font-bold shadow-2xl transition-all hover:scale-105 ${
+        className={`fixed bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-105 z-30 ${
           isReporting 
             ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
             : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-400 hover:to-orange-400'

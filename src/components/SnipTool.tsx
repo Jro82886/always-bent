@@ -21,7 +21,11 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   // Clear when parent tells us to
   useEffect(() => {
     if (shouldClear) {
+      console.log('🔄 Parent requested clear');
       clearDrawing();
+      // Ensure we're ready for new drawing
+      setIsDrawing(false);
+      setIsAnalyzing(false);
     }
   }, [shouldClear]);
 
