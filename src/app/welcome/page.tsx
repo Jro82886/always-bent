@@ -1,17 +1,23 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getPhilosophicalQuote } from '@/lib/philosophy';
 
 export default function WelcomePage() {
   const router = useRouter();
   const [boatName, setBoatName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [welcomeQuote, setWelcomeQuote] = useState('');
   const [locationChoice, setLocationChoice] = useState<boolean | null>(null);
   
   // Glowing animation for the logo
   const [glowIntensity, setGlowIntensity] = useState(0);
   
   useEffect(() => {
+    // Set a random welcome quote on mount
+    setWelcomeQuote(getPhilosophicalQuote('welcome'));
+    
+    // Glow animation
     const interval = setInterval(() => {
       setGlowIntensity(prev => (prev + 1) % 100);
     }, 50);
@@ -91,6 +97,15 @@ export default function WelcomePage() {
             Where Ocean Data Becomes Intuition
           </p>
         </div>
+        
+        {/* Inspirational Quote */}
+        {welcomeQuote && (
+          <div className="mb-6 px-8 py-4 bg-black/30 backdrop-blur-sm rounded-xl border border-cyan-500/20">
+            <p className="text-cyan-300/90 italic text-center text-sm">
+              "{welcomeQuote}"
+            </p>
+          </div>
+        )}
         
         {/* Main Card */}
         <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-2xl">

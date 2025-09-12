@@ -8,6 +8,7 @@ import SSTLayer from '@/components/layers/SSTLayer';
 import SSTLegend from '@/components/SSTLegend';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
 import SnipController from '@/components/SnipController';
+import ReportCatchButton from '@/components/ReportCatchButton';
 import { EAST_COAST_BOUNDS } from '@/lib/imagery/bounds';
 import '@/styles/mapSmoothing.css';
 
@@ -465,6 +466,9 @@ export default function LegendaryOceanPlatform() {
       
       {/* Snip-It Controller - Handles drawing, analysis, and reporting */}
       <SnipController map={map.current} />
+      
+      {/* Report Catch Button - Community Intelligence! */}
+      <ReportCatchButton map={map.current} />
 
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
+import { getAnalysisQuote } from '@/lib/philosophy';
 
 interface AnalysisModalProps {
   analysis: AnalysisResult | null;
@@ -194,11 +195,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             </p>
           </div>
 
-          {/* Life Insight */}
+          {/* Life Insight - Contextual Philosophy */}
           <div className="text-center py-4 px-6 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-cyan-500/5 rounded-xl">
             <p className="text-cyan-300 italic">
-              "Every pulse represents life converging - the eternal dance of predator and prey 
-              at the ocean's thermal boundaries"
+              "{getAnalysisQuote(analysis)}"
             </p>
           </div>
         </div>
