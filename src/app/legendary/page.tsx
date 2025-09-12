@@ -90,14 +90,14 @@ export default function LegendaryOceanPlatform() {
 
       // SST now wired by SSTLayer component when toggled
 
-      // Chlorophyll - trying NASA as alternative source
+      // Chlorophyll - back to Copernicus proxy
       if (!mapInstance.getSource('chl-src')) {
         mapInstance.addSource('chl-src', {
           type: 'raster',
-          tiles: ['/api/tiles/chl-nasa/{z}/{x}/{y}.png'],  // NASA MODIS for now
+          tiles: ['/api/tiles/chl/{z}/{x}/{y}.png'],  // Back to Copernicus
           tileSize: 256, // Standard tile size
           minzoom: 0,
-          maxzoom: 13  // NASA data goes to zoom 13
+          maxzoom: 24
         });
       }
 
