@@ -58,6 +58,7 @@ export default function ModernControls({
   const [showSstOpacity, setShowSstOpacity] = useState(false);
   const [showChlOpacity, setShowChlOpacity] = useState(false);
   const [showSstEnhance, setShowSstEnhance] = useState(false);
+  const [boatName, setBoatName] = useState<string>('');
   
   // Enhancement settings for SST
   const [sstSmoothing, setSstSmoothing] = useState(0); // 0-2 pixels blur
@@ -66,9 +67,14 @@ export default function ModernControls({
   const [sstContrast, setSstContrast] = useState(50); // 0-100% where 50 is normal
   
   useEffect(() => {
-    // Check location permission status
+    // Check location permission status and boat name
     const enabled = localStorage.getItem('abfi_location_enabled') === 'true';
     setLocationEnabled(enabled);
+    
+    const storedBoatName = localStorage.getItem('abfi_boat_name');
+    if (storedBoatName) {
+      setBoatName(storedBoatName);
+    }
   }, []);
   
   const handleViewChange = (view: string) => {
@@ -119,11 +125,28 @@ export default function ModernControls({
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2 z-40">
         {/* Left Section: Logo and Main Navigation */}
         <div className="flex items-center gap-2">
-          {/* Logo */}
-          <div className="bg-black/70 backdrop-blur-md rounded-full px-4 py-2 border border-cyan-500/20">
-            <h1 className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              ALWAYS BENT
-            </h1>
+          {/* Command Center Identity */}
+          <div className="bg-black/70 backdrop-blur-md rounded-full px-5 py-2.5 border border-cyan-500/20">
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col">
+                <div className="text-[10px] text-cyan-400/60 font-medium uppercase tracking-wider">
+                  {boatName ? 'Command Bridge' : 'Ocean Intelligence'}
+                </div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-sm font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                    ALWAYS BENT
+                  </h1>
+                  {boatName && (
+                    <>
+                      <span className="text-cyan-500/40">|</span>
+                      <span className="text-xs font-semibold text-cyan-300">
+                        F/V {boatName}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
           
           {/* Main Navigation Pills */}
@@ -269,8 +292,8 @@ export default function ModernControls({
                         setShowOceanOpacity(false);
                         setShowChlOpacity(false);
                       }}
-                      className="absolute -top-1 -right-5 w-4 h-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center hover:from-purple-500 hover:to-pink-500 transition-all"
-                      title="Enhance SST visualization"
+                      className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full flex items-center justify-center hover:from-cyan-500 hover:to-blue-500 transition-all shadow-lg"
+                      title="Enhance SST contrast"
                     >
                       <Sparkles size={10} className="text-white" />
                     </button>
@@ -481,14 +504,14 @@ export default function ModernControls({
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
               </button>
               
-              {/* Hover tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-48">
-                <div className="bg-purple-900/90 text-white text-xs rounded-lg px-3 py-2">
-                  <div className="font-bold text-purple-300 mb-1">🌟 Chef's Special</div>
-                  <div className="text-[10px] leading-relaxed">
-                    Custom composite layers curated by Captain Jeff. Multiple data sources in one view!
+              {/* Hover tooltip - positioned below to avoid cutoff */}
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-48 z-50">
+                <div className="bg-black/90 backdrop-blur-md text-white text-xs rounded-lg px-3 py-2 border border-cyan-500/30">
+                  <div className="font-bold text-cyan-300 mb-1">🌟 Captain's Intelligence</div>
+                  <div className="text-[10px] leading-relaxed text-cyan-100/80">
+                    AI-powered composite layers. Multiple data sources analyzed for optimal fishing intelligence.
                   </div>
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-purple-900/90"></div>
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-black/90 border-t border-l border-cyan-500/30"></div>
                 </div>
               </div>
             </div>

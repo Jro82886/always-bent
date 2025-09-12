@@ -273,7 +273,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
     // Handle mouse move for preview
     const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
-      if (!isDrawing || !firstCorner.current) return;
+      if (!isDragging.current || !firstCorner.current) return;
 
       const corner1 = firstCorner.current;
       const corner2: [number, number] = [e.lngLat.lng, e.lngLat.lat];
@@ -308,9 +308,15 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
       if (source) {
         source.setData(collection);
+        
+        // Calculate and update area
+        const area = turf.area(rectangle);
+        const areaKm2 = area / 1000000;
+        setCurrentArea(areaKm2);
+        
         // Log every 10th mouse move to avoid spam
         if (Math.random() < 0.1) {
-          console.log('👁️ Preview updating...');
+          console.log('👁️ Preview updating, area:', areaKm2.toFixed(2), 'km²');
         }
       } else {
         console.error('❌ Rectangle source not found during preview!');
@@ -474,9 +480,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
       {isDrawing && (
         <div className="text-xs text-green-400 mt-2 animate-pulse">
-          {firstCorner.current 
-            ? 'Click to set opposite corner' 
-            : 'Click to set first corner'}
+          Click and drag to draw rectangle
         </div>
       )}
     </div>

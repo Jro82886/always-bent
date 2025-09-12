@@ -219,9 +219,9 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-30 group">
         <button
           onClick={handleReportCatch}
-          className="px-8 py-4 rounded-full font-bold shadow-2xl transition-all hover:scale-110 active:scale-95 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white hover:from-red-400 hover:via-orange-400 hover:to-yellow-400"
+          className="px-8 py-4 rounded-full font-bold shadow-2xl transition-all hover:scale-110 active:scale-95 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500 text-white hover:from-cyan-400 hover:via-blue-400 hover:to-cyan-400"
           style={{
-            boxShadow: '0 10px 40px rgba(255, 100, 0, 0.6)',
+            boxShadow: '0 10px 40px rgba(0, 200, 255, 0.4)',
             animation: 'subtle-pulse 3s infinite'
           }}
         >
