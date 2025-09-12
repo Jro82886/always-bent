@@ -240,7 +240,7 @@ export default function GetOrganized({ map }: Props) {
         `}
       >
         <Layers size={14} />
-        <span>Get Organized</span>
+        <span>SST Features</span>
         {loading && <span className="text-[10px]">(Loading...)</span>}
         <ChevronDown 
           size={12} 
