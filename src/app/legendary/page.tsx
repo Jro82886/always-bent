@@ -36,6 +36,8 @@ export default function LegendaryOceanPlatform() {
       style: 'mapbox://styles/mapbox/satellite-streets-v12',
       center: [-75, 36],
       zoom: 6,
+      pitch: 0,  // Ensure flat map (no 3D tilt)
+      bearing: 0, // Ensure north is up (no rotation)
       cooperativeGestures: true
     });
 
@@ -46,6 +48,14 @@ export default function LegendaryOceanPlatform() {
       // Constrain to East Coast AOI
       mapInstance.fitBounds(EAST_COAST_BOUNDS as any, { padding: 40, duration: 0 });
       mapInstance.setMaxBounds(EAST_COAST_BOUNDS as any);
+      
+      // Ensure map stays flat
+      mapInstance.setPitch(0);
+      mapInstance.setBearing(0);
+      
+      // Disable pitch/rotation controls
+      mapInstance.dragRotate.disable();
+      mapInstance.touchPitch.disable();
       
       // Debug: List layers and confirm presence
       setTimeout(() => {

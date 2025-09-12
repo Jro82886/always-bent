@@ -5,10 +5,11 @@ import type mapboxgl from 'mapbox-gl';
 
 interface SnipToolProps {
   map: mapboxgl.Map | null;
-  onAnalyze?: (polygon: GeoJSON.Feature) => void;
+  onAnalyze?: (polygon: GeoJSON.Feature) => Promise<void> | void;
+  shouldClear?: boolean;
 }
 
-export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
+export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentArea, setCurrentArea] = useState<number>(0);
@@ -16,6 +17,13 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
   const rectangleId = useRef<string>('analysis-rectangle');
   const currentRectangle = useRef<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
   const layersInitialized = useRef<boolean>(false);
+
+  // Clear when parent tells us to
+  useEffect(() => {
+    if (shouldClear) {
+      clearDrawing();
+    }
+  }, [shouldClear]);
 
   const clearDrawing = () => {
     setIsDrawing(false);
@@ -25,19 +33,15 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
     setCurrentArea(0);
     
     // Clear visualization
-    if (map) {
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-      if (source) {
-        source.setData({
-          type: 'FeatureCollection',
-          features: []
-        });
-      }
-      // Reset opacity
-      if (map.getLayer('rectangle-fill')) {
-        map.setPaintProperty('rectangle-fill', 'fill-opacity', 0.5);
-      }
+    if (map && map.getSource('rectangle-source')) {
+      const source = map.getSource('rectangle-source') as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
     }
+    
+    console.log('🧹 Drawing cleared');
   };
 
   useEffect(() => {
@@ -243,15 +247,29 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
         // Trigger analysis
         if (onAnalyze) {
           console.log('🔄 Triggering analysis with rectangle:', rectangle);
-          // Simulate analysis delay then call the callback
-          setTimeout(() => {
+          console.log('📍 Rectangle coordinates:', rectangle.geometry.coordinates);
+          console.log('🔍 onAnalyze function exists:', typeof onAnalyze);
+          
+          // Small delay for visual feedback, then call the parent's analysis
+          setTimeout(async () => {
             console.log('📊 Calling onAnalyze callback...');
-            onAnalyze(rectangle);
-            setIsAnalyzing(false);
-          }, 2000); // 2 second analysis time
+            console.log('⏱️ About to call onAnalyze at:', new Date().toISOString());
+            try {
+              const result = await onAnalyze(rectangle);
+              console.log('✅ onAnalyze completed successfully, result:', result);
+            } catch (error) {
+              console.error('❌ onAnalyze failed:', error);
+              console.error('Stack trace:', (error as Error).stack);
+            } finally {
+              // Only reset our local analyzing state after parent completes
+              console.log('🏁 Finally block: resetting isAnalyzing state');
+              setIsAnalyzing(false);
+            }
+          }, 1000); // 1 second for visual feedback
         } else {
           console.error('⚠️ No onAnalyze callback provided!');
           setIsAnalyzing(false);
+          clearRectangle();
         }
       }
     };
@@ -355,6 +373,36 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
     };
   }, [map, isDrawing, onAnalyze]);
 
+  const clearRectangle = () => {
+    if (!map) return;
+    
+    console.log('🧹 Clearing rectangle...');
+    
+    // Clear the rectangle data
+    if (map.getSource('rectangle-source')) {
+      const source = map.getSource('rectangle-source') as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
+    }
+    
+    // Reset all state
+    setCurrentArea(0);
+    setIsAnalyzing(false);
+    setIsDrawing(false);
+    firstCorner.current = null;
+    currentRectangle.current = null;
+  };
+  
+  // Handle shouldClear prop from parent
+  useEffect(() => {
+    if (shouldClear) {
+      console.log('🧹 Parent requested clear');
+      clearRectangle();
+    }
+  }, [shouldClear]);
+
   const startDrawing = () => {
     setIsDrawing(true);
     firstCorner.current = null;
@@ -362,7 +410,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
     
     // Clear any existing rectangle
     if (map) {
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+      const source = map.getSource('rectangle-source') as mapboxgl.GeoJSONSource;
       if (source) {
         source.setData({
           type: 'FeatureCollection',
@@ -414,12 +462,12 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
               </div>
             </div>
 
-            <button
+      <button
               onClick={clearDrawing}
               className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-            >
+      >
               Clear
-            </button>
+      </button>
           </>
         )}
       </div>

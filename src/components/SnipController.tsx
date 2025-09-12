@@ -18,10 +18,19 @@ export default function SnipController({ map }: SnipControllerProps) {
   const [hotspotPosition, setHotspotPosition] = useState<[number, number] | null>(null);
   const [showHotspot, setShowHotspot] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [shouldClearTool, setShouldClearTool] = useState(false);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
-    if (!map) return;
+    console.log('🎯 handleAnalyze called with polygon:', polygon);
+    console.log('📋 Polygon type:', polygon.geometry.type);
+    console.log('📏 Polygon coordinates count:', polygon.geometry.coordinates[0]?.length);
     
+    if (!map) {
+      console.error('❌ No map available for analysis');
+      return;
+    }
+    
+    console.log('✅ Map is available, proceeding with analysis');
     setIsAnalyzing(true);
     console.log('🔍 Starting SST analysis for polygon:', polygon);
 
@@ -29,10 +38,12 @@ export default function SnipController({ map }: SnipControllerProps) {
       // Get polygon bounds
       const bbox = turf.bbox(polygon);
       const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
+      console.log('📍 Polygon bounds:', bounds);
       
       // TODO: Replace with real SST data extraction from map tiles
       // For MVP, using mock data that simulates SST patterns
       const sstData = generateMockSSTData(bounds);
+      console.log('📊 Generated mock SST data:', sstData);
       
       // Run Jeff's analysis algorithm
       const analysis = await analyzeSSTPolygon(polygon as GeoJSON.Feature<GeoJSON.Polygon>, sstData);
@@ -48,8 +59,15 @@ export default function SnipController({ map }: SnipControllerProps) {
         
         // Auto-show modal after hotspot appears (part of the flow!)
         setTimeout(() => {
+          console.log('🎭 Showing analysis modal');
           setShowModal(true);
         }, 500); // Small delay so user sees the hotspot first
+      } else {
+        console.warn('⚠️ No hotspot found in analysis');
+        // Still show modal even without hotspot
+        setTimeout(() => {
+          setShowModal(true);
+        }, 500);
       }
       
       // TODO: Add feature overlays for edges/eddies later
@@ -58,10 +76,20 @@ export default function SnipController({ map }: SnipControllerProps) {
       // }
       
     } catch (error) {
-      console.error('❌ Analysis failed:', error);
-      alert('Analysis failed. Please try again.');
+      console.error('❌ Analysis failed with error:', error);
+      console.error('Error stack:', (error as Error).stack);
+      alert(`Analysis failed: ${(error as Error).message}`);
+      
+      // Clear the rectangle on error
+      setShouldClearTool(true);
+      setTimeout(() => setShouldClearTool(false), 100);
     } finally {
+      console.log('🏁 Analysis finished, setting isAnalyzing to false');
       setIsAnalyzing(false);
+      
+      // Clear the rectangle after successful analysis too
+      setShouldClearTool(true);
+      setTimeout(() => setShouldClearTool(false), 100);
     }
   }, [map]);
 
@@ -116,15 +144,50 @@ export default function SnipController({ map }: SnipControllerProps) {
       if (map) {
         clearMapOverlays(map);
       }
+      
+      // Tell SnipTool to clear the rectangle
+      setShouldClearTool(true);
+      setTimeout(() => setShouldClearTool(false), 100);
     }, 1000);
   }, [map]);
+
+  // Test function to simulate analysis
+  const testAnalysis = () => {
+    console.log('🧪 TEST: Triggering mock analysis');
+    const mockPolygon: GeoJSON.Feature = {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [-74.5, 38.5],
+          [-74.0, 38.5],
+          [-74.0, 39.0],
+          [-74.5, 39.0],
+          [-74.5, 38.5]
+        ]]
+      },
+      properties: {}
+    };
+    handleAnalyze(mockPolygon);
+  };
 
   return (
     <>
       <SnipTool 
         map={map} 
         onAnalyze={handleAnalyze}
+        shouldClear={shouldClearTool}
       />
+      
+      {/* Test button - remove after debugging */}
+      {process.env.NODE_ENV === 'development' && (
+        <button
+          onClick={testAnalysis}
+          className="fixed bottom-4 right-4 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-purple-700 z-50"
+        >
+          🧪 Test Analysis
+        </button>
+      )}
       
       <HotspotMarker
         map={map}
