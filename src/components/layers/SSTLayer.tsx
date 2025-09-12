@@ -12,8 +12,7 @@ export default function SSTLayer({ map, on }: Props) {
 
     const srcId = 'sst-src';
     const lyrId = 'sst-lyr';
-    const template = process.env.NEXT_PUBLIC_SST_WMTS_TEMPLATE!;
-    const tileSize = Number(process.env.NEXT_PUBLIC_SST_TILESIZE || 256);
+    const tileSize = 512; // High-res tiles
 
     if (!on) {
       if (map.getLayer(lyrId)) map.removeLayer(lyrId);
@@ -21,8 +20,8 @@ export default function SSTLayer({ map, on }: Props) {
       return;
     }
 
-    // Use yesterday (1 day ago) by default - server will fallback to 2 days if needed
-    const url = buildWMTS(template, dailyAtMidnightUTCISO(1));
+    // Use our proxy endpoint which handles auth and fallback
+    const url = '/api/tiles/sst/{z}/{x}/{y}.png';
 
     if (map.getLayer(lyrId)) map.removeLayer(lyrId);
     if (map.getSource(srcId)) (map as any).removeSource(srcId);

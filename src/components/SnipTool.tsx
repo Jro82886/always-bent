@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
+import DrawRectangle from '@/lib/mapbox-draw-rectangle';
 import * as turf from '@turf/turf';
 import type mapboxgl from 'mapbox-gl';
 
@@ -18,14 +19,17 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
   useEffect(() => {
     if (!map) return;
 
-    // Initialize Mapbox Draw
+    // Initialize Mapbox Draw with custom rectangle mode
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {
-        polygon: true,
         trash: true
       },
       defaultMode: 'simple_select',
+      modes: {
+        ...MapboxDraw.modes,
+        draw_rectangle: DrawRectangle
+      },
       styles: [
         // Active polygon fill
         {
@@ -135,18 +139,14 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
     };
   }, [map, onAnalyze]);
 
-  const startDrawing = (mode: 'polygon' | 'rectangle') => {
+  const startDrawing = () => {
     if (drawRef.current) {
       // Clear existing drawings
       drawRef.current.deleteAll();
       setCurrentArea(0);
       
-      // Start drawing
-      if (mode === 'rectangle') {
-        drawRef.current.changeMode('draw_rectangle' as any);
-      } else {
-        drawRef.current.changeMode('draw_polygon');
-      }
+      // Start rectangle drawing
+      drawRef.current.changeMode('draw_rectangle' as any);
       setIsDrawing(true);
     }
   };
@@ -165,17 +165,10 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
       
       <div className="space-y-2">
         <button
-          onClick={() => startDrawing('rectangle')}
+          onClick={startDrawing}
           className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           <span>▭</span> Draw Rectangle
-        </button>
-        
-        <button
-          onClick={() => startDrawing('polygon')}
-          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-        >
-          <span>⬟</span> Draw Polygon
         </button>
 
         {currentArea > 0 && (
@@ -199,7 +192,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
       {isDrawing && (
         <div className="text-xs text-green-400 mt-2 animate-pulse">
-          Click points to draw, double-click to finish
+          Click and drag to draw rectangle
         </div>
       )}
     </div>
