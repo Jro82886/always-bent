@@ -23,7 +23,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {
-        trash: true
+        trash: false
       },
       defaultMode: 'simple_select',
       modes: {
@@ -38,7 +38,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           filter: ['all', ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
           paint: {
             'fill-color': '#00ff00',
-            'fill-opacity': 0.1
+            'fill-opacity': 0.2
           }
         },
         // Active polygon outline
@@ -52,8 +52,8 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           },
           paint: {
             'line-color': '#00ff00',
-            'line-dasharray': [2, 2],
-            'line-width': 3
+            'line-dasharray': [0, 2],
+            'line-width': 4
           }
         },
         // Vertex points
@@ -84,6 +84,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
     // Event handlers
     const handleCreate = (e: any) => {
+      console.log('🎯 Draw create event fired:', e);
       const feature = e.features[0];
       if (feature) {
         // Calculate area
@@ -91,15 +92,21 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
         const areaKm2 = area / 1000000;
         setCurrentArea(areaKm2);
         
-        console.log('📐 Polygon created:', {
+        console.log('📐 Rectangle created:', {
           area: `${areaKm2.toFixed(2)} km²`,
-          coordinates: feature.geometry.coordinates
+          coordinates: feature.geometry.coordinates,
+          feature: feature
         });
 
         // Trigger analysis
         if (onAnalyze) {
+          console.log('🔄 Triggering analysis...');
           onAnalyze(feature);
+        } else {
+          console.log('⚠️ No onAnalyze callback provided');
         }
+      } else {
+        console.log('⚠️ No feature in create event');
       }
     };
 
@@ -192,7 +199,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
       {isDrawing && (
         <div className="text-xs text-green-400 mt-2 animate-pulse">
-          Drag to select analysis area
+          Click two corners to define area
         </div>
       )}
     </div>
