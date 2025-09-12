@@ -138,6 +138,14 @@ export default function GetOrganized({ map }: Props) {
               'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
             }
           });
+          
+          // Ensure polygons render above SST but below other UI elements
+          // Move layers to proper z-order
+          if (map.getLayer('sst-layer')) {
+            // Place polygon layers above SST
+            map.moveLayer(config.fill);
+            map.moveLayer(config.line);
+          }
 
           // Add click handler for popups
           map.on('click', config.fill, (e) => {

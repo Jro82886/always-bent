@@ -56,12 +56,10 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     console.log('🧹 Drawing cleared');
   };
 
+  // Setup layers once when component mounts
   useEffect(() => {
     if (!map) return;
     
-    let initialized = false;
-
-    // Add sources and layers for rectangle visualization
     const setupLayers = () => {
       console.log('🔧 Setting up rectangle layers...');
       try {
@@ -132,6 +130,24 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         console.error('❌ Error setting up rectangle layers:', error);
       }
     };
+
+    if (map.loaded()) {
+      setupLayers();
+    } else {
+      map.once('load', setupLayers);
+    }
+
+    return () => {
+      // Cleanup layers on unmount
+      if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
+      if (map.getLayer('rectangle-outline')) map.removeLayer('rectangle-outline');
+      if (map.getSource('rectangle')) map.removeSource('rectangle');
+    };
+  }, [map]);
+
+  // Separate effect for event handlers that need current state
+  useEffect(() => {
+    if (!map) return;
 
     // Handle mouse down - start drawing
     const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
@@ -339,37 +355,25 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       }
     };
 
-    // Setup on map load - ensure layers are ready
-    const initializeLayers = () => {
-      if (initialized || layersInitialized.current) return;
-      initialized = true;
-      layersInitialized.current = true;
-      
-      setupLayers();
-      
-      // Add drag event listeners
-      map.on('mousedown', handleMouseDown);
-      map.on('mousemove', handleMouseMove);
-      map.on('mouseup', handleMouseUp);
-      document.addEventListener('keydown', handleKeyDown);
-    };
-
-    if (map.loaded()) {
-      // Small delay to ensure map is fully ready
-      setTimeout(initializeLayers, 100);
-    } else {
-      map.once('load', initializeLayers);
-    }
+    // Add event listeners
+    map.on('mousedown', handleMouseDown);
+    map.on('mousemove', handleMouseMove);
+    map.on('mouseup', handleMouseUp);
+    document.addEventListener('keydown', handleKeyDown);
 
     // Change cursor and disable map dragging when drawing
     if (isDrawing) {
       map.getCanvas().style.cursor = 'crosshair';
       map.dragPan.disable();  // Disable map dragging
       map.boxZoom.disable();  // Disable box zoom
+      map.doubleClickZoom.disable();  // Disable double click zoom
+      console.log('🔒 Map interactions disabled for drawing');
     } else {
       map.getCanvas().style.cursor = '';
       map.dragPan.enable();   // Re-enable map dragging
       map.boxZoom.enable();   // Re-enable box zoom
+      map.doubleClickZoom.enable();  // Re-enable double click zoom
+      console.log('🔓 Map interactions re-enabled');
     }
 
     // Cleanup
@@ -381,9 +385,6 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       map.getCanvas().style.cursor = '';
       map.dragPan.enable();  // Re-enable map dragging on cleanup
       map.boxZoom.enable();  // Re-enable box zoom on cleanup
-      
-      // Don't remove layers/source on cleanup - they should persist
-      // Only remove them when component unmounts completely
     };
   }, [map, isDrawing, onAnalyze]);
 
@@ -423,6 +424,13 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       return;
     }
     
+    console.log('🚀 Starting drawing mode...');
+    console.log('📍 Current map state:', {
+      loaded: map.loaded(),
+      hasRectangleSource: !!map.getSource('rectangle'),
+      hasRectangleLayers: !!map.getLayer('rectangle-fill')
+    });
+    
     setIsDrawing(true);
     firstCorner.current = null;
     setCurrentArea(0);
@@ -434,12 +442,31 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         type: 'FeatureCollection',
         features: []
       });
+      console.log('✅ Cleared existing rectangle');
+    } else {
+      console.error('⚠️ Rectangle source not found! Layers may not be initialized');
     }
     
     // Set cursor immediately
     map.getCanvas().style.cursor = 'crosshair';
     
-    console.log('🎯 Rectangle drawing mode activated - click and drag to draw');
+    // Force disable map dragging RIGHT NOW
+    map.dragPan.disable();
+    map.boxZoom.disable();
+    map.doubleClickZoom.disable();
+    
+    // Verify the changes took effect
+    setTimeout(() => {
+      console.log('🎯 Rectangle drawing mode verification:');
+      console.log('📍 isDrawing state:', true);
+      console.log('📍 isDrawingRef current value:', isDrawingRef.current);
+      console.log('📍 Map drag disabled:', !map.dragPan.isEnabled());
+      console.log('📍 Box zoom disabled:', !map.boxZoom.isEnabled());
+      console.log('📍 Double click zoom disabled:', !map.doubleClickZoom.isEnabled());
+      console.log('📍 Cursor:', map.getCanvas().style.cursor);
+      console.log('📍 firstCorner:', firstCorner.current);
+      console.log('📍 isDragging:', isDragging.current);
+    }, 100);
   };
 
   return (
