@@ -116,7 +116,7 @@ export default function LegendaryOceanPlatform() {
           },
           minzoom: 0,
           maxzoom: 24
-        }, 'land-structure-polygon');  // Place BELOW land layer
+        });  // Remove the layer placement for now - it might be interfering
       }
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
