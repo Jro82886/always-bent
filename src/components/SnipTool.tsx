@@ -15,6 +15,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
   const firstCorner = useRef<[number, number] | null>(null);
   const rectangleId = useRef<string>('analysis-rectangle');
   const currentRectangle = useRef<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
+  const layersInitialized = useRef<boolean>(false);
 
   const clearDrawing = () => {
     setIsDrawing(false);
@@ -190,8 +191,10 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           // Animate opacity for pulsing effect
           let opacity = 0.3;
           let increasing = true;
+          let animationActive = true;
+          
           const pulseInterval = setInterval(() => {
-            if (!isAnalyzing) {
+            if (!animationActive || !map.getLayer('rectangle-fill')) {
               clearInterval(pulseInterval);
               return;
             }
@@ -204,8 +207,20 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
               if (opacity <= 0.3) increasing = true;
             }
             
-            map.setPaintProperty('rectangle-fill', 'fill-opacity', opacity);
+            try {
+              map.setPaintProperty('rectangle-fill', 'fill-opacity', opacity);
+            } catch (e) {
+              clearInterval(pulseInterval);
+            }
           }, 50);
+          
+          // Store interval reference for cleanup
+          currentRectangle.current = rectangle;
+          
+          // Clear interval after 10 seconds max
+          setTimeout(() => {
+            animationActive = false;
+          }, 10000);
         }
 
         // Trigger analysis
@@ -270,8 +285,9 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
     // Setup on map load - ensure layers are ready
     const initializeLayers = () => {
-      if (initialized) return;
+      if (initialized || layersInitialized.current) return;
       initialized = true;
+      layersInitialized.current = true;
       
       setupLayers();
       
@@ -308,9 +324,8 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
       map.dragPan.enable();  // Re-enable map dragging on cleanup
       map.boxZoom.enable();  // Re-enable box zoom on cleanup
       
-      if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
-      if (map.getLayer('rectangle-outline')) map.removeLayer('rectangle-outline');
-      if (map.getSource('rectangle')) map.removeSource('rectangle');
+      // Don't remove layers/source on cleanup - they should persist
+      // Only remove them when component unmounts completely
     };
   }, [map, isDrawing, onAnalyze]);
 
