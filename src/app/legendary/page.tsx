@@ -25,7 +25,7 @@ export default function LegendaryOceanPlatform() {
   const [selectedDate, setSelectedDate] = useState('today');
   const [oceanOpacity, setOceanOpacity] = useState(60);
   const [sstOpacity, setSstOpacity] = useState(90);
-  const [chlOpacity, setChlOpacity] = useState(85);
+  const [chlOpacity, setChlOpacity] = useState(70);
 
   // Initialize map
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function LegendaryOceanPlatform() {
         mapInstance.addSource('chl-src', {
           type: 'raster',
           tiles: ['/api/tiles/chl/{z}/{x}/{y}.png'],
-          tileSize: 512, // Updated to match environment
+          tileSize: 256, // Standard tile size for now
           minzoom: 0,
           maxzoom: 24
         });
@@ -106,10 +106,14 @@ export default function LegendaryOceanPlatform() {
           type: 'raster',
           source: 'chl-src',
           layout: { visibility: 'none' },
-          paint: { 'raster-opacity': 1 },
+          paint: { 
+            'raster-opacity': 0.7,  // Start at 70% to blend better
+            'raster-contrast': 0.2,  // Enhance color differences
+            'raster-saturation': 0.3  // Boost the green colors
+          },
           minzoom: 0,
           maxzoom: 24
-        });
+        }, 'land-structure-polygon');  // Place BELOW land layer
       }
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
