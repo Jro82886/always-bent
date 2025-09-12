@@ -63,7 +63,7 @@ export default function SnipController({ map }: SnipControllerProps) {
       
       // Prepare data for Supabase
       const analysisData = {
-        geometry: currentAnalysis.polygon.geometry,
+        geometry: currentAnalysis.polygon.geometry as GeoJSON.Polygon,
         conditions: {
           sst_min: currentAnalysis.stats.min_temp_f,
           sst_max: currentAnalysis.stats.max_temp_f,
@@ -77,15 +77,15 @@ export default function SnipController({ map }: SnipControllerProps) {
         })),
         report_text: generateReportText(currentAnalysis),
         primary_hotspot: currentAnalysis.hotspot ? {
-          type: 'Point',
+          type: 'Point' as const,
           coordinates: currentAnalysis.hotspot.location
-        } : undefined,
+        } as GeoJSON.Point : undefined,
         hotspot_confidence: currentAnalysis.hotspot?.confidence || 0,
         success_prediction: currentAnalysis.hotspot ? currentAnalysis.hotspot.confidence * 0.85 : 0.5,
         layers_active: ['sst']
       };
       
-      const saved = await saveSnipAnalysis(analysisData);
+      const saved = await saveSnipAnalysis(analysisData as any);
       console.log('✅ Analysis saved:', saved);
       
       alert('Analysis saved successfully!');
@@ -130,7 +130,7 @@ export default function SnipController({ map }: SnipControllerProps) {
 }
 
 // Helper functions
-function getTimeOfDay(): string {
+function getTimeOfDay(): 'dawn' | 'morning' | 'midday' | 'afternoon' | 'dusk' | 'night' {
   const hour = new Date().getHours();
   if (hour < 6) return 'night';
   if (hour < 9) return 'dawn';

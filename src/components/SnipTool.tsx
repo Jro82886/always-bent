@@ -23,7 +23,6 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
       displayControlsDefault: false,
       controls: {
         polygon: true,
-        rectangle: true,
         trash: true
       },
       defaultMode: 'simple_select',

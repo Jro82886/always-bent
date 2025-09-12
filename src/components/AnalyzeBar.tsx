@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useState, useEffect } from 'react';
-import SnipController, { BBox } from '@/components/SnipController';
+// BBox type for bounding box coordinates [west, south, east, north]
+type BBox = [number, number, number, number];
 import { useAppState } from '@/store/appState';
 import { DEFAULT_INLET, getInletById } from '@/lib/inlets';
 import { ensureHotspotLayers } from '@/lib/overlay';
@@ -155,7 +156,7 @@ export default function AnalyzeBar() {
 
   return (
     <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 bottom-6 z-50 flex flex-col items-center gap-3">
-      {snipping && <SnipController onDone={onSnipDone} />}
+      {/* Snipping handled by SnipController in legendary page */}
       <AnalysisFooterBar
         report={report}
         reportOpen={reportOpen}

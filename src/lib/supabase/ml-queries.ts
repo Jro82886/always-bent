@@ -73,16 +73,16 @@ export async function getRecentCatches(
     .eq('share_publicly', true)
     .gte('time_of_catch', new Date(Date.now() - hours * 3600000).toISOString());
   
-  if (bounds) {
-    // Add spatial filter if bounds provided
-    const [[south, west], [north, east]] = bounds;
-    query = query.rpc('within_bounds', {
-      min_lat: south,
-      max_lat: north,
-      min_lng: west,
-      max_lng: east
-    });
-  }
+  // TODO: Add spatial filtering when RPC function is created
+  // if (bounds) {
+  //   const [[south, west], [north, east]] = bounds;
+  //   query = query.rpc('within_bounds', {
+  //     min_lat: south,
+  //     max_lat: north,
+  //     min_lng: west,
+  //     max_lng: east
+  //   });
+  // }
   
   const { data, error } = await query;
   if (error) throw error;
@@ -190,16 +190,16 @@ export async function getHotspots(
     .gte('data_quality_score', 0.6)
     .order('success_rate', { ascending: false });
   
-  if (bounds) {
-    // Add spatial filter
-    const [[south, west], [north, east]] = bounds;
-    query = query.rpc('hotspots_in_bounds', {
-      min_lat: south,
-      max_lat: north,
-      min_lng: west,
-      max_lng: east
-    });
-  }
+  // TODO: Add spatial filtering when RPC function is created
+  // if (bounds) {
+  //   const [[south, west], [north, east]] = bounds;
+  //   query = query.rpc('hotspots_in_bounds', {
+  //     min_lat: south,
+  //     max_lat: north,
+  //     min_lng: west,
+  //     max_lng: east
+  //   });
+  // }
   
   const { data, error } = await query;
   if (error) throw error;
