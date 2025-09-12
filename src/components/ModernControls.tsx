@@ -52,8 +52,10 @@ export default function ModernControls({
   const router = useRouter();
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [showLayerPanel, setShowLayerPanel] = useState(false);
-  const [showOpacityControls, setShowOpacityControls] = useState(false);
   const [currentView, setCurrentView] = useState('analysis'); // analysis | tracking | community
+  const [showOceanOpacity, setShowOceanOpacity] = useState(false);
+  const [showSstOpacity, setShowSstOpacity] = useState(false);
+  const [showChlOpacity, setShowChlOpacity] = useState(false);
   
   useEffect(() => {
     // Check location permission status
@@ -170,50 +172,161 @@ export default function ModernControls({
         <div className="flex items-center gap-2">
           {/* Layer Toggle Group - FIRST to show available layers */}
           <div className="bg-black/70 backdrop-blur-md rounded-full px-2 py-1 border border-cyan-500/20 flex items-center gap-1">
-            <button
-              onClick={() => toggleLayer('ocean')}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                oceanActive
-                  ? 'bg-blue-500/30 text-blue-300 shadow-inner shadow-blue-500/50'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
-              style={oceanActive ? {
-                boxShadow: '0 0 20px rgba(59, 130, 246, 0.5), inset 0 0 10px rgba(59, 130, 246, 0.3)'
-              } : {}}
-              title="Ocean Basemap (Bathymetry)"
-            >
-              🌊 Ocean
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => toggleLayer('ocean')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  oceanActive
+                    ? 'bg-blue-500/30 text-blue-300 shadow-inner shadow-blue-500/50'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+                style={oceanActive ? {
+                  boxShadow: '0 0 20px rgba(59, 130, 246, 0.5), inset 0 0 10px rgba(59, 130, 246, 0.3)'
+                } : {}}
+                title="Ocean Basemap (Bathymetry)"
+              >
+                🌊 Ocean
+                {oceanActive && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowOceanOpacity(!showOceanOpacity);
+                      setShowSstOpacity(false);
+                      setShowChlOpacity(false);
+                    }}
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-black/80 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    title="Adjust Ocean opacity"
+                  >
+                    <Sliders size={10} className="text-white" />
+                  </button>
+                )}
+              </button>
+              
+              {/* Ocean Opacity Popup */}
+              {showOceanOpacity && oceanActive && (
+                <div className="absolute top-full mt-2 left-0 bg-black/90 backdrop-blur-md rounded-lg border border-blue-500/30 p-3 z-50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-300 text-xs">🌊</span>
+                    <input
+                      type="range"
+                      min="20"
+                      max="80"
+                      value={oceanOpacity}
+                      onChange={(e) => updateOpacity('ocean', parseInt(e.target.value))}
+                      className="w-24 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${oceanOpacity}%, rgba(255,255,255,0.2) ${oceanOpacity}%, rgba(255,255,255,0.2) 100%)`
+                      }}
+                    />
+                    <span className="text-gray-400 text-xs">{oceanOpacity}%</span>
+                  </div>
+                </div>
+              )}
+            </div>
             
-            <button
-              onClick={() => toggleLayer('sst')}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                sstActive
-                  ? 'bg-orange-500/30 text-orange-300 shadow-inner shadow-orange-500/50'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
-              style={sstActive ? {
-                boxShadow: '0 0 20px rgba(251, 146, 60, 0.5), inset 0 0 10px rgba(251, 146, 60, 0.3)'
-              } : {}}
-              title="Sea Surface Temperature"
-            >
-              🌡️ SST
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => toggleLayer('sst')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  sstActive
+                    ? 'bg-orange-500/30 text-orange-300 shadow-inner shadow-orange-500/50'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+                style={sstActive ? {
+                  boxShadow: '0 0 20px rgba(251, 146, 60, 0.5), inset 0 0 10px rgba(251, 146, 60, 0.3)'
+                } : {}}
+                title="Sea Surface Temperature"
+              >
+                🌡️ SST
+                {sstActive && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowSstOpacity(!showSstOpacity);
+                      setShowOceanOpacity(false);
+                      setShowChlOpacity(false);
+                    }}
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-black/80 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    title="Adjust SST opacity"
+                  >
+                    <Sliders size={10} className="text-white" />
+                  </button>
+                )}
+              </button>
+              
+              {/* SST Opacity Popup */}
+              {showSstOpacity && sstActive && (
+                <div className="absolute top-full mt-2 left-0 bg-black/90 backdrop-blur-md rounded-lg border border-orange-500/30 p-3 z-50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-orange-300 text-xs">🌡️</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="100"
+                      value={sstOpacity}
+                      onChange={(e) => updateOpacity('sst', parseInt(e.target.value))}
+                      className="w-24 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #f97316 0%, #f97316 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
+                      }}
+                    />
+                    <span className="text-gray-400 text-xs">{sstOpacity}%</span>
+                  </div>
+                </div>
+              )}
+            </div>
             
-            <button
-              onClick={() => toggleLayer('chl')}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                chlActive
-                  ? 'bg-green-500/30 text-green-300 shadow-inner shadow-green-500/50'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
-              style={chlActive ? {
-                boxShadow: '0 0 20px rgba(34, 197, 94, 0.5), inset 0 0 10px rgba(34, 197, 94, 0.3)'
-              } : {}}
-              title="Chlorophyll Concentration"
-            >
-              🌿 CHL
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => toggleLayer('chl')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  chlActive
+                    ? 'bg-green-500/30 text-green-300 shadow-inner shadow-green-500/50'
+                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+                style={chlActive ? {
+                  boxShadow: '0 0 20px rgba(34, 197, 94, 0.5), inset 0 0 10px rgba(34, 197, 94, 0.3)'
+                } : {}}
+                title="Chlorophyll Concentration"
+              >
+                🌿 CHL
+                {chlActive && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowChlOpacity(!showChlOpacity);
+                      setShowOceanOpacity(false);
+                      setShowSstOpacity(false);
+                    }}
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-black/80 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    title="Adjust CHL opacity"
+                  >
+                    <Sliders size={10} className="text-white" />
+                  </button>
+                )}
+              </button>
+              
+              {/* CHL Opacity Popup */}
+              {showChlOpacity && chlActive && (
+                <div className="absolute top-full mt-2 left-0 bg-black/90 backdrop-blur-md rounded-lg border border-green-500/30 p-3 z-50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-green-300 text-xs">🌿</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="100"
+                      value={chlOpacity}
+                      onChange={(e) => updateOpacity('chl', parseInt(e.target.value))}
+                      className="w-24 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #22c55e 0%, #22c55e ${chlOpacity}%, rgba(255,255,255,0.2) ${chlOpacity}%, rgba(255,255,255,0.2) 100%)`
+                      }}
+                    />
+                    <span className="text-gray-400 text-xs">{chlOpacity}%</span>
+                  </div>
+                </div>
+              )}
+            </div>
             
             {/* ABFI Custom Layer - COMING SOON TEASER */}
             <div className="relative group">
@@ -281,90 +394,8 @@ export default function ModernControls({
               </div>
             )}
           </div>
-          
-          {/* Opacity Controls - ONLY show when layers are active */}
-          {(oceanActive || sstActive || chlActive) && (
-            <button
-              onClick={() => setShowOpacityControls(!showOpacityControls)}
-              className={`bg-black/70 backdrop-blur-md rounded-full px-3 py-1.5 border border-cyan-500/20 text-xs font-medium transition-all ${
-                showOpacityControls
-                  ? 'bg-white/20 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
-              title="Adjust Layer Opacity"
-            >
-              <Sliders size={14} />
-            </button>
-          )}
         </div>
       </div>
-      
-      {/* Opacity Control Panel */}
-      {showOpacityControls && (oceanActive || sstActive || chlActive) && (
-        <div className="absolute top-16 right-4 bg-black/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4 space-y-3 z-30">
-          <h3 className="text-xs font-semibold text-cyan-300 mb-2">Layer Opacity</h3>
-          
-          {oceanActive && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-blue-300">🌊 Ocean</span>
-                <span className="text-gray-400">{oceanOpacity}%</span>
-              </div>
-              <input
-                type="range"
-                min="20"
-                max="80"
-                value={oceanOpacity}
-                onChange={(e) => updateOpacity('ocean', parseInt(e.target.value))}
-                className="w-32 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${oceanOpacity}%, rgba(255,255,255,0.2) ${oceanOpacity}%, rgba(255,255,255,0.2) 100%)`
-                }}
-              />
-            </div>
-          )}
-          
-          {sstActive && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-orange-300">🌡️ SST</span>
-                <span className="text-gray-400">{sstOpacity}%</span>
-              </div>
-              <input
-                type="range"
-                min="50"
-                max="100"
-                value={sstOpacity}
-                onChange={(e) => updateOpacity('sst', parseInt(e.target.value))}
-                className="w-32 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #f97316 0%, #f97316 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
-                }}
-              />
-            </div>
-          )}
-          
-          {chlActive && (
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-green-300">🌿 CHL</span>
-                <span className="text-gray-400">{chlOpacity}%</span>
-              </div>
-              <input
-                type="range"
-                min="50"
-                max="100"
-                value={chlOpacity}
-                onChange={(e) => updateOpacity('chl', parseInt(e.target.value))}
-                className="w-32 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, #22c55e 0%, #22c55e ${chlOpacity}%, rgba(255,255,255,0.2) ${chlOpacity}%, rgba(255,255,255,0.2) 100%)`
-                }}
-              />
-            </div>
-          )}
-        </div>
-      )}
       
       {/* Location Permission Prompt (if not set) */}
       {currentView === 'analysis' && locationEnabled === false && (
