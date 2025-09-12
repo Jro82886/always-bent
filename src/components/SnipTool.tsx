@@ -99,15 +99,21 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           }
         });
         
-        // Ensure layers are on top
-        const layers = map.getStyle().layers;
-        if (layers && layers.length > 0) {
-          const topLayerId = layers[layers.length - 1].id;
-          if (topLayerId !== 'rectangle-outline') {
+        // FORCE layers to absolute top - run multiple times to ensure
+        const ensureOnTop = () => {
+          if (map.getLayer('rectangle-fill')) {
             map.moveLayer('rectangle-fill');
+          }
+          if (map.getLayer('rectangle-outline')) {
             map.moveLayer('rectangle-outline');
           }
-        }
+        };
+        
+        // Run immediately and after delays to beat any other layers
+        ensureOnTop();
+        setTimeout(ensureOnTop, 100);
+        setTimeout(ensureOnTop, 500);
+        setTimeout(ensureOnTop, 1000);
         
         console.log('✅ Rectangle layers setup complete');
       } catch (error) {
