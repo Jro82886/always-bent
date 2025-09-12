@@ -4,7 +4,7 @@ import type mapboxgl from 'mapbox-gl';
 import SnipTool from './SnipTool';
 import HotspotMarker from './HotspotMarker';
 import AnalysisModal from './AnalysisModal';
-import { analyzeSSTPolygon, generateMockSSTData, type AnalysisResult } from '@/lib/analysis/sst-analyzer';
+import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData, type AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { saveSnipAnalysis } from '@/lib/supabase/ml-queries';
 import * as turf from '@turf/turf';
 
@@ -35,7 +35,15 @@ export default function SnipController({ map }: SnipControllerProps) {
     
     console.log('✅ Map is available, proceeding with analysis');
     setIsAnalyzing(true);
-    console.log('🔍 Starting SST analysis for polygon:', polygon);
+    
+    // Detect which layers are currently active
+    const activeLayers = {
+      sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
+      chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+      ocean: map.getLayer('ocean-layer') && map.getLayoutProperty('ocean-layer', 'visibility') === 'visible'
+    };
+    console.log('🔍 Active layers:', activeLayers);
+    console.log('🔍 Starting multi-layer analysis for polygon:', polygon);
 
     try {
       // Get polygon bounds
@@ -43,13 +51,22 @@ export default function SnipController({ map }: SnipControllerProps) {
       const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
       console.log('📍 Polygon bounds:', bounds);
       
-      // TODO: Replace with real SST data extraction from map tiles
-      // For MVP, using mock data that simulates SST patterns
-      const sstData = generateMockSSTData(bounds);
-      console.log('📊 Generated mock SST data:', sstData);
+      // TODO: Replace with real data extraction from map tiles
+      // For MVP, using mock data that simulates patterns
+      const sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
+      const chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
       
-      // Run Jeff's analysis algorithm
-      const analysis = await analyzeSSTPolygon(polygon as GeoJSON.Feature<GeoJSON.Polygon>, sstData);
+      console.log('📊 Generated mock data:', { 
+        sst: sstData ? `${sstData.length} points` : 'inactive',
+        chl: chlData ? `${chlData.length} points` : 'inactive'
+      });
+      
+      // Run multi-layer analysis algorithm
+      const analysis = await analyzeMultiLayer(
+        polygon as GeoJSON.Feature<GeoJSON.Polygon>, 
+        sstData,
+        chlData
+      );
       
       console.log('✅ Analysis complete:', analysis);
       setCurrentAnalysis(analysis);

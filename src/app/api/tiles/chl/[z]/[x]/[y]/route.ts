@@ -1,57 +1,113 @@
-import { NextRequest } from 'next/server';
+/**
+ * Chlorophyll Tile Proxy Route
+ * Fetches high-resolution chlorophyll tiles from Copernicus Marine WMTS
+ * Similar to SST proxy but for ocean color/chlorophyll data
+ */
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ z: string; x: string; y: string }> }) {
-  const resolvedParams = await params;
-  const z = resolvedParams.z;
-  const x = resolvedParams.x;
-  const y = resolvedParams.y.replace('.png',''); // sanitize
-  const isSst = req.nextUrl.pathname.includes('/sst/');
-  const tplKey = isSst ? 'CMEMS_SST_WMTS_TEMPLATE' : 'CMEMS_CHL_WMTS_TEMPLATE';
-  const base = process.env[tplKey];
+// Get today's date in UTC
+function getTodayUTC(): string {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(now.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}T12:00:00.000Z`;
+}
 
-  if (!base) return new Response(`${tplKey} not configured`, { status: 500 });
+// Get date N days ago
+function getDaysAgo(days: number): string {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() - days);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}T12:00:00.000Z`;
+}
 
-  // Handle time parameter - use default if not specified  
-  const time = req.nextUrl.searchParams.get('time') || 'default';
-  const target = base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{time}', time);
-
-  const u = process.env.COPERNICUS_USER || '';
-  const p = process.env.COPERNICUS_PASS || '';
-  const auth = 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64');
-
-  try {
-    const upstream = await fetch(target, {
-      headers: {
-        Authorization: auth,
-        Accept: 'image/png',
-        'User-Agent': 'alwaysbent-abfi'
-      },
-      redirect: 'follow',
-      cache: 'no-store'
-    });
-
-    if (!upstream.ok) {
-      const text = await upstream.text();
-      return new Response(text || `Upstream ${upstream.status}`, {
-        status: upstream.status,
-        headers: { 'x-upstream-url': target }
-      });
-    }
-
-    return new Response(upstream.body, {
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
-        'x-upstream-url': target
-      }
-    });
-  } catch (e: any) {
-    return new Response(`Fetch failed: ${e?.message || e}`, {
-      status: 502,
-      headers: { 'x-upstream-url': target }
-    });
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ z: string; x: string; y: string }> }
+) {
+  const params = await context.params;
+  const { z, x, y } = params;
+  
+  // Get CHL WMTS template from environment
+  const template = process.env.NEXT_PUBLIC_CHL_WMTS_TEMPLATE;
+  if (!template) {
+    console.error('❌ NEXT_PUBLIC_CHL_WMTS_TEMPLATE not configured');
+    return new NextResponse('CHL WMTS not configured', { status: 500 });
   }
+
+  // Try today first, then fall back to previous days if needed
+  const datesToTry = [
+    getTodayUTC(),
+    getDaysAgo(1),
+    getDaysAgo(2),
+    getDaysAgo(3),
+    getDaysAgo(4),
+    getDaysAgo(5)
+  ];
+
+  for (const dateTime of datesToTry) {
+    // Build the Copernicus WMTS URL
+    const url = template
+      .replace('{z}', z)
+      .replace('{x}', x)
+      .replace('{y}', y)
+      .replace('{TIME}', dateTime);
+
+    console.log(`🌿 Fetching CHL tile [${z}/${x}/${y}] for ${dateTime.split('T')[0]}`);
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'ABFI-CHL-Proxy/1.0',
+        },
+        // Don't cache failed attempts
+        cache: 'no-store'
+      });
+
+      if (response.ok) {
+        const buffer = await response.arrayBuffer();
+        
+        // Return the tile with proper caching headers
+        return new NextResponse(buffer, {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/png',
+            'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+            'X-CHL-Date': dateTime.split('T')[0],
+            'X-CHL-Source': 'Copernicus-Marine',
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      }
+
+      // If 404 or other error, try next date
+      console.log(`⚠️ CHL tile not available for ${dateTime.split('T')[0]}, trying earlier date...`);
+      
+    } catch (error) {
+      console.error(`❌ Error fetching CHL tile for ${dateTime}:`, error);
+      // Continue to next date
+    }
+  }
+
+  // If all dates failed, return a transparent tile
+  console.log(`❌ No CHL data available for tile [${z}/${x}/${y}] in last 5 days`);
+  
+  // Return transparent 256x256 PNG
+  const transparentPng = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+    'base64'
+  );
+  
+  return new NextResponse(transparentPng, {
+    status: 200,
+    headers: {
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, max-age=300', // Cache empty tiles for 5 min
+      'X-CHL-Status': 'no-data',
+    },
+  });
 }

@@ -28,7 +28,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   if (!isVisible || !analysis) return null;
 
-  const { hotspot, stats, features } = analysis;
+  const { hotspot, stats, features, layerAnalysis } = analysis;
   
   // Find the strongest feature
   const strongestFeature = features.length > 0 ? 
@@ -72,6 +72,18 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
         {/* Main Content */}
         <div className="p-6 space-y-6">
+          {/* Convergence Alert if detected */}
+          {layerAnalysis?.convergence?.detected && (
+            <div className="bg-gradient-to-r from-cyan-500/20 via-green-500/20 to-cyan-500/20 rounded-xl p-4 border-2 border-cyan-400/50 animate-pulse">
+              <h3 className="text-cyan-300 font-bold mb-2 flex items-center gap-2">
+                <span className="text-xl">🎯</span> CONVERGENCE ZONE DETECTED!
+              </h3>
+              <p className="text-white font-semibold">
+                {layerAnalysis.convergence.description}
+              </p>
+            </div>
+          )}
+          
           {/* Why the hotspot */}
           <div className="bg-cyan-500/5 rounded-xl p-4 border border-cyan-500/20">
             <h3 className="text-cyan-300 font-semibold mb-2 flex items-center gap-2">
@@ -88,10 +100,36 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                   <span className="text-cyan-400"> prime feeding zone</span>.
                 </>
               ) : (
-                'Analyzing temperature patterns...'
+                'Analyzing ocean patterns...'
               )}
             </p>
           </div>
+          
+          {/* Layer Analysis */}
+          {layerAnalysis && (
+            <div className="space-y-3">
+              {/* SST Analysis */}
+              {layerAnalysis.sst?.active && (
+                <div className="bg-red-500/10 rounded-lg p-3 border border-red-500/20">
+                  <h4 className="text-red-300 text-sm font-semibold mb-1">🌡️ Temperature Analysis</h4>
+                  <p className="text-gray-300 text-sm">{layerAnalysis.sst.description}</p>
+                </div>
+              )}
+              
+              {/* Chlorophyll Analysis */}
+              {layerAnalysis.chl?.active && (
+                <div className="bg-green-500/10 rounded-lg p-3 border border-green-500/20">
+                  <h4 className="text-green-300 text-sm font-semibold mb-1">🌿 Chlorophyll Analysis</h4>
+                  <p className="text-gray-300 text-sm">{layerAnalysis.chl.description}</p>
+                  {layerAnalysis.chl.max_chl_mg_m3 && (
+                    <p className="text-green-400 text-xs mt-1">
+                      Peak concentration: {layerAnalysis.chl.max_chl_mg_m3.toFixed(2)} mg/m³
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Ocean Conditions */}
           <div className="grid grid-cols-2 gap-4">

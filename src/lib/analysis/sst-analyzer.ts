@@ -57,6 +57,23 @@ export interface AnalysisResult {
     temp_range_f: number;
     area_km2: number;
   };
+  layerAnalysis?: {
+    sst?: {
+      active: boolean;
+      description: string;
+    };
+    chl?: {
+      active: boolean;
+      description: string;
+      avg_chl_mg_m3?: number;
+      max_chl_mg_m3?: number;
+    };
+    convergence?: {
+      detected: boolean;
+      confidence: number;
+      description: string;
+    };
+  };
 }
 
 /**
@@ -331,6 +348,142 @@ export function generateMockSSTData(bounds: number[][]): SSTDataPoint[] {
         lat,
         lng,
         temp_f: baseTemp + variation + hotSpotBonus
+      });
+    }
+  }
+  
+  return data;
+}
+
+/**
+ * Multi-layer ocean analysis
+ * Combines SST, Chlorophyll, and other data for comprehensive intelligence
+ */
+export async function analyzeMultiLayer(
+  polygon: GeoJSON.Feature<GeoJSON.Polygon>,
+  sstData: SSTDataPoint[] | null,
+  chlData: CHLDataPoint[] | null
+): Promise<AnalysisResult> {
+  // If we have SST data, use the existing analysis as base
+  let result: AnalysisResult;
+  
+  if (sstData && sstData.length > 0) {
+    result = await analyzeSSTPolygon(polygon, sstData);
+  } else {
+    // Create a basic result structure if no SST
+    const areaKm2 = turf.area(polygon) / 1e6;
+    result = {
+      polygon,
+      features: [],
+      hotspot: null,
+      stats: {
+        min_temp_f: 0,
+        max_temp_f: 0,
+        avg_temp_f: 0,
+        temp_range_f: 0,
+        area_km2: areaKm2
+      }
+    };
+  }
+  
+  // Initialize layer analysis
+  result.layerAnalysis = {
+    sst: {
+      active: !!sstData,
+      description: sstData ? 
+        `Temperature range: ${result.stats.min_temp_f.toFixed(1)}°F - ${result.stats.max_temp_f.toFixed(1)}°F` :
+        'SST layer not active'
+    }
+  };
+  
+  // Analyze chlorophyll if available
+  if (chlData && chlData.length > 0) {
+    const chlValues = chlData.map(p => p.chl_mg_m3);
+    const avgChl = chlValues.reduce((a, b) => a + b, 0) / chlValues.length;
+    const maxChl = Math.max(...chlValues);
+    
+    let chlDescription = '';
+    if (maxChl > 1.0) {
+      chlDescription = '🌿 HIGH PLANKTON BLOOM detected! Prime baitfish aggregation zone.';
+    } else if (avgChl > 0.5) {
+      chlDescription = '🌿 Moderate chlorophyll indicates productive water with good forage.';
+    } else {
+      chlDescription = '🌿 Clear blue water - look for structure and temperature breaks.';
+    }
+    
+    result.layerAnalysis.chl = {
+      active: true,
+      description: chlDescription,
+      avg_chl_mg_m3: avgChl,
+      max_chl_mg_m3: maxChl
+    };
+    
+    // Check for convergence zones (SST edge + CHL bloom)
+    if (sstData && result.features.length > 0 && maxChl > 0.7) {
+      const hasStrongEdge = result.features.some(f => 
+        f.type === 'edge' || f.type === 'hard_edge'
+      );
+      
+      if (hasStrongEdge) {
+        result.layerAnalysis.convergence = {
+          detected: true,
+          confidence: 0.85,
+          description: '🎯 CONVERGENCE ZONE: Temperature break aligns with plankton bloom! This is where ocean systems collide and predators hunt.'
+        };
+        
+        // Boost hotspot confidence for convergence
+        if (result.hotspot) {
+          result.hotspot.confidence = Math.min(1.0, result.hotspot.confidence * 1.3);
+          result.hotspot.optimal_approach = 'Work the edges where green water meets blue - fish are stacked here!';
+        }
+      }
+    }
+  } else {
+    result.layerAnalysis.chl = {
+      active: false,
+      description: 'Chlorophyll layer not active'
+    };
+  }
+  
+  return result;
+}
+
+// Chlorophyll data point interface
+export interface CHLDataPoint {
+  lat: number;
+  lng: number;
+  chl_mg_m3: number; // Chlorophyll concentration in mg/m³
+}
+
+// Generate mock chlorophyll data
+export function generateMockCHLData(bounds: number[][]): CHLDataPoint[] {
+  const [[west, south], [east, north]] = bounds;
+  const data: CHLDataPoint[] = [];
+  
+  // Create a grid of points
+  const latStep = (north - south) / 20;
+  const lngStep = (east - west) / 20;
+  
+  for (let lat = south; lat <= north; lat += latStep) {
+    for (let lng = west; lng <= east; lng += lngStep) {
+      // Base chlorophyll decreases offshore (west to east)
+      const baseChl = 0.8 - ((lng - west) / (east - west)) * 0.6;
+      
+      // Add plankton bloom patterns
+      const bloomPattern = Math.sin((lat - south) * 8) * 0.3;
+      
+      // Add an upwelling zone with high chlorophyll
+      const upwellingLat = (north + south) / 2 + 0.1;
+      const upwellingLng = west + (east - west) * 0.3;
+      const distFromUpwelling = Math.sqrt(
+        Math.pow(lat - upwellingLat, 2) + Math.pow(lng - upwellingLng, 2)
+      );
+      const upwellingBonus = Math.max(0, 0.5 - distFromUpwelling * 5);
+      
+      data.push({
+        lat,
+        lng,
+        chl_mg_m3: Math.max(0.1, baseChl + bloomPattern + upwellingBonus)
       });
     }
   }
