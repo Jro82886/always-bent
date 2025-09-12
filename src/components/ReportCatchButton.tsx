@@ -219,16 +219,24 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-30 group">
         <button
           onClick={handleReportCatch}
-          className="px-8 py-4 rounded-full font-bold shadow-2xl transition-all hover:scale-110 active:scale-95 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500 text-white hover:from-cyan-400 hover:via-blue-400 hover:to-cyan-400"
+          className="relative px-10 py-5 rounded-full font-black shadow-2xl transition-all hover:scale-110 active:scale-95 bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-400 text-white hover:from-cyan-300 hover:via-blue-400 hover:to-cyan-300 overflow-hidden"
           style={{
-            boxShadow: '0 10px 40px rgba(0, 200, 255, 0.4)',
-            animation: 'subtle-pulse 3s infinite'
+            boxShadow: '0 0 50px rgba(0, 200, 255, 0.6), 0 10px 40px rgba(0, 150, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2)',
+            animation: 'subtle-pulse 2s infinite',
+            letterSpacing: '0.15em'
           }}
         >
-          <span className="flex items-center gap-2">
-            <span className="text-3xl">🎣</span> 
-            <span className="text-xl">BITE!</span>
+          {/* Animated glow effect inside button */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+          
+          {/* Main text with gradient effect */}
+          <span className="relative flex items-center justify-center gap-3">
+            <span className="text-2xl font-black tracking-wider">BITE</span>
+            <span className="text-lg font-bold opacity-80">!</span>
           </span>
+          
+          {/* Ripple effect on edges */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full opacity-30 animate-ping" />
         </button>
         
         {/* Tooltip on hover */}
@@ -244,11 +252,21 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         </div>
       </div>
       
-      {/* Add subtle pulse animation */}
+      {/* Add animations */}
       <style jsx>{`
         @keyframes subtle-pulse {
-          0%, 100% { transform: translateX(-50%) scale(1); }
-          50% { transform: translateX(-50%) scale(1.05); }
+          0%, 100% { 
+            transform: translateX(-50%) scale(1);
+            filter: brightness(1);
+          }
+          50% { 
+            transform: translateX(-50%) scale(1.02);
+            filter: brightness(1.1);
+          }
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
       `}</style>
     </>

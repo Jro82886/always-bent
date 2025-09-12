@@ -429,8 +429,8 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   };
 
   return (
-    <div className="absolute bottom-32 right-4 bg-black/90 backdrop-blur-sm rounded-lg p-4 shadow-lg z-20">
-      <h3 className="text-white font-semibold mb-3">🎯 Analyze Area</h3>
+    <div className="absolute bottom-32 right-4 bg-black/70 backdrop-blur-md rounded-full px-5 py-3 shadow-lg z-20 border border-cyan-500/20">
+      <h3 className="text-cyan-300 font-semibold mb-2 text-sm">🎯 Ocean Analysis</h3>
       
       <div className="space-y-2">
         <button
@@ -438,48 +438,51 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           disabled={isDrawing || isAnalyzing}
           className={`w-full px-4 py-2 ${
             isAnalyzing
-              ? 'bg-blue-600 cursor-not-allowed animate-pulse'
+              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 cursor-not-allowed animate-pulse'
               : isDrawing 
-              ? 'bg-yellow-600 cursor-not-allowed' 
-              : 'bg-green-600 hover:bg-green-700'
-          } text-white rounded-lg transition-colors flex items-center justify-center gap-2`}
+              ? 'bg-gradient-to-r from-cyan-600 to-blue-600 cursor-not-allowed' 
+              : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'
+          } text-white rounded-full transition-all shadow-lg flex items-center justify-center gap-2 text-sm font-medium`}
+          style={{
+            boxShadow: isAnalyzing || isDrawing ? '0 0 20px rgba(0, 200, 255, 0.4)' : undefined
+          }}
         >
           {isAnalyzing ? (
             <>
-              <span className="animate-spin">⚙️</span> Analyzing data...
+              <span className="animate-spin">⚙️</span> Analyzing Ocean Data...
             </>
           ) : isDrawing ? (
             <>
-              <span>▭</span> Drawing...
+              <span>▭</span> Drawing Area...
             </>
           ) : (
             <>
-              <span>▭</span> Select Area to Analyze
+              <span>▭</span> Select Analysis Area
             </>
           )}
         </button>
 
         {currentArea > 0 && (
           <>
-            <div className="text-white text-sm mt-3 p-2 bg-white/10 rounded">
-              <div>Area: <span className="font-bold">{currentArea.toFixed(2)} km²</span></div>
-              <div className="text-xs opacity-70">
-                ({(currentArea * 0.386102).toFixed(2)} mi²)
+            <div className="text-cyan-100 text-xs mt-2 p-2 bg-cyan-500/10 rounded-full border border-cyan-500/20">
+              <div className="text-center">
+                <span className="font-bold text-sm">{currentArea.toFixed(2)} km²</span>
+                <span className="text-cyan-300/60 ml-1">({(currentArea * 0.386102).toFixed(2)} mi²)</span>
               </div>
             </div>
 
-      <button
+            <button
               onClick={clearDrawing}
-              className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-      >
-              Clear
-      </button>
+              className="w-full px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 rounded-full transition-all text-xs font-medium border border-cyan-500/20"
+            >
+              Clear Selection
+            </button>
           </>
         )}
       </div>
 
       {isDrawing && (
-        <div className="text-xs text-green-400 mt-2 animate-pulse">
+        <div className="text-xs text-cyan-400 mt-2 animate-pulse text-center">
           Click and drag to draw rectangle
         </div>
       )}
