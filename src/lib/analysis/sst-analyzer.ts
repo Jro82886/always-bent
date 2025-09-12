@@ -325,29 +325,39 @@ export function generateMockSSTData(bounds: number[][]): SSTDataPoint[] {
   const data: SSTDataPoint[] = [];
   
   // Create a grid of points
-  const latStep = (north - south) / 20;
-  const lngStep = (east - west) / 20;
+  const latStep = (north - south) / 30;  // More points for better gradients
+  const lngStep = (east - west) / 30;
+  
+  // Create a strong temperature break in the middle (simulating Gulf Stream edge)
+  const edgeLng = west + (east - west) * 0.4;  // Edge at 40% across
   
   for (let lat = south; lat <= north; lat += latStep) {
     for (let lng = west; lng <= east; lng += lngStep) {
-      // Create a temperature gradient from SW to NE
-      const baseTemp = 72 + ((lat - south) / (north - south)) * 8;
+      let temp_f;
       
-      // Add some variation to create edges
-      const variation = Math.sin((lng - west) * 10) * 2;
+      // Create a SHARP temperature break at the edge
+      if (lng < edgeLng) {
+        // Cold side (shelf water)
+        temp_f = 68 + Math.random() * 2;  // 68-70°F
+      } else {
+        // Warm side (Gulf Stream)
+        temp_f = 78 + Math.random() * 2;  // 78-80°F
+      }
       
-      // Add a "hot spot" in the middle
-      const centerLat = (north + south) / 2;
-      const centerLng = (east + west) / 2;
-      const distFromCenter = Math.sqrt(
-        Math.pow(lat - centerLat, 2) + Math.pow(lng - centerLng, 2)
-      );
-      const hotSpotBonus = Math.max(0, 3 - distFromCenter * 10);
+      // Add some north-south variation
+      temp_f += ((lat - south) / (north - south)) * 2;
+      
+      // Add a small transition zone right at the edge
+      const distFromEdge = Math.abs(lng - edgeLng);
+      if (distFromEdge < (east - west) * 0.05) {  // Within 5% of edge
+        const transitionFactor = distFromEdge / ((east - west) * 0.05);
+        temp_f = temp_f * transitionFactor + (74 * (1 - transitionFactor));
+      }
       
       data.push({
         lat,
         lng,
-        temp_f: baseTemp + variation + hotSpotBonus
+        temp_f
       });
     }
   }
