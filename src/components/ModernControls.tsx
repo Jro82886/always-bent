@@ -14,8 +14,12 @@ import {
   Sliders,
   MapPin,
   Users,
-  Sparkles
+  Sparkles,
+  Anchor
 } from 'lucide-react';
+import { INLETS } from '@/lib/inlets';
+import { flyToInlet60nm } from '@/lib/inletBounds';
+import { INLET_COLORS } from '@/lib/inletColors';
 
 interface ModernControlsProps {
   // Layer states
@@ -59,6 +63,8 @@ export default function ModernControls({
   const [showChlOpacity, setShowChlOpacity] = useState(false);
   const [showSstEnhance, setShowSstEnhance] = useState(false);
   const [boatName, setBoatName] = useState<string>('');
+  const [selectedInletId, setSelectedInletId] = useState<string>('overview');
+  const [showInletDropdown, setShowInletDropdown] = useState(false);
   
   // Enhancement settings for SST
   const [sstSmoothing, setSstSmoothing] = useState(0); // 0-2 pixels blur
@@ -125,9 +131,9 @@ export default function ModernControls({
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2 z-40">
         {/* Left Section: Logo and Main Navigation */}
         <div className="flex items-center gap-2">
-          {/* Command Center Identity */}
+          {/* Command Center Identity with Inlet Selector */}
           <div className="bg-black/70 backdrop-blur-md rounded-full px-5 py-2.5 border border-cyan-500/20">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <div className="flex flex-col">
                 <div className="text-[10px] text-cyan-400/60 font-medium uppercase tracking-wider">
                   {boatName ? 'Command Bridge' : 'Ocean Intelligence'}
@@ -145,6 +151,60 @@ export default function ModernControls({
                     </>
                   )}
                 </div>
+              </div>
+              
+              {/* Inlet Selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowInletDropdown(!showInletDropdown)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-full transition-colors border border-cyan-500/20"
+                >
+                  <Anchor size={12} className="text-cyan-400" />
+                  <span className="text-xs font-medium text-cyan-300">
+                    {INLETS.find(i => i.id === selectedInletId)?.name || 'Select Inlet'}
+                  </span>
+                  {selectedInletId !== 'overview' && (
+                    <span 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: INLET_COLORS[selectedInletId as keyof typeof INLET_COLORS]?.color || '#00ffff' }}
+                    />
+                  )}
+                  <ChevronDown size={12} className="text-cyan-400" />
+                </button>
+                
+                {/* Inlet Dropdown */}
+                {showInletDropdown && (
+                  <div className="absolute top-full mt-2 left-0 bg-black/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[200px] max-h-[400px] overflow-y-auto z-50">
+                    {INLETS.map((inlet) => (
+                      <button
+                        key={inlet.id}
+                        onClick={() => {
+                          setSelectedInletId(inlet.id);
+                          setShowInletDropdown(false);
+                          // Store in localStorage for persistence
+                          localStorage.setItem('abfi_selected_inlet', inlet.id);
+                          // Fly to inlet with 60nm view
+                          if (map) {
+                            flyToInlet60nm(map, inlet);
+                          }
+                        }}
+                        className={`w-full px-3 py-2 text-left text-xs rounded hover:bg-cyan-500/20 transition-colors flex items-center gap-2 ${
+                          selectedInletId === inlet.id ? 'bg-cyan-500/10 text-cyan-300' : 'text-gray-400'
+                        }`}
+                      >
+                        {inlet.id !== 'overview' && (
+                          <span 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color || '#00ffff' }}
+                          />
+                        )}
+                        <span className={inlet.isOverview ? 'font-semibold' : ''}>
+                          {inlet.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
