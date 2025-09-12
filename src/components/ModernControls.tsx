@@ -208,6 +208,9 @@ export default function ModernControls({
                   ? 'bg-blue-500/30 text-blue-300 shadow-inner shadow-blue-500/50'
                   : 'text-gray-400 hover:text-white hover:bg-white/10'
               }`}
+              style={oceanActive ? {
+                boxShadow: '0 0 20px rgba(59, 130, 246, 0.5), inset 0 0 10px rgba(59, 130, 246, 0.3)'
+              } : {}}
               title="Ocean Basemap (Bathymetry)"
             >
               🌊 Ocean
@@ -220,6 +223,9 @@ export default function ModernControls({
                   ? 'bg-orange-500/30 text-orange-300 shadow-inner shadow-orange-500/50'
                   : 'text-gray-400 hover:text-white hover:bg-white/10'
               }`}
+              style={sstActive ? {
+                boxShadow: '0 0 20px rgba(251, 146, 60, 0.5), inset 0 0 10px rgba(251, 146, 60, 0.3)'
+              } : {}}
               title="Sea Surface Temperature"
             >
               🌡️ SST
@@ -232,10 +238,48 @@ export default function ModernControls({
                   ? 'bg-green-500/30 text-green-300 shadow-inner shadow-green-500/50'
                   : 'text-gray-400 hover:text-white hover:bg-white/10'
               }`}
+              style={chlActive ? {
+                boxShadow: '0 0 20px rgba(34, 197, 94, 0.5), inset 0 0 10px rgba(34, 197, 94, 0.3)'
+              } : {}}
               title="Chlorophyll Concentration"
             >
               🌿 CHL
             </button>
+            
+            {/* ABFI Custom Layer - COMING SOON TEASER */}
+            <div className="relative group">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Show teaser message
+                  const toast = document.createElement('div');
+                  toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-600 to-cyan-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-slide-down';
+                  toast.innerHTML = '✨ Custom ABFI layers coming soon! The chef\'s special composite view is in development...';
+                  document.body.appendChild(toast);
+                  setTimeout(() => toast.remove(), 4000);
+                }}
+                className="px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-gradient-to-r from-purple-600/20 to-cyan-600/20 text-purple-300 border border-purple-500/30 opacity-70 hover:opacity-100 hover:from-purple-600/30 hover:to-cyan-600/30 relative overflow-hidden"
+                style={{
+                  animation: 'shimmer 3s infinite',
+                  backgroundSize: '200% 100%'
+                }}
+                title="ABFI Custom Composite Layer - Coming Soon!"
+              >
+                <span className="relative z-10">⭐ ABFI</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
+              </button>
+              
+              {/* Hover tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-48">
+                <div className="bg-purple-900/90 text-white text-xs rounded-lg px-3 py-2">
+                  <div className="font-bold text-purple-300 mb-1">🌟 Chef's Special</div>
+                  <div className="text-[10px] leading-relaxed">
+                    Custom composite layers curated by Captain Jeff. Multiple data sources in one view!
+                  </div>
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-purple-900/90"></div>
+                </div>
+              </div>
+            </div>
             
             {/* Opacity Controls Toggle */}
             <button

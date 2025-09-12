@@ -17,6 +17,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   const rectangleId = useRef<string>('analysis-rectangle');
   const currentRectangle = useRef<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
   const layersInitialized = useRef<boolean>(false);
+  const isDragging = useRef<boolean>(false);
 
   // Clear when parent tells us to
   useEffect(() => {
@@ -125,164 +126,148 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       }
     };
 
-    // Handle map clicks for rectangle drawing
-    const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
-      console.log('🖱️ Map clicked, isDrawing:', isDrawing);
+    // Handle mouse down - start drawing
+    const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
       if (!isDrawing) return;
-
+      
       const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-
-      if (!firstCorner.current) {
-        // First click - set first corner
-        firstCorner.current = coords;
-        console.log('📍 First corner set:', coords);
-        
-        // Show a point at first corner
-        const point: GeoJSON.FeatureCollection = {
-          type: 'FeatureCollection',
-          features: [{
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: coords
-            },
-            properties: {}
-          }]
-        };
-        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-        if (source) {
-          source.setData(point);
-          console.log('📍 Point data set on source');
-        } else {
-          console.error('❌ Rectangle source not found!');
-        }
-      } else {
-        // Second click - complete rectangle
-        const corner1 = firstCorner.current;
-        const corner2 = coords;
-        
-        console.log('📍 Second corner set:', coords);
-        
-        // Create rectangle from two corners
-        const minLng = Math.min(corner1[0], corner2[0]);
-        const maxLng = Math.max(corner1[0], corner2[0]);
-        const minLat = Math.min(corner1[1], corner2[1]);
-        const maxLat = Math.max(corner1[1], corner2[1]);
-        
-        // Create a proper rectangle with explicit coordinates
-        // Using densified edges to account for map projection
-        const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
+      firstCorner.current = coords;
+      isDragging.current = true;
+      
+      console.log('🖱️ Started dragging from:', coords);
+      
+      // Show initial point
+      const point: GeoJSON.FeatureCollection = {
+        type: 'FeatureCollection',
+        features: [{
           type: 'Feature',
           geometry: {
-            type: 'Polygon',
-            coordinates: [[
-              [minLng, minLat],  // SW corner
-              [maxLng, minLat],  // SE corner  
-              [maxLng, maxLat],  // NE corner
-              [minLng, maxLat],  // NW corner
-              [minLng, minLat]   // close polygon
-            ]]
+            type: 'Point',
+            coordinates: coords
           },
           properties: {}
-        };
+        }]
+      };
+      
+      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+      if (source) {
+        source.setData(point);
+      }
+    };
+    
+    
+    // Handle mouse up - complete rectangle
+    const handleMouseUp = (e: mapboxgl.MapMouseEvent) => {
+      if (!isDragging.current || !firstCorner.current) return;
+      
+      isDragging.current = false;
+      
+      const corner1 = firstCorner.current;
+      const corner2: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      
+      // Create final rectangle
+      const minLng = Math.min(corner1[0], corner2[0]);
+      const maxLng = Math.max(corner1[0], corner2[0]);
+      const minLat = Math.min(corner1[1], corner2[1]);
+      const maxLat = Math.max(corner1[1], corner2[1]);
+      
+      const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [minLng, minLat],
+            [maxLng, minLat],
+            [maxLng, maxLat],
+            [minLng, maxLat],
+            [minLng, minLat]
+          ]]
+        },
+        properties: {}
+      };
+      
+      // Calculate area
+      const area = turf.area(rectangle);
+      const areaKm2 = area / 1000000;
+      
+      console.log('✅ Rectangle completed:', {
+        area: `${areaKm2.toFixed(2)} km²`,
+        bounds: [corner1, corner2]
+      });
+      
+      // Store the rectangle for analysis
+      currentRectangle.current = rectangle;
+      
+      // Transition to analyzing state
+      setIsDrawing(false);
+      setIsAnalyzing(true);
+      firstCorner.current = null;
+      
+      console.log('🎯 Analysis state set, isAnalyzing:', true);
 
-        // Calculate area first
-        const area = turf.area(rectangle);
-        const areaKm2 = area / 1000000;
-        setCurrentArea(areaKm2);
-
-        // Update visualization
-        const collection: GeoJSON.FeatureCollection = {
-          type: 'FeatureCollection',
-          features: [rectangle]
-        };
-        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-        if (source) {
-          source.setData(collection);
-          console.log('✅ Rectangle data set, area:', areaKm2.toFixed(2), 'km²');
-        } else {
-          console.error('❌ Rectangle source not found during completion!');
-        }
-
-        console.log('✅ Rectangle completed:', {
-          area: `${areaKm2.toFixed(2)} km²`,
-          bounds: [corner1, corner2]
-        });
-
-        // Store the rectangle for later
-        currentRectangle.current = rectangle;
-
-        // Keep rectangle visible and start pulsing animation
-        setIsDrawing(false);
-        setIsAnalyzing(true);
-        firstCorner.current = null;
+      // Add pulsing animation to the rectangle
+      if (map.getLayer('rectangle-fill')) {
+        // Animate opacity for pulsing effect
+        let opacity = 0.3;
+        let increasing = true;
+        let animationActive = true;
         
-        console.log('🎯 Analysis state set, isAnalyzing:', true);
+        const pulseInterval = setInterval(() => {
+          if (!animationActive || !map.getLayer('rectangle-fill')) {
+            clearInterval(pulseInterval);
+            return;
+          }
+          
+          if (increasing) {
+            opacity += 0.02;
+            if (opacity >= 0.6) increasing = false;
+          } else {
+            opacity -= 0.02;
+            if (opacity <= 0.3) increasing = true;
+          }
+          
+          try {
+            map.setPaintProperty('rectangle-fill', 'fill-opacity', opacity);
+          } catch (e) {
+            clearInterval(pulseInterval);
+          }
+        }, 50);
+        
+        // Store interval reference for cleanup
+        currentRectangle.current = rectangle;
+        
+        // Clear interval after 10 seconds max
+        setTimeout(() => {
+          animationActive = false;
+        }, 10000);
+      }
 
-        // Add pulsing animation to the rectangle
-        if (map.getLayer('rectangle-fill')) {
-          // Animate opacity for pulsing effect
-          let opacity = 0.3;
-          let increasing = true;
-          let animationActive = true;
-          
-          const pulseInterval = setInterval(() => {
-            if (!animationActive || !map.getLayer('rectangle-fill')) {
-              clearInterval(pulseInterval);
-              return;
-            }
-            
-            if (increasing) {
-              opacity += 0.02;
-              if (opacity >= 0.6) increasing = false;
-            } else {
-              opacity -= 0.02;
-              if (opacity <= 0.3) increasing = true;
-            }
-            
-            try {
-              map.setPaintProperty('rectangle-fill', 'fill-opacity', opacity);
-            } catch (e) {
-              clearInterval(pulseInterval);
-            }
-          }, 50);
-          
-          // Store interval reference for cleanup
-          currentRectangle.current = rectangle;
-          
-          // Clear interval after 10 seconds max
-          setTimeout(() => {
-            animationActive = false;
-          }, 10000);
-        }
-
-        // Trigger analysis
-        if (onAnalyze) {
-          console.log('🔄 Triggering analysis with rectangle:', rectangle);
-          console.log('📍 Rectangle coordinates:', rectangle.geometry.coordinates);
-          console.log('🔍 onAnalyze function exists:', typeof onAnalyze);
-          
-          // Small delay for visual feedback, then call the parent's analysis
-          setTimeout(async () => {
-            console.log('📊 Calling onAnalyze callback...');
-            console.log('⏱️ About to call onAnalyze at:', new Date().toISOString());
-            try {
-              const result = await onAnalyze(rectangle);
-              console.log('✅ onAnalyze completed successfully, result:', result);
-            } catch (error) {
-              console.error('❌ onAnalyze failed:', error);
-              console.error('Stack trace:', (error as Error).stack);
-            } finally {
-              // Only reset our local analyzing state after parent completes
-              console.log('🏁 Finally block: resetting isAnalyzing state');
-              setIsAnalyzing(false);
-            }
-          }, 1000); // 1 second for visual feedback
-        } else {
-          console.error('⚠️ No onAnalyze callback provided!');
-          setIsAnalyzing(false);
-          clearRectangle();
-        }
+      // Trigger analysis
+      if (onAnalyze) {
+        console.log('🔄 Triggering analysis with rectangle:', rectangle);
+        console.log('📍 Rectangle coordinates:', rectangle.geometry.coordinates);
+        console.log('🔍 onAnalyze function exists:', typeof onAnalyze);
+        
+        // Small delay for visual feedback, then call the parent's analysis
+        setTimeout(async () => {
+          console.log('📊 Calling onAnalyze callback...');
+          console.log('⏱️ About to call onAnalyze at:', new Date().toISOString());
+          try {
+            const result = await onAnalyze(rectangle);
+            console.log('✅ onAnalyze completed successfully, result:', result);
+          } catch (error) {
+            console.error('❌ onAnalyze failed:', error);
+            console.error('Stack trace:', (error as Error).stack);
+          } finally {
+            // Only reset our local analyzing state after parent completes
+            console.log('🏁 Finally block: resetting isAnalyzing state');
+            setIsAnalyzing(false);
+          }
+        }, 1000); // 1 second for visual feedback
+      } else {
+        console.error('⚠️ No onAnalyze callback provided!');
+        setIsAnalyzing(false);
+        clearRectangle();
       }
     };
 
@@ -348,9 +333,10 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       
       setupLayers();
       
-      // Add event listeners after setup
-      map.on('click', handleMapClick);
+      // Add drag event listeners
+      map.on('mousedown', handleMouseDown);
       map.on('mousemove', handleMouseMove);
+      map.on('mouseup', handleMouseUp);
       document.addEventListener('keydown', handleKeyDown);
     };
 
@@ -374,8 +360,9 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
     // Cleanup
     return () => {
-      map.off('click', handleMapClick);
+      map.off('mousedown', handleMouseDown);
       map.off('mousemove', handleMouseMove);
+      map.off('mouseup', handleMouseUp);
       document.removeEventListener('keydown', handleKeyDown);
       map.getCanvas().style.cursor = '';
       map.dragPan.enable();  // Re-enable map dragging on cleanup

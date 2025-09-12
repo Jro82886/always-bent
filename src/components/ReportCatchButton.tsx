@@ -94,8 +94,8 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
           .setLngLat([location.lng, location.lat])
           .addTo(map);
         
-        // Remove after 5 seconds
-        setTimeout(() => marker.remove(), 5000);
+        // Remove after 2 minutes - allows multiple bites to accumulate visually!
+        setTimeout(() => marker.remove(), 120000);
       }
       
       // Success feedback - quick toast, no modal!
@@ -232,8 +232,8 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         </button>
         
         {/* Tooltip on hover */}
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-          <div className="bg-black/90 text-white text-sm rounded-lg px-4 py-3 max-w-xs whitespace-normal">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64">
+          <div className="bg-black/90 text-white text-sm rounded-lg px-4 py-3">
             <div className="font-bold mb-1 text-yellow-300">Quick Log Fish Activity!</div>
             <div className="text-xs leading-relaxed">
               Got a bite? Fish on? Even a nibble? Tap this to instantly log the activity at your current location. 

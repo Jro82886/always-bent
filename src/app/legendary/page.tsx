@@ -48,7 +48,7 @@ export default function LegendaryOceanPlatform() {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      style: 'mapbox://styles/mapbox/dark-v11',  // Dark base for contrast with layers
       center: [-72, 37],  // Shifted east to show more ocean
       zoom: 5.5,  // Slightly zoomed out to see more water
       pitch: 0,  // Ensure flat map (no 3D tilt)
@@ -251,9 +251,15 @@ export default function LegendaryOceanPlatform() {
       />
       
       {/* Boat Name Greeting */}
+      {/* Boat Name Greeting - Top Left under ALWAYS BENT logo */}
       {boatName && (
-        <div className="absolute top-20 right-4 bg-black/70 backdrop-blur rounded-full px-4 py-2 text-cyan-300 text-sm font-medium z-30">
-          ⚓ Hi, {boatName}!
+        <div className="absolute top-16 left-4 bg-black/80 backdrop-blur-sm rounded-lg px-4 py-2 z-30 border border-cyan-500/20">
+          <div className="text-cyan-300 text-sm font-medium">
+            ⚓ Hi, {boatName}!
+          </div>
+          <div className="text-cyan-500/60 text-xs mt-0.5">
+            Captain's Profile
+          </div>
         </div>
       )}
       

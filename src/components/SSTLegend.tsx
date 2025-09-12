@@ -13,7 +13,7 @@ export default function SSTLegend({ visible }: SSTLegendProps) {
   const maxTemp = 86;  // 86°F (warm Gulf Stream)
 
   return (
-    <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+    <div className="absolute bottom-4 right-20 bg-black/80 backdrop-blur-sm rounded-lg p-3 shadow-lg">
       <div className="text-white text-xs font-semibold mb-1.5">
         SST (°F)
       </div>
