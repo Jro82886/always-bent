@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import type mapboxgl from 'mapbox-gl';
 import SnipTool from './SnipTool';
 import HotspotMarker from './HotspotMarker';
-import SnipAnalysisReport from './SnipAnalysisReport';
+import AnalysisModal from './AnalysisModal';
 import { analyzeSSTPolygon, generateMockSSTData, type AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { saveSnipAnalysis } from '@/lib/supabase/ml-queries';
 import * as turf from '@turf/turf';
@@ -17,6 +17,7 @@ export default function SnipController({ map }: SnipControllerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hotspotPosition, setHotspotPosition] = useState<[number, number] | null>(null);
   const [showHotspot, setShowHotspot] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
     if (!map) return;
@@ -44,6 +45,11 @@ export default function SnipController({ map }: SnipControllerProps) {
         setHotspotPosition(analysis.hotspot.location);
         setShowHotspot(true);
         console.log('💙 Hotspot location:', analysis.hotspot.location);
+        
+        // Auto-show modal after hotspot appears (part of the flow!)
+        setTimeout(() => {
+          setShowModal(true);
+        }, 500); // Small delay so user sees the hotspot first
       }
       
       // TODO: Add feature overlays for edges/eddies later
@@ -99,14 +105,18 @@ export default function SnipController({ map }: SnipControllerProps) {
     }
   }, [currentAnalysis]);
 
-  const handleCloseReport = useCallback(() => {
-    setCurrentAnalysis(null);
-    setShowHotspot(false);
-    setHotspotPosition(null);
-    // Clear map overlays
-    if (map) {
-      clearMapOverlays(map);
-    }
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false);
+    // Keep hotspot visible for a moment after closing
+    setTimeout(() => {
+      setCurrentAnalysis(null);
+      setShowHotspot(false);
+      setHotspotPosition(null);
+      // Clear map overlays
+      if (map) {
+        clearMapOverlays(map);
+      }
+    }, 1000);
   }, [map]);
 
   return (
@@ -132,9 +142,10 @@ export default function SnipController({ map }: SnipControllerProps) {
         </div>
       )}
       
-      <SnipAnalysisReport
+      <AnalysisModal
         analysis={currentAnalysis}
-        onClose={handleCloseReport}
+        visible={showModal}
+        onClose={handleCloseModal}
         onSave={handleSaveAnalysis}
       />
     </>

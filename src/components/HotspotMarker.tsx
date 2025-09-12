@@ -129,7 +129,9 @@ export default function HotspotMarker({ map, position, visible }: HotspotMarkerP
     // Add click handler for the hotspot
     el.addEventListener('click', () => {
       console.log('🎯 Hotspot clicked at:', position);
-      // This will trigger the analysis report
+      // Add extra pulse on click
+      el.classList.add('hotspot-clicked');
+      setTimeout(() => el.classList.remove('hotspot-clicked'), 500);
     });
 
     // Cleanup
