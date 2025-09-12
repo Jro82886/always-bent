@@ -8,6 +8,7 @@ export default function WelcomePage() {
   const [boatName, setBoatName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [welcomeQuote, setWelcomeQuote] = useState('');
+  const [quoteOpacity, setQuoteOpacity] = useState(1);
   const [locationChoice, setLocationChoice] = useState<boolean | null>(null);
   
   // Glowing animation for the logo
@@ -18,10 +19,30 @@ export default function WelcomePage() {
     setWelcomeQuote(getPhilosophicalQuote('welcome'));
     
     // Glow animation
-    const interval = setInterval(() => {
+    const glowInterval = setInterval(() => {
       setGlowIntensity(prev => (prev + 1) % 100);
     }, 50);
-    return () => clearInterval(interval);
+    
+    // Change quote every 8 seconds for users who are reading/thinking
+    const quoteInterval = setInterval(() => {
+      // Fade out
+      setQuoteOpacity(0);
+      
+      // After fade out, change quote and fade in
+      setTimeout(() => {
+        // Use valid PhilosophyContext types that work well for welcome screen
+        const contexts: Array<'welcome' | 'loading' | 'general'> = 
+          ['welcome', 'loading', 'general'];
+        const randomContext = contexts[Math.floor(Math.random() * contexts.length)];
+        setWelcomeQuote(getPhilosophicalQuote(randomContext));
+        setQuoteOpacity(1);
+      }, 300);
+    }, 8000);
+    
+    return () => {
+      clearInterval(glowInterval);
+      clearInterval(quoteInterval);
+    };
   }, []);
   
   const handleEnterApp = async () => {
@@ -101,7 +122,10 @@ export default function WelcomePage() {
         {/* Inspirational Quote */}
         {welcomeQuote && (
           <div className="mb-6 px-8 py-4 bg-black/30 backdrop-blur-sm rounded-xl border border-cyan-500/20">
-            <p className="text-cyan-300/90 italic text-center text-sm">
+            <p 
+              className="text-cyan-300/90 italic text-center text-sm transition-opacity duration-300"
+              style={{ opacity: quoteOpacity }}
+            >
               "{welcomeQuote}"
             </p>
           </div>

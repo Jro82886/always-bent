@@ -1,0 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run build check before committing
+echo "🔨 Running build check..."
+npm run build
+
+# If build succeeds, commit will proceed
+echo "✅ Build successful! Proceeding with commit..."
