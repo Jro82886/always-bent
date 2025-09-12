@@ -36,46 +36,53 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
 
     // Add sources and layers for rectangle visualization
     const setupLayers = () => {
-      // Remove existing if any
-      if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
-      if (map.getLayer('rectangle-outline')) map.removeLayer('rectangle-outline');
-      if (map.getSource('rectangle')) map.removeSource('rectangle');
+      try {
+        // Remove existing if any
+        if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
+        if (map.getLayer('rectangle-outline')) map.removeLayer('rectangle-outline');
+        if (map.getSource('rectangle')) map.removeSource('rectangle');
 
-      // Add source for rectangle
-      map.addSource('rectangle', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: []
-        }
-      });
+        // Add source for rectangle
+        map.addSource('rectangle', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: []
+          }
+        });
 
-      // Add fill layer
-      map.addLayer({
-        id: 'rectangle-fill',
-        type: 'fill',
-        source: 'rectangle',
-        paint: {
-          'fill-color': '#00ff00',
-          'fill-opacity': 0.2
-        }
-      });
+        // Add fill layer
+        map.addLayer({
+          id: 'rectangle-fill',
+          type: 'fill',
+          source: 'rectangle',
+          paint: {
+            'fill-color': '#00ff00',
+            'fill-opacity': 0.3
+          }
+        });
 
-      // Add outline layer
-      map.addLayer({
-        id: 'rectangle-outline',
-        type: 'line',
-        source: 'rectangle',
-        paint: {
-          'line-color': '#00ff00',
-          'line-width': 3,
-          'line-dasharray': [2, 2]
-        }
-      });
+        // Add outline layer
+        map.addLayer({
+          id: 'rectangle-outline',
+          type: 'line',
+          source: 'rectangle',
+          paint: {
+            'line-color': '#00ff00',
+            'line-width': 4,
+            'line-dasharray': [2, 2]
+          }
+        });
+        
+        console.log('✅ Rectangle layers setup complete');
+      } catch (error) {
+        console.error('❌ Error setting up rectangle layers:', error);
+      }
     };
 
     // Handle map clicks for rectangle drawing
     const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
+      console.log('🖱️ Map clicked, isDrawing:', isDrawing);
       if (!isDrawing) return;
 
       const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
