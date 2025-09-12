@@ -10,13 +10,17 @@ interface SnipToolProps {
 
 export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentArea, setCurrentArea] = useState<number>(0);
   const firstCorner = useRef<[number, number] | null>(null);
   const rectangleId = useRef<string>('analysis-rectangle');
+  const currentRectangle = useRef<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
 
   const clearDrawing = () => {
     setIsDrawing(false);
+    setIsAnalyzing(false);
     firstCorner.current = null;
+    currentRectangle.current = null;
     setCurrentArea(0);
     
     // Clear visualization
@@ -27,6 +31,10 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           type: 'FeatureCollection',
           features: []
         });
+      }
+      // Reset opacity
+      if (map.getLayer('rectangle-fill')) {
+        map.setPaintProperty('rectangle-fill', 'fill-opacity', 0.5);
       }
     }
   };
@@ -87,37 +95,6 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
         }
         
         console.log('✅ Rectangle layers setup complete');
-        
-        // TEST: Draw a test rectangle to verify layers work
-        const testRectangle: GeoJSON.FeatureCollection = {
-          type: 'FeatureCollection',
-          features: [{
-            type: 'Feature',
-            geometry: {
-              type: 'Polygon',
-              coordinates: [[
-                [-75.5, 36.5],
-                [-75.5, 36.0],
-                [-75.0, 36.0],
-                [-75.0, 36.5],
-                [-75.5, 36.5]
-              ]]
-            },
-            properties: {}
-          }]
-        };
-        
-        // Set test data briefly
-        const src = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-        if (src) {
-          src.setData(testRectangle);
-          console.log('🧪 TEST RECTANGLE DRAWN - you should see a green box!');
-          // Clear after 2 seconds
-          setTimeout(() => {
-            src.setData({ type: 'FeatureCollection', features: [] });
-            console.log('🧪 Test rectangle cleared');
-          }, 2000);
-        }
       } catch (error) {
         console.error('❌ Error setting up rectangle layers:', error);
       }
@@ -200,15 +177,46 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           bounds: [corner1, corner2]
         });
 
+        // Store the rectangle for later
+        currentRectangle.current = rectangle;
+
+        // Keep rectangle visible and start pulsing animation
+        setIsDrawing(false);
+        setIsAnalyzing(true);
+        firstCorner.current = null;
+
+        // Add pulsing animation to the rectangle
+        if (map.getLayer('rectangle-fill')) {
+          // Animate opacity for pulsing effect
+          let opacity = 0.3;
+          let increasing = true;
+          const pulseInterval = setInterval(() => {
+            if (!isAnalyzing) {
+              clearInterval(pulseInterval);
+              return;
+            }
+            
+            if (increasing) {
+              opacity += 0.02;
+              if (opacity >= 0.6) increasing = false;
+            } else {
+              opacity -= 0.02;
+              if (opacity <= 0.3) increasing = true;
+            }
+            
+            map.setPaintProperty('rectangle-fill', 'fill-opacity', opacity);
+          }, 50);
+        }
+
         // Trigger analysis
         if (onAnalyze) {
           console.log('🔄 Triggering analysis...');
-          onAnalyze(rectangle);
+          // Simulate analysis delay then call the callback
+          setTimeout(() => {
+            onAnalyze(rectangle);
+            setIsAnalyzing(false);
+          }, 2000); // 2 second analysis time
         }
-
-        // Reset for next drawing
-        setIsDrawing(false);
-        firstCorner.current = null;
       }
     };
 
@@ -332,14 +340,28 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
       <div className="space-y-2">
         <button
           onClick={startDrawing}
-          disabled={isDrawing}
+          disabled={isDrawing || isAnalyzing}
           className={`w-full px-4 py-2 ${
-            isDrawing 
+            isAnalyzing
+              ? 'bg-blue-600 cursor-not-allowed animate-pulse'
+              : isDrawing 
               ? 'bg-yellow-600 cursor-not-allowed' 
               : 'bg-green-600 hover:bg-green-700'
           } text-white rounded-lg transition-colors flex items-center justify-center gap-2`}
         >
-          <span>▭</span> {isDrawing ? 'Drawing...' : 'Select Area to Analyze'}
+          {isAnalyzing ? (
+            <>
+              <span className="animate-spin">⚙️</span> Analyzing data...
+            </>
+          ) : isDrawing ? (
+            <>
+              <span>▭</span> Drawing...
+            </>
+          ) : (
+            <>
+              <span>▭</span> Select Area to Analyze
+            </>
+          )}
         </button>
 
         {currentArea > 0 && (
