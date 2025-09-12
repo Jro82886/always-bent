@@ -23,7 +23,10 @@ export default function SnipController({ map }: SnipControllerProps) {
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
     console.log('🎯 handleAnalyze called with polygon:', polygon);
     console.log('📋 Polygon type:', polygon.geometry.type);
-    console.log('📏 Polygon coordinates count:', polygon.geometry.coordinates[0]?.length);
+    if (polygon.geometry.type === 'Polygon') {
+      const polyGeom = polygon.geometry as GeoJSON.Polygon;
+      console.log('📏 Polygon coordinates count:', polyGeom.coordinates[0]?.length);
+    }
     
     if (!map) {
       console.error('❌ No map available for analysis');
