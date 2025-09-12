@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import type mapboxgl from 'mapbox-gl';
 import SnipTool from './SnipTool';
+import HotspotMarker from './HotspotMarker';
 import SnipAnalysisReport from './SnipAnalysisReport';
 import { analyzeSSTPolygon, generateMockSSTData, type AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { saveSnipAnalysis } from '@/lib/supabase/ml-queries';
@@ -14,6 +15,8 @@ interface SnipControllerProps {
 export default function SnipController({ map }: SnipControllerProps) {
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [hotspotPosition, setHotspotPosition] = useState<[number, number] | null>(null);
+  const [showHotspot, setShowHotspot] = useState(false);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
     if (!map) return;
@@ -36,16 +39,17 @@ export default function SnipController({ map }: SnipControllerProps) {
       console.log('✅ Analysis complete:', analysis);
       setCurrentAnalysis(analysis);
       
-      // Add visual overlays to map
+      // Show the pulsing cyan hotspot
       if (analysis.hotspot) {
-        // Add hotspot marker
-        addHotspotMarker(map, analysis.hotspot.location);
+        setHotspotPosition(analysis.hotspot.location);
+        setShowHotspot(true);
+        console.log('💙 Hotspot location:', analysis.hotspot.location);
       }
       
-      if (analysis.features.length > 0) {
-        // Add feature overlays
-        addFeatureOverlays(map, analysis.features);
-      }
+      // TODO: Add feature overlays for edges/eddies later
+      // if (analysis.features.length > 0) {
+      //   addFeatureOverlays(map, analysis.features);
+      // }
       
     } catch (error) {
       console.error('❌ Analysis failed:', error);
@@ -97,6 +101,8 @@ export default function SnipController({ map }: SnipControllerProps) {
 
   const handleCloseReport = useCallback(() => {
     setCurrentAnalysis(null);
+    setShowHotspot(false);
+    setHotspotPosition(null);
     // Clear map overlays
     if (map) {
       clearMapOverlays(map);
@@ -110,12 +116,18 @@ export default function SnipController({ map }: SnipControllerProps) {
         onAnalyze={handleAnalyze}
       />
       
+      <HotspotMarker
+        map={map}
+        position={hotspotPosition}
+        visible={showHotspot}
+      />
+      
       {isAnalyzing && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/90 rounded-lg p-6 shadow-2xl">
           <div className="text-white text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-lg font-semibold">Analyzing SST Data...</p>
-            <p className="text-sm text-gray-400 mt-2">Detecting edges, eddies, and hotspots</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+            <p className="text-lg font-semibold">Analyzing Ocean Data...</p>
+            <p className="text-sm text-cyan-300 mt-2">Finding the heartbeat of the ocean</p>
           </div>
         </div>
       )}
