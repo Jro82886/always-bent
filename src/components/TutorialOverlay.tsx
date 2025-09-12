@@ -17,15 +17,13 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     id: 'welcome',
     title: '🎣 Welcome to Ocean Intelligence',
     content: 'Let me show you how to find the best fishing spots using real-time ocean data.',
-    tip: 'This 2-minute tutorial will make you a pro at reading the water.',
-    position: { top: '50%', left: '50%' }
+    tip: 'This 2-minute tutorial will make you a pro at reading the water.'
   },
   {
     id: 'sst-layer',
     title: '🌡️ Step 1: Turn on Sea Surface Temperature',
     content: 'Click the SST toggle to see water temperatures. Warmer water appears orange/red, cooler water appears blue/green.',
     tip: 'Fish love temperature breaks where different water masses meet!',
-    position: { top: '120px', left: '20px' },
     action: 'Toggle SST to see temperature data'
   },
   {
@@ -33,7 +31,6 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     title: '🎯 Step 2: Look for Temperature Edges',
     content: 'Zoom in and look for areas where colors change dramatically - these are temperature breaks where bait and predators gather.',
     tip: 'A 2-3°F change over a short distance is a hotspot!',
-    position: { top: '50%', left: '50%' },
     action: 'Use scroll or zoom controls to explore'
   },
   {
@@ -41,22 +38,19 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     title: '✂️ Step 3: Analyze an Area',
     content: 'Click "Select Area to Analyze" then click two corners to draw a rectangle around a temperature edge.',
     tip: 'Include both warm and cool water in your selection for best results.',
-    position: { top: '120px', right: '20px' },
     action: 'Draw a rectangle over a temperature break'
   },
   {
     id: 'read-analysis',
     title: '📊 Step 4: Understanding Your Analysis',
     content: 'If a hotspot is found, you\'ll see a cyan marker. Click it to read why that spot is productive.',
-    tip: 'No hotspot? The analysis will teach you what to look for next time!',
-    position: { top: '50%', left: '50%' }
+    tip: 'No hotspot? The analysis will teach you what to look for next time!'
   },
   {
     id: 'pro-tips',
     title: '💡 Pro Tips',
     content: 'Best fishing happens at: Gulf Stream edges, canyon breaks, where blue water meets green, and around temperature fronts.',
-    tip: 'Save good analyses to build your own fishing intelligence database!',
-    position: { top: '50%', left: '50%' }
+    tip: 'Save good analyses to build your own fishing intelligence database!'
   }
 ];
 
@@ -134,15 +128,13 @@ export default function TutorialOverlay() {
       
       {/* Tutorial Card */}
       <div
-        className={`fixed z-50 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${
+        className={`fixed z-50 transition-all duration-300 ${
           isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
         style={{
           top: step.position?.top || '50%',
           left: step.position?.left || '50%',
-          right: step.position?.right,
-          bottom: step.position?.bottom,
-          transform: step.position?.left === '50%' ? 'translate(-50%, -50%)' : 'translate(0, -50%)'
+          transform: 'translate(-50%, -50%)'
         }}
       >
         <div className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 rounded-2xl shadow-2xl border border-cyan-500/30 max-w-md w-full">
