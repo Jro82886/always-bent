@@ -278,13 +278,14 @@ export async function analyzeSSTPolygon(
     }
   }
 
-  // Find primary hotspot (strongest gradient point)
+  // Find primary hotspot ONLY if there's a real temperature break
   let hotspot = null;
   if (gradients.length > 0) {
     const maxGradientPoint = gradients.reduce((max, g) => 
       g.gradient > max.gradient ? g : max
     );
     
+    // Only create hotspot if gradient is significant (at least 0.5°F per mile)
     if (maxGradientPoint.gradient >= EDGE_THR_F_PER_KM) {
       // Determine optimal approach direction (perpendicular to gradient)
       const approachAngle = (maxGradientPoint.direction + 90) % 360;
@@ -301,6 +302,11 @@ export async function analyzeSSTPolygon(
       };
     }
   }
+  
+  // Add educational feedback when no hotspot found
+  const waterQuality = tempRange < 1 ? 'uniform' : 
+                       tempRange < 2 ? 'minimal variation' : 
+                       'some variation';
 
   return {
     polygon,

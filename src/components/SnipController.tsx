@@ -155,20 +155,24 @@ export default function SnipController({ map }: SnipControllerProps) {
 
   const handleCloseModal = useCallback(() => {
     setShowModal(false);
-    // Keep hotspot visible for a moment after closing
+    
+    // Clear everything immediately to allow new snip
+    setCurrentAnalysis(null);
+    setShowHotspot(false);
+    setHotspotPosition(null);
+    
+    // Clear map overlays
+    if (map) {
+      clearMapOverlays(map);
+    }
+
+    // Tell SnipTool to clear the rectangle and reset for new snip
+    setShouldClearTool(true);
     setTimeout(() => {
-      setCurrentAnalysis(null);
-      setShowHotspot(false);
-      setHotspotPosition(null);
-      // Clear map overlays
-      if (map) {
-        clearMapOverlays(map);
-      }
-      
-      // Tell SnipTool to clear the rectangle
-      setShouldClearTool(true);
-      setTimeout(() => setShouldClearTool(false), 100);
-    }, 1000);
+      setShouldClearTool(false);
+      setIsAnalyzing(false); // Ensure analyzing state is cleared
+      console.log('✅ Ready for new snip!');
+    }, 100);
   }, [map]);
 
   // Test function to simulate analysis

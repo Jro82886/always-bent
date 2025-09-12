@@ -84,23 +84,35 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             </div>
           )}
           
-          {/* Why the hotspot */}
-          <div className="bg-cyan-500/5 rounded-xl p-4 border border-cyan-500/20">
-            <h3 className="text-cyan-300 font-semibold mb-2 flex items-center gap-2">
-              <span className="text-lg">🎯</span> Why This Spot?
+          {/* Analysis Result - Educational */}
+          <div className={`rounded-xl p-4 border ${
+            hotspot ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-yellow-500/5 border-yellow-500/20'
+          }`}>
+            <h3 className={`font-semibold mb-2 flex items-center gap-2 ${
+              hotspot ? 'text-cyan-300' : 'text-yellow-300'
+            }`}>
+              <span className="text-lg">{hotspot ? '🎯' : '📚'}</span> 
+              {hotspot ? 'Why This Spot?' : 'Water Analysis'}
             </h3>
             <p className="text-gray-300 leading-relaxed">
               {hotspot ? (
                 <>
                   The pulsing cyan marker shows a <span className="text-cyan-400 font-semibold">
-                  {hotspot.gradient_strength.toFixed(1)}°F temperature gradient</span> - 
-                  a powerful edge where {stats.max_temp_f > 70 ? 'warm Gulf Stream water' : 'cooler shelf water'} meets 
-                  {stats.max_temp_f > 70 ? ' cooler inshore water' : ' warmer offshore water'}. 
+                  {hotspot.gradient_strength.toFixed(1)}°F/mile temperature gradient</span> - 
+                  a powerful edge where {stats.max_temp_f > 74 ? 'warm water' : 'cooler water'} meets 
+                  {stats.max_temp_f > 74 ? ' cooler water' : ' warmer water'}. 
                   This creates upwelling that concentrates baitfish, making it a 
                   <span className="text-cyan-400"> prime feeding zone</span>.
                 </>
               ) : (
-                'Analyzing ocean patterns...'
+                <>
+                  This area shows <span className="text-yellow-400 font-semibold">uniform water 
+                  temperatures ({stats.min_temp_f.toFixed(1)}°F - {stats.max_temp_f.toFixed(1)}°F)</span> with 
+                  minimal gradients. Fish prefer edges and structure - areas where different water masses meet. 
+                  <span className="text-yellow-300"> Try snipping an area where you see color changes 
+                  or temperature variations on the layers.</span> Look for where blue meets green (chlorophyll) 
+                  or where SST shows color transitions.
+                </>
               )}
             </p>
           </div>
