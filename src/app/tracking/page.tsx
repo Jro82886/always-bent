@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapShell } from '@/lib/MapRef';
 import { useMapbox } from '@/lib/MapCtx';
 import TopHUD from '@/components/TopHUD';
@@ -13,6 +13,8 @@ import { useAppState } from '@/store/appState';
 import { INLETS } from '@/lib/inlets';
 import NavTabs from '@/components/NavTabs';
 import { ensureTrackingLayers, upsertTrackingSource } from './_layers/userDot';
+import VesselTracker from '@/components/VesselTracker';
+import { Users, Radio, Waves } from 'lucide-react';
 
 type Pos = { lat: number; lng: number } | null;
 
@@ -34,6 +36,11 @@ export default function TrackingPage() {
   const active = INLETS.find(i => i.id === selectedInletId) ?? INLETS[0];
   const { coords, status, message } = useGeo();
   const pos: Pos = coords ? { lat: coords.lat, lng: coords.lon } : null;
+  
+  // Tracking feature toggles
+  const [showVessels, setShowVessels] = useState(true);
+  const [showRecBoats, setShowRecBoats] = useState(false);
+  const [showAIS, setShowAIS] = useState(false);
 
   // Mapbox-native tracking layers (for V2-scale, ok to keep now)
   useEffect(() => {
@@ -63,6 +70,58 @@ export default function TrackingPage() {
           </div>
         } />
       </div>
+      
+      {/* Tracking Controls */}
+      <div className="absolute top-20 left-4 flex flex-col gap-2 pointer-events-auto">
+        <div className="bg-black/70 backdrop-blur-md rounded-full px-4 py-2 border border-cyan-500/20">
+          <h3 className="text-cyan-400 text-xs font-semibold mb-2">Fleet Tracking</h3>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => setShowVessels(!showVessels)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                showVessels 
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
+                  : 'bg-black/40 text-gray-400 border border-gray-600/30'
+              }`}
+            >
+              <Users size={12} />
+              Local Fleet
+            </button>
+            <button
+              onClick={() => setShowRecBoats(!showRecBoats)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                showRecBoats 
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
+                  : 'bg-black/40 text-gray-400 border border-gray-600/30'
+              }`}
+            >
+              <Waves size={12} />
+              Rec Boats
+              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Soon</span>
+            </button>
+            <button
+              onClick={() => setShowAIS(!showAIS)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                showAIS 
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
+                  : 'bg-black/40 text-gray-400 border border-gray-600/30'
+              }`}
+            >
+              <Radio size={12} />
+              AIS/GFW
+              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Soon</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Vessel Tracker Component */}
+      <VesselTracker 
+        map={map} 
+        inletId={selectedInletId || 'overview'} 
+        enabled={showVessels}
+      />
+      
       <DevOverlay />
       <UserDot pos={pos} color={colorForInlet(selectedInletId)} label={username || 'You'} />
       {message && (
