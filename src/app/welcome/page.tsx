@@ -178,7 +178,7 @@ export default function WelcomePage() {
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin">⚓</span> Setting Sail...
+                <span className="animate-spin">🌊</span> Analyzing Ocean Data...
               </span>
             ) : (
               'Enter ABFI Platform'

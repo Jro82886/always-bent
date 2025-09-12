@@ -515,6 +515,15 @@ function addFeatureOverlays(map: mapboxgl.Map, features: any[]) {
 }
 
 function clearMapOverlays(map: mapboxgl.Map) {
+  // Clear the rectangle from snip tool
+  if (map.getSource('rectangle')) {
+    const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+    source.setData({
+      type: 'FeatureCollection',
+      features: []
+    });
+  }
+  
   // Remove hotspot marker
   if (map.getLayer('hotspot-marker')) {
     map.removeLayer('hotspot-marker');

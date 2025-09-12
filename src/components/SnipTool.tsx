@@ -33,8 +33,8 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     setCurrentArea(0);
     
     // Clear visualization
-    if (map && map.getSource('rectangle-source')) {
-      const source = map.getSource('rectangle-source') as mapboxgl.GeoJSONSource;
+    if (map && map.getSource('rectangle')) {
+      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
       source.setData({
         type: 'FeatureCollection',
         features: []
@@ -159,21 +159,28 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         
         console.log('📍 Second corner set:', coords);
         
-        // Create rectangle from two corners using turf for proper geodesic shape
-        const minX = Math.min(corner1[0], corner2[0]);
-        const maxX = Math.max(corner1[0], corner2[0]);
-        const minY = Math.min(corner1[1], corner2[1]);
-        const maxY = Math.max(corner1[1], corner2[1]);
+        // Create rectangle from two corners
+        const minLng = Math.min(corner1[0], corner2[0]);
+        const maxLng = Math.max(corner1[0], corner2[0]);
+        const minLat = Math.min(corner1[1], corner2[1]);
+        const maxLat = Math.max(corner1[1], corner2[1]);
         
-        // Use turf.bboxPolygon to create a proper rectangle
-        // This handles projection issues better
-        const rectangle = turf.bboxPolygon([minX, minY, maxX, maxY]);
-        
-        // Ensure it's a Feature not just geometry
-        if (rectangle.type !== 'Feature') {
-          rectangle.type = 'Feature';
-        }
-        rectangle.properties = rectangle.properties || {};
+        // Create a proper rectangle with explicit coordinates
+        // Using densified edges to account for map projection
+        const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [[
+              [minLng, minLat],  // SW corner
+              [maxLng, minLat],  // SE corner  
+              [maxLng, maxLat],  // NE corner
+              [minLng, maxLat],  // NW corner
+              [minLng, minLat]   // close polygon
+            ]]
+          },
+          properties: {}
+        };
 
         // Calculate area first
         const area = turf.area(rectangle);
@@ -282,15 +289,27 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       const corner1 = firstCorner.current;
       const corner2: [number, number] = [e.lngLat.lng, e.lngLat.lat];
 
-      // Create preview rectangle using turf for proper shape
-      const minX = Math.min(corner1[0], corner2[0]);
-      const maxX = Math.max(corner1[0], corner2[0]);
-      const minY = Math.min(corner1[1], corner2[1]);
-      const maxY = Math.max(corner1[1], corner2[1]);
+      // Create preview rectangle with same approach as final rectangle
+      const minLng = Math.min(corner1[0], corner2[0]);
+      const maxLng = Math.max(corner1[0], corner2[0]);
+      const minLat = Math.min(corner1[1], corner2[1]);
+      const maxLat = Math.max(corner1[1], corner2[1]);
       
-      // Use turf.bboxPolygon for consistent rectangle shape
-      const rectangle = turf.bboxPolygon([minX, minY, maxX, maxY]);
-      rectangle.properties = rectangle.properties || {};
+      // Create consistent rectangle shape
+      const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [minLng, minLat],
+            [maxLng, minLat],
+            [maxLng, maxLat],
+            [minLng, maxLat],
+            [minLng, minLat]
+          ]]
+        },
+        properties: {}
+      };
 
       // Update visualization
       const collection: GeoJSON.FeatureCollection = {
@@ -369,8 +388,8 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     console.log('🧹 Clearing rectangle...');
     
     // Clear the rectangle data
-    if (map.getSource('rectangle-source')) {
-      const source = map.getSource('rectangle-source') as mapboxgl.GeoJSONSource;
+    if (map.getSource('rectangle')) {
+      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
       source.setData({
         type: 'FeatureCollection',
         features: []
@@ -400,7 +419,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     
     // Clear any existing rectangle
     if (map) {
-      const source = map.getSource('rectangle-source') as mapboxgl.GeoJSONSource;
+      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
       if (source) {
         source.setData({
           type: 'FeatureCollection',
