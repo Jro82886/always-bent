@@ -282,7 +282,7 @@ export default function LegendaryOceanPlatform() {
         map={map.current}
       />
       {/* SST Layer component */}
-      <SSTLayer map={map.current} on={sstActive} />
+      <SSTLayer map={map.current} on={sstActive} selectedDate={selectedDate} />
       
       {/* Coastline Smoother - active when SST is shown */}
       <CoastlineSmoother map={map.current} enabled={sstActive} />
