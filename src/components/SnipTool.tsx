@@ -19,6 +19,12 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   const currentRectangle = useRef<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
   const layersInitialized = useRef<boolean>(false);
   const isDragging = useRef<boolean>(false);
+  const isDrawingRef = useRef<boolean>(false);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    isDrawingRef.current = isDrawing;
+  }, [isDrawing]);
 
   // Clear when parent tells us to
   useEffect(() => {
@@ -129,13 +135,14 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
     // Handle mouse down - start drawing
     const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
-      if (!isDrawing) return;
+      if (!isDrawingRef.current) return;
       
+      e.preventDefault();
       const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
       firstCorner.current = coords;
       isDragging.current = true;
       
-      console.log('🖱️ Started dragging from:', coords);
+      console.log('🖱️ Started dragging from:', coords, 'isDrawing:', isDrawingRef.current);
       
       // Show initial point
       const point: GeoJSON.FeatureCollection = {
@@ -436,8 +443,8 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   };
 
   return (
-    <div className="absolute bottom-32 right-4 bg-black/70 backdrop-blur-md rounded-full px-5 py-3 shadow-lg z-20 border border-cyan-500/20">
-      <h3 className="text-cyan-300 font-semibold mb-2 text-sm text-center flex items-center justify-center gap-2">
+    <div className="absolute bottom-32 right-4 bg-black/70 backdrop-blur-md rounded-full px-6 py-4 shadow-lg z-20 border border-cyan-500/20">
+      <h3 className="text-cyan-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2">
         <Target size={14} className="text-cyan-400" />
         Ocean Analysis
       </h3>
