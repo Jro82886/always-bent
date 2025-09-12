@@ -13,7 +13,8 @@ import {
   Calendar,
   Sliders,
   MapPin,
-  Users
+  Users,
+  Sparkles
 } from 'lucide-react';
 
 interface ModernControlsProps {
@@ -56,6 +57,13 @@ export default function ModernControls({
   const [showOceanOpacity, setShowOceanOpacity] = useState(false);
   const [showSstOpacity, setShowSstOpacity] = useState(false);
   const [showChlOpacity, setShowChlOpacity] = useState(false);
+  const [showSstEnhance, setShowSstEnhance] = useState(false);
+  
+  // Enhancement settings for SST
+  const [sstSmoothing, setSstSmoothing] = useState(0); // 0-2 pixels blur
+  const [sstBrightness, setSstBrightness] = useState(100); // 100-150%
+  const [sstSaturation, setSstSaturation] = useState(100); // 100-200%
+  const [sstContrast, setSstContrast] = useState(100); // 100-150%
   
   useEffect(() => {
     // Check location permission status
@@ -239,18 +247,34 @@ export default function ModernControls({
               >
                 🌡️ SST
                 {sstActive && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowSstOpacity(!showSstOpacity);
-                      setShowOceanOpacity(false);
-                      setShowChlOpacity(false);
-                    }}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-black/80 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
-                    title="Adjust SST opacity"
-                  >
-                    <Sliders size={10} className="text-white" />
-                  </button>
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowSstOpacity(!showSstOpacity);
+                        setShowOceanOpacity(false);
+                        setShowChlOpacity(false);
+                        setShowSstEnhance(false);
+                      }}
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-black/80 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                      title="Adjust SST opacity"
+                    >
+                      <Sliders size={10} className="text-white" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowSstEnhance(!showSstEnhance);
+                        setShowSstOpacity(false);
+                        setShowOceanOpacity(false);
+                        setShowChlOpacity(false);
+                      }}
+                      className="absolute -top-1 -right-5 w-4 h-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center hover:from-purple-500 hover:to-pink-500 transition-all"
+                      title="Enhance SST visualization"
+                    >
+                      <Sparkles size={10} className="text-white" />
+                    </button>
+                  </>
                 )}
               </button>
               
@@ -271,6 +295,115 @@ export default function ModernControls({
                       }}
                     />
                     <span className="text-gray-400 text-xs">{sstOpacity}%</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* SST Enhancement Popup */}
+              {showSstEnhance && sstActive && (
+                <div className="absolute top-full mt-2 left-0 bg-black/90 backdrop-blur-md rounded-lg border border-purple-500/30 p-4 z-50 min-w-[200px]">
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold text-purple-300 flex items-center gap-1">
+                      <Sparkles size={12} /> Enhance SST
+                    </h4>
+                    
+                    {/* Smoothing */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-gray-400">Smoothing</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="0"
+                          max="2"
+                          step="0.1"
+                          value={sstSmoothing}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            setSstSmoothing(val);
+                            // Smoothing via blur is challenging on raster layers
+                            // We'll use contrast adjustment to simulate smoothing
+                            if (map?.getLayer('sst-lyr')) {
+                              // Lower contrast = smoother appearance
+                              const smoothContrast = val > 0 ? -val * 0.1 : 0;
+                              map.setPaintProperty('sst-lyr', 'raster-contrast', smoothContrast);
+                            }
+                          }}
+                          className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <span className="text-[10px] text-gray-400 w-8">{sstSmoothing.toFixed(1)}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Brightness */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-gray-400">Brightness</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="100"
+                          max="150"
+                          value={sstBrightness}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setSstBrightness(val);
+                            if (map?.getLayer('sst-lyr')) {
+                              // Mapbox uses brightness values from -1 to 1
+                              // 100% = 0, 150% = 0.5
+                              const brightAdjust = (val - 100) / 100;
+                              map.setPaintProperty('sst-lyr', 'raster-brightness-min', Math.max(0, brightAdjust));
+                              map.setPaintProperty('sst-lyr', 'raster-brightness-max', Math.min(1, 1 + brightAdjust));
+                            }
+                          }}
+                          className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <span className="text-[10px] text-gray-400 w-8">{sstBrightness}%</span>
+                      </div>
+                    </div>
+                    
+                    {/* Saturation */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-gray-400">Color Vibrance</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min="100"
+                          max="200"
+                          value={sstSaturation}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setSstSaturation(val);
+                            if (map?.getLayer('sst-lyr')) {
+                              // Mapbox saturation: -1 (grayscale) to 1 (double saturation)
+                              // 100% = 0, 200% = 1
+                              const satAdjust = (val - 100) / 100;
+                              map.setPaintProperty('sst-lyr', 'raster-saturation', satAdjust);
+                            }
+                          }}
+                          className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <span className="text-[10px] text-gray-400 w-8">{sstSaturation}%</span>
+                      </div>
+                    </div>
+                    
+                    {/* Reset Button */}
+                    <button
+                      onClick={() => {
+                        setSstSmoothing(0);
+                        setSstBrightness(100);
+                        setSstSaturation(100);
+                        setSstContrast(100);
+                        if (map?.getLayer('sst-lyr')) {
+                          // Reset all paint properties to defaults
+                          map.setPaintProperty('sst-lyr', 'raster-contrast', -0.02);
+                          map.setPaintProperty('sst-lyr', 'raster-brightness-min', 0);
+                          map.setPaintProperty('sst-lyr', 'raster-brightness-max', 1);
+                          map.setPaintProperty('sst-lyr', 'raster-saturation', 0.02);
+                        }
+                      }}
+                      className="w-full px-2 py-1 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 text-[10px] rounded transition-colors"
+                    >
+                      Reset
+                    </button>
                   </div>
                 </div>
               )}
