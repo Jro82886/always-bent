@@ -335,23 +335,24 @@ export function generateMockSSTData(bounds: number[][]): SSTDataPoint[] {
     for (let lng = west; lng <= east; lng += lngStep) {
       let temp_f;
       
-      // Create a SHARP temperature break at the edge
+      // Create a REALISTIC temperature break at the edge (1-3°F is typical)
       if (lng < edgeLng) {
         // Cold side (shelf water)
-        temp_f = 68 + Math.random() * 2;  // 68-70°F
+        temp_f = 72 + Math.random() * 0.5;  // 72-72.5°F
       } else {
-        // Warm side (Gulf Stream)
-        temp_f = 78 + Math.random() * 2;  // 78-80°F
+        // Warm side (Gulf Stream edge)
+        temp_f = 74.5 + Math.random() * 0.5;  // 74.5-75°F
       }
       
       // Add some north-south variation
-      temp_f += ((lat - south) / (north - south)) * 2;
+      temp_f += ((lat - south) / (north - south)) * 1;
       
-      // Add a small transition zone right at the edge
+      // Add a narrow transition zone right at the edge
       const distFromEdge = Math.abs(lng - edgeLng);
-      if (distFromEdge < (east - west) * 0.05) {  // Within 5% of edge
-        const transitionFactor = distFromEdge / ((east - west) * 0.05);
-        temp_f = temp_f * transitionFactor + (74 * (1 - transitionFactor));
+      if (distFromEdge < (east - west) * 0.02) {  // Within 2% of edge (narrow break)
+        // Smooth transition across the break
+        const transitionFactor = (lng - (edgeLng - (east - west) * 0.02)) / ((east - west) * 0.04);
+        temp_f = 72.25 + (transitionFactor * 2.5);  // 2.5°F total change
       }
       
       data.push({
