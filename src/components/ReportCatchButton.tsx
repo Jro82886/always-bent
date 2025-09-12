@@ -216,19 +216,33 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   return (
     <>
       {/* ONE TAP BITE BUTTON */}
-      <button
-        onClick={handleReportCatch}
-        className="fixed bottom-24 left-1/2 transform -translate-x-1/2 px-8 py-4 rounded-full font-bold shadow-2xl transition-all hover:scale-110 active:scale-95 z-30 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white hover:from-red-400 hover:via-orange-400 hover:to-yellow-400"
-        style={{
-          boxShadow: '0 10px 40px rgba(255, 100, 0, 0.6)',
-          animation: 'subtle-pulse 3s infinite'
-        }}
-      >
-        <span className="flex items-center gap-2">
-          <span className="text-3xl">🎣</span> 
-          <span className="text-xl">BITE!</span>
-        </span>
-      </button>
+      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-30 group">
+        <button
+          onClick={handleReportCatch}
+          className="px-8 py-4 rounded-full font-bold shadow-2xl transition-all hover:scale-110 active:scale-95 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white hover:from-red-400 hover:via-orange-400 hover:to-yellow-400"
+          style={{
+            boxShadow: '0 10px 40px rgba(255, 100, 0, 0.6)',
+            animation: 'subtle-pulse 3s infinite'
+          }}
+        >
+          <span className="flex items-center gap-2">
+            <span className="text-3xl">🎣</span> 
+            <span className="text-xl">BITE!</span>
+          </span>
+        </button>
+        
+        {/* Tooltip on hover */}
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <div className="bg-black/90 text-white text-sm rounded-lg px-4 py-3 max-w-xs whitespace-normal">
+            <div className="font-bold mb-1 text-yellow-300">Quick Log Fish Activity!</div>
+            <div className="text-xs leading-relaxed">
+              Got a bite? Fish on? Even a nibble? Tap this to instantly log the activity at your current location. 
+              Every data point helps our AI predict future hotspots. No forms, just fishing! 🎣
+            </div>
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-black/90"></div>
+          </div>
+        </div>
+      </div>
       
       {/* Add subtle pulse animation */}
       <style jsx>{`
