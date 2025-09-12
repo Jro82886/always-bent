@@ -62,8 +62,8 @@ export default function ModernControls({
   // Enhancement settings for SST
   const [sstSmoothing, setSstSmoothing] = useState(0); // 0-2 pixels blur
   const [sstBrightness, setSstBrightness] = useState(100); // 100-150%
-  const [sstSaturation, setSstSaturation] = useState(100); // 100-200%
-  const [sstContrast, setSstContrast] = useState(100); // 100-150%
+  const [sstSaturation, setSstSaturation] = useState(50); // 0-100% where 50 is normal
+  const [sstContrast, setSstContrast] = useState(50); // 0-100% where 50 is normal
   
   useEffect(() => {
     // Check location permission status
@@ -307,75 +307,47 @@ export default function ModernControls({
                       <Sparkles size={12} /> Enhance SST
                     </h4>
                     
-                    {/* Smoothing */}
+                    {/* Contrast - MAIN CONTROL for clarity */}
                     <div className="space-y-1">
-                      <label className="text-[10px] text-gray-400">Smoothing</label>
+                      <label className="text-[10px] text-gray-400">Contrast (Edge Definition)</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="range"
                           min="0"
-                          max="2"
-                          step="0.1"
-                          value={sstSmoothing}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value);
-                            setSstSmoothing(val);
-                            // Smoothing via blur is challenging on raster layers
-                            // We'll use contrast adjustment to simulate smoothing
-                            if (map?.getLayer('sst-lyr')) {
-                              // Lower contrast = smoother appearance
-                              const smoothContrast = val > 0 ? -val * 0.1 : 0;
-                              map.setPaintProperty('sst-lyr', 'raster-contrast', smoothContrast);
-                            }
-                          }}
-                          className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                        />
-                        <span className="text-[10px] text-gray-400 w-8">{sstSmoothing.toFixed(1)}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Brightness */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] text-gray-400">Brightness</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="range"
-                          min="100"
-                          max="150"
-                          value={sstBrightness}
+                          max="100"
+                          value={sstContrast}
                           onChange={(e) => {
                             const val = parseInt(e.target.value);
-                            setSstBrightness(val);
+                            setSstContrast(val);
                             if (map?.getLayer('sst-lyr')) {
-                              // Mapbox uses brightness values from -1 to 1
-                              // 100% = 0, 150% = 0.5
-                              const brightAdjust = (val - 100) / 100;
-                              map.setPaintProperty('sst-lyr', 'raster-brightness-min', Math.max(0, brightAdjust));
-                              map.setPaintProperty('sst-lyr', 'raster-brightness-max', Math.min(1, 1 + brightAdjust));
+                              // Mapbox contrast: -1 to 1, where 0 is normal
+                              // We want 0-100 slider where 50 is normal
+                              const contrastAdjust = (val - 50) / 50; // -1 to 1
+                              map.setPaintProperty('sst-lyr', 'raster-contrast', contrastAdjust);
                             }
                           }}
                           className="w-20 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
                         />
-                        <span className="text-[10px] text-gray-400 w-8">{sstBrightness}%</span>
+                        <span className="text-[10px] text-gray-400 w-8">{sstContrast}%</span>
                       </div>
                     </div>
                     
-                    {/* Saturation */}
+                    {/* Saturation - Make colors POP */}
                     <div className="space-y-1">
-                      <label className="text-[10px] text-gray-400">Color Vibrance</label>
+                      <label className="text-[10px] text-gray-400">Color Intensity</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="range"
-                          min="100"
-                          max="200"
+                          min="0"
+                          max="100"
                           value={sstSaturation}
                           onChange={(e) => {
                             const val = parseInt(e.target.value);
                             setSstSaturation(val);
                             if (map?.getLayer('sst-lyr')) {
                               // Mapbox saturation: -1 (grayscale) to 1 (double saturation)
-                              // 100% = 0, 200% = 1
-                              const satAdjust = (val - 100) / 100;
+                              // 0-100 slider where 50 is normal
+                              const satAdjust = (val - 50) / 50;
                               map.setPaintProperty('sst-lyr', 'raster-saturation', satAdjust);
                             }
                           }}
@@ -385,25 +357,50 @@ export default function ModernControls({
                       </div>
                     </div>
                     
-                    {/* Reset Button */}
-                    <button
-                      onClick={() => {
-                        setSstSmoothing(0);
-                        setSstBrightness(100);
-                        setSstSaturation(100);
-                        setSstContrast(100);
-                        if (map?.getLayer('sst-lyr')) {
-                          // Reset all paint properties to defaults
-                          map.setPaintProperty('sst-lyr', 'raster-contrast', -0.02);
-                          map.setPaintProperty('sst-lyr', 'raster-brightness-min', 0);
-                          map.setPaintProperty('sst-lyr', 'raster-brightness-max', 1);
-                          map.setPaintProperty('sst-lyr', 'raster-saturation', 0.02);
-                        }
-                      }}
-                      className="w-full px-2 py-1 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 text-[10px] rounded transition-colors"
-                    >
-                      Reset
-                    </button>
+                    {/* Quick Presets */}
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          // High contrast for edges
+                          setSstContrast(80);
+                          setSstSaturation(70);
+                          if (map?.getLayer('sst-lyr')) {
+                            map.setPaintProperty('sst-lyr', 'raster-contrast', 0.6);
+                            map.setPaintProperty('sst-lyr', 'raster-saturation', 0.4);
+                          }
+                        }}
+                        className="flex-1 px-2 py-1 bg-orange-600/20 hover:bg-orange-600/30 text-orange-300 text-[10px] rounded transition-colors"
+                      >
+                        🎯 Edges
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Smooth for gradients
+                          setSstContrast(30);
+                          setSstSaturation(60);
+                          if (map?.getLayer('sst-lyr')) {
+                            map.setPaintProperty('sst-lyr', 'raster-contrast', -0.4);
+                            map.setPaintProperty('sst-lyr', 'raster-saturation', 0.2);
+                          }
+                        }}
+                        className="flex-1 px-2 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 text-[10px] rounded transition-colors"
+                      >
+                        🌊 Smooth
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSstContrast(50);
+                          setSstSaturation(50);
+                          if (map?.getLayer('sst-lyr')) {
+                            map.setPaintProperty('sst-lyr', 'raster-contrast', 0);
+                            map.setPaintProperty('sst-lyr', 'raster-saturation', 0);
+                          }
+                        }}
+                        className="flex-1 px-2 py-1 bg-gray-600/20 hover:bg-gray-600/30 text-gray-300 text-[10px] rounded transition-colors"
+                      >
+                        Reset
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
