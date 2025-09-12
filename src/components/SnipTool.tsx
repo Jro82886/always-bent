@@ -355,11 +355,19 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       }
     };
 
-    // Add event listeners
+    // Add event listeners with immediate binding
     map.on('mousedown', handleMouseDown);
     map.on('mousemove', handleMouseMove);
     map.on('mouseup', handleMouseUp);
     document.addEventListener('keydown', handleKeyDown);
+    
+    // Also add to window for backup (convert regular mouse event)
+    const windowMouseUp = () => {
+      if (isDragging.current) {
+        handleMouseUp({} as mapboxgl.MapMouseEvent);
+      }
+    };
+    window.addEventListener('mouseup', windowMouseUp);
 
     // Change cursor and disable map dragging when drawing
     if (isDrawing) {
@@ -382,9 +390,11 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       map.off('mousemove', handleMouseMove);
       map.off('mouseup', handleMouseUp);
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mouseup', windowMouseUp);
       map.getCanvas().style.cursor = '';
       map.dragPan.enable();  // Re-enable map dragging on cleanup
       map.boxZoom.enable();  // Re-enable box zoom on cleanup
+      map.doubleClickZoom.enable();  // Re-enable double click zoom on cleanup
     };
   }, [map, isDrawing, onAnalyze]);
 
