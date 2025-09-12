@@ -9,6 +9,8 @@ import SSTLegend from '@/components/SSTLegend';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
 import SnipController from '@/components/SnipController';
 import ReportCatchButton from '@/components/ReportCatchButton';
+import TutorialOverlay from '@/components/TutorialOverlay';
+import ModernControls from '@/components/ModernControls';
 import { EAST_COAST_BOUNDS } from '@/lib/imagery/bounds';
 import '@/styles/mapSmoothing.css';
 
@@ -247,235 +249,29 @@ export default function LegendaryOceanPlatform() {
       
       {/* Boat Name Greeting */}
       {boatName && (
-        <div className="absolute top-4 right-4 bg-black/70 backdrop-blur rounded-full px-4 py-2 text-cyan-300 text-sm font-medium">
+        <div className="absolute top-20 right-4 bg-black/70 backdrop-blur rounded-full px-4 py-2 text-cyan-300 text-sm font-medium z-30">
           ⚓ Hi, {boatName}!
         </div>
       )}
       
-      {/* Simple Control Panel */}
-      <div className="absolute top-8 left-8 bg-black/80 backdrop-blur rounded-2xl p-6 text-white space-y-4">
-        <div>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            ALWAYS BENT
-          </h1>
-          <p className="text-xs text-cyan-300/80 mt-1">
-            Fishing Intelligence • Where Ocean Data Becomes Intuition
-          </p>
-        </div>
-
-        {/* 🔒 Connection Status Indicator */}
-        <div className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
-          🟢 Copernicus Ready
-        </div>
-        
-        <div className="space-y-4">
-          {/* Ocean Basemap Toggle (Bathymetry) */}
-          <div className="bg-blue-600/20 border border-blue-600/40 rounded-lg p-4">
-            <h2 className="text-lg font-bold mb-2">🌊 Ocean Basemap</h2>
-            <p className="text-sm opacity-80 mb-3">ESRI Bathymetry - Ocean Depth Data</p>
-
-            <button
-              onClick={toggleOcean}
-              className={`w-full px-4 py-3 rounded-lg font-semibold ${
-                oceanActive ? 'bg-blue-600 text-white' : 'bg-white/20 text-white/80'
-              } transition-all`}
-            >
-              {oceanActive ? '🌊 OCEAN ACTIVE' : '🌊 SHOW OCEAN'}
-            </button>
-
-            {oceanActive && (
-              <div className="mt-3 px-2">
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span>Opacity</span>
-                  <span>{oceanOpacity}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="20"
-                  max="80"
-                  value={oceanOpacity}
-                  onChange={(e) => {
-                    const newOpacity = parseInt(e.target.value);
-                    // SAFEGUARD: Validate opacity range
-                    const clampedOpacity = Math.max(20, Math.min(80, newOpacity));
-                    setOceanOpacity(clampedOpacity);
-
-                    // SAFEGUARD: Check map and layer exist before updating
-                    if (map.current?.getLayer('ocean-layer')) {
-                      try {
-                        map.current.setPaintProperty('ocean-layer', 'raster-opacity', clampedOpacity / 100);
-                      } catch (error) {
-                        console.error('🚨 Ocean opacity update failed:', error);
-                      }
-                    } else {
-                      console.warn('⚠️ Ocean layer not available for opacity update');
-                    }
-                  }}
-                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #2563eb 0%, #2563eb ${oceanOpacity}%, rgba(255,255,255,0.2) ${oceanOpacity}%, rgba(255,255,255,0.2) 100%)`
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* SST Toggle (Copernicus) */}
-          <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4">
-            <h2 className="text-lg font-bold mb-2">🌡️ Sea Surface Temperature</h2>
-            <p className="text-sm opacity-80 mb-3">Copernicus Marine - High Resolution SST</p>
-
-            <button
-              onClick={toggleSST}
-              className={`w-full px-4 py-3 rounded-lg font-semibold ${
-                sstActive ? 'bg-red-500 text-white' : 'bg-white/20 text-white/80'
-              } transition-all`}
-            >
-              {sstActive ? '🌡️ SST ACTIVE' : '🌡️ SHOW SST'}
-            </button>
-
-            {sstActive && (
-              <div className="mt-3 px-2">
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <span>Opacity</span>
-                  <span>{sstOpacity}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="100"
-                  value={sstOpacity}
-                  onChange={(e) => {
-                    const newOpacity = parseInt(e.target.value);
-                    setSstOpacity(newOpacity);
-                    if (map.current?.getLayer('sst-lyr')) {
-                      map.current.setPaintProperty('sst-lyr', 'raster-opacity', newOpacity / 100);
-                    }
-                  }}
-                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${sstOpacity}%, rgba(255,255,255,0.2) ${sstOpacity}%, rgba(255,255,255,0.2) 100%)`
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Chlorophyll Toggle (Copernicus) */}
-          <div className="bg-green-500/20 border border-green-500/40 rounded-lg p-4">
-            <h2 className="text-lg font-bold mb-2">🌿 Chlorophyll</h2>
-            <p className="text-sm opacity-80 mb-3">Copernicus Marine - Ocean Color Data</p>
-
-            <button
-              onClick={toggleCHL}
-              className={`w-full px-4 py-3 rounded-lg font-semibold ${
-                chlActive ? 'bg-green-500 text-white' : 'bg-white/20 text-white/80'
-              } transition-all`}
-            >
-              {chlActive ? '🌿 CHL ACTIVE' : '🌿 SHOW CHL'}
-            </button>
-
-            {chlActive && (
-              <div className="mt-3 px-2 space-y-3">
-                <div>
-                  <div className="flex items-center justify-between text-xs mb-2">
-                    <span>Opacity</span>
-                    <span>{chlOpacity}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="50"
-                    max="100"
-                    value={chlOpacity}
-                    onChange={(e) => {
-                      const newOpacity = parseInt(e.target.value);
-                      setChlOpacity(newOpacity);
-                      if (map.current?.getLayer('chl-lyr')) {
-                        map.current.setPaintProperty('chl-lyr', 'raster-opacity', newOpacity / 100);
-                      }
-                    }}
-                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #22c55e 0%, #22c55e ${chlOpacity}%, rgba(255,255,255,0.2) ${chlOpacity}%, rgba(255,255,255,0.2) 100%)`
-                    }}
-                  />
-                </div>
-                
-                {/* Edge Enhancement Mode */}
-                <button
-                  onClick={() => {
-                    const newMode = !edgeMode;
-                    setEdgeMode(newMode);
-                    if (map.current?.getLayer('chl-lyr')) {
-                      if (newMode) {
-                        // EDGE MODE: Maximum contrast for finding boundaries!
-                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 1);  // MAXIMUM contrast
-                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 1);  // MAXIMUM saturation for greens
-                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', 0);  // Valid range
-                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1);  // Valid range
-                        map.current.setPaintProperty('chl-lyr', 'raster-opacity', 0.9);  // Boost opacity too
-                      } else {
-                        // Normal mode
-                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 0.8);
-                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 0.8);
-                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', 0);  // Valid range
-                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1);  // Valid range
-                        map.current.setPaintProperty('chl-lyr', 'raster-opacity', chlOpacity / 100);  // Reset to slider value
-                      }
-                    }
-                  }}
-                  className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                    edgeMode 
-                      ? 'bg-yellow-500 text-black animate-pulse' 
-                      : 'bg-green-900/50 text-green-300 hover:bg-green-800/50'
-                  }`}
-                >
-                  {edgeMode ? '⚡ EDGE MODE ACTIVE' : '🔍 Find Green Edges'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        
-        
-        
-        <div className="border-t border-white/20 pt-4">
-          <p className="text-xs font-bold text-yellow-400 mb-2">⚡ ABFI EXCLUSIVE</p>
-        </div>
-        
-        <div className="border-t border-white/20 pt-4">
-          <label className="text-sm font-semibold block mb-3">📅 Ocean Data Date</label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { date: '2025-09-09', label: 'Today', desc: 'Latest' },
-              { date: '2025-09-08', label: 'Sep 8', desc: 'Yesterday' },
-              { date: '2025-09-07', label: 'Sep 7', desc: '2 days ago' },
-              { date: '2025-09-06', label: 'Sep 6', desc: '3 days ago' },
-              { date: '2025-09-05', label: 'Sep 5', desc: '4 days ago' },
-              { date: '2025-09-04', label: 'Sep 4', desc: '5 days ago' }
-            ].map(option => (
-              <button
-                key={option.date}
-                onClick={() => setSelectedDate(option.date)}
-                className={`p-3 rounded-lg text-left transition-all ${
-                  selectedDate === option.date 
-                    ? 'bg-white/20 border-2 border-white/40 shadow-lg' 
-                    : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                }`}
-              >
-                <div className="font-medium text-sm">{option.label}</div>
-                <div className="text-xs opacity-70">{option.desc}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <p className="text-xs opacity-60">
-          ⚡ Powered by Claude & Cursor
-        </p>
-      </div>
-
+      {/* Modern Unified Controls with Navigation */}
+      <ModernControls
+        oceanActive={oceanActive}
+        sstActive={sstActive}
+        chlActive={chlActive}
+        setOceanActive={setOceanActive}
+        setSstActive={setSstActive}
+        setChlActive={setChlActive}
+        oceanOpacity={oceanOpacity}
+        sstOpacity={sstOpacity}
+        chlOpacity={chlOpacity}
+        setOceanOpacity={setOceanOpacity}
+        setSstOpacity={setSstOpacity}
+        setChlOpacity={setChlOpacity}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        map={map.current}
+      />
       {/* SST Layer component */}
       <SSTLayer map={map.current} on={sstActive} />
       
@@ -490,6 +286,9 @@ export default function LegendaryOceanPlatform() {
       
       {/* Report Catch Button - Community Intelligence! */}
       <ReportCatchButton map={map.current} />
+      
+      {/* Tutorial Overlay */}
+      <TutorialOverlay />
 
     </div>
   );
