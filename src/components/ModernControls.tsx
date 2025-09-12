@@ -170,22 +170,6 @@ export default function ModernControls({
         <div className="flex items-center gap-2">
           {/* Layer Toggle Group - FIRST to show available layers */}
           <div className="bg-black/70 backdrop-blur-md rounded-full px-2 py-1 border border-cyan-500/20 flex items-center gap-1">
-            {/* Opacity Controls Toggle - MOVED TO FRONT for better discovery */}
-            <button
-              onClick={() => setShowOpacityControls(!showOpacityControls)}
-              className={`px-2 py-1.5 rounded-full text-xs font-medium transition-all ${
-                showOpacityControls
-                  ? 'bg-white/20 text-white'
-                  : 'text-gray-400 hover:text-white hover:bg-white/10'
-              }`}
-              title="Adjust Layer Opacity"
-            >
-              <Sliders size={14} />
-            </button>
-            
-            {/* Divider line */}
-            <div className="w-px h-4 bg-cyan-500/20"></div>
-            
             <button
               onClick={() => toggleLayer('ocean')}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
@@ -297,6 +281,21 @@ export default function ModernControls({
               </div>
             )}
           </div>
+          
+          {/* Opacity Controls - ONLY show when layers are active */}
+          {(oceanActive || sstActive || chlActive) && (
+            <button
+              onClick={() => setShowOpacityControls(!showOpacityControls)}
+              className={`bg-black/70 backdrop-blur-md rounded-full px-3 py-1.5 border border-cyan-500/20 text-xs font-medium transition-all ${
+                showOpacityControls
+                  ? 'bg-white/20 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/10'
+              }`}
+              title="Adjust Layer Opacity"
+            >
+              <Sliders size={14} />
+            </button>
+          )}
         </div>
       </div>
       
