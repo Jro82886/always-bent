@@ -60,7 +60,7 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           source: 'rectangle',
           paint: {
             'fill-color': '#00ff00',
-            'fill-opacity': 0.3
+            'fill-opacity': 0.5  // More visible
           }
         });
 
@@ -71,8 +71,8 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           source: 'rectangle',
           paint: {
             'line-color': '#00ff00',
-            'line-width': 4,
-            'line-dasharray': [2, 2]
+            'line-width': 6,  // Thicker line
+            'line-dasharray': [0, 0]  // Solid line for now
           }
         });
         
@@ -87,6 +87,37 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
         }
         
         console.log('✅ Rectangle layers setup complete');
+        
+        // TEST: Draw a test rectangle to verify layers work
+        const testRectangle: GeoJSON.FeatureCollection = {
+          type: 'FeatureCollection',
+          features: [{
+            type: 'Feature',
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[
+                [-75.5, 36.5],
+                [-75.5, 36.0],
+                [-75.0, 36.0],
+                [-75.0, 36.5],
+                [-75.5, 36.5]
+              ]]
+            },
+            properties: {}
+          }]
+        };
+        
+        // Set test data briefly
+        const src = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+        if (src) {
+          src.setData(testRectangle);
+          console.log('🧪 TEST RECTANGLE DRAWN - you should see a green box!');
+          // Clear after 2 seconds
+          setTimeout(() => {
+            src.setData({ type: 'FeatureCollection', features: [] });
+            console.log('🧪 Test rectangle cleared');
+          }, 2000);
+        }
       } catch (error) {
         console.error('❌ Error setting up rectangle layers:', error);
       }
@@ -116,7 +147,13 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
             properties: {}
           }]
         };
-        (map.getSource('rectangle') as mapboxgl.GeoJSONSource)?.setData(point);
+        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+        if (source) {
+          source.setData(point);
+          console.log('📍 Point data set on source');
+        } else {
+          console.error('❌ Rectangle source not found!');
+        }
       } else {
         // Second click - complete rectangle
         const corner1 = firstCorner.current;
@@ -145,7 +182,13 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           type: 'FeatureCollection',
           features: [rectangle]
         };
-        (map.getSource('rectangle') as mapboxgl.GeoJSONSource)?.setData(collection);
+        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+        if (source) {
+          source.setData(collection);
+          console.log('✅ Rectangle data set, area:', areaKm2.toFixed(2), 'km²');
+        } else {
+          console.error('❌ Rectangle source not found during completion!');
+        }
 
         // Calculate area
         const area = turf.area(rectangle);
@@ -197,7 +240,16 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
         type: 'FeatureCollection',
         features: [rectangle]
       };
-      (map.getSource('rectangle') as mapboxgl.GeoJSONSource)?.setData(collection);
+      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+      if (source) {
+        source.setData(collection);
+        // Log every 10th mouse move to avoid spam
+        if (Math.random() < 0.1) {
+          console.log('👁️ Preview updating...');
+        }
+      } else {
+        console.error('❌ Rectangle source not found during preview!');
+      }
     };
 
     // Handle escape key to cancel drawing
