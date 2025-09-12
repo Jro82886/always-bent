@@ -7,6 +7,7 @@ import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
 import SSTLegend from '@/components/SSTLegend';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
+import GetOrganized from '@/components/GetOrganized';
 import SnipController from '@/components/SnipController';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import TutorialOverlay from '@/components/TutorialOverlay';
@@ -276,6 +277,9 @@ export default function LegendaryOceanPlatform() {
       
       {/* SST Temperature Legend */}
       <SSTLegend visible={sstActive} />
+      
+      {/* Get Organized - SST Features */}
+      <GetOrganized map={map.current} />
       
       {/* Snip-It Controller - Handles drawing, analysis, and reporting */}
       <SnipController map={map.current} />

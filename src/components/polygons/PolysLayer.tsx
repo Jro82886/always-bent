@@ -20,12 +20,12 @@ function addLayers(map: any) {
         'fill-color': [
           'match',
           ['get', 'type'],
-          'eddy', '#22d3ee',
+          'eddy', '#00ff88',  // Green for circular eddies
+          'edge', '#ff6600',  // Orange for temperature edges
           'filament', '#a78bfa',
-          'edge', '#f59e0b',
           '#94a3b8'
         ],
-        'fill-opacity': 0.18,
+        'fill-opacity': 0.25,
       },
     });
   }
@@ -38,12 +38,12 @@ function addLayers(map: any) {
         'line-color': [
           'match',
           ['get', 'type'],
-          'eddy', '#22d3ee',
+          'eddy', '#00ff88',  // Green for circular eddies
+          'edge', '#ff6600',  // Orange for temperature edges
           'filament', '#a78bfa',
-          'edge', '#f59e0b',
           '#94a3b8'
         ],
-        'line-width': 1.2,
+        'line-width': 2,
         'line-opacity': 0.9,
       },
     });
