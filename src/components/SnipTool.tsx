@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as turf from '@turf/turf';
 import type mapboxgl from 'mapbox-gl';
+import { Target } from 'lucide-react';
 
 interface SnipToolProps {
   map: mapboxgl.Map | null;
@@ -410,27 +411,36 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   }, [shouldClear]);
 
   const startDrawing = () => {
+    if (!map) {
+      console.error('Map not available');
+      return;
+    }
+    
     setIsDrawing(true);
     firstCorner.current = null;
     setCurrentArea(0);
     
     // Clear any existing rectangle
-    if (map) {
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-      if (source) {
-        source.setData({
-          type: 'FeatureCollection',
-          features: []
-        });
-      }
+    const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
     }
     
-    console.log('🎯 Rectangle drawing mode activated');
+    // Set cursor immediately
+    map.getCanvas().style.cursor = 'crosshair';
+    
+    console.log('🎯 Rectangle drawing mode activated - click and drag to draw');
   };
 
   return (
     <div className="absolute bottom-32 right-4 bg-black/70 backdrop-blur-md rounded-full px-5 py-3 shadow-lg z-20 border border-cyan-500/20">
-      <h3 className="text-cyan-300 font-semibold mb-2 text-sm">🎯 Ocean Analysis</h3>
+      <h3 className="text-cyan-300 font-semibold mb-2 text-sm text-center flex items-center justify-center gap-2">
+        <Target size={14} className="text-cyan-400" />
+        Ocean Analysis
+      </h3>
       {/* TODO: REMOVE THIS WARNING WHEN REAL DATA IS CONNECTED */}
       {process.env.NODE_ENV === 'development' && (
         <div className="text-yellow-400 text-[10px] mb-1 px-2 py-1 bg-yellow-500/10 rounded-full">

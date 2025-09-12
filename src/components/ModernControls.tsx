@@ -10,7 +10,7 @@ import {
   ChevronDown,
   Eye,
   EyeOff,
-  Calendar,
+  CalendarDays,
   Sliders,
   MapPin,
   Users,
@@ -549,25 +549,20 @@ export default function ModernControls({
                   // Show teaser message
                   const toast = document.createElement('div');
                   toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-600 to-cyan-600 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-slide-down';
-                  toast.innerHTML = '✨ Custom ABFI layers coming soon! The chef\'s special composite view is in development...';
+                  toast.innerHTML = 'Custom ABFI layers coming soon! The Captain\'s composite view is in development...';
                   document.body.appendChild(toast);
                   setTimeout(() => toast.remove(), 4000);
                 }}
-                className="px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-gradient-to-r from-purple-600/20 to-cyan-600/20 text-purple-300 border border-purple-500/30 opacity-70 hover:opacity-100 hover:from-purple-600/30 hover:to-cyan-600/30 relative overflow-hidden"
-                style={{
-                  animation: 'shimmer 3s infinite',
-                  backgroundSize: '200% 100%'
-                }}
+                className="px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-gradient-to-r from-cyan-600/20 to-blue-600/20 text-cyan-300 border border-cyan-500/30 opacity-70 hover:opacity-100 hover:from-cyan-600/30 hover:to-blue-600/30"
                 title="ABFI Custom Composite Layer - Coming Soon!"
               >
-                <span className="relative z-10">⭐ ABFI</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
+                <span className="relative z-10">ABFI</span>
               </button>
               
               {/* Hover tooltip - positioned below to avoid cutoff */}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-48 z-50">
                 <div className="bg-black/90 backdrop-blur-md text-white text-xs rounded-lg px-3 py-2 border border-cyan-500/30">
-                  <div className="font-bold text-cyan-300 mb-1">🌟 Captain's Intelligence</div>
+                  <div className="font-bold text-cyan-300 mb-1">Captain's Intelligence</div>
                   <div className="text-[10px] leading-relaxed text-cyan-100/80">
                     AI-powered composite layers. Multiple data sources analyzed for optimal fishing intelligence.
                   </div>
@@ -583,8 +578,8 @@ export default function ModernControls({
               onClick={() => setShowLayerPanel(!showLayerPanel)}
               className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-md rounded-full px-4 py-1.5 border border-purple-500/30 text-xs text-purple-300 font-medium flex items-center gap-1.5"
             >
-              <Calendar size={14} />
-              {selectedDate === 'today' ? '📅 Today' : selectedDate === 'yesterday' ? '📅 Yesterday' : '📅 2 Days Ago'}
+              <CalendarDays size={14} />
+              {selectedDate === 'today' ? 'Today' : selectedDate === 'yesterday' ? 'Yesterday' : '2 Days Ago'}
               <ChevronDown size={14} />
             </button>
             

@@ -219,56 +219,33 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-30 group">
         <button
           onClick={handleReportCatch}
-          className="relative px-10 py-5 rounded-full font-black shadow-2xl transition-all hover:scale-110 active:scale-95 bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-400 text-white hover:from-cyan-300 hover:via-blue-400 hover:to-cyan-300 overflow-hidden"
+          className="relative px-8 py-4 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400"
           style={{
-            boxShadow: '0 0 50px rgba(0, 200, 255, 0.6), 0 10px 40px rgba(0, 150, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2)',
-            animation: 'subtle-pulse 2s infinite',
-            letterSpacing: '0.15em'
+            boxShadow: '0 0 20px rgba(0, 200, 255, 0.3), 0 4px 12px rgba(0, 150, 255, 0.2)',
+            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+            fontWeight: 800,
+            fontSize: '18px',
+            letterSpacing: '0.05em'
           }}
         >
-          {/* Animated glow effect inside button */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-          
-          {/* Main text with gradient effect */}
-          <span className="relative flex items-center justify-center gap-3">
-            <span className="text-2xl font-black tracking-wider">BITE</span>
-            <span className="text-lg font-bold opacity-80">!</span>
+          <span className="relative flex items-center justify-center">
+            <span>BITE</span>
           </span>
-          
-          {/* Ripple effect on edges */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full opacity-30 animate-ping" />
         </button>
         
         {/* Tooltip on hover */}
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64">
           <div className="bg-black/90 text-white text-sm rounded-lg px-4 py-3">
-            <div className="font-bold mb-1 text-yellow-300">Quick Log Fish Activity!</div>
+            <div className="font-bold mb-1 text-cyan-300">Quick Log Fish Activity</div>
             <div className="text-xs leading-relaxed">
               Got a bite? Fish on? Even a nibble? Tap this to instantly log the activity at your current location. 
-              Every data point helps our AI predict future hotspots. No forms, just fishing! 🎣
+              Every data point helps predict future hotspots. No forms, just fishing!
             </div>
             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-black/90"></div>
           </div>
         </div>
       </div>
       
-      {/* Add animations */}
-      <style jsx>{`
-        @keyframes subtle-pulse {
-          0%, 100% { 
-            transform: translateX(-50%) scale(1);
-            filter: brightness(1);
-          }
-          50% { 
-            transform: translateX(-50%) scale(1.02);
-            filter: brightness(1.1);
-          }
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-      `}</style>
     </>
   );
 }

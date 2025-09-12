@@ -41,11 +41,41 @@ export function getInlet60nmBounds(inlet: Inlet): [number, number, number, numbe
 export function flyToInlet60nm(map: mapboxgl.Map | null, inlet: Inlet) {
   if (!map || !inlet) return;
   
-  const bounds = getInlet60nmBounds(inlet);
+  // Handle overview separately - zoom out to full East Coast
+  if (inlet.isOverview) {
+    map.flyTo({
+      center: inlet.center,
+      zoom: inlet.zoom,
+      duration: 1500,
+      essential: true
+    });
+    return;
+  }
+  
+  const [lng, lat] = inlet.center;
+  
+  // 60nm offshore to the east (positive longitude on east coast)
+  const eastOffset = 60 * NM_TO_DEGREES_LNG(lat);
+  
+  // 30nm north and south for a good view
+  const northSouthOffset = 30 * NM_TO_DEGREES_LAT;
+  
+  // 5nm inland (west) to show coastline
+  const westOffset = 5 * NM_TO_DEGREES_LNG(lat);
+  
+  // Calculate bounds [west, south, east, north]
+  // Note: On east coast, offshore is EAST (positive longitude)
+  const bounds: [number, number, number, number] = [
+    lng - westOffset,  // west (slightly inland)
+    lat - northSouthOffset,  // south
+    lng + eastOffset,  // east (60nm offshore - positive for east coast)
+    lat + northSouthOffset   // north
+  ];
   
   map.fitBounds(bounds as any, {
     padding: { top: 80, bottom: 80, left: 20, right: 20 },
     duration: 1500,
-    essential: true
+    essential: true,
+    maxZoom: 9 // Don't zoom in too close
   });
 }

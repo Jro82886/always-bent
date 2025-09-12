@@ -18,7 +18,7 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
  * - Date picker (writes to store)
  * - Exclusive layer toggles (SST / CHL)
  */
-const COLOR_MAP = buildInletColorMap(INLETS.map(i => i.id), {});
+const COLOR_MAP = buildInletColorMap();
 
 export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boolean } = {}) {
   const map = useMapbox();
