@@ -14,6 +14,23 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
   const firstCorner = useRef<[number, number] | null>(null);
   const rectangleId = useRef<string>('analysis-rectangle');
 
+  const clearDrawing = () => {
+    setIsDrawing(false);
+    firstCorner.current = null;
+    setCurrentArea(0);
+    
+    // Clear visualization
+    if (map) {
+      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+      if (source) {
+        source.setData({
+          type: 'FeatureCollection',
+          features: []
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     if (!map) return;
 
@@ -164,6 +181,14 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
       (map.getSource('rectangle') as mapboxgl.GeoJSONSource)?.setData(collection);
     };
 
+    // Handle escape key to cancel drawing
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isDrawing) {
+        clearDrawing();
+        console.log('❌ Drawing cancelled');
+      }
+    };
+
     // Setup on map load
     if (map.loaded()) {
       setupLayers();
@@ -174,19 +199,27 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
     // Add event listeners
     map.on('click', handleMapClick);
     map.on('mousemove', handleMouseMove);
+    document.addEventListener('keydown', handleKeyDown);
 
-    // Change cursor when drawing
+    // Change cursor and disable map dragging when drawing
     if (isDrawing) {
       map.getCanvas().style.cursor = 'crosshair';
+      map.dragPan.disable();  // Disable map dragging
+      map.boxZoom.disable();  // Disable box zoom
     } else {
       map.getCanvas().style.cursor = '';
+      map.dragPan.enable();   // Re-enable map dragging
+      map.boxZoom.enable();   // Re-enable box zoom
     }
 
     // Cleanup
     return () => {
       map.off('click', handleMapClick);
       map.off('mousemove', handleMouseMove);
+      document.removeEventListener('keydown', handleKeyDown);
       map.getCanvas().style.cursor = '';
+      map.dragPan.enable();  // Re-enable map dragging on cleanup
+      map.boxZoom.enable();  // Re-enable box zoom on cleanup
       
       if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
       if (map.getLayer('rectangle-outline')) map.removeLayer('rectangle-outline');
@@ -211,23 +244,6 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
     }
     
     console.log('🎯 Rectangle drawing mode activated');
-  };
-
-  const clearDrawing = () => {
-    setIsDrawing(false);
-    firstCorner.current = null;
-    setCurrentArea(0);
-    
-    // Clear visualization
-    if (map) {
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-      if (source) {
-        source.setData({
-          type: 'FeatureCollection',
-          features: []
-        });
-      }
-    }
   };
 
   return (
