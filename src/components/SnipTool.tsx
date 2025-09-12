@@ -177,6 +177,11 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
           properties: {}
         };
 
+        // Calculate area first
+        const area = turf.area(rectangle);
+        const areaKm2 = area / 1000000;
+        setCurrentArea(areaKm2);
+
         // Update visualization
         const collection: GeoJSON.FeatureCollection = {
           type: 'FeatureCollection',
@@ -189,11 +194,6 @@ export default function SnipTool({ map, onAnalyze }: SnipToolProps) {
         } else {
           console.error('❌ Rectangle source not found during completion!');
         }
-
-        // Calculate area
-        const area = turf.area(rectangle);
-        const areaKm2 = area / 1000000;
-        setCurrentArea(areaKm2);
 
         console.log('✅ Rectangle completed:', {
           area: `${areaKm2.toFixed(2)} km²`,
