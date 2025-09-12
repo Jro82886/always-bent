@@ -31,9 +31,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   const { hotspot, stats, features } = analysis;
   
   // Find the strongest feature
-  const strongestFeature = features.reduce((best, current) => 
-    (current.properties.score > (best?.properties.score || 0)) ? current : best
-  , features[0]);
+  const strongestFeature = features.length > 0 ? 
+    features.reduce((best, current) => 
+      (current.properties.score > (best?.properties.score || 0)) ? current : best
+    , features[0]) : null;
 
   return (
     <div 
@@ -107,7 +108,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             <div className="bg-gradient-to-br from-green-500/10 to-cyan-500/10 rounded-lg p-4 border border-cyan-500/20">
               <h4 className="text-cyan-300 text-sm font-semibold mb-2">Feature Type</h4>
               <p className="text-2xl font-bold text-white capitalize">
-                {strongestFeature?.properties.type.replace('_', ' ') || 'Edge'}
+                {strongestFeature?.type.replace('_', ' ') || 'Edge'}
               </p>
               <p className="text-cyan-400 text-xs mt-1">
                 Confidence: {((strongestFeature?.properties.score || 0.5) * 100).toFixed(0)}%
@@ -121,13 +122,13 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               <span className="text-lg">🌀</span> Pattern Recognition
             </h3>
             <p className="text-gray-300 text-sm leading-relaxed">
-              {features.some(f => f.properties.type === 'eddy') ? (
+              {features.some(f => f.type === 'eddy') ? (
                 <>
                   An <span className="text-cyan-400">eddy formation</span> was detected - 
                   a circular current that traps nutrients and baitfish in its center. 
                   These are like underwater hurricanes that create isolated ecosystems.
                 </>
-              ) : features.some(f => f.properties.type === 'filament') ? (
+              ) : features.some(f => f.type === 'filament') ? (
                 <>
                   A <span className="text-cyan-400">filament structure</span> extends from the main current - 
                   these fingers of warm water carry nutrients far from their source, 
