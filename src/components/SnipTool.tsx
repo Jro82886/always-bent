@@ -159,26 +159,21 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         
         console.log('📍 Second corner set:', coords);
         
-        // Create rectangle from two corners (ensure proper ordering)
+        // Create rectangle from two corners using turf for proper geodesic shape
         const minX = Math.min(corner1[0], corner2[0]);
         const maxX = Math.max(corner1[0], corner2[0]);
         const minY = Math.min(corner1[1], corner2[1]);
         const maxY = Math.max(corner1[1], corner2[1]);
         
-        const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
-          type: 'Feature',
-          geometry: {
-            type: 'Polygon',
-            coordinates: [[
-              [minX, minY],  // bottom-left
-              [maxX, minY],  // bottom-right
-              [maxX, maxY],  // top-right
-              [minX, maxY],  // top-left
-              [minX, minY]   // close the polygon
-            ]]
-          },
-          properties: {}
-        };
+        // Use turf.bboxPolygon to create a proper rectangle
+        // This handles projection issues better
+        const rectangle = turf.bboxPolygon([minX, minY, maxX, maxY]);
+        
+        // Ensure it's a Feature not just geometry
+        if (rectangle.type !== 'Feature') {
+          rectangle.type = 'Feature';
+        }
+        rectangle.properties = rectangle.properties || {};
 
         // Calculate area first
         const area = turf.area(rectangle);
@@ -287,26 +282,15 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       const corner1 = firstCorner.current;
       const corner2: [number, number] = [e.lngLat.lng, e.lngLat.lat];
 
-      // Create preview rectangle (ensure proper ordering)
+      // Create preview rectangle using turf for proper shape
       const minX = Math.min(corner1[0], corner2[0]);
       const maxX = Math.max(corner1[0], corner2[0]);
       const minY = Math.min(corner1[1], corner2[1]);
       const maxY = Math.max(corner1[1], corner2[1]);
       
-      const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[
-            [minX, minY],
-            [maxX, minY],
-            [maxX, maxY],
-            [minX, maxY],
-            [minX, minY]
-          ]]
-        },
-        properties: {}
-      };
+      // Use turf.bboxPolygon for consistent rectangle shape
+      const rectangle = turf.bboxPolygon([minX, minY, maxX, maxY]);
+      rectangle.properties = rectangle.properties || {};
 
       // Update visualization
       const collection: GeoJSON.FeatureCollection = {
