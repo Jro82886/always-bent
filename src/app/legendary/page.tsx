@@ -222,10 +222,14 @@ export default function LegendaryOceanPlatform() {
       
       {/* Simple Control Panel */}
       <div className="absolute top-8 left-8 bg-black/80 backdrop-blur rounded-2xl p-6 text-white space-y-4">
-        <h1 className="text-xl font-bold">
-          HI AMANDA! 👋 ALWAYS BENT
-        </h1>
-        <p className="text-sm opacity-80">Ocean Intelligence Platform</p>
+        <div>
+          <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            ALWAYS BENT
+          </h1>
+          <p className="text-xs text-cyan-300/80 mt-1">
+            Fishing Intelligence • Where Ocean Data Becomes Intuition
+          </p>
+        </div>
 
         {/* 🔒 Connection Status Indicator */}
         <div className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
