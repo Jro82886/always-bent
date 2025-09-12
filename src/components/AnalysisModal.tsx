@@ -207,25 +207,27 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         <div className="p-6 border-t border-cyan-500/20 flex justify-between items-center">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+            className="px-4 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
           >
-            Close
+            <span>✂️</span>
+            <span>Back to Snipping</span>
           </button>
           
           <div className="flex gap-3">
             {onSave && (
               <button
                 onClick={onSave}
-                className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25"
+                className="px-6 py-2 bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-2"
               >
-                Save Analysis
+                <span>💾</span>
+                <span>Save to Community</span>
               </button>
             )}
             <button
               onClick={onClose}
               className="px-6 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg font-semibold transition-all border border-cyan-500/30"
             >
-              Continue Exploring
+              Done Reading
             </button>
           </div>
         </div>

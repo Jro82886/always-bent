@@ -148,7 +148,18 @@ export default function SnipController({ map }: SnipControllerProps) {
       const saved = await saveSnipAnalysis(analysisData as any);
       console.log('✅ Analysis saved:', saved);
       
-      alert('Analysis saved successfully!');
+      // Show success feedback
+      showSaveSuccessToast();
+      
+      // Auto-close modal after save to continue snipping
+      setTimeout(() => {
+        setShowModal(false);
+        setCurrentAnalysis(null);
+        setShowHotspot(false);
+        setHotspotPosition(null);
+        setShouldClearTool(true);
+        setTimeout(() => setShouldClearTool(false), 100);
+      }, 1500);
     } catch (error) {
       console.error('❌ Failed to save analysis:', error);
       alert('Failed to save analysis. Please try again.');
@@ -156,24 +167,29 @@ export default function SnipController({ map }: SnipControllerProps) {
   }, [currentAnalysis]);
 
   const handleCloseModal = useCallback(() => {
+    console.log('🔄 Resetting for new snip');
+    
+    // 1. Close modal
     setShowModal(false);
     
-    // Clear everything immediately to allow new snip
+    // 2. Clear analysis data
     setCurrentAnalysis(null);
     setShowHotspot(false);
     setHotspotPosition(null);
     
-    // Clear map overlays
+    // 3. Clear map overlays if any
     if (map) {
       clearMapOverlays(map);
     }
-
-    // Tell SnipTool to clear the rectangle and reset for new snip
+    
+    // 4. Reset the snip tool (single call, no duplicates)
     setShouldClearTool(true);
     setTimeout(() => {
       setShouldClearTool(false);
-      setIsAnalyzing(false); // Ensure analyzing state is cleared
       console.log('✅ Ready for new snip!');
+      
+      // Show subtle feedback that tool is ready
+      showReadyToSnipToast();
     }, 100);
   }, [map]);
 
@@ -243,6 +259,62 @@ export default function SnipController({ map }: SnipControllerProps) {
       />
     </>
   );
+}
+
+// Helper function to show ready to snip toast
+function showReadyToSnipToast() {
+  const toast = document.createElement('div');
+  toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40';
+  toast.innerHTML = `
+    <div class="bg-gray-800/90 text-cyan-300 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm">
+      <span>✂️</span>
+      <span>Ready to snip again!</span>
+    </div>
+  `;
+  
+  // Add fade-in animation
+  toast.style.opacity = '0';
+  toast.style.transition = 'opacity 0.3s';
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '1';
+  }, 10);
+  
+  // Auto-remove after 2 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
+
+// Helper function to show save success toast
+function showSaveSuccessToast() {
+  const toast = document.createElement('div');
+  toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50';
+  toast.innerHTML = `
+    <div class="bg-gradient-to-r from-green-500 to-cyan-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3">
+      <span class="text-2xl">💾</span>
+      <span class="font-bold">Analysis Saved to Community!</span>
+      <span class="text-sm opacity-90">Helping others find fish 🎣</span>
+    </div>
+  `;
+  
+  // Add slide-down animation
+  toast.style.transform = 'translate(-50%, -100%)';
+  toast.style.transition = 'transform 0.5s';
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.transform = 'translate(-50%, 0)';
+  }, 10);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.5s';
+    setTimeout(() => toast.remove(), 500);
+  }, 3000);
 }
 
 // Helper function to show hotspot toast notification
