@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getPhilosophicalQuote } from '@/lib/philosophy';
+import { getRandomPhilosophicalQuote, getTimeOfDayQuote } from '@/lib/philosophyBank';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -15,8 +16,12 @@ export default function WelcomePage() {
   const [glowIntensity, setGlowIntensity] = useState(0);
   
   useEffect(() => {
-    // Set a random welcome quote on mount
-    setWelcomeQuote(getPhilosophicalQuote('welcome'));
+    // Set a random welcome quote on mount - use time-based for first quote
+    const firstQuote = Math.random() > 0.5 ? getTimeOfDayQuote() : getRandomPhilosophicalQuote();
+    setWelcomeQuote(firstQuote);
+    
+    // Keep track of shown quotes to avoid repeats
+    const shownQuotes = new Set<string>([firstQuote]);
     
     // Glow animation
     const glowInterval = setInterval(() => {
@@ -30,12 +35,25 @@ export default function WelcomePage() {
       
       // After fade out, change quote and fade in
       setTimeout(() => {
-        // Use valid PhilosophyContext types that work well for welcome screen
-        const contexts: Array<'welcome' | 'loading' | 'general'> = 
-          ['welcome', 'loading', 'general'];
-        const randomContext = contexts[Math.floor(Math.random() * contexts.length)];
-        setWelcomeQuote(getPhilosophicalQuote(randomContext));
+        // Get a new random quote from the full bank
+        let newQuote = getRandomPhilosophicalQuote();
+        
+        // Avoid showing the same quote twice in this session
+        let attempts = 0;
+        while (shownQuotes.has(newQuote) && attempts < 10) {
+          newQuote = getRandomPhilosophicalQuote();
+          attempts++;
+        }
+        
+        shownQuotes.add(newQuote);
+        setWelcomeQuote(newQuote);
         setQuoteOpacity(1);
+        
+        // Reset shown quotes if we've shown too many (avoid memory bloat)
+        if (shownQuotes.size > 50) {
+          shownQuotes.clear();
+          shownQuotes.add(newQuote);
+        }
       }, 300);
     }, 8000);
     
