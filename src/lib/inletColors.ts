@@ -59,3 +59,26 @@ export const INLET_COLORS = {
 export type InletName = keyof typeof INLET_COLORS;
 
 export const INLET_LIST = Object.keys(INLET_COLORS) as InletName[];
+
+/**
+ * Build a color map for inlet IDs
+ * Maps inlet IDs to their corresponding colors
+ */
+export function buildInletColorMap(inletIds: string[], defaultColors: Record<string, string> = {}): Record<string, string> {
+  const colorMap: Record<string, string> = { ...defaultColors };
+  
+  // Map inlet IDs to colors from INLET_COLORS
+  inletIds.forEach((id) => {
+    // Try to find a matching color in INLET_COLORS
+    const inletName = Object.keys(INLET_COLORS).find(
+      name => name.toLowerCase().includes(id.toLowerCase()) || 
+              id.toLowerCase().includes(name.toLowerCase())
+    );
+    
+    if (inletName) {
+      colorMap[id] = INLET_COLORS[inletName as InletName].color;
+    }
+  });
+  
+  return colorMap;
+}

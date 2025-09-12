@@ -3,12 +3,13 @@ import { useState, useEffect } from 'react';
 import type mapboxgl from 'mapbox-gl';
 
 interface ReportCatchButtonProps {
-  map: mapboxgl.Map | null;
+  map?: mapboxgl.Map | null;
   boatName?: string;
   inlet?: string;
+  disabled?: boolean;
 }
 
-export default function ReportCatchButton({ map, boatName, inlet }: ReportCatchButtonProps) {
+export default function ReportCatchButton({ map, boatName, inlet, disabled }: ReportCatchButtonProps) {
   const [isReporting, setIsReporting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [locationEnabled, setLocationEnabled] = useState(false);
@@ -153,8 +154,8 @@ export default function ReportCatchButton({ map, boatName, inlet }: ReportCatchB
     }
   };
   
-  // Don't show button if location is disabled
-  if (!locationEnabled) {
+  // Don't show button if disabled or location is disabled
+  if (disabled || !locationEnabled) {
     return null;
   }
   

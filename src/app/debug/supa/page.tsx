@@ -2,6 +2,9 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
+// Force dynamic rendering to prevent build-time errors with env vars
+export const dynamic = 'force-dynamic';
+
 export default function Page() {
   const [result, setResult] = useState<'loading' | 'ok' | 'error'>('loading');
   const [rows, setRows] = useState<any[]>([]);

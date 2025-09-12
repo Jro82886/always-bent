@@ -159,8 +159,8 @@ export function getAnalysisQuote(analysis: {
   tempRange?: { min: number; max: number };
   layerAnalysis?: {
     convergence?: { detected: boolean };
-    sst?: { hasEdge: boolean };
-    chl?: { description: string };
+    sst?: { active: boolean; description: string };
+    chl?: { active: boolean; description: string };
   };
 }): string {
   // Convergence zone detected - highest priority
@@ -168,8 +168,9 @@ export function getAnalysisQuote(analysis: {
     return getPhilosophicalQuote('convergence');
   }
   
-  // Strong thermal edge detected
-  if (analysis.hotspot && analysis.layerAnalysis?.sst?.hasEdge) {
+  // Strong thermal edge detected (check if SST is active and has edge-related description)
+  if (analysis.hotspot && analysis.layerAnalysis?.sst?.active && 
+      analysis.layerAnalysis?.sst?.description?.toLowerCase().includes('edge')) {
     return getPhilosophicalQuote('thermal_edge');
   }
   
