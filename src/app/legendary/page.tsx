@@ -102,6 +102,16 @@ export default function LegendaryOceanPlatform() {
       }
 
       if (!mapInstance.getLayer('chl-lyr')) {
+        // Find the first label layer to place chlorophyll underneath
+        const layers = mapInstance.getStyle().layers;
+        let firstSymbolId;
+        for (const layer of layers) {
+          if (layer.type === 'symbol' || layer.id.includes('label') || layer.id.includes('place')) {
+            firstSymbolId = layer.id;
+            break;
+          }
+        }
+        
         mapInstance.addLayer({
           id: 'chl-lyr',
           type: 'raster',
@@ -109,14 +119,14 @@ export default function LegendaryOceanPlatform() {
           layout: { visibility: 'none' },
           paint: { 
             'raster-opacity': 0.8,  // Bumped up to see edges better
-            'raster-contrast': 0.5,  // BOOST contrast to make edges sharp!
-            'raster-saturation': 0.6,  // MORE saturation for vibrant greens!
+            'raster-contrast': 0.8,  // MORE contrast to see green edges!
+            'raster-saturation': 0.8,  // MORE saturation for greens to pop!
             'raster-brightness-min': 0,  // Min must be 0 or higher
             'raster-brightness-max': 1  // Max must be 1 or lower
           },
           minzoom: 0,
           maxzoom: 24
-        });  // Remove the layer placement for now - it might be interfering
+        }, firstSymbolId);  // Place below labels and land
       }
 
       console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
@@ -377,16 +387,18 @@ export default function LegendaryOceanPlatform() {
                     if (map.current?.getLayer('chl-lyr')) {
                       if (newMode) {
                         // EDGE MODE: Maximum contrast for finding boundaries!
-                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 1);  // Max contrast
-                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 0.8);  // High saturation
+                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 1);  // MAXIMUM contrast
+                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 1);  // MAXIMUM saturation for greens
                         map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', 0);  // Valid range
                         map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1);  // Valid range
+                        map.current.setPaintProperty('chl-lyr', 'raster-opacity', 0.9);  // Boost opacity too
                       } else {
                         // Normal mode
-                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 0.5);
-                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 0.6);
+                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 0.8);
+                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 0.8);
                         map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', 0);  // Valid range
                         map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1);  // Valid range
+                        map.current.setPaintProperty('chl-lyr', 'raster-opacity', chlOpacity / 100);  // Reset to slider value
                       }
                     }
                   }}
