@@ -77,14 +77,16 @@ export default function SnipController({ map }: SnipControllerProps) {
         setShowHotspot(true);
         console.log('💙 Hotspot location:', analysis.hotspot.location);
         
-        // Auto-show modal after hotspot appears (part of the flow!)
-        setTimeout(() => {
-          console.log('🎭 Showing analysis modal');
+        // Show toast notification instead of modal immediately
+        showHotspotToast(() => {
+          console.log('🎭 User clicked toast - showing analysis modal');
           setShowModal(true);
-        }, 500); // Small delay so user sees the hotspot first
+        });
+        
+        // Don't auto-show modal - let user click hotspot or toast
       } else {
         console.warn('⚠️ No hotspot found in analysis');
-        // Still show modal even without hotspot
+        // For non-hotspot, show educational modal immediately
         setTimeout(() => {
           setShowModal(true);
         }, 500);
@@ -217,6 +219,10 @@ export default function SnipController({ map }: SnipControllerProps) {
         map={map}
         position={hotspotPosition}
         visible={showHotspot}
+        onClick={() => {
+          console.log('🎯 Hotspot marker clicked - showing analysis');
+          setShowModal(true);
+        }}
       />
       
       {isAnalyzing && (
@@ -237,6 +243,50 @@ export default function SnipController({ map }: SnipControllerProps) {
       />
     </>
   );
+}
+
+// Helper function to show hotspot toast notification
+function showHotspotToast(onClickCallback: () => void) {
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-slide-down';
+  toast.innerHTML = `
+    <div class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 cursor-pointer hover:scale-105 transition-transform">
+      <span class="text-2xl animate-pulse">🎯</span>
+      <span class="font-bold">Hotspot Detected!</span>
+      <span class="text-sm opacity-90">Click to see analysis</span>
+    </div>
+  `;
+  
+  // Add animation styles
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slide-down {
+      from { transform: translate(-50%, -100%); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .animate-slide-down {
+      animation: slide-down 0.5s ease-out;
+    }
+  `;
+  document.head.appendChild(style);
+  
+  document.body.appendChild(toast);
+  
+  // Make toast clickable
+  toast.addEventListener('click', () => {
+    onClickCallback();
+    toast.remove();
+  });
+  
+  // Auto-remove after 8 seconds if not clicked
+  setTimeout(() => {
+    if (document.body.contains(toast)) {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.5s';
+      setTimeout(() => toast.remove(), 500);
+    }
+  }, 8000);
 }
 
 // Helper functions

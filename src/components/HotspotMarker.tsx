@@ -6,9 +6,10 @@ interface HotspotMarkerProps {
   map: mapboxgl.Map | null;
   position: [number, number] | null;
   visible: boolean;
+  onClick?: () => void;
 }
 
-export default function HotspotMarker({ map, position, visible }: HotspotMarkerProps) {
+export default function HotspotMarker({ map, position, visible, onClick }: HotspotMarkerProps) {
   const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
@@ -24,11 +25,13 @@ export default function HotspotMarker({ map, position, visible }: HotspotMarkerP
     // Create the pulsing cyan dot element
     const el = document.createElement('div');
     el.className = 'hotspot-marker';
+    el.title = 'Click to see analysis';
     el.innerHTML = `
       <div class="pulse-ring"></div>
       <div class="pulse-ring delay-1"></div>
       <div class="pulse-ring delay-2"></div>
       <div class="pulse-dot"></div>
+      <div class="hotspot-tooltip">Click for analysis</div>
     `;
 
     // Add styles
@@ -39,6 +42,26 @@ export default function HotspotMarker({ map, position, visible }: HotspotMarkerP
         width: 40px;
         height: 40px;
         cursor: pointer;
+      }
+      
+      .hotspot-tooltip {
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: #00ffff;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      
+      .hotspot-marker:hover .hotspot-tooltip {
+        opacity: 1;
       }
       
       .pulse-dot {
@@ -132,6 +155,11 @@ export default function HotspotMarker({ map, position, visible }: HotspotMarkerP
       // Add extra pulse on click
       el.classList.add('hotspot-clicked');
       setTimeout(() => el.classList.remove('hotspot-clicked'), 500);
+      
+      // Call the onClick callback if provided
+      if (onClick) {
+        onClick();
+      }
     });
 
     // Cleanup
@@ -141,7 +169,7 @@ export default function HotspotMarker({ map, position, visible }: HotspotMarkerP
         markerRef.current = null;
       }
     };
-  }, [map, position, visible]);
+  }, [map, position, visible, onClick]);
 
   return null;
 }
