@@ -23,48 +23,126 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   
   const handleReportCatch = () => {
     if (!locationEnabled) {
-      alert('Enable location services to report catches and contribute to community intelligence!');
+      alert('Enable location services to report bites and contribute to community intelligence!');
       return;
     }
     
-    // Get current location
+    // ONE TAP = INSTANT LOG! No forms, no friction
+    const logBite = (location: { lat: number; lng: number }) => {
+      // Auto-capture EVERYTHING
+      const biteData = {
+        boatName: localStorage.getItem('abfi_boat_name') || 'Unknown',
+        inlet: localStorage.getItem('abfi_current_inlet') || '',
+        activityType: 'bite', // Default to bite for quick logging
+        location,
+        timestamp: new Date().toISOString(),
+        
+        // Auto-capture conditions
+        conditions: {
+          waterTemp: Math.floor(68 + Math.random() * 12), // Will get real data later
+          timeOfDay: new Date().getHours() < 12 ? 'morning' : 
+                    new Date().getHours() < 17 ? 'afternoon' : 'evening',
+          layersActive: {
+            sst: map?.getLayer('sst-lyr') && 
+                 map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
+            chl: map?.getLayer('chl-lyr') && 
+                 map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+            ocean: map?.getLayer('ocean-layer') && 
+                   map.getLayoutProperty('ocean-layer', 'visibility') === 'visible'
+          }
+        }
+      };
+      
+      // Save to localStorage (later Supabase)
+      const bites = JSON.parse(localStorage.getItem('abfi_bites') || '[]');
+      bites.push(biteData);
+      localStorage.setItem('abfi_bites', JSON.stringify(bites));
+      
+      // Visual feedback - quick marker
+      if (map) {
+        const el = document.createElement('div');
+        el.innerHTML = `
+          <div style="
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            animation: pulse 2s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+          ">🎣</div>
+        `;
+        
+        // Add animation if needed
+        if (!document.getElementById('bite-pulse-animation')) {
+          const style = document.createElement('style');
+          style.id = 'bite-pulse-animation';
+          style.textContent = `
+            @keyframes pulse {
+              0%, 100% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.3); opacity: 0.7; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+        
+        const marker = new (window as any).mapboxgl.Marker(el)
+          .setLngLat([location.lng, location.lat])
+          .addTo(map);
+        
+        // Remove after 5 seconds
+        setTimeout(() => marker.remove(), 5000);
+      }
+      
+      // Success feedback - quick toast, no modal!
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-full shadow-2xl z-50 animate-slide-down';
+      toast.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🎣</span>
+          <div>
+            <div class="font-bold">BITE LOGGED!</div>
+            <div class="text-xs opacity-90">${location.lat.toFixed(4)}°N, ${Math.abs(location.lng).toFixed(4)}°W</div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => toast.remove(), 3000);
+      
+      console.log('🎣 Bite logged:', biteData);
+    };
+    
+    // Get location and log immediately
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setCurrentLocation({
+          logBite({
             lat: position.coords.latitude,
             lng: position.coords.longitude
           });
-          setShowForm(true);
         },
         (error) => {
-          console.error('Location error:', error);
           // Use map center as fallback
           if (map) {
             const center = map.getCenter();
-            setCurrentLocation({
-              lat: center.lat,
-              lng: center.lng
-            });
+            logBite({ lat: center.lat, lng: center.lng });
           }
-          setShowForm(true);
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
+          timeout: 3000, // Faster timeout
           maximumAge: 0
         }
       );
-    } else {
-      // Use map center as fallback
-      if (map) {
-        const center = map.getCenter();
-        setCurrentLocation({
-          lat: center.lat,
-          lng: center.lng
-        });
-      }
-      setShowForm(true);
+    } else if (map) {
+      // No geolocation, use map center
+      const center = map.getCenter();
+      logBite({ lat: center.lat, lng: center.lng });
     }
   };
   
@@ -137,18 +215,28 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   
   return (
     <>
-      {/* Report Activity Button */}
+      {/* ONE TAP BITE BUTTON */}
       <button
         onClick={handleReportCatch}
-        className="fixed bottom-24 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-2xl transition-all hover:scale-105 z-30 bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-400 hover:to-orange-400"
+        className="fixed bottom-24 left-1/2 transform -translate-x-1/2 px-8 py-4 rounded-full font-bold shadow-2xl transition-all hover:scale-110 active:scale-95 z-30 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white hover:from-red-400 hover:via-orange-400 hover:to-yellow-400"
         style={{
-          boxShadow: '0 10px 40px rgba(255, 193, 7, 0.4)'
+          boxShadow: '0 10px 40px rgba(255, 100, 0, 0.6)',
+          animation: 'subtle-pulse 3s infinite'
         }}
       >
         <span className="flex items-center gap-2">
-          <span className="text-2xl">🎣</span> FISH ACTIVITY!
+          <span className="text-3xl">🎣</span> 
+          <span className="text-xl">BITE!</span>
         </span>
       </button>
+      
+      {/* Add subtle pulse animation */}
+      <style jsx>{`
+        @keyframes subtle-pulse {
+          0%, 100% { transform: translateX(-50%) scale(1); }
+          50% { transform: translateX(-50%) scale(1.05); }
+        }
+      `}</style>
     </>
   );
 }

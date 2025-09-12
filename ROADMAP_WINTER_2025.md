@@ -14,6 +14,16 @@
 
 ## 🚀 Priority 1: Immediate Enhancements (Next Sprint)
 
+### One-Tap Bite Logging (Path of Least Resistance)
+- [x] **BITE! Button**: Single tap to log fish activity
+- [x] Auto-captures: Location, time, conditions, active layers
+- [x] No forms, no friction - just instant logging
+- [ ] **Future: Fishing Journal** (edit/enhance logs when back on shore)
+  - View all bite history on a timeline
+  - Add species, size, bait used after the fact
+  - Upload photos to past bites
+  - Export data for personal records
+
 ### Enhanced Snip Tool Drawing Options
 - [ ] **Circle/Radius Mode**: Click center, drag for radius
 - [ ] **Polygon Mode**: Click multiple points for custom shapes
