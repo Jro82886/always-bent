@@ -111,8 +111,8 @@ export default function LegendaryOceanPlatform() {
             'raster-opacity': 0.8,  // Bumped up to see edges better
             'raster-contrast': 0.5,  // BOOST contrast to make edges sharp!
             'raster-saturation': 0.6,  // MORE saturation for vibrant greens!
-            'raster-brightness-min': -0.1,  // Darken the blues slightly
-            'raster-brightness-max': 1.1  // Brighten the greens
+            'raster-brightness-min': 0,  // Min must be 0 or higher
+            'raster-brightness-max': 1  // Max must be 1 or lower
           },
           minzoom: 0,
           maxzoom: 24
@@ -373,16 +373,16 @@ export default function LegendaryOceanPlatform() {
                     if (map.current?.getLayer('chl-lyr')) {
                       if (newMode) {
                         // EDGE MODE: Maximum contrast for finding boundaries!
-                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 0.9);
-                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 1.0);
-                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', -0.2);
-                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1.2);
+                        map.current.setPaintProperty('chl-lyr', 'raster-contrast', 1);  // Max contrast
+                        map.current.setPaintProperty('chl-lyr', 'raster-saturation', 0.8);  // High saturation
+                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', 0);  // Valid range
+                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1);  // Valid range
                       } else {
                         // Normal mode
                         map.current.setPaintProperty('chl-lyr', 'raster-contrast', 0.5);
                         map.current.setPaintProperty('chl-lyr', 'raster-saturation', 0.6);
-                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', -0.1);
-                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1.1);
+                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-min', 0);  // Valid range
+                        map.current.setPaintProperty('chl-lyr', 'raster-brightness-max', 1);  // Valid range
                       }
                     }
                   }}
