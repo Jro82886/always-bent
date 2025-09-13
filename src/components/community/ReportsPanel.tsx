@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Fish, MapPin, Clock, Send, Sparkles, ChevronDown } from 'lucide-react';
+import { Fish, MapPin, Clock, Send, Sparkles, ChevronDown, CircleCheck, Eye, X, CircleSlash } from 'lucide-react';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface FishingReport {
   type: 'bite' | 'catch' | 'sighting' | 'miss';
@@ -83,56 +84,77 @@ export default function ReportsPanel() {
   return (
     <div className="h-full flex flex-col bg-black/80 backdrop-blur-md max-w-2xl mx-auto">
       {/* Simplified Header */}
-      <div className="p-6 text-center border-b border-cyan-500/10">
-        <h2 className="text-xl font-bold text-cyan-400 mb-2">Quick Report</h2>
-        <p className="text-sm text-gray-400">Help the fleet by sharing what you saw</p>
+      <div className="p-4 text-center border-b border-cyan-500/10">
+        <h2 className="text-lg font-bold text-cyan-400 mb-1">Quick Report</h2>
+        <p className="text-xs text-gray-400">Help the fleet by sharing what you saw</p>
       </div>
 
       {/* Streamlined Form */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="space-y-6 max-w-md mx-auto">
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-4 max-w-md mx-auto">
           
-          {/* Step 1: What happened? - Big friendly buttons */}
+          {/* Step 1: What happened? - Compact buttons */}
           <div className="text-center">
-            <p className="text-sm text-cyan-400 mb-3">What happened?</p>
-            <div className="flex justify-center gap-3">
+            <p className="text-xs text-cyan-400 mb-2">What happened?</p>
+            <div className="flex justify-center gap-2">
               {[
-                { value: 'bite', emoji: '🎣' },
-                { value: 'catch', emoji: '🐟' },
-                { value: 'sighting', emoji: '👀' },
-                { value: 'miss', emoji: '❌' }
+                { 
+                  value: 'catch', 
+                  icon: Fish, 
+                  color: 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]',
+                  tooltip: 'Caught fish'
+                },
+                { 
+                  value: 'bite', 
+                  icon: CircleCheck, 
+                  color: 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]',
+                  tooltip: 'Got a bite'
+                },
+                { 
+                  value: 'sighting', 
+                  icon: Eye, 
+                  color: 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]',
+                  tooltip: 'Saw activity'
+                },
+                { 
+                  value: 'miss', 
+                  icon: X, 
+                  color: 'text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.8)]',
+                  tooltip: 'No luck'
+                }
               ].map(option => (
-                <button
-                  key={option.value}
-                  onClick={() => setReport(r => ({ ...r, type: option.value as any }))}
-                  className={`p-4 rounded-xl transition-all transform hover:scale-105 ${
-                    report.type === option.value
-                      ? 'bg-cyan-500/20 border-2 border-cyan-400 shadow-lg shadow-cyan-500/20'
-                      : 'bg-black/40 border-2 border-gray-700 hover:border-cyan-500/50'
-                  }`}
-                >
-                  <div className="text-3xl">{option.emoji}</div>
-                </button>
+                <Tooltip key={option.value} text={option.tooltip} position="bottom">
+                  <button
+                    onClick={() => setReport(r => ({ ...r, type: option.value as any }))}
+                    className={`p-3 rounded-lg transition-all transform hover:scale-105 ${
+                      report.type === option.value
+                        ? 'bg-purple-500/20 border-2 border-purple-400 shadow-lg shadow-purple-500/20'
+                        : 'bg-black/40 border-2 border-gray-700 hover:border-purple-500/50'
+                    }`}
+                  >
+                    <option.icon size={24} className={option.color} />
+                  </button>
+                </Tooltip>
               ))}
             </div>
           </div>
 
           {/* Step 2: Quick species selection */}
           <div className="text-center">
-            <p className="text-sm text-cyan-400 mb-3">What species? (optional)</p>
-            <div className="grid grid-cols-3 gap-2">
+            <p className="text-xs text-cyan-400 mb-2">What species? (optional)</p>
+            <div className="grid grid-cols-3 gap-1.5">
               {ALL_SPECIES.filter(s => ['bluefin', 'yellowfin', 'striped-bass', 'mahi', 'bluefish', 'unknown'].includes(s.id)).map(species => (
                 <button
                   key={species.id}
                   onClick={() => setReport(r => ({ ...r, species: species.id }))}
-                  className={`p-3 rounded-lg transition-all ${
+                  className={`p-2 rounded-lg transition-all ${
                     report.species === species.id
                       ? 'bg-cyan-500/20 border border-cyan-400 text-cyan-300'
                       : 'bg-black/40 border border-gray-700 text-gray-400 hover:border-cyan-500/50'
                   }`}
                 >
-                  <div className="text-xl mb-1">{species.emoji}</div>
-                  <div className="text-xs">{species.name}</div>
+                  <div className="text-lg mb-0.5">{species.emoji}</div>
+                  <div className="text-[10px]">{species.name}</div>
                 </button>
               ))}
             </div>
@@ -140,25 +162,25 @@ export default function ReportsPanel() {
 
           {/* Step 3: Simple location (optional) */}
           <div className="text-center">
-            <p className="text-sm text-cyan-400 mb-3">Where? (optional)</p>
+            <p className="text-xs text-cyan-400 mb-2">Where? (optional)</p>
             <input
               type="text"
               value={report.location}
               onChange={(e) => setReport(r => ({ ...r, location: e.target.value }))}
               placeholder="Location or depth..."
-              className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-4 py-3 text-sm text-cyan-100 placeholder-gray-500 focus:outline-none focus:border-cyan-400 text-center"
+              className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-xs text-cyan-100 placeholder-gray-500 focus:outline-none focus:border-cyan-400 text-center"
             />
           </div>
 
           {/* Step 4: When - Simplified */}
           <div className="text-center">
-            <p className="text-sm text-cyan-400 mb-3">When?</p>
-            <div className="flex justify-center gap-2">
+            <p className="text-xs text-cyan-400 mb-2">When?</p>
+            <div className="flex justify-center gap-1.5">
               {['now', '1hr', '2hr', 'earlier'].map(time => (
                 <button
                   key={time}
                   onClick={() => setReport(r => ({ ...r, time }))}
-                  className={`px-4 py-2 rounded-lg text-xs transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
                     report.time === time
                       ? 'bg-cyan-500/20 border border-cyan-400 text-cyan-300'
                       : 'bg-black/40 border border-gray-700 text-gray-400 hover:border-cyan-500/50'
@@ -179,7 +201,7 @@ export default function ReportsPanel() {
               value={report.notes}
               onChange={(e) => setReport(r => ({ ...r, notes: e.target.value }))}
               placeholder="Any quick notes? (optional)"
-              className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-4 py-3 text-sm text-cyan-100 placeholder-gray-500 focus:outline-none focus:border-cyan-400 text-center"
+              className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-xs text-cyan-100 placeholder-gray-500 focus:outline-none focus:border-cyan-400 text-center"
             />
           </div>
         </div>
