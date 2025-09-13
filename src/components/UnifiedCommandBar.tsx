@@ -136,22 +136,36 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
               
               {/* Inlet Dropdown */}
               {showInletDropdown && (
-                <div ref={inletDropdownRef} className="absolute top-full mt-2 left-0 bg-black/95 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[220px] max-h-[400px] overflow-y-auto z-[9999] shadow-2xl">
+                <div ref={inletDropdownRef} className="absolute top-full mt-2 left-0 bg-slate-900/95 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-2 min-w-[220px] max-h-[400px] overflow-y-auto z-[9999] shadow-2xl"
+                     style={{
+                       boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 200, 255, 0.2)'
+                     }}>
+                  <div className="text-[10px] text-cyan-400/70 uppercase tracking-wider mb-2 px-2">
+                    Select Inlet
+                  </div>
                   {INLETS.map((inlet) => (
                     <button
                       key={inlet.id}
                       onClick={() => handleInletSelect(inlet.id)}
-                      className={`w-full px-3 py-2 text-left text-xs rounded hover:bg-cyan-500/20 transition-colors flex items-center gap-2 ${
-                        selectedInletId === inlet.id ? 'bg-cyan-500/10 text-cyan-300' : 'text-gray-400 hover:text-cyan-200'
+                      className={`w-full px-3 py-2.5 text-left text-sm rounded-md hover:bg-cyan-500/20 transition-all flex items-center gap-2 ${
+                        selectedInletId === inlet.id 
+                          ? 'bg-cyan-500/20 text-cyan-300 border-l-2 border-cyan-400' 
+                          : 'text-white/80 hover:text-cyan-200'
                       }`}
                     >
                       {inlet.id !== 'overview' && (
                         <span 
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color || '#00ffff' }}
+                          className="w-2.5 h-2.5 rounded-full shadow-lg"
+                          style={{ 
+                            backgroundColor: INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color || '#00ffff',
+                            boxShadow: `0 0 8px ${INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color}40`
+                          }}
                         />
                       )}
-                      <span>{inlet.name}</span>
+                      {inlet.id === 'overview' && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" />
+                      )}
+                      <span className="font-medium">{inlet.name}</span>
                     </button>
                   ))}
                 </div>
