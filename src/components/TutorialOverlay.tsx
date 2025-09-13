@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { X, ChevronRight, ChevronLeft, CheckCircle } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, CheckCircle, Fish, Thermometer, Target, Scissors, BarChart3, Lightbulb, HandMetal } from 'lucide-react';
 
 interface TutorialStep {
   id: string;
@@ -15,40 +15,40 @@ interface TutorialStep {
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
     id: 'welcome',
-    title: '🎣 Welcome to Ocean Intelligence',
+    title: 'Welcome to Ocean Intelligence',
     content: 'Let me show you how to find the best fishing spots using real-time ocean data.',
     tip: 'This 2-minute tutorial will make you a pro at reading the water.'
   },
   {
     id: 'sst-layer',
-    title: '🌡️ Step 1: Turn on Sea Surface Temperature',
+    title: 'Step 1: Turn on Sea Surface Temperature',
     content: 'Click the SST toggle to see water temperatures. Warmer water appears orange/red, cooler water appears blue/green.',
     tip: 'Fish love temperature breaks where different water masses meet!',
     action: 'Toggle SST to see temperature data'
   },
   {
     id: 'find-edges',
-    title: '🎯 Step 2: Look for Temperature Edges',
+    title: 'Step 2: Look for Temperature Edges',
     content: 'Zoom in and look for areas where colors change dramatically - these are temperature breaks where bait and predators gather.',
     tip: 'A 2-3°F change over a short distance is a hotspot!',
     action: 'Use scroll or zoom controls to explore'
   },
   {
     id: 'snip-tool',
-    title: '✂️ Step 3: Analyze an Area',
+    title: 'Step 3: Analyze an Area',
     content: 'Click "Select Area to Analyze" then click two corners to draw a rectangle around a temperature edge.',
     tip: 'Include both warm and cool water in your selection for best results.',
     action: 'Draw a rectangle over a temperature break'
   },
   {
     id: 'read-analysis',
-    title: '📊 Step 4: Understanding Your Analysis',
+    title: 'Step 4: Understanding Your Analysis',
     content: 'If a hotspot is found, you\'ll see a cyan marker. Click it to read why that spot is productive.',
     tip: 'No hotspot? The analysis will teach you what to look for next time!'
   },
   {
     id: 'pro-tips',
-    title: '💡 Pro Tips',
+    title: 'Pro Tips',
     content: 'Best fishing happens at: Gulf Stream edges, canyon breaks, where blue water meets green, and around temperature fronts.',
     tip: 'Save good analyses to build your own fishing intelligence database!'
   }
@@ -149,7 +149,13 @@ export default function TutorialOverlay() {
           {/* Header */}
           <div className="p-6 border-b border-cyan-500/20">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-white">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                {currentStep === 0 && <Fish size={20} className="text-cyan-300 drop-shadow-[0_0_8px_rgba(103,232,249,0.8)]" />}
+                {currentStep === 1 && <Thermometer size={20} className="text-orange-300 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]" />}
+                {currentStep === 2 && <Target size={20} className="text-green-300 drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]" />}
+                {currentStep === 3 && <Scissors size={20} className="text-purple-300 drop-shadow-[0_0_8px_rgba(216,180,254,0.8)]" />}
+                {currentStep === 4 && <BarChart3 size={20} className="text-blue-300 drop-shadow-[0_0_8px_rgba(147,197,253,0.8)]" />}
+                {currentStep === 5 && <Lightbulb size={20} className="text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.8)]" />}
                 {step.title}
               </h3>
               <button
@@ -172,16 +178,18 @@ export default function TutorialOverlay() {
             
             {step.tip && (
               <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
-                <p className="text-cyan-300 text-sm">
-                  💡 <span className="font-semibold">Tip:</span> {step.tip}
+                <p className="text-cyan-300 text-sm flex items-start gap-2">
+                  <Lightbulb size={16} className="text-yellow-300 drop-shadow-[0_0_6px_rgba(253,224,71,0.8)] mt-0.5 flex-shrink-0" />
+                  <span><span className="font-semibold">Tip:</span> {step.tip}</span>
                 </p>
               </div>
             )}
             
             {step.action && (
               <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-3 border border-blue-500/30">
-                <p className="text-blue-300 text-sm font-medium">
-                  👉 {step.action}
+                <p className="text-blue-300 text-sm font-medium flex items-center gap-2">
+                  <HandMetal size={16} className="text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
+                  {step.action}
                 </p>
               </div>
             )}

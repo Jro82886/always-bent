@@ -13,7 +13,9 @@ import {
   Circle,
   TrendingUp,
   Activity,
-  MapPin
+  MapPin,
+  Waves,
+  Thermometer
 } from 'lucide-react';
 import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
@@ -214,7 +216,10 @@ export default function LeftZone({
                       : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
                   }`}
                 >
-                  <span>🌡️ SST</span>
+                  <span className="flex items-center gap-1.5">
+                    <Thermometer size={16} className="text-orange-300 drop-shadow-[0_0_6px_rgba(251,146,60,0.8)]" />
+                    SST
+                  </span>
                 </button>
                 <div className="flex gap-1 w-[76px] justify-end">
                   {sstActive && (
@@ -367,7 +372,10 @@ export default function LeftZone({
                       : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
                   }`}
                 >
-                  <span>🌊 Ocean</span>
+                  <span className="flex items-center gap-1.5">
+                    <Waves size={16} className="text-blue-300 drop-shadow-[0_0_6px_rgba(147,197,253,0.8)]" />
+                    Ocean
+                  </span>
                 </button>
                 <div className="flex gap-1 w-[76px] justify-end">
                   {oceanActive && (
