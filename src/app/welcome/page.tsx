@@ -120,9 +120,11 @@ export default function WelcomePage() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-cyan-950 flex items-center justify-center p-4">
-      {/* Ocean wave animation background */}
+      {/* Ocean wave animation background with teal accents */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/20 to-transparent animate-pulse" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
       </div>
       
       <div className="relative max-w-md w-full">
@@ -134,11 +136,11 @@ export default function WelcomePage() {
               filter: `drop-shadow(0 0 ${20 + glowIntensity / 5}px rgba(0, 255, 255, ${0.5 + glowIntensity / 200}))`
             }}
           >
-            <div className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <div className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-400 bg-clip-text text-transparent">
               ALWAYS BENT
             </div>
           </div>
-          <p className="text-cyan-300/80 text-lg tracking-wider">
+          <p className="text-lg tracking-wider bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">
             FISHING INTELLIGENCE
           </p>
           <p className="text-cyan-400/60 text-sm mt-2">
@@ -148,9 +150,9 @@ export default function WelcomePage() {
         
         {/* Inspirational Quote */}
         {welcomeQuote && (
-          <div className="mb-6 px-8 py-4 bg-black/30 backdrop-blur-sm rounded-xl border border-cyan-500/20">
+          <div className="mb-6 px-8 py-4 bg-gradient-to-r from-black/30 via-teal-950/20 to-black/30 backdrop-blur-sm rounded-xl border border-teal-500/20 shadow-lg shadow-teal-500/10">
             <p 
-              className="text-cyan-300/90 italic text-center text-sm transition-opacity duration-300"
+              className="text-transparent bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text italic text-center text-sm transition-opacity duration-300 font-medium"
               style={{ opacity: quoteOpacity }}
             >
               "{welcomeQuote}"
@@ -163,8 +165,8 @@ export default function WelcomePage() {
           {/* Captain Name Input */}
           <div className="mb-6">
             <label className="flex items-center gap-2.5 text-cyan-300 text-sm font-semibold mb-2">
-              <div className="p-1.5 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
-                <User size={16} className="text-cyan-400" />
+              <div className="p-1.5 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 rounded-lg border border-teal-500/20">
+                <User size={16} className="text-teal-400" />
               </div>
               <span className="tracking-wider uppercase">Your Name, Captain</span>
             </label>
@@ -173,7 +175,7 @@ export default function WelcomePage() {
               value={captainName}
               onChange={(e) => setCaptainName(e.target.value)}
               placeholder="Captain name"
-              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
               maxLength={30}
             />
           </div>

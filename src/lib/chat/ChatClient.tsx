@@ -9,6 +9,8 @@ export interface ChatMessage {
   createdAt: number;
   boatName?: string;
   captainName?: string;
+  speciesId?: string; // Species group if in species chat
+  channelType?: 'inlet' | 'species'; // Type of channel
 }
 
 type MessageCallback = (message: ChatMessage) => void;
@@ -19,8 +21,8 @@ class ChatClient {
   private currentChannel: string | null = null;
 
   constructor() {
-    // Initialize with some mock messages
-    const mockMessages: ChatMessage[] = [
+    // Initialize with some mock messages for inlet chat
+    const mockInletMessages: ChatMessage[] = [
       {
         id: '1',
         user: 'CaptainMike',
@@ -29,6 +31,7 @@ class ChatClient {
         inletId: 'montauk',
         text: 'Great conditions out here today! Water temp at 68°F',
         createdAt: Date.now() - 1000 * 60 * 5, // 5 min ago
+        channelType: 'inlet'
       },
       {
         id: '2',
@@ -38,10 +41,57 @@ class ChatClient {
         inletId: 'montauk',
         text: 'Anyone seeing bait schools near the point?',
         createdAt: Date.now() - 1000 * 60 * 3, // 3 min ago
+        channelType: 'inlet'
       },
     ];
     
-    this.messages.set('montauk', mockMessages);
+    // Mock messages for species channels
+    const mockTunaMessages: ChatMessage[] = [
+      {
+        id: '3',
+        user: 'TunaHunter',
+        captainName: 'Jack Turner',
+        boatName: 'Blue Horizon',
+        inletId: 'montauk',
+        speciesId: 'tuna',
+        text: '🎣 Marks 30 miles south, moving fast! Looks like bluefin.',
+        createdAt: Date.now() - 1000 * 60 * 10,
+        channelType: 'species'
+      },
+      {
+        id: '4',
+        user: 'CaptainMike',
+        captainName: 'Mike Johnson',
+        boatName: 'Reel Deal',
+        inletId: 'montauk',
+        speciesId: 'tuna',
+        text: 'Heading that way now! What depth are you marking them?',
+        createdAt: Date.now() - 1000 * 60 * 8,
+        channelType: 'species'
+      },
+    ];
+    
+    const mockStriperMessages: ChatMessage[] = [
+      {
+        id: '5',
+        user: 'StriperKing',
+        captainName: 'Bob Davis',
+        boatName: 'Bass Master',
+        inletId: 'montauk',
+        speciesId: 'stripers',
+        text: '🐟 Crushing them on the outgoing tide! Live bunker doing work.',
+        createdAt: Date.now() - 1000 * 60 * 15,
+        channelType: 'species'
+      },
+    ];
+    
+    // Set up all the channels
+    this.messages.set('montauk', mockInletMessages);
+    this.messages.set('montauk-tuna', mockTunaMessages);
+    this.messages.set('montauk-stripers', mockStriperMessages);
+    this.messages.set('montauk-sharks', []);
+    this.messages.set('montauk-bottom', []);
+    this.messages.set('montauk-offshore', []);
     this.messages.set('default', []);
   }
 
