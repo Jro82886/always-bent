@@ -215,33 +215,35 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   
   return (
     <>
-      {/* ONE TAP BITE BUTTON */}
+      {/* ABFI INTELLIGENCE BUTTON */}
       <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-30 group">
         <button
           onClick={handleReportCatch}
-          className="relative px-6 py-3 rounded-full transition-all hover:scale-105 active:scale-95 bg-black/60 backdrop-blur-md border border-cyan-500/30 text-cyan-300 hover:bg-black/70 hover:border-cyan-400/50"
+          className="relative px-6 py-3 rounded-full transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-cyan-900/80 to-blue-900/80 backdrop-blur-md border border-cyan-400/50 text-cyan-100 hover:from-cyan-800/90 hover:to-blue-800/90 hover:border-cyan-300/70"
           style={{
-            boxShadow: '0 0 15px rgba(0, 200, 255, 0.2)',
+            boxShadow: '0 0 25px rgba(0, 200, 255, 0.4), inset 0 0 20px rgba(0, 200, 255, 0.1)',
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-            fontWeight: 600,
-            fontSize: '14px',
-            letterSpacing: '0.08em'
+            fontWeight: 700,
+            fontSize: '16px',
+            letterSpacing: '0.12em'
           }}
         >
           <span className="relative flex items-center justify-center">
-            <span>BITE</span>
+            <span className="bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">ABFI</span>
           </span>
         </button>
         
         {/* Tooltip on hover */}
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-64">
-          <div className="bg-black/90 text-white text-sm rounded-lg px-4 py-3">
-            <div className="font-bold mb-1 text-cyan-300">Quick Log Fish Activity</div>
-            <div className="text-xs leading-relaxed">
-              Got a bite? Fish on? Even a nibble? Tap this to instantly log the activity at your current location. 
-              Every data point helps predict future hotspots. No forms, just fishing!
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-72">
+          <div className="bg-gradient-to-br from-cyan-950/95 to-blue-950/95 text-white text-sm rounded-lg px-4 py-3 border border-cyan-500/20">
+            <div className="font-bold mb-2 text-cyan-300 text-base">🧠 ABFI Intelligence Hub</div>
+            <div className="text-xs leading-relaxed mb-2 text-cyan-100/90">
+              This is your "BITE" button - tap to instantly log any fish activity at your location. Every bite, nibble, or fish-on contributes to our collective ocean intelligence.
             </div>
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-black/90"></div>
+            <div className="text-xs text-cyan-400/80 italic">
+              Your data trains ABFI to predict future hotspots. The more captains contribute, the smarter we all fish.
+            </div>
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-cyan-950/95 border-r border-b border-cyan-500/20"></div>
           </div>
         </div>
       </div>
