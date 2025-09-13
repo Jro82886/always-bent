@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { MessageCircle, Users, Fish, Wind, Waves, Thermometer, Navigation, Camera, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles, Mail } from 'lucide-react';
+import { MessageCircle, Users, Fish, Wind, Waves, Thermometer, Navigation, Camera, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles, Mail, FileText } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 import { INLETS, getInletById } from '@/lib/inlets';
 import { INLET_COLORS } from '@/lib/inletColors';
@@ -9,6 +9,7 @@ import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
 import { highlightMentions } from '@/lib/chat/mentions';
 import { SPECIES, getSpeciesById, getSpeciesColor } from '@/lib/species';
 import DMPanel from './DMPanel';
+import ReportsPanel from './ReportsPanel';
 
 interface WeatherData {
   wind: { speed: number; direction: string };
@@ -58,6 +59,7 @@ export default function CommunityMode() {
   const [isDMPanelOpen, setIsDMPanelOpen] = useState(false);
   const [dmTargetUser, setDmTargetUser] = useState<{ id: string; username: string } | null>(null);
   const [unreadDMs, setUnreadDMs] = useState(0);
+  const [activeTab, setActiveTab] = useState<'chat' | 'reports' | 'dms'>('chat');
   const inputRef = useRef<HTMLInputElement>(null);
   const clientRef = useRef(new ChatClient());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -507,15 +509,75 @@ export default function CommunityMode() {
         </div>
       </div>
 
-      {/* Center - Chat Area */}
+      {/* Center - Main Content Area */}
       <div className="flex-1 flex flex-col relative">
         {/* Subtle gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-slate-900/40 to-black/50" />
         
         <div className="relative flex-1 flex flex-col">
-          {/* Species Channel Selector */}
+          {/* Tab Navigation */}
           <div className="border-b border-cyan-500/10 bg-black/20 backdrop-blur-sm">
-            <div className="max-w-3xl mx-auto px-6 py-3">
+            <div className="px-6 py-3">
+              <div className="flex items-center justify-between">
+                {/* Main Tabs */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setActiveTab('chat')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                      activeTab === 'chat'
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
+                        : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
+                    }`}
+                  >
+                    <MessageCircle size={14} />
+                    Chat
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveTab('reports')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                      activeTab === 'reports'
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
+                        : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
+                    }`}
+                  >
+                    <FileText size={14} />
+                    Reports
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveTab('dms')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 relative ${
+                      activeTab === 'dms'
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
+                        : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
+                    }`}
+                  >
+                    <Mail size={14} />
+                    DMs
+                    {unreadDMs > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-cyan-500 text-black text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                        {unreadDMs}
+                      </span>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Inlet Indicator */}
+                <div className="text-xs text-cyan-400/60 flex items-center gap-2">
+                  <MapPin size={12} />
+                  {inlet.name}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Tab Content */}
+          {activeTab === 'chat' && (
+            <>
+              {/* Species Channel Selector (only for chat) */}
+              <div className="border-b border-cyan-500/10 bg-black/10 backdrop-blur-sm">
+                <div className="max-w-3xl mx-auto px-6 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 flex-wrap">
                 {/* ABFI Network - Multi-inlet community */}
@@ -771,19 +833,42 @@ export default function CommunityMode() {
               </div>
             </div>
           </div>
+            </>
+          )}
+          
+          {/* Reports Tab Content */}
+          {activeTab === 'reports' && (
+            <div className="flex-1">
+              <ReportsPanel />
+            </div>
+          )}
+          
+          {/* DMs Tab Content */}
+          {activeTab === 'dms' && (
+            <div className="flex-1">
+              <DMPanel 
+                isOpen={true}
+                onClose={() => setActiveTab('chat')}
+                targetUserId={dmTargetUser?.id}
+                targetUsername={dmTargetUser?.username}
+              />
+            </div>
+          )}
         </div>
       </div>
       
-      {/* DM Panel */}
-      <DMPanel 
-        isOpen={isDMPanelOpen}
-        onClose={() => {
-          setIsDMPanelOpen(false);
-          setDmTargetUser(null);
-        }}
-        targetUserId={dmTargetUser?.id}
-        targetUsername={dmTargetUser?.username}
-      />
+      {/* Legacy DM Panel (for direct message button clicks from chat) */}
+      {isDMPanelOpen && activeTab !== 'dms' && (
+        <DMPanel 
+          isOpen={isDMPanelOpen}
+          onClose={() => {
+            setIsDMPanelOpen(false);
+            setDmTargetUser(null);
+          }}
+          targetUserId={dmTargetUser?.id}
+          targetUsername={dmTargetUser?.username}
+        />
+      )}
     </div>
   );
 }

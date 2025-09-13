@@ -253,7 +253,9 @@ export default function WelcomePage() {
             disabled={!boatName.trim() || locationChoice === null || isLoading}
             className={`w-full py-4 rounded-2xl font-bold text-lg transition-all ${
               boatName.trim() && locationChoice !== null && !isLoading
-                ? 'bg-gradient-to-r from-green-500/20 to-green-600/20 text-green-300 border-2 border-green-500/30 hover:from-green-500/30 hover:to-green-600/30 shadow-lg shadow-green-500/20'
+                ? locationChoice === true 
+                  ? 'bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border-2 border-teal-400 text-teal-300 hover:from-teal-500/30 hover:to-cyan-500/30 shadow-lg shadow-teal-500/20'
+                  : 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-2 border-cyan-400 text-cyan-300 hover:from-cyan-500/30 hover:to-blue-500/30 shadow-lg shadow-cyan-500/20'
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed'
             }`}
           >

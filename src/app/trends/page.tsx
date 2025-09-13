@@ -21,10 +21,11 @@ import NavTabs from '@/components/NavTabs';
 import { useAppState } from '@/store/appState';
 
 // Mock data for MVP - will be replaced with real data
-const mockRecentCatches = [
-  { id: 1, species: 'Bluefin Tuna', weight: '85 lbs', captain: 'Mike', time: '2h ago', inlet: 'barnegat' },
-  { id: 2, species: 'Striped Bass', weight: '32 lbs', captain: 'Sarah', time: '5h ago', inlet: 'cape-cod' },
-  { id: 3, species: 'Yellowfin Tuna', weight: '65 lbs', captain: 'Tom', time: '8h ago', inlet: 'montauk' },
+const mockFishActivity = [
+  { id: 1, type: 'BITE', species: 'Bluefin Tuna', captain: 'Mike', time: '2h ago', inlet: 'barnegat', result: 'landed' },
+  { id: 2, type: 'BITE', species: 'Striped Bass', captain: 'Sarah', time: '5h ago', inlet: 'cape-cod', result: 'missed' },
+  { id: 3, type: 'BITE', species: 'Yellowfin Tuna', captain: 'Tom', time: '8h ago', inlet: 'montauk', result: 'landed' },
+  { id: 4, type: 'BITE', species: 'Unknown', captain: 'Jeff', time: '1h ago', inlet: 'barnegat', result: 'on' },
 ];
 
 const mockPatternAlerts = [
@@ -107,10 +108,60 @@ export default function TrendsPage() {
       {/* Dashboard Container */}
       <div className="flex-1 overflow-y-auto bg-gradient-to-br from-black via-slate-900/50 to-black">
         <div className="max-w-7xl mx-auto p-6">
-          {/* Header */}
+          {/* Header - Alternative Options:
+            - FISHING INTELLIGENCE
+            - OCEAN PATTERNS
+            - BITE FORECAST
+            - FLEET INTELLIGENCE
+            - CATCH ANALYTICS
+            - PATTERN DECODER
+            - FISHING METRICS
+            - OCEAN INSIGHTS
+            - TREND ANALYSIS
+            - BITE PATTERNS
+          */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-cyan-400 tracking-wide">PATTERN RECOGNITION</h1>
-            <p className="text-gray-400 text-sm mt-1">What's changing? What should you expect?</p>
+            <h1 className="text-2xl font-bold text-cyan-400 tracking-wide">FISHING INTELLIGENCE</h1>
+            <p className="text-gray-400 text-sm mt-1">What's working? What's changing? What's next?</p>
+          </div>
+
+          {/* KEY INSIGHTS - Top Priority */}
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-cyan-500/10 to-teal-500/10 backdrop-blur-md rounded-lg border border-cyan-400/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">KEY INSIGHTS RIGHT NOW</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-black/40 rounded p-3 border border-cyan-500/20">
+                  <div className="text-green-400 font-bold text-sm mb-1">BEST TIME: 5:30-7:30 AM</div>
+                  <div className="text-xs text-gray-400">Peak activity window today</div>
+                </div>
+                <div className="bg-black/40 rounded p-3 border border-cyan-500/20">
+                  <div className="text-cyan-400 font-bold text-sm mb-1">WATER: 68°F ↓3°</div>
+                  <div className="text-xs text-gray-400">Optimal range for tuna</div>
+                </div>
+                <div className="bg-black/40 rounded p-3 border border-cyan-500/20">
+                  <div className="text-yellow-400 font-bold text-sm mb-1">MOON: {moonPhase.toUpperCase().replace('-', ' ')}</div>
+                  <div className="text-xs text-gray-400">32% more catches expected</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Catches Ticker */}
+          <div className="mb-6">
+            <div className="bg-black/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 overflow-hidden">
+              <div className="flex items-center gap-4 animate-scroll-left">
+                <span className="text-xs text-cyan-400 font-bold uppercase">Recent:</span>
+                {[...mockFishActivity, ...mockFishActivity].map((activity, idx) => (
+                  <span key={idx} className="text-xs text-white whitespace-nowrap">
+                    <span className={activity.result === 'landed' ? 'text-green-400' : activity.result === 'on' ? 'text-yellow-400' : 'text-orange-400'}>●</span> 
+                    {activity.captain}: {activity.type} - {activity.species} {activity.time} • 
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Pattern Alerts - Always visible */}
@@ -134,24 +185,25 @@ export default function TrendsPage() {
           {/* Main Dashboard Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             
-            {/* Recent Catches */}
+            {/* Catch Trends */}
             <div className="bg-black/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Recent Catches</h3>
-                <span className="text-xs text-gray-400">{mockRecentCatches.length} today</span>
+                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Catch Trends</h3>
+                <TrendingUp className="w-5 h-5 text-cyan-400" />
               </div>
               <div className="space-y-2">
-                {mockRecentCatches.slice(0, 3).map((catch_) => (
-                  <div key={catch_.id} className="p-2 bg-black/40 rounded border border-cyan-500/10">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-sm text-white font-medium">{catch_.species}</div>
-                        <div className="text-xs text-gray-400">{catch_.weight} • {catch_.captain}</div>
-                      </div>
-                      <span className="text-xs text-gray-500">{catch_.time}</span>
-                    </div>
+                <select className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400">
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="season">This Season</option>
+                </select>
+                <div className="mt-3 p-2 bg-gradient-to-r from-cyan-500/5 to-teal-500/5 rounded border border-cyan-500/10">
+                  <div className="text-xs text-cyan-400 mb-1">What you'll see:</div>
+                  <div className="text-xs text-gray-400 leading-relaxed">
+                    Species migration patterns, catch size trends, hot/cold streaks by location, and success rate changes over time.
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
@@ -324,8 +376,14 @@ export default function TrendsPage() {
                   <Target className="w-5 h-5 text-gray-600" />
                 </div>
                 <div className="text-center py-4">
-                  <div className="text-gray-500 text-sm mb-2">Learning...</div>
-                  <div className="text-gray-600 text-xs">Need {50 - dataCount} more reports</div>
+                  <div className="text-gray-500 text-sm mb-2">Learning patterns...</div>
+                  <div className="text-gray-600 text-xs mb-3">Need {50 - dataCount} more reports</div>
+                  <div className="p-2 bg-gradient-to-r from-cyan-500/5 to-teal-500/5 rounded border border-cyan-500/10">
+                    <div className="text-xs text-cyan-400 mb-1">Coming soon:</div>
+                    <div className="text-xs text-gray-400 leading-relaxed">
+                      Real-time species migration tracking, temperature preference mapping, and predictive movement based on water conditions.
+                    </div>
+                  </div>
                   <div className="w-full bg-gray-800 rounded-full h-2 mt-3">
                     <div 
                       className="bg-cyan-500/50 h-2 rounded-full transition-all"
@@ -356,8 +414,14 @@ export default function TrendsPage() {
                   <Zap className="w-5 h-5 text-gray-600" />
                 </div>
                 <div className="text-center py-4">
-                  <div className="text-gray-500 text-sm mb-2">Pattern emerging...</div>
-                  <div className="text-gray-600 text-xs">Check back tomorrow</div>
+                  <div className="text-gray-500 text-sm mb-2">Analyzing hotspots...</div>
+                  <div className="text-gray-600 text-xs mb-3">Unlocks at 100 reports</div>
+                  <div className="p-2 bg-gradient-to-r from-cyan-500/5 to-teal-500/5 rounded border border-cyan-500/10">
+                    <div className="text-xs text-cyan-400 mb-1">What's coming:</div>
+                    <div className="text-xs text-gray-400 leading-relaxed">
+                      Heat maps of high-success areas, real-time boat clustering analysis, depth/structure correlations, and secret spot rankings.
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -383,8 +447,14 @@ export default function TrendsPage() {
                   <BarChart3 className="w-5 h-5 text-gray-600" />
                 </div>
                 <div className="text-center py-4">
-                  <div className="text-gray-500 text-sm mb-2">Analyzing fleet behavior...</div>
-                  <div className="text-gray-600 text-xs">Unlocks at 500 data points</div>
+                  <div className="text-gray-500 text-sm mb-2">Training AI model...</div>
+                  <div className="text-gray-600 text-xs mb-3">Unlocks at 500 data points</div>
+                  <div className="p-2 bg-gradient-to-r from-cyan-500/5 to-teal-500/5 rounded border border-cyan-500/10">
+                    <div className="text-xs text-cyan-400 mb-1">AI will reveal:</div>
+                    <div className="text-xs text-gray-400 leading-relaxed">
+                      Hidden patterns in catch timing, weather impact predictions, optimal boat positioning strategies, and personalized fishing recommendations.
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

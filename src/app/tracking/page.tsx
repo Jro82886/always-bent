@@ -22,14 +22,20 @@ type Pos = { lat: number; lng: number } | null;
 
 function colorForInlet(id: string | null) {
   const c: Record<string, string> = {
-    'md-ocean-city': '#00bdff',
-    'de-indian_river': '#26c281',
-    'nj-barnegat': '#f39c12',
-    'ga-savannah': '#9b59b6',
-    'fl-miami': '#e74c3c',
-    'east-coast': '#2ecc71',
+    'portland-harbor': '#26c281',  // Green
+    'cape-cod-canal-east': '#26c281',  // Green
+    'point-judith-harbor': '#00bdff',  // Light blue
+    'montauk-harbor': '#4169E1',  // Blue
+    'shinnecock-inlet': '#4169E1',  // Blue
+    'barnegat-inlet': '#f39c12',  // Orange
+    'manasquan-inlet': '#00CED1',  // Turquoise
+    'absecon-inlet': '#FF8C00',  // Dark Orange
+    'indian-river-inlet': '#FF8C00',  // Dark Orange
+    'ocean-city-inlet': '#e74c3c',  // Red
+    'chincoteague-inlet': '#e74c3c',  // Red
+    'east-coast': '#26c281',  // Default green
   };
-  return c[id ?? 'east-coast'] ?? '#2ecc71';
+  return c[id ?? 'east-coast'] ?? '#26c281';
 }
 
 export default function TrackingPage() {

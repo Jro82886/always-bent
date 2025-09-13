@@ -197,7 +197,7 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 bg-green-500 rounded-full" />
-                          <span className="text-cyan-400 font-mono">
+                          <span className="text-cyan-400 font-semibold">
                             {other.username}
                           </span>
                         </div>
@@ -232,7 +232,7 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Ephemeral notice */}
             <div className="text-center py-2">
-              <span className="text-gray-600 text-xs font-mono">
+              <span className="text-gray-600 text-xs">
                 Messages auto-delete after 30 days
               </span>
             </div>
@@ -249,7 +249,7 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
                     : 'bg-gray-800 text-gray-100'
                 } rounded-lg px-4 py-2`}>
                   {msg.sender_id !== userId && (
-                    <div className="text-cyan-400 text-xs font-mono mb-1">
+                    <div className="text-cyan-400 text-xs font-semibold mb-1">
                       {msg.sender_username}
                     </div>
                   )}
