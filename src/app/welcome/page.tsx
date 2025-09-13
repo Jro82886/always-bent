@@ -119,12 +119,13 @@ export default function WelcomePage() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-cyan-950 flex items-center justify-center p-4">
-      {/* Ocean wave animation background with teal accents */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/20 to-transparent animate-pulse" />
-        <div className="absolute top-20 left-10 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
+    <div className="min-h-screen bg-gradient-to-br from-cyan-950 via-teal-950 to-cyan-900 flex items-center justify-center p-4">
+      {/* Ocean wave animation background with dual color palette */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/30 via-teal-500/20 to-transparent animate-pulse" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-cyan-500/10 via-transparent to-teal-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '4s' }} />
       </div>
       
       <div className="relative max-w-md w-full">
@@ -136,39 +137,48 @@ export default function WelcomePage() {
               filter: `drop-shadow(0 0 ${20 + glowIntensity / 5}px rgba(0, 255, 255, ${0.5 + glowIntensity / 200}))`
             }}
           >
-            <div className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-400 bg-clip-text text-transparent">
+            {/* Dual glow effect behind logo */}
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 blur-xl" />
+            <div className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-400 bg-clip-text text-transparent relative">
               ALWAYS BENT
             </div>
           </div>
           <p className="text-lg tracking-wider bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">
             FISHING INTELLIGENCE
           </p>
-          <p className="text-cyan-400/60 text-sm mt-2">
+          <p className="text-sm mt-2 bg-gradient-to-r from-cyan-400/60 to-teal-400/60 bg-clip-text text-transparent">
             Where Ocean Data Becomes Intuition
           </p>
         </div>
         
-        {/* Inspirational Quote */}
+        {/* Inspirational Quote with dual glow */}
         {welcomeQuote && (
-          <div className="mb-6 px-8 py-4 bg-gradient-to-r from-black/30 via-teal-950/20 to-black/30 backdrop-blur-sm rounded-xl border border-teal-500/20 shadow-lg shadow-teal-500/10">
-            <p 
-              className="text-transparent bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text italic text-center text-sm transition-opacity duration-300 font-medium"
-              style={{ opacity: quoteOpacity }}
-            >
-              "{welcomeQuote}"
-            </p>
+          <div className="mb-6 relative">
+            {/* Dual color glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-transparent to-teal-500/20 blur-xl" />
+            <div className="relative px-8 py-4 bg-gradient-to-br from-cyan-950/40 via-teal-950/40 to-cyan-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
+              <p 
+                className="text-transparent bg-gradient-to-r from-cyan-300 via-teal-300 to-cyan-300 bg-clip-text italic text-center text-sm transition-opacity duration-300 font-medium"
+                style={{ opacity: quoteOpacity }}
+              >
+                "{welcomeQuote}"
+              </p>
+            </div>
           </div>
         )}
         
-        {/* Main Card */}
-        <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-2xl">
+        {/* Main Card with dual color theme */}
+        <div className="relative">
+          {/* Dual glow behind card */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-cyan-500/20 rounded-2xl blur-xl" />
+          <div className="relative bg-gradient-to-br from-cyan-950/60 via-teal-950/60 to-cyan-900/60 backdrop-blur-xl rounded-2xl border border-cyan-400/30 p-8 shadow-2xl">
           {/* Captain Name Input */}
           <div className="mb-6">
-            <label className="flex items-center gap-2.5 text-cyan-300 text-sm font-semibold mb-2">
-              <div className="p-1.5 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 rounded-lg border border-teal-500/20">
-                <User size={16} className="text-teal-400" />
+            <label className="flex items-center gap-2.5 text-sm font-semibold mb-2">
+              <div className="p-1.5 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-lg border border-cyan-500/30">
+                <User size={16} className="text-cyan-400" />
               </div>
-              <span className="tracking-wider uppercase">Your Name, Captain</span>
+              <span className="tracking-wider uppercase bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">Your Name, Captain</span>
             </label>
             <input
               type="text"
@@ -182,11 +192,11 @@ export default function WelcomePage() {
           
           {/* Boat Name Input */}
           <div className="mb-6">
-            <label className="flex items-center gap-2.5 text-cyan-300 text-sm font-semibold mb-2">
-              <div className="p-1.5 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
-                <Anchor size={16} className="text-cyan-400" />
+            <label className="flex items-center gap-2.5 text-sm font-semibold mb-2">
+              <div className="p-1.5 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-lg border border-teal-500/30">
+                <Anchor size={16} className="text-teal-400" />
               </div>
-              <span className="tracking-wider uppercase">Your Vessel's Name</span>
+              <span className="tracking-wider uppercase bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">Your Vessel's Name</span>
             </label>
             <input
               type="text"
@@ -200,11 +210,11 @@ export default function WelcomePage() {
           
           {/* Location Services Choice */}
           <div className="mb-8">
-            <label className="flex items-center gap-2.5 text-cyan-300 text-sm font-semibold mb-3">
-              <div className="p-1.5 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+            <label className="flex items-center gap-2.5 text-sm font-semibold mb-3">
+              <div className="p-1.5 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-lg border border-cyan-500/30">
                 <MapPin size={16} className="text-cyan-400" />
               </div>
-              <span className="tracking-wider uppercase">Enable Location Services?</span>
+              <span className="tracking-wider uppercase bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">Enable Location Services?</span>
             </label>
             
             <div className="space-y-3">
@@ -212,12 +222,12 @@ export default function WelcomePage() {
                 onClick={() => setLocationChoice(true)}
                 className={`w-full p-4 rounded-lg border-2 transition-all ${
                   locationChoice === true 
-                    ? 'bg-green-500/20 border-green-400 text-green-300' 
+                    ? 'bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border-teal-400 text-teal-300' 
                     : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Globe size={20} className={locationChoice === true ? 'text-green-400' : 'text-slate-500'} />
+                  <Globe size={20} className={locationChoice === true ? 'text-teal-400' : 'text-slate-500'} />
                   <div className="text-left flex-1">
                     <div className="font-semibold mb-1">YES - Join ABFI Community</div>
                     <div className="text-xs opacity-80">
@@ -231,12 +241,12 @@ export default function WelcomePage() {
                 onClick={() => setLocationChoice(false)}
                 className={`w-full p-4 rounded-lg border-2 transition-all ${
                   locationChoice === false 
-                    ? 'bg-blue-500/20 border-blue-400 text-blue-300' 
+                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-cyan-400 text-cyan-300' 
                     : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Shield size={20} className={locationChoice === false ? 'text-blue-400' : 'text-slate-500'} />
+                  <Shield size={20} className={locationChoice === false ? 'text-cyan-400' : 'text-slate-500'} />
                   <div className="text-left flex-1">
                     <div className="font-semibold mb-1">NO - Private Mode</div>
                     <div className="text-xs opacity-80">
@@ -259,7 +269,7 @@ export default function WelcomePage() {
             disabled={!boatName.trim() || locationChoice === null || isLoading}
             className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${
               boatName.trim() && locationChoice !== null && !isLoading
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 shadow-lg shadow-cyan-500/30'
+                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-500/30'
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed'
             }`}
           >
@@ -275,11 +285,14 @@ export default function WelcomePage() {
               </span>
             )}
           </button>
+          </div>
         </div>
         
-        {/* Footer */}
-        <div className="text-center mt-6 text-cyan-400/40 text-xs">
-          By entering, you agree to share the stoke responsibly
+        {/* Footer with gradient text */}
+        <div className="text-center mt-6">
+          <p className="text-xs bg-gradient-to-r from-cyan-400/40 to-teal-400/40 bg-clip-text text-transparent">
+            By entering, you agree to share the stoke responsibly
+          </p>
         </div>
       </div>
     </div>
