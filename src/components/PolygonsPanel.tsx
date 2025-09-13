@@ -36,11 +36,11 @@ const LAYERS = {
 };
 
 export default function PolygonsPanel({ map }: Props) {
-  const [showPanel, setShowPanel] = useState(true); // Start open to see controls
+  const [showPanel, setShowPanel] = useState(false); // Start closed
   const [enabled, setEnabled] = useState({
-    eddy: true,    // Start visible for testing
-    edge: true,    // Start visible for testing
-    filament: true // Start visible for testing
+    eddy: false,    // Start hidden
+    edge: false,    // Start hidden
+    filament: false // Start hidden
   });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -49,11 +49,18 @@ export default function PolygonsPanel({ map }: Props) {
     filament: 0
   });
 
-  // Load polygons when map is ready
+  // Load polygons when map is ready and at least one layer is enabled
   useEffect(() => {
     if (!map) return;
+    
+    // Don't load if no layers are enabled
+    const anyEnabled = Object.values(enabled).some(v => v);
 
     const loadPolygons = async () => {
+      if (!anyEnabled) {
+        console.log('⏸️ Skipping polygon load - no layers enabled');
+        return;
+      }
       console.log('🗺️ Loading polygons...');
       setLoading(true);
       try {

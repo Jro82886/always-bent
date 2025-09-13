@@ -75,16 +75,17 @@ export async function GET(req: NextRequest) {
     const _daysBack = url.searchParams.get('days_back');
     const _gsUrl = url.searchParams.get('gs_url');
 
-    // If a backend service is configured, proxy through to it
+    // If a backend service is configured, try to proxy through to it
     const backend = (process.env.POLYGONS_BACKEND_URL || '').trim();
     if (backend) {
       const upstream = `${backend}?${url.searchParams.toString()}`;
       const r = await fetch(upstream, { headers: { Accept: 'application/json' }, cache: 'no-store' }).catch(() => null);
-      if (!r || !r.ok) {
-        return new Response(JSON.stringify({ error: 'backend_unavailable' }), { status: 502, headers: { 'content-type': 'application/json' } });
+      if (r && r.ok) {
+        const text = await r.text();
+        return new Response(text, { status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
       }
-      const text = await r.text();
-      return new Response(text, { status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+      // If backend fails, fall through to use local GeoJSON files
+      console.warn('Polygon backend unavailable, falling back to local files');
     }
 
     const bbox = parseBbox(bboxParam);
