@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Activity, Navigation, Ship, Target, Clock, MapPin } from 'lucide-react';
+import { INLETS } from '@/lib/inlets';
+import { useAppState } from '@/store/appState';
 
 interface TrackingModeProps {
   map?: mapboxgl.Map | null;
@@ -12,6 +14,11 @@ export default function TrackingMode({ map }: TrackingModeProps) {
   const [selectedVessel, setSelectedVessel] = useState<string | null>(null);
   const [showFleetPanel, setShowFleetPanel] = useState(true);
   const [showTrackHistory, setShowTrackHistory] = useState(false);
+  const { selectedInletId } = useAppState();
+  
+  // Get the current inlet and its color
+  const currentInlet = INLETS.find(i => i.id === selectedInletId);
+  const inletColor = currentInlet?.color || '#00ffff';
   
   // This component will handle all tracking-specific functionality
   // Keeping it separate ensures clean architecture
@@ -64,7 +71,16 @@ export default function TrackingMode({ map }: TrackingModeProps) {
               {/* Placeholder for vessel list */}
               <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-white">My Vessel</span>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        backgroundColor: inletColor,
+                        boxShadow: `0 0 8px ${inletColor}`,
+                      }}
+                    />
+                    <span className="text-sm font-medium text-white">My Vessel</span>
+                  </div>
                   <span className="text-xs text-green-400">● Active</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-white/60">
@@ -75,6 +91,11 @@ export default function TrackingMode({ map }: TrackingModeProps) {
                   <Navigation size={12} />
                   <span>12.5 kts · Heading 045°</span>
                 </div>
+                {currentInlet && (
+                  <div className="flex items-center gap-2 text-xs text-white/60 mt-1">
+                    <span>Home: {currentInlet.name}</span>
+                  </div>
+                )}
               </div>
               
               {/* More vessels would go here */}

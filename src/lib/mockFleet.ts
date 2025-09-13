@@ -111,13 +111,10 @@ export function getVesselIcon(vessel: Vessel): string {
   return '🛥️';
 }
 
-// Get vessel color based on status
+// Get vessel color based on their home inlet
 export function getVesselColor(vessel: Vessel): string {
-  switch (vessel.status) {
-    case 'fishing': return '#00ff00'; // Green - actively fishing
-    case 'transit': return '#ffff00'; // Yellow - moving
-    case 'anchored': return '#ff9900'; // Orange - stationary
-    case 'drifting': return '#00ffff'; // Cyan - drifting
-    default: return '#ffffff';
-  }
+  const inlet = INLETS.find(i => i.id === vessel.inlet);
+  // Use the inlet's color for all vessels from that inlet
+  // This creates a colorful map where boats are grouped by their home port
+  return inlet?.color || '#00ffff';
 }

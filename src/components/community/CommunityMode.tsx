@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { MessageCircle, Users, Fish, Wind, Waves, Thermometer, Navigation, Camera, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles, Mail, FileText } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 import { INLETS, getInletById } from '@/lib/inlets';
-import { INLET_COLORS } from '@/lib/inletColors';
 import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
 import { highlightMentions } from '@/lib/chat/mentions';
 import { SPECIES, getSpeciesById, getSpeciesColor } from '@/lib/species';
@@ -306,7 +305,8 @@ export default function CommunityMode() {
 
   const getInletColor = (inletId?: string) => {
     if (!inletId || inletId === 'overview') return null;
-    return INLET_COLORS[inletId as keyof typeof INLET_COLORS]?.color || '#00ffff';
+    const inlet = INLETS.find(i => i.id === inletId);
+    return inlet?.color || '#00ffff';
   };
 
   return (

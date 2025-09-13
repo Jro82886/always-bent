@@ -3,7 +3,6 @@
 import * as React from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { INLETS } from "@/lib/inlets";
-import { INLET_COLORS } from "@/lib/inletColors";
 import { ChevronDown } from "lucide-react";
 
 type Props = {
@@ -28,9 +27,6 @@ export function InletSelect({ value, onChange, label }: Props) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getInletColor = (inletId: string) => {
-    return INLET_COLORS[inletId]?.color || '#26c281';
-  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -48,7 +44,16 @@ export function InletSelect({ value, onChange, label }: Props) {
         }`}
       >
         {selectedInlet && (
-          <span className="flex-1 text-left">{selectedInlet.name}</span>
+          <div className="flex items-center gap-2 flex-1">
+            <div 
+              className="w-2 h-2 rounded-full"
+              style={{
+                backgroundColor: selectedInlet.color || '#26c281',
+                boxShadow: `0 0 8px ${selectedInlet.color || '#26c281'}`,
+              }}
+            />
+            <span className="text-left">{selectedInlet.name}</span>
+          </div>
         )}
         <ChevronDown className={`w-4 h-4 text-cyan-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -56,7 +61,7 @@ export function InletSelect({ value, onChange, label }: Props) {
       {/* Dropdown Menu - Connected appearance */}
       {isOpen && (
         <div className="absolute z-50 -mt-[1px] w-full max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 border-t-0 rounded-b-lg shadow-2xl">
-          {/* Simple flat list of all inlets - no colors */}
+          {/* Flat list of all inlets with glowing color dots */}
           {INLETS.map((inlet) => (
             <button
               key={inlet.id}
@@ -68,7 +73,16 @@ export function InletSelect({ value, onChange, label }: Props) {
                 value === inlet.id ? 'bg-cyan-500/20 text-cyan-300' : 'text-white'
               }`}
             >
-              <span className="text-left">{inlet.name}</span>
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    backgroundColor: inlet.color || '#26c281',
+                    boxShadow: `0 0 8px ${inlet.color || '#26c281'}`,
+                  }}
+                />
+                <span className="text-left">{inlet.name}</span>
+              </div>
               {value === inlet.id && (
                 <span className="text-cyan-400">✓</span>
               )}
