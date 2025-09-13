@@ -191,22 +191,13 @@ export default function PolygonsPanel({ map }: Props) {
     return () => {
       map.off('moveend', handleMoveEnd);
     };
-  }, [map]);
+  }, [map, enabled]); // Re-run when enabled layers change
 
   // Toggle layer visibility
   const toggleLayer = (type: keyof typeof enabled) => {
     const newState = !enabled[type];
     setEnabled(prev => ({ ...prev, [type]: newState }));
-
-    if (map) {
-      const config = LAYERS[type];
-      if (map.getLayer(config.fill)) {
-        map.setLayoutProperty(config.fill, 'visibility', newState ? 'visible' : 'none');
-      }
-      if (map.getLayer(config.line)) {
-        map.setLayoutProperty(config.line, 'visibility', newState ? 'visible' : 'none');
-      }
-    }
+    // The useEffect will handle loading polygons and updating visibility
   };
 
   return (

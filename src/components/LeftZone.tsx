@@ -205,7 +205,7 @@ export default function LeftZone({
           {showLayers && (
             <div className="px-4 pb-3 space-y-2">
               {/* SST Layer */}
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleLayer('sst')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
@@ -216,30 +216,32 @@ export default function LeftZone({
                 >
                   <span>🌡️ SST</span>
                 </button>
-                {sstActive && (
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => {
-                        setShowSstOpacity(!showSstOpacity);
-                        setShowSstEnhance(false);
-                      }}
-                      className="p-1.5 bg-black/60 rounded hover:bg-emerald-500/20 transition-colors"
-                      title="Opacity"
-                    >
-                      <Sliders size={12} className="text-emerald-400" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowSstEnhance(!showSstEnhance);
-                        setShowSstOpacity(false);
-                      }}
-                      className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-emerald-600/60 rounded hover:from-cyan-500/60 hover:to-emerald-500/60 transition-colors"
-                      title="Enhance"
-                    >
-                      <Sparkles size={12} className="text-white" />
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-1 w-[76px] justify-end">
+                  {sstActive && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setShowSstOpacity(!showSstOpacity);
+                          setShowSstEnhance(false);
+                        }}
+                        className="p-1.5 bg-black/60 rounded hover:bg-emerald-500/20 transition-colors"
+                        title="Opacity"
+                      >
+                        <Sliders size={12} className="text-emerald-400" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowSstEnhance(!showSstEnhance);
+                          setShowSstOpacity(false);
+                        }}
+                        className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-emerald-600/60 rounded hover:from-cyan-500/60 hover:to-emerald-500/60 transition-colors"
+                        title="Enhance"
+                      >
+                        <Sparkles size={12} className="text-white" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
               
               {/* SST Controls */}
@@ -309,7 +311,7 @@ export default function LeftZone({
               )}
               
               {/* CHL Layer */}
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleLayer('chl')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
@@ -320,19 +322,21 @@ export default function LeftZone({
                 >
                   <span>🌿 CHL</span>
                 </button>
-                {chlActive && (
-                  <button
-                    onClick={() => {
-                      setShowChlOpacity(!showChlOpacity);
-                      setShowSstOpacity(false);
-                      setShowSstEnhance(false);
-                    }}
-                    className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
-                    title="Opacity"
-                  >
-                    <Sliders size={12} className="text-cyan-400" />
-                  </button>
-                )}
+                <div className="flex gap-1 w-[76px] justify-end">
+                  {chlActive && (
+                    <button
+                      onClick={() => {
+                        setShowChlOpacity(!showChlOpacity);
+                        setShowSstOpacity(false);
+                        setShowSstEnhance(false);
+                      }}
+                      className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                      title="Opacity"
+                    >
+                      <Sliders size={12} className="text-cyan-400" />
+                    </button>
+                  )}
+                </div>
               </div>
               
               {/* CHL Opacity */}
@@ -354,7 +358,7 @@ export default function LeftZone({
               )}
               
               {/* Ocean Basemap */}
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleLayer('ocean')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
@@ -365,20 +369,22 @@ export default function LeftZone({
                 >
                   <span>🌊 Ocean</span>
                 </button>
-                {oceanActive && (
-                  <button
-                    onClick={() => {
-                      setShowOceanOpacity(!showOceanOpacity);
-                      setShowSstOpacity(false);
-                      setShowChlOpacity(false);
-                      setShowSstEnhance(false);
-                    }}
-                    className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
-                    title="Opacity"
-                  >
-                    <Sliders size={12} className="text-cyan-400" />
-                  </button>
-                )}
+                <div className="flex gap-1 w-[76px] justify-end">
+                  {oceanActive && (
+                    <button
+                      onClick={() => {
+                        setShowOceanOpacity(!showOceanOpacity);
+                        setShowSstOpacity(false);
+                        setShowChlOpacity(false);
+                        setShowSstEnhance(false);
+                      }}
+                      className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                      title="Opacity"
+                    >
+                      <Sliders size={12} className="text-cyan-400" />
+                    </button>
+                  )}
+                </div>
               </div>
               
               {/* Ocean Opacity */}
