@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface LeftZoneProps {
   // Layer states
@@ -224,26 +225,28 @@ export default function LeftZone({
                 <div className="flex gap-1 w-[76px] justify-end">
                   {sstActive && (
                     <>
-                      <button
-                        onClick={() => {
-                          setShowSstOpacity(!showSstOpacity);
-                          setShowSstEnhance(false);
-                        }}
-                        className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
-                        title="Opacity"
-                      >
-                        <Sliders size={12} className="text-cyan-400" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowSstEnhance(!showSstEnhance);
-                          setShowSstOpacity(false);
-                        }}
-                        className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-teal-600/60 rounded hover:from-cyan-500/60 hover:to-teal-500/60 transition-colors"
-                        title="Enhance"
-                      >
-                        <Sparkles size={12} className="text-white" />
-                      </button>
+                      <Tooltip text="Adjust opacity" position="bottom">
+                        <button
+                          onClick={() => {
+                            setShowSstOpacity(!showSstOpacity);
+                            setShowSstEnhance(false);
+                          }}
+                          className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                        >
+                          <Sliders size={12} className="text-cyan-400" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip text="Enhance contrast" position="bottom">
+                        <button
+                          onClick={() => {
+                            setShowSstEnhance(!showSstEnhance);
+                            setShowSstOpacity(false);
+                          }}
+                          className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-teal-600/60 rounded hover:from-cyan-500/60 hover:to-teal-500/60 transition-colors"
+                        >
+                          <Sparkles size={12} className="text-white" />
+                        </button>
+                      </Tooltip>
                     </>
                   )}
                 </div>
@@ -329,17 +332,18 @@ export default function LeftZone({
                 </button>
                 <div className="flex gap-1 w-[76px] justify-end">
                   {chlActive && (
-                    <button
-                      onClick={() => {
-                        setShowChlOpacity(!showChlOpacity);
-                        setShowSstOpacity(false);
-                        setShowSstEnhance(false);
-                      }}
-                      className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
-                      title="Opacity"
-                    >
-                      <Sliders size={12} className="text-cyan-400" />
-                    </button>
+                    <Tooltip text="Adjust opacity" position="bottom">
+                      <button
+                        onClick={() => {
+                          setShowChlOpacity(!showChlOpacity);
+                          setShowSstOpacity(false);
+                          setShowSstEnhance(false);
+                        }}
+                        className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                      >
+                        <Sliders size={12} className="text-cyan-400" />
+                      </button>
+                    </Tooltip>
                   )}
                 </div>
               </div>
@@ -379,18 +383,19 @@ export default function LeftZone({
                 </button>
                 <div className="flex gap-1 w-[76px] justify-end">
                   {oceanActive && (
-                    <button
-                      onClick={() => {
-                        setShowOceanOpacity(!showOceanOpacity);
-                        setShowSstOpacity(false);
-                        setShowChlOpacity(false);
-                        setShowSstEnhance(false);
-                      }}
-                      className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
-                      title="Opacity"
-                    >
-                      <Sliders size={12} className="text-cyan-400" />
-                    </button>
+                    <Tooltip text="Adjust opacity" position="bottom">
+                      <button
+                        onClick={() => {
+                          setShowOceanOpacity(!showOceanOpacity);
+                          setShowSstOpacity(false);
+                          setShowChlOpacity(false);
+                          setShowSstEnhance(false);
+                        }}
+                        className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                      >
+                        <Sliders size={12} className="text-cyan-400" />
+                      </button>
+                    </Tooltip>
                   )}
                 </div>
               </div>
