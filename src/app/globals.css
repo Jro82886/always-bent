@@ -22,6 +22,12 @@
 }
 .animate-pulse-slow { animation: pulse-slow 5s ease-in-out infinite; }
 
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+.animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
+
 @keyframes twinkle {
   0%, 100% { opacity: 0.2; r: 3; }
   50% { opacity: 0.8; r: 4.2; }
