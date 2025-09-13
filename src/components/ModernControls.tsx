@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Map, 
@@ -65,6 +65,7 @@ export default function ModernControls({
   const [boatName, setBoatName] = useState<string>('');
   const [selectedInletId, setSelectedInletId] = useState<string>('overview');
   const [showInletDropdown, setShowInletDropdown] = useState(false);
+  const inletDropdownRef = useRef<HTMLDivElement>(null);
   
   // Enhancement settings for SST
   const [sstSmoothing, setSstSmoothing] = useState(0); // 0-2 pixels blur
@@ -72,6 +73,27 @@ export default function ModernControls({
   const [sstSaturation, setSstSaturation] = useState(50); // 0-100% where 50 is normal
   const [sstContrast, setSstContrast] = useState(50); // 0-100% where 50 is normal
   
+  // Handle click outside for inlet dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showInletDropdown && inletDropdownRef.current && !inletDropdownRef.current.contains(event.target as Node)) {
+        setShowInletDropdown(false);
+      }
+    };
+
+    // Add delay to prevent immediate closing
+    const timer = setTimeout(() => {
+      if (showInletDropdown) {
+        document.addEventListener('mousedown', handleClickOutside);
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showInletDropdown]);
+
   useEffect(() => {
     // Check location permission status and boat name
     const enabled = localStorage.getItem('abfi_location_enabled') === 'true';
@@ -154,7 +176,7 @@ export default function ModernControls({
               </div>
               
               {/* Inlet Selector */}
-              <div className="relative">
+              <div className="relative" ref={inletDropdownRef}>
                 <button
                   onClick={() => setShowInletDropdown(!showInletDropdown)}
                   className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-full transition-colors border border-cyan-500/20"
@@ -174,7 +196,13 @@ export default function ModernControls({
                 
                 {/* Inlet Dropdown */}
                 {showInletDropdown && (
-                  <div className="absolute top-full mt-2 left-0 bg-black/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[200px] max-h-[400px] overflow-y-auto z-50">
+                  <div className="absolute top-full mt-2 left-0 bg-slate-900/95 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-2 min-w-[220px] max-h-[400px] overflow-y-auto z-[9999] shadow-2xl"
+                       style={{
+                         boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 200, 255, 0.2)'
+                       }}>
+                    <div className="text-[10px] text-cyan-400/70 uppercase tracking-wider mb-2 px-2">
+                      Select Inlet
+                    </div>
                     {INLETS.map((inlet) => (
                       <button
                         key={inlet.id}
@@ -188,17 +216,25 @@ export default function ModernControls({
                             flyToInlet60nm(map, inlet);
                           }
                         }}
-                        className={`w-full px-3 py-2 text-left text-xs rounded hover:bg-cyan-500/20 transition-colors flex items-center gap-2 ${
-                          selectedInletId === inlet.id ? 'bg-cyan-500/10 text-cyan-300' : 'text-gray-400'
+                        className={`w-full px-3 py-2.5 text-left text-sm rounded-md hover:bg-cyan-500/20 transition-all flex items-center gap-2 ${
+                          selectedInletId === inlet.id 
+                            ? 'bg-cyan-500/20 text-cyan-300 border-l-2 border-cyan-400' 
+                            : 'text-white/80 hover:text-cyan-200'
                         }`}
                       >
                         {inlet.id !== 'overview' && (
                           <span 
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color || '#00ffff' }}
+                            className="w-2.5 h-2.5 rounded-full shadow-lg"
+                            style={{ 
+                              backgroundColor: INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color || '#00ffff',
+                              boxShadow: `0 0 8px ${INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color}40`
+                            }}
                           />
                         )}
-                        <span className={inlet.isOverview ? 'font-semibold' : ''}>
+                        {inlet.id === 'overview' && (
+                          <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" />
+                        )}
+                        <span className={`font-medium ${inlet.isOverview ? 'font-semibold' : ''}`}>
                           {inlet.name}
                         </span>
                       </button>
