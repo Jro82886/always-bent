@@ -104,7 +104,7 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
   };
 
   return (
-    <div className="pointer-events-auto z-[60] flex flex-wrap items-center gap-2 rounded-md bg-black/50 px-3 py-2 text-white backdrop-blur">
+    <div className="pointer-events-auto z-[100] flex flex-wrap items-center gap-2 rounded-md bg-black/50 px-3 py-2 text-white backdrop-blur">
       {/* Inlet select: Only in Tracking */}
       {showInletSelect && (
         <>
@@ -140,7 +140,7 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
       )}
 
       {showColors && legendOpen && (
-        <div className="absolute mt-10 left-0 max-h-64 w-72 overflow-auto rounded-md border border-white/15 bg-black/80 p-2 backdrop-blur z-[70]">
+        <div className="absolute mt-10 left-0 max-h-64 w-72 overflow-auto rounded-md border border-white/15 bg-black/80 p-2 backdrop-blur z-[110]">
           <div className="mb-1 text-xs text-white/60">Inlet Colors</div>
           <ul className="space-y-1">
             {INLETS.map((i) => (

@@ -8,7 +8,7 @@ export default function TopHUD({ includeAbfi = false, className, extraRight, sho
   return (
     <div
       className={[
-        'absolute z-30 pointer-events-auto',
+        'absolute z-[90] pointer-events-auto',
         'left-3 md:left-4 top-16 md:top-20',
         className || ''
       ].join(' ')}
