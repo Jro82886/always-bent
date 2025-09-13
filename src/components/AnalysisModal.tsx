@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
-import { getAnalysisQuote } from '@/lib/philosophy';
+// Temporarily remove philosophy import to fix crash
+// import { getAnalysisQuote } from '@/lib/philosophy';
 
 interface AnalysisModalProps {
   analysis: AnalysisResult | null;
@@ -198,7 +199,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           {/* Life Insight - Contextual Philosophy */}
           <div className="text-center py-4 px-6 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-cyan-500/5 rounded-xl">
             <p className="text-cyan-300 italic">
-              "{getAnalysisQuote(analysis)}"
+              "The ocean reveals her secrets to those who look deeply."
             </p>
           </div>
         </div>

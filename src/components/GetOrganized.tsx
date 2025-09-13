@@ -38,9 +38,9 @@ const LAYERS = {
 export default function GetOrganized({ map }: Props) {
   const [showPanel, setShowPanel] = useState(false);
   const [enabled, setEnabled] = useState({
-    eddy: false,
-    edge: false,
-    filament: false
+    eddy: true,  // Enable by default
+    edge: true,  // Enable by default
+    filament: true  // Enable by default
   });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -113,7 +113,7 @@ export default function GetOrganized({ map }: Props) {
             ],
             paint: {
               'fill-color': config.color,
-              'fill-opacity': 0.15
+              'fill-opacity': 0.4  // More visible
             },
             layout: {
               'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
@@ -131,8 +131,8 @@ export default function GetOrganized({ map }: Props) {
             ],
             paint: {
               'line-color': config.color,
-              'line-width': 2,
-              'line-opacity': 0.8
+              'line-width': 3,  // Thicker line
+              'line-opacity': 1  // Fully opaque
             },
             layout: {
               'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef } from 'react';
-import type mapboxgl from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 
 interface HotspotMarkerProps {
   map: mapboxgl.Map | null;
@@ -140,7 +140,7 @@ export default function HotspotMarker({ map, position, visible, onClick }: Hotsp
     }
 
     // Create and add the marker
-    const marker = new (window as any).mapboxgl.Marker({
+    const marker = new mapboxgl.Marker({
       element: el,
       anchor: 'center'
     })

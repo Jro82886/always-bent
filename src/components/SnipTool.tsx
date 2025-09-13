@@ -86,36 +86,41 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           }
         });
 
-        // Add fill layer
+        // Add fill layer with bright cyan color
         map.addLayer({
           id: 'rectangle-fill',
           type: 'fill',
           source: 'rectangle',
           paint: {
-            'fill-color': '#00ff00',
-            'fill-opacity': 0.5  // More visible
+            'fill-color': '#00ffff',  // Bright cyan
+            'fill-opacity': 0.3  // Semi-transparent
           }
         });
 
-        // Add outline layer
+        // Add outline layer with thick bright line
         map.addLayer({
           id: 'rectangle-outline',
           type: 'line',
           source: 'rectangle',
           paint: {
-            'line-color': '#00ff00',
-            'line-width': 6,  // Thicker line
-            'line-dasharray': [0, 0]  // Solid line for now
+            'line-color': '#00ffff',  // Bright cyan
+            'line-width': 4,  // Thick line
+            'line-opacity': 1  // Fully opaque
           }
         });
         
         // FORCE layers to absolute top - run multiple times to ensure
         const ensureOnTop = () => {
-          if (map.getLayer('rectangle-fill')) {
-            map.moveLayer('rectangle-fill');
-          }
-          if (map.getLayer('rectangle-outline')) {
-            map.moveLayer('rectangle-outline');
+          try {
+            // Move to top, above all other layers including polygons
+            if (map.getLayer('rectangle-fill')) {
+              map.moveLayer('rectangle-fill');
+            }
+            if (map.getLayer('rectangle-outline')) {
+              map.moveLayer('rectangle-outline');
+            }
+          } catch (error) {
+            console.log('Layer ordering update:', error);
           }
         };
         
@@ -124,6 +129,13 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         setTimeout(ensureOnTop, 100);
         setTimeout(ensureOnTop, 500);
         setTimeout(ensureOnTop, 1000);
+        setTimeout(ensureOnTop, 2000);
+        setTimeout(ensureOnTop, 3000);
+        
+        // Also ensure visibility on every map move/zoom
+        map.on('moveend', ensureOnTop);
+        map.on('zoomend', ensureOnTop);
+        map.on('sourcedata', ensureOnTop);
         
         console.log('✅ Rectangle layers setup complete');
       } catch (error) {
@@ -160,7 +172,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       
       console.log('🖱️ Started dragging from:', coords, 'isDrawing:', isDrawingRef.current);
       
-      // Show initial point
+      // Show initial point with bright color
       const point: GeoJSON.FeatureCollection = {
         type: 'FeatureCollection',
         features: [{
