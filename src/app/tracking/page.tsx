@@ -51,12 +51,15 @@ export default function TrackingPage() {
   const [showRecBoats, setShowRecBoats] = useState(false);
   const [showAIS, setShowAIS] = useState(false);
   const [showGFW, setShowGFW] = useState(false);
-  const [fleetData, setFleetData] = useState<any>(null);
-  const fleetIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isTracking, setIsTracking] = useState(false);
+  const [fleetData, setFleetData] = useState<any>(null);
   const [lastPosition, setLastPosition] = useState<Pos>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
+  const fleetIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const positionIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Fair sharing: Only see others if you're sharing
+  const canSeeFleet = isTracking && showVessels;
 
   // Calculate speed and heading from position changes
   const calculateSpeed = useCallback((pos1: Pos, pos2: Pos): number => {
@@ -207,9 +210,12 @@ export default function TrackingPage() {
     };
   }, [map, showGFW]);
 
-  // Fetch fleet positions
+  // Fetch fleet positions (only if sharing)
   const fetchFleet = useCallback(async () => {
-    if (!showVessels) return;
+    if (!canSeeFleet) {
+      setFleetData(null); // Clear fleet data if not sharing
+      return;
+    }
     
     try {
       const response = await fetch(`/api/tracking/fleet?inlet_id=${selectedInletId}&hours=4`);
@@ -220,11 +226,11 @@ export default function TrackingPage() {
     } catch (error) {
       console.error('Failed to fetch fleet:', error);
     }
-  }, [selectedInletId, showVessels]);
+  }, [selectedInletId, canSeeFleet]);
 
-  // Auto-refresh fleet positions every 60 seconds
+  // Auto-refresh fleet positions every 60 seconds (only if sharing)
   useEffect(() => {
-    if (showVessels) {
+    if (canSeeFleet) {
       fetchFleet(); // Initial fetch
       fleetIntervalRef.current = setInterval(fetchFleet, 60000); // Every 60 seconds
       
@@ -233,12 +239,15 @@ export default function TrackingPage() {
           clearInterval(fleetIntervalRef.current);
         }
       };
+    } else {
+      // Clear fleet data if not sharing
+      setFleetData(null);
     }
-  }, [showVessels, fetchFleet]);
+  }, [canSeeFleet, fetchFleet]);
 
-  // Render fleet on map
+  // Render fleet on map (only if sharing)
   useEffect(() => {
-    if (!map || !fleetData || !showVessels) return;
+    if (!map || !fleetData || !canSeeFleet) return;
 
     const addFleetLayer = () => {
       // Remove existing fleet layers
@@ -410,7 +419,7 @@ export default function TrackingPage() {
     } else {
       map.once('style.load', addFleetLayer);
     }
-  }, [map, fleetData, showVessels, showTrails]);
+  }, [map, fleetData, canSeeFleet, showTrails]);
 
   return (
     <RequireUsername>
@@ -447,31 +456,47 @@ export default function TrackingPage() {
           )}
           {!isTracking && (
             <div className="text-xs text-gray-400/70 mt-2 text-center max-w-[200px]">
-              Share to help • Not surveillance
+              Share to see others • Stop anytime
             </div>
           )}
         </div>
         
         <div className="bg-black/70 backdrop-blur-md rounded-full px-4 py-2 border border-cyan-500/20">
           <h3 className="text-cyan-400 text-xs font-semibold mb-2">Community Fleet</h3>
+          {!isTracking && (
+            <div className="text-yellow-400/80 text-xs mb-2 px-2">
+              ⚠️ Start sharing to see fleet
+            </div>
+          )}
           <div className="flex flex-col gap-1">
             <button
-              onClick={() => setShowVessels(!showVessels)}
+              onClick={() => {
+                if (!isTracking) {
+                  // Prompt to start sharing first
+                  setIsTracking(true);
+                  setShowVessels(true);
+                } else {
+                  setShowVessels(!showVessels);
+                }
+              }}
+              disabled={!isTracking}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                showVessels 
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
-                  : 'bg-black/40 text-gray-400 border border-gray-600/30'
+                !isTracking
+                  ? 'bg-gray-800/40 text-gray-500 border border-gray-700/30 cursor-not-allowed'
+                  : showVessels 
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
+                    : 'bg-black/40 text-gray-400 border border-gray-600/30'
               }`}
             >
               <Users size={12} />
               Local Fleet
-              {showVessels && fleetData && (
+              {canSeeFleet && fleetData && (
                 <span className="text-[10px] bg-cyan-500/20 px-2 py-0.5 rounded-full">
                   {fleetData.total_active}
                 </span>
               )}
             </button>
-            {showVessels && (
+            {canSeeFleet && (
               <button
                 onClick={() => setShowTrails(!showTrails)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ml-4 ${
@@ -522,14 +547,45 @@ export default function TrackingPage() {
           </div>
         </div>
         
+        {/* Fair Sharing Notice */}
+        {!isTracking && showVessels && (
+          <div className="mt-2 bg-yellow-900/30 backdrop-blur-md rounded-lg px-3 py-2 border border-yellow-500/20 text-xs">
+            <div className="text-yellow-400 font-semibold mb-1 flex items-center gap-1">
+              <AlertCircle size={12} />
+              Fair Sharing
+            </div>
+            <div className="text-yellow-200/80 text-[11px] leading-relaxed">
+              To see where others are fishing, you need to share too.
+              <span className="font-semibold"> Everyone follows the same rules.</span>
+              <div className="mt-1 text-[10px] text-gray-300">
+                This is a paid members-only community. We all contribute equally.
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsTracking(true)}
+              className="mt-2 text-yellow-300 underline text-[11px] hover:text-yellow-200"
+            >
+              Start sharing to see fleet →
+            </button>
+          </div>
+        )}
+        
         {/* Fleet Status - Simple, clean info */}
-        {showVessels && fleetData && fleetData.total_active > 0 && (
+        {canSeeFleet && fleetData && fleetData.total_active > 0 && (
           <div className="mt-2 bg-black/70 backdrop-blur-md rounded-lg px-3 py-2 border border-cyan-500/20 text-xs">
             <div className="text-cyan-400 font-semibold mb-1">Community Activity</div>
             <div className="text-gray-300 space-y-0.5">
               <div>{fleetData.total_active} captains sharing</div>
               <div>{fleetData.fishing_now} fishing now</div>
               <div className="text-[10px] text-gray-400">Helping each other find fish</div>
+            </div>
+            <div className="mt-2 pt-2 border-t border-cyan-500/10">
+              <button 
+                onClick={() => setIsTracking(false)}
+                className="text-[10px] text-gray-400 hover:text-red-400 transition-colors"
+              >
+                Stop sharing (lose fleet view)
+              </button>
             </div>
           </div>
         )}

@@ -2,9 +2,9 @@
 
 ## 🎣 **What ABFI Tracking IS:**
 
-**A COLLABORATIVE FISHING INTELLIGENCE NETWORK**
+**A PAID MEMBERS-ONLY COLLABORATIVE NETWORK**
 
-ABFI is a **voluntary community** of captains who choose to share their location data to:
+ABFI is a **trusted community** of paying members who voluntarily share location data to:
 - **Find fish together** - See where the fleet is having success
 - **Save fuel** - Don't waste time searching blind
 - **Validate conditions** - Confirm SST edges and chlorophyll blooms with real activity
@@ -23,6 +23,13 @@ ABFI is a **voluntary community** of captains who choose to share their location
 - **NOT permanent** - Delete your history anytime
 
 ## 🤝 **The ABFI Agreement:**
+
+**EVERYONE IS EQUAL - NO EXCEPTIONS**
+
+- All members pay the same
+- All members follow the same rules
+- Share to see, don't share and you don't see
+- No special access, no backdoors, no exceptions
 
 When you enable tracking, you're saying:
 > "I want to help my fellow captains find fish, and I want their help finding fish too."
@@ -67,7 +74,12 @@ When you track, you contribute to:
 
 ## **The Bottom Line:**
 
-**ABFI is fishermen helping fishermen.** 
+**ABFI is a PAID COMMUNITY where EVERYONE IS EQUAL.**
+
+- **Same rules for everyone** - No special treatment
+- **Vulnerable by design** - We trust our paying members
+- **Extremely permissive** - Stop sharing anytime you want
+- **Fair exchange** - Share to see, or don't share and don't see
 
 We're not watching you - we're watching out for each other. Every captain who shares their position makes the entire fleet more successful. It's collective intelligence, not surveillance.
 
@@ -75,4 +87,4 @@ We're not watching you - we're watching out for each other. Every captain who sh
 
 ---
 
-*This is a tool BY fishermen, FOR fishermen. We protect our own.*
+*This is a paid members-only tool BY fishermen, FOR fishermen. We trust and protect our own.*
