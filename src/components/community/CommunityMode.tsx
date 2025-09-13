@@ -577,13 +577,14 @@ export default function CommunityMode() {
                   </span>
                 </button>
                 
-                {/* Coming Soon - Subtle hint at future channels */}
-                <div className="px-3 py-1.5 rounded-full text-sm font-medium bg-slate-900/30 text-white/30 border border-dashed border-white/10 cursor-not-allowed"
-                     title="More specialized channels coming soon!">
-                  <span className="flex items-center gap-1.5">
-                    <Sparkles size={14} className="opacity-50" />
-                    <span className="italic text-xs">Pelagic Hunters</span>
-                    <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full">Soon</span>
+                {/* Mystery indicator - subtle hint that more is coming */}
+                <div className="px-2 py-1.5 flex items-center gap-1 opacity-30"
+                     title="More channels in development...">
+                  <span className="text-white/40">+</span>
+                  <span className="flex gap-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/15"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/10"></span>
                   </span>
                 </div>
               </div>
