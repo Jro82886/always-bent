@@ -277,6 +277,52 @@ export default function CommunityMode() {
         <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent" />
         
         <div className="relative flex flex-col h-full">
+          {/* Weather Widget - NOW AT THE TOP */}
+          {weather && (
+            <div className="p-4">
+              {/* Section Header */}
+              <div className="relative mb-4">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent blur-xl" />
+                <div className="relative bg-gradient-to-r from-slate-800/60 to-transparent rounded-xl p-3 border border-blue-500/20">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/20 rounded-lg backdrop-blur-sm">
+                      <Wind size={16} className="text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-blue-300 tracking-wide">
+                        EAST COAST OVERVIEW
+                      </h3>
+                      <p className="text-xs text-blue-400/60 mt-0.5">Current marine conditions</p>
+                    </div>
+                    {weather.location === 'offshore' && (
+                      <span className="text-xs bg-blue-500/15 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
+                        Offshore
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Weather Data */}
+              <div className="space-y-2.5 bg-slate-800/20 rounded-lg p-3 border border-blue-500/10">
+                {[
+                  { icon: Wind, label: 'Wind', value: `${weather.wind.speed} kts ${weather.wind.direction}` },
+                  { icon: Waves, label: 'Seas', value: `${weather.waves.height} ft @ ${weather.waves.period}s` },
+                  { icon: Thermometer, label: 'Water', value: `${weather.waterTemp}°F` },
+                  { icon: Navigation, label: 'Tide', value: `${weather.tide.type} @ ${weather.tide.time}` }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between">
+                    <span className="text-white/60 flex items-center gap-2 text-xs">
+                      <item.icon size={12} className="text-blue-400/60" />
+                      {item.label}
+                    </span>
+                    <span className="text-white text-xs font-medium">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Active Captains Section */}
           <div className="p-4">
             {/* Section Header with Glow */}
@@ -289,7 +335,7 @@ export default function CommunityMode() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-bold text-cyan-300 tracking-wide">ACTIVE CAPTAINS</h3>
-                    <p className="text-xs text-cyan-400/60 mt-0.5">In {inlet.name}</p>
+                    <p className="text-xs text-cyan-400/60 mt-0.5">Online in {inlet.name}</p>
                   </div>
                   <div className="px-2.5 py-1 bg-cyan-500/15 rounded-full border border-cyan-500/30">
                     <span className="text-xs font-medium text-cyan-400">
@@ -301,7 +347,7 @@ export default function CommunityMode() {
             </div>
 
             {/* Captain Cards */}
-            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-cyan-500/20">
+            <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-cyan-500/20">
               {onlineUsers.filter(u => u.isOnline).map((captain, idx) => (
                 <div key={idx} className="group relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg blur" />
@@ -338,52 +384,6 @@ export default function CommunityMode() {
               ))}
             </div>
           </div>
-
-          {/* Weather Widget */}
-          {weather && (
-            <div className="p-4">
-              {/* Section Header */}
-              <div className="relative mb-4">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent blur-xl" />
-                <div className="relative bg-gradient-to-r from-slate-800/60 to-transparent rounded-xl p-3 border border-blue-500/20">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/20 rounded-lg backdrop-blur-sm">
-                      <Wind size={16} className="text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-bold text-blue-300 tracking-wide">
-                        {inlet.name.toUpperCase()} CONDITIONS
-                      </h3>
-                      <p className="text-xs text-blue-400/60 mt-0.5">Live marine weather</p>
-                    </div>
-                    {weather.location === 'offshore' && (
-                      <span className="text-xs bg-blue-500/15 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
-                        Offshore
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Weather Data */}
-              <div className="space-y-2.5 bg-slate-800/20 rounded-lg p-3 border border-blue-500/10">
-                {[
-                  { icon: Wind, label: 'Wind', value: `${weather.wind.speed} kts ${weather.wind.direction}` },
-                  { icon: Waves, label: 'Seas', value: `${weather.waves.height} ft @ ${weather.waves.period}s` },
-                  { icon: Thermometer, label: 'Water', value: `${weather.waterTemp}°F` },
-                  { icon: Navigation, label: 'Tide', value: `${weather.tide.type} @ ${weather.tide.time}` }
-                ].map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <span className="text-white/60 flex items-center gap-2 text-xs">
-                      <item.icon size={12} className="text-blue-400/60" />
-                      {item.label}
-                    </span>
-                    <span className="text-white text-xs font-medium">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Recent Catches */}
           <div className="flex-1 p-4 overflow-y-auto">
@@ -500,9 +500,9 @@ export default function CommunityMode() {
             {/* Top glow line */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
             
-            {/* Mentions Dropdown */}
+            {/* Mentions Dropdown - Positioned above the @ character */}
             {showMentions && mentionableUsers.length > 0 && (
-              <div className="absolute bottom-full mb-2 left-6 right-6 max-w-md">
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-80 max-w-[90%]">
                 <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl border border-cyan-500/30 overflow-hidden shadow-2xl">
                   <div className="text-xs text-cyan-400/70 px-3 py-2 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-transparent">
                     Online Captains - Use ↑↓ to navigate, Enter to select
