@@ -171,7 +171,37 @@ export default function LegendaryOceanPlatform() {
     });
 
     return () => {
-      mapInstance.remove();
+      // Clean up layers and sources before removing map
+      try {
+        // Remove custom layers if they exist
+        const layersToRemove = ['ocean-layer', 'sst-lyr', 'chl-lyr'];
+        layersToRemove.forEach(layerId => {
+          if (mapInstance.getLayer(layerId)) {
+            mapInstance.removeLayer(layerId);
+          }
+        });
+        
+        // Remove sources
+        const sourcesToRemove = ['ocean', 'sst-src', 'chl-src'];
+        sourcesToRemove.forEach(sourceId => {
+          if (mapInstance.getSource(sourceId)) {
+            mapInstance.removeSource(sourceId);
+          }
+        });
+        
+        // Finally remove the map - it handles its own event cleanup
+        mapInstance.remove();
+        map.current = null;
+      } catch (error) {
+        console.warn('Error during map cleanup:', error);
+        // Still try to remove the map
+        try {
+          mapInstance.remove();
+          map.current = null;
+        } catch (e) {
+          // Ignore
+        }
+      }
     };
   }, []);
 

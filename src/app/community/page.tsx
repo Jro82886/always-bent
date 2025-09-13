@@ -21,22 +21,52 @@ export default function CommunityPage() {
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/satellite-v9',
-      center: [-72.0, 40.7], // East Coast center
-      zoom: 7,
-      interactive: false // Make map non-interactive for background effect
-    });
+    // Small delay to ensure previous map is fully cleaned up
+    const initTimer = setTimeout(() => {
+      if (!mapContainer.current) return;
+      
+      try {
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/satellite-v9',
+          center: [-72.0, 40.7], // East Coast center
+          zoom: 7,
+          interactive: false, // Make map non-interactive for background effect
+          trackResize: false, // Disable resize tracking for background map
+          preserveDrawingBuffer: false
+        });
 
-    // Add blur effect to map container
-    if (mapContainer.current) {
-      mapContainer.current.style.filter = 'blur(8px)';
-      mapContainer.current.style.opacity = '0.4';
-    }
+        // Add blur effect to map container after map loads
+        const handleLoad = () => {
+          if (mapContainer.current) {
+            mapContainer.current.style.filter = 'blur(8px)';
+            mapContainer.current.style.opacity = '0.4';
+          }
+        };
+        
+        // Handle any errors gracefully
+        const handleError = (e: any) => {
+          console.warn('Community map error (non-critical):', e);
+        };
+        
+        map.current.on('load', handleLoad);
+        map.current.on('error', handleError);
+      } catch (error) {
+        console.warn('Failed to initialize community background map:', error);
+      }
+    }, 100);
 
     return () => {
-      map.current?.remove();
+      clearTimeout(initTimer);
+      if (map.current) {
+        try {
+          // Just remove the map - it handles its own cleanup
+          map.current.remove();
+          map.current = null;
+        } catch (error) {
+          console.warn('Error cleaning up community map:', error);
+        }
+      }
     };
   }, []);
 

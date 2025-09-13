@@ -8,7 +8,7 @@ type Props = { map: mapboxgl.Map | null; on: boolean; selectedDate?: string };
 
 export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
   useEffect(() => {
-    if (!map) return;
+    if (!map || !map.loaded()) return;
 
     const srcId = 'sst-src';
     const lyrId = 'sst-lyr';

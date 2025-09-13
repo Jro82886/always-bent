@@ -9,7 +9,7 @@ type Props = {
 
 export default function CoastlineSmoother({ map, enabled }: Props) {
   useEffect(() => {
-    if (!map) return;
+    if (!map || !map.loaded()) return;
 
     const maskId = 'coastline-mask';
     const blurId = 'coastline-blur';
