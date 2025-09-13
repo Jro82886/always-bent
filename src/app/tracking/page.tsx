@@ -15,6 +15,7 @@ import NavTabs from '@/components/NavTabs';
 import { ensureTrackingLayers, upsertTrackingSource } from './_layers/userDot';
 import VesselTracker from '@/components/VesselTracker';
 import { Users, Radio, Waves, Activity, TrendingUp, Map, AlertCircle, Navigation } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
 
 type Pos = { lat: number; lng: number } | null;
 
@@ -46,9 +47,12 @@ export default function TrackingPage() {
   
   // Tracking feature toggles
   const [showVessels, setShowVessels] = useState(true);
+  const [showTrails, setShowTrails] = useState(false); // Progressive disclosure - off by default
   const [showRecBoats, setShowRecBoats] = useState(false);
   const [showAIS, setShowAIS] = useState(false);
   const [showGFW, setShowGFW] = useState(false);
+  const [fleetData, setFleetData] = useState<any>(null);
+  const fleetIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isTracking, setIsTracking] = useState(false);
   const [lastPosition, setLastPosition] = useState<Pos>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
@@ -203,6 +207,211 @@ export default function TrackingPage() {
     };
   }, [map, showGFW]);
 
+  // Fetch fleet positions
+  const fetchFleet = useCallback(async () => {
+    if (!showVessels) return;
+    
+    try {
+      const response = await fetch(`/api/tracking/fleet?inlet_id=${selectedInletId}&hours=4`);
+      if (response.ok) {
+        const data = await response.json();
+        setFleetData(data.fleet);
+      }
+    } catch (error) {
+      console.error('Failed to fetch fleet:', error);
+    }
+  }, [selectedInletId, showVessels]);
+
+  // Auto-refresh fleet positions every 60 seconds
+  useEffect(() => {
+    if (showVessels) {
+      fetchFleet(); // Initial fetch
+      fleetIntervalRef.current = setInterval(fetchFleet, 60000); // Every 60 seconds
+      
+      return () => {
+        if (fleetIntervalRef.current) {
+          clearInterval(fleetIntervalRef.current);
+        }
+      };
+    }
+  }, [showVessels, fetchFleet]);
+
+  // Render fleet on map
+  useEffect(() => {
+    if (!map || !fleetData || !showVessels) return;
+
+    const addFleetLayer = () => {
+      // Remove existing fleet layers
+      if (map.getLayer('fleet-dots')) map.removeLayer('fleet-dots');
+      if (map.getLayer('fleet-labels')) map.removeLayer('fleet-labels');
+      if (map.getLayer('fleet-trails')) map.removeLayer('fleet-trails');
+      if (map.getSource('fleet-source')) map.removeSource('fleet-source');
+      if (map.getSource('fleet-trails-source')) map.removeSource('fleet-trails-source');
+
+      // Create GeoJSON for vessel dots
+      const dotsGeoJSON: any = {
+        type: 'FeatureCollection',
+        features: fleetData.vessels.map((vessel: any) => ({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [vessel.current_position.lng, vessel.current_position.lat]
+          },
+          properties: {
+            boat_name: vessel.boat_name,
+            is_fishing: vessel.is_fishing,
+            minutes_ago: vessel.minutes_ago,
+            speed: vessel.current_position.speed || 0,
+            inlet_color: colorForInlet(vessel.inlet_id)
+          }
+        }))
+      };
+
+      // Add source for dots
+      map.addSource('fleet-source', {
+        type: 'geojson',
+        data: dotsGeoJSON
+      });
+
+      // Add vessel dots layer
+      map.addLayer({
+        id: 'fleet-dots',
+        type: 'circle',
+        source: 'fleet-source',
+        paint: {
+          'circle-radius': [
+            'case',
+            ['get', 'is_fishing'], 8,  // Bigger when fishing
+            6  // Normal size when moving
+          ],
+          'circle-color': ['get', 'inlet_color'],
+          'circle-opacity': [
+            'interpolate', ['linear'], ['get', 'minutes_ago'],
+            0, 1,    // Just seen = full opacity
+            30, 0.7,  // 30 min ago = 70% opacity
+            60, 0.3   // 1 hour ago = 30% opacity
+          ],
+          'circle-stroke-width': [
+            'case',
+            ['get', 'is_fishing'], 3,  // Thick border when fishing
+            1  // Thin border when moving
+          ],
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.8
+        }
+      });
+
+      // Add labels (boat names) - only show on hover for clean look
+      map.addLayer({
+        id: 'fleet-labels',
+        type: 'symbol',
+        source: 'fleet-source',
+        layout: {
+          'text-field': ['get', 'boat_name'],
+          'text-size': 11,
+          'text-offset': [0, 1.5],
+          'text-anchor': 'top'
+        },
+        paint: {
+          'text-color': '#ffffff',
+          'text-halo-color': '#000000',
+          'text-halo-width': 1
+        },
+        filter: ['==', ['get', 'boat_name'], ''] // Start with no labels
+      });
+
+      // Add trails if enabled
+      if (showTrails) {
+        const trailsGeoJSON: any = {
+          type: 'FeatureCollection',
+          features: fleetData.vessels.map((vessel: any) => ({
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: vessel.trail.map((p: any) => [p.lng, p.lat])
+            },
+            properties: {
+              boat_name: vessel.boat_name,
+              avg_speed: vessel.avg_speed,
+              inlet_color: colorForInlet(vessel.inlet_id)
+            }
+          })).filter((f: any) => f.geometry.coordinates.length > 1)
+        };
+
+        map.addSource('fleet-trails-source', {
+          type: 'geojson',
+          data: trailsGeoJSON
+        });
+
+        map.addLayer({
+          id: 'fleet-trails',
+          type: 'line',
+          source: 'fleet-trails-source',
+          paint: {
+            'line-color': ['get', 'inlet_color'],
+            'line-opacity': 0.3,
+            'line-width': [
+              'interpolate', ['linear'], ['get', 'avg_speed'],
+              0, 3,   // Stopped = thick line (fishing)
+              3, 2,   // Slow = medium line
+              10, 1   // Fast = thin line (transit)
+            ]
+          }
+        }, 'fleet-dots'); // Place trails under dots
+      }
+
+      // Add hover effect for boat names
+      let hoveredBoat: string | null = null;
+      
+      map.on('mousemove', 'fleet-dots', (e) => {
+        if (e.features && e.features[0]) {
+          const boatName = e.features[0].properties?.boat_name;
+          if (boatName !== hoveredBoat) {
+            hoveredBoat = boatName;
+            map.setFilter('fleet-labels', ['==', ['get', 'boat_name'], boatName]);
+          }
+          map.getCanvas().style.cursor = 'pointer';
+        }
+      });
+
+      map.on('mouseleave', 'fleet-dots', () => {
+        hoveredBoat = null;
+        map.setFilter('fleet-labels', ['==', ['get', 'boat_name'], '']);
+        map.getCanvas().style.cursor = '';
+      });
+
+      // Click for details popup
+      map.on('click', 'fleet-dots', (e) => {
+        if (e.features && e.features[0]) {
+          const props = e.features[0].properties;
+          const coords = e.features[0].geometry as any;
+          
+          new mapboxgl.Popup()
+            .setLngLat(coords.coordinates)
+            .setHTML(`
+              <div style="padding: 8px; font-family: system-ui;">
+                <h3 style="margin: 0 0 8px 0; color: ${props?.inlet_color}; font-size: 14px;">
+                  ${props?.boat_name}
+                </h3>
+                <div style="font-size: 12px; color: #e0e0e0;">
+                  <div>Status: <strong>${props?.is_fishing ? '🎣 Fishing' : '🚤 Moving'}</strong></div>
+                  <div>Speed: <strong>${props?.speed?.toFixed(1) || '0'} kts</strong></div>
+                  <div>Last update: <strong>${props?.minutes_ago} min ago</strong></div>
+                </div>
+              </div>
+            `)
+            .addTo(map);
+        }
+      });
+    };
+
+    if ((map as any).isStyleLoaded?.()) {
+      addFleetLayer();
+    } else {
+      map.once('style.load', addFleetLayer);
+    }
+  }, [map, fleetData, showVessels, showTrails]);
+
   return (
     <RequireUsername>
     <MapShell>
@@ -251,7 +460,25 @@ export default function TrackingPage() {
             >
               <Users size={12} />
               Local Fleet
+              {showVessels && fleetData && (
+                <span className="text-[10px] bg-cyan-500/20 px-2 py-0.5 rounded-full">
+                  {fleetData.total_active}
+                </span>
+              )}
             </button>
+            {showVessels && (
+              <button
+                onClick={() => setShowTrails(!showTrails)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ml-4 ${
+                  showTrails 
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
+                    : 'bg-black/40 text-gray-400 border border-gray-600/30'
+                }`}
+              >
+                <Activity size={12} />
+                Show Trails
+              </button>
+            )}
             <button
               onClick={() => setShowRecBoats(!showRecBoats)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
@@ -289,6 +516,18 @@ export default function TrackingPage() {
             </button>
           </div>
         </div>
+        
+        {/* Fleet Status - Simple, clean info */}
+        {showVessels && fleetData && fleetData.total_active > 0 && (
+          <div className="mt-2 bg-black/70 backdrop-blur-md rounded-lg px-3 py-2 border border-cyan-500/20 text-xs">
+            <div className="text-cyan-400 font-semibold mb-1">Fleet Status</div>
+            <div className="text-gray-300 space-y-0.5">
+              <div>{fleetData.total_active} boats active</div>
+              <div>{fleetData.fishing_now} fishing now</div>
+              <div className="text-[10px] text-gray-400">Updated: just now</div>
+            </div>
+          </div>
+        )}
         
         {/* GFW Info Box - Shows when commercial layer is active */}
         {showGFW && (
