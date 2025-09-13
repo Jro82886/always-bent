@@ -7,7 +7,6 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import CommunityMode from '@/components/community/CommunityMode';
 import TopHUD from '@/components/TopHUD';
 import RequireUsername from '@/components/RequireUsername';
-import NavTabs from '@/components/NavTabs';
 
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
@@ -85,7 +84,6 @@ export default function CommunityPage() {
         
         {/* Navigation */}
         <div className="absolute inset-0 z-10 pointer-events-none">
-          <NavTabs />
           <TopHUD includeAbfi={false} />
         </div>
         
