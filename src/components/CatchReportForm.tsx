@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { X, Check, MapPin, Thermometer, Wind, Fish } from 'lucide-react';
+import { X, Check, MapPin, Thermometer, Wind, Fish, Target, Eye, Sparkles, Activity, Anchor } from 'lucide-react';
 import type mapboxgl from 'mapbox-gl';
 
 interface CatchReportFormProps {
@@ -99,7 +99,9 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
       }`}>
         <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-full shadow-2xl">
           <h2 className="text-2xl font-bold flex items-center gap-3">
-            🎯 Fish Activity Detected! 🐟
+            <Activity size={24} className="animate-pulse" />
+            Fish Activity Detected!
+            <Fish size={24} className="animate-pulse" />
           </h2>
         </div>
       </div>
@@ -129,7 +131,10 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
           <div className="p-6 space-y-4">
             {/* Location & Conditions */}
             <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-4 space-y-3">
-              <h4 className="text-cyan-300 font-semibold mb-2">📍 Conditions (Auto-filled)</h4>
+              <h4 className="text-cyan-300 font-semibold mb-2 flex items-center gap-2">
+                <MapPin size={16} className="text-cyan-400" />
+                Conditions (Auto-filled)
+              </h4>
               
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
@@ -144,12 +149,14 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
                   <span className="text-gray-300">{formData.waterTemp}°F</span>
                 </div>
                 
-                <div className="text-gray-300">
-                  ⏰ {formData.timeOfDay}
+                <div className="flex items-center gap-2 text-gray-300">
+                  <Wind size={16} className="text-blue-400" />
+                  <span>{formData.timeOfDay}</span>
                 </div>
                 
-                <div className="text-gray-300">
-                  🚤 {formData.boatName || 'Unknown Boat'}
+                <div className="flex items-center gap-2 text-gray-300">
+                  <Anchor size={16} className="text-gray-400" />
+                  <span>{formData.boatName || 'Unknown Boat'}</span>
                 </div>
               </div>
               
@@ -179,50 +186,55 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, activityType: 'bite'})}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     formData.activityType === 'bite' 
                       ? 'bg-orange-500/30 text-orange-300 border border-orange-400' 
                       : 'bg-black/30 text-gray-400 border border-gray-600 hover:border-gray-400'
                   }`}
                 >
-                  🎣 Got a Bite
+                  <Target size={16} className={formData.activityType === 'bite' ? 'text-orange-400' : 'text-gray-500'} />
+                  <span>Got a Bite</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, activityType: 'landed'})}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     formData.activityType === 'landed' 
                       ? 'bg-green-500/30 text-green-300 border border-green-400' 
                       : 'bg-black/30 text-gray-400 border border-gray-600 hover:border-gray-400'
                   }`}
                 >
-                  🐟 Fish Landed
+                  <Fish size={16} className={formData.activityType === 'landed' ? 'text-green-400' : 'text-gray-500'} />
+                  <span>Fish Landed</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, activityType: 'spotted'})}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     formData.activityType === 'spotted' 
                       ? 'bg-blue-500/30 text-blue-300 border border-blue-400' 
                       : 'bg-black/30 text-gray-400 border border-gray-600 hover:border-gray-400'
                   }`}
                 >
-                  👀 Fish Spotted
+                  <Eye size={16} className={formData.activityType === 'spotted' ? 'text-blue-400' : 'text-gray-500'} />
+                  <span>Fish Spotted</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, activityType: 'feeding'})}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     formData.activityType === 'feeding' 
                       ? 'bg-purple-500/30 text-purple-300 border border-purple-400' 
                       : 'bg-black/30 text-gray-400 border border-gray-600 hover:border-gray-400'
                   }`}
                 >
-                  💫 Fish Feeding
+                  <Activity size={16} className={formData.activityType === 'feeding' ? 'text-purple-400' : 'text-gray-500'} />
+                  <span>Fish Feeding</span>
                 </button>
               </div>
               <p className="text-[10px] text-cyan-400/70 mt-2">
-                💡 Even nibbles help us predict hotspots! Every data point makes our AI smarter.
+                <Sparkles size={10} className="inline mr-1" />
+                Even nibbles help us predict hotspots! Every data point makes our AI smarter.
               </p>
             </div>
             
@@ -236,20 +248,20 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
                   className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 outline-none"
                 >
                   <option value="">Select species...</option>
-                  <optgroup label="🎯 Tuna">
+                  <optgroup label="── Tuna ──">
                     <option value="bluefin">Bluefin Tuna</option>
                     <option value="yellowfin">Yellowfin Tuna</option>
                     <option value="bigeye">Bigeye Tuna</option>
                     <option value="skipjack">Skipjack Tuna</option>
                   </optgroup>
-                  <optgroup label="🌊 Offshore">
+                  <optgroup label="── Offshore ──">
                     <option value="mahi">Mahi Mahi</option>
                     <option value="wahoo">Wahoo</option>
                     <option value="marlin">Marlin</option>
                     <option value="sailfish">Sailfish</option>
                     <option value="swordfish">Swordfish</option>
                   </optgroup>
-                  <optgroup label="🎣 Inshore">
+                  <optgroup label="── Inshore ──">
                     <option value="stripers">Striped Bass</option>
                     <option value="bluefish">Bluefish</option>
                     <option value="fluke">Fluke/Flounder</option>
@@ -257,7 +269,7 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
                     <option value="tautog">Tautog</option>
                     <option value="weakfish">Weakfish</option>
                   </optgroup>
-                  <optgroup label="🦈 Other">
+                  <optgroup label="── Other ──">
                     <option value="shark">Shark (various)</option>
                     <option value="cobia">Cobia</option>
                     <option value="kingfish">King Mackerel</option>

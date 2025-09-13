@@ -144,9 +144,9 @@ export default function SnipController({ map }: SnipControllerProps) {
     if (!currentAnalysis) return;
     
     try {
-      console.log('💾 Saving analysis to Supabase...');
+      console.log('💾 Saving analysis...');
       
-      // Prepare data for Supabase
+      // Prepare data for saving
       const analysisData = {
         geometry: currentAnalysis.polygon.geometry as GeoJSON.Polygon,
         conditions: {
@@ -167,24 +167,45 @@ export default function SnipController({ map }: SnipControllerProps) {
         } as GeoJSON.Point : undefined,
         hotspot_confidence: currentAnalysis.hotspot?.confidence || 0,
         success_prediction: currentAnalysis.hotspot ? currentAnalysis.hotspot.confidence * 0.85 : 0.5,
-        layers_active: ['sst']
+        layers_active: ['sst'],
+        timestamp: new Date().toISOString(),
+        user_id: localStorage.getItem('abfi_username') || 'anonymous'
       };
       
-      const saved = await saveSnipAnalysis(analysisData as any);
-      console.log('✅ Analysis saved:', saved);
+      // Try to save to Supabase if configured
+      let saved = false;
+      try {
+        const result = await saveSnipAnalysis(analysisData as any);
+        console.log('✅ Analysis saved to database:', result);
+        saved = true;
+      } catch (dbError) {
+        console.warn('⚠️ Database save failed, saving locally:', dbError);
+        // Fallback to localStorage if Supabase is not configured
+        const localAnalyses = JSON.parse(localStorage.getItem('abfi_analyses') || '[]');
+        localAnalyses.push({
+          ...analysisData,
+          id: crypto.randomUUID(),
+          saved_at: new Date().toISOString()
+        });
+        localStorage.setItem('abfi_analyses', JSON.stringify(localAnalyses));
+        console.log('💾 Analysis saved to local storage');
+        saved = true;
+      }
       
-      // Show success feedback
-      showSaveSuccessToast();
-      
-      // Auto-close modal after save to continue snipping
-      setTimeout(() => {
-        setShowModal(false);
-        setCurrentAnalysis(null);
-        setShowHotspot(false);
-        setHotspotPosition(null);
-        setShouldClearTool(true);
-        setTimeout(() => setShouldClearTool(false), 100);
-      }, 1500);
+      if (saved) {
+        // Show success feedback
+        showSaveSuccessToast();
+        
+        // Auto-close modal after save to continue snipping
+        setTimeout(() => {
+          setShowModal(false);
+          setCurrentAnalysis(null);
+          setShowHotspot(false);
+          setHotspotPosition(null);
+          setShouldClearTool(true);
+          setTimeout(() => setShouldClearTool(false), 100);
+        }, 1500);
+      }
     } catch (error) {
       console.error('❌ Failed to save analysis:', error);
       alert('Failed to save analysis. Please try again.');
