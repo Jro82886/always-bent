@@ -92,8 +92,8 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           type: 'fill',
           source: 'rectangle',
           paint: {
-            'fill-color': '#00ffff',  // Bright cyan
-            'fill-opacity': 0.3  // Semi-transparent
+            'fill-color': '#6d28d9',  // Deep purple/indigo
+            'fill-opacity': 0.2  // More subtle transparency
           }
         });
 
@@ -103,9 +103,9 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           type: 'line',
           source: 'rectangle',
           paint: {
-            'line-color': '#00ffff',  // Bright cyan
-            'line-width': 4,  // Thick line
-            'line-opacity': 1  // Fully opaque
+            'line-color': '#8b5cf6',  // Lighter purple for outline
+            'line-width': 3,  // Slightly thinner
+            'line-opacity': 0.9  // Slightly transparent
           }
         });
         

@@ -487,10 +487,10 @@ function addHotspotMarker(map: mapboxgl.Map, location: [number, number]) {
     source: 'hotspot-marker',
     paint: {
       'circle-radius': 12,
-      'circle-color': '#ff0000',
+      'circle-color': '#6d28d9',  // Deep purple/indigo
       'circle-stroke-width': 3,
-      'circle-stroke-color': '#ffffff',
-      'circle-opacity': 0.8
+      'circle-stroke-color': '#8b5cf6',  // Lighter purple for stroke
+      'circle-opacity': 0.9
     }
   });
   
