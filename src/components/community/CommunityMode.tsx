@@ -15,6 +15,7 @@ interface WeatherData {
   tide: { type: string; time: string };
   visibility: number;
   location: 'inlet' | 'offshore';
+  buoyId?: string;
 }
 
 interface CatchReport {
@@ -65,13 +66,32 @@ export default function CommunityMode() {
   // Load mock weather data (will replace with NOAA API)
   useEffect(() => {
     // Mock data - future: fetch from NOAA based on inlet
+    // Map inlets to their closest NOAA buoys
+    const buoyMap: Record<string, string> = {
+      'montauk': '44017', // Montauk Point - 23 NM SSW
+      'shinnecock': '44025', // Long Island - 33 NM South  
+      'fire-island': '44025', // Long Island Buoy
+      'jones': '44025', // Long Island Buoy
+      'manasquan': '44091', // Barnegat - 16 NM East
+      'barnegat': '44091', // Barnegat Bay
+      'atlantic-city': '44091', // Barnegat (closest)
+      'cape-may': '44009', // Delaware Bay - 26 NM SE
+      'indian-river': '44009', // Delaware Bay
+      'ocean-city-md': '44009', // Delaware Bay
+      'virginia-beach': '44014', // Virginia Beach - 64 NM East
+      'oregon-inlet': '44014', // Virginia Beach (closest)
+      'hatteras': '41025', // Diamond Shoals
+      'overview': '44025' // Default to Long Island
+    };
+    
     setWeather({
       wind: { speed: 12, direction: 'NE' },
       waves: { height: 3, period: 7 },
       waterTemp: 68,
       tide: { type: 'Rising', time: '2:45 PM' },
       visibility: 10,
-      location: 'inlet'
+      location: 'inlet',
+      buoyId: buoyMap[selectedInletId || 'overview'] || '44025'
     });
     
     // Mock recent catches
@@ -290,13 +310,13 @@ export default function CommunityMode() {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-sm font-bold text-blue-300 tracking-wide">
-                        EAST COAST OVERVIEW
+                        {inlet.name.toUpperCase()} CONDITIONS
                       </h3>
-                      <p className="text-xs text-blue-400/60 mt-0.5">Current marine conditions</p>
+                      <p className="text-xs text-blue-400/60 mt-0.5">Closest NOAA buoy to inlet</p>
                     </div>
-                    {weather.location === 'offshore' && (
+                    {weather.buoyId && (
                       <span className="text-xs bg-blue-500/15 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
-                        Offshore
+                        Buoy {weather.buoyId}
                       </span>
                     )}
                   </div>
