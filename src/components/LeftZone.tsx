@@ -180,8 +180,8 @@ export default function LeftZone({
       <div className="space-y-3">
         
         {/* INTELLIGENCE HEADER */}
-        <div className="bg-gradient-to-r from-cyan-950/95 to-blue-950/95 backdrop-blur-xl rounded-lg px-4 py-2 border border-cyan-500/20 shadow-xl">
-          <h2 className="text-sm font-bold text-cyan-300 tracking-wider">OCEAN INTELLIGENCE</h2>
+        <div className="bg-gradient-to-r from-cyan-950/95 to-blue-950/95 backdrop-blur-xl rounded-lg px-4 py-2.5 border border-cyan-500/20 shadow-xl">
+          <h2 className="text-sm font-bold text-cyan-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
         </div>
         
         {/* LAYERS PANEL */}
@@ -204,13 +204,13 @@ export default function LeftZone({
           {showLayers && (
             <div className="px-4 pb-3 space-y-2">
               {/* SST Layer */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <button
                   onClick={() => toggleLayer('sst')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                     sstActive
                       ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-                      : 'bg-gray-800/50 text-gray-400 hover:text-white border border-gray-700/50'
+                      : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
                   }`}
                 >
                   <span>🌡️ SST</span>
@@ -308,13 +308,13 @@ export default function LeftZone({
               )}
               
               {/* CHL Layer */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <button
                   onClick={() => toggleLayer('chl')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                     chlActive
                       ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                      : 'bg-gray-800/50 text-gray-400 hover:text-white border border-gray-700/50'
+                      : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
                   }`}
                 >
                   <span>🌿 CHL</span>
@@ -353,13 +353,13 @@ export default function LeftZone({
               )}
               
               {/* Ocean Basemap */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <button
                   onClick={() => toggleLayer('ocean')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                     oceanActive
                       ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                      : 'bg-gray-800/50 text-gray-400 hover:text-white border border-gray-700/50'
+                      : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
                   }`}
                 >
                   <span>🌊 Ocean</span>
@@ -401,60 +401,65 @@ export default function LeftZone({
           )}
         </div>
         
-        {/* DATE SELECTOR - Only show when layers are active */}
-        {anyLayerActive && (
-          <div className="bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 px-4 py-3">
-            <button
-              onClick={() => setShowDateSelector(!showDateSelector)}
-              className="w-full flex items-center justify-between hover:bg-cyan-500/10 rounded transition-colors px-2 py-1"
-            >
-              <div className="flex items-center gap-2">
-                <CalendarDays size={14} className="text-cyan-400" />
-                <span className="text-sm font-medium text-cyan-300">Date Selection</span>
-              </div>
-              <span className="text-xs text-cyan-400">
-                {selectedDate === 'today' ? 'Today' : 
-                 selectedDate === 'yesterday' ? 'Yesterday' : 
-                 selectedDate === '2days' ? '2 Days Ago' : selectedDate}
+        {/* DATE SELECTOR - Always visible, disabled when no layers active */}
+        <div className={`bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 px-4 py-3 ${
+          !anyLayerActive ? 'opacity-50' : ''
+        }`}>
+          <button
+            onClick={() => anyLayerActive && setShowDateSelector(!showDateSelector)}
+            className={`w-full flex items-center justify-between rounded transition-colors px-2 py-1 ${
+              anyLayerActive ? 'hover:bg-cyan-500/10 cursor-pointer' : 'cursor-not-allowed'
+            }`}
+            disabled={!anyLayerActive}
+          >
+            <div className="flex items-center gap-2">
+              <CalendarDays size={14} className={anyLayerActive ? 'text-cyan-400' : 'text-gray-500'} />
+              <span className={`text-sm font-medium ${anyLayerActive ? 'text-cyan-300' : 'text-gray-500'}`}>
+                Date Selection
               </span>
-            </button>
-            
-            {showDateSelector && (
-              <div ref={dateSelectorRef} className="mt-2 pt-2 border-t border-cyan-500/10 space-y-1">
-                <button
-                  onClick={() => setSelectedDate('today')}
-                  className={`w-full px-3 py-2 text-xs rounded transition-colors ${
-                    selectedDate === 'today' 
-                      ? 'bg-cyan-500/20 text-cyan-300' 
-                      : 'hover:bg-cyan-500/10 text-gray-400'
-                  }`}
-                >
-                  Today
-                </button>
-                <button
-                  onClick={() => setSelectedDate('yesterday')}
-                  className={`w-full px-3 py-2 text-xs rounded transition-colors ${
-                    selectedDate === 'yesterday' 
-                      ? 'bg-cyan-500/20 text-cyan-300' 
-                      : 'hover:bg-cyan-500/10 text-gray-400'
-                  }`}
-                >
-                  Yesterday
-                </button>
-                <button
-                  onClick={() => setSelectedDate('2days')}
-                  className={`w-full px-3 py-2 text-xs rounded transition-colors ${
-                    selectedDate === '2days' 
-                      ? 'bg-cyan-500/20 text-cyan-300' 
-                      : 'hover:bg-cyan-500/10 text-gray-400'
-                  }`}
-                >
-                  2 Days Ago
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+            <span className={`text-xs ${anyLayerActive ? 'text-cyan-400' : 'text-gray-500'}`}>
+              {selectedDate === 'today' ? 'Today' : 
+               selectedDate === 'yesterday' ? 'Yesterday' : 
+               selectedDate === '2days' ? '2 Days Ago' : selectedDate}
+            </span>
+          </button>
+          
+          {showDateSelector && anyLayerActive && (
+            <div ref={dateSelectorRef} className="mt-2 pt-2 border-t border-cyan-500/10 space-y-1">
+              <button
+                onClick={() => setSelectedDate('today')}
+                className={`w-full px-3 py-2 text-xs rounded transition-colors ${
+                  selectedDate === 'today' 
+                    ? 'bg-cyan-500/20 text-cyan-300' 
+                    : 'hover:bg-cyan-500/10 text-gray-400'
+                }`}
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setSelectedDate('yesterday')}
+                className={`w-full px-3 py-2 text-xs rounded transition-colors ${
+                  selectedDate === 'yesterday' 
+                    ? 'bg-cyan-500/20 text-cyan-300' 
+                    : 'hover:bg-cyan-500/10 text-gray-400'
+                }`}
+              >
+                Yesterday
+              </button>
+              <button
+                onClick={() => setSelectedDate('2days')}
+                className={`w-full px-3 py-2 text-xs rounded transition-colors ${
+                  selectedDate === '2days' 
+                    ? 'bg-cyan-500/20 text-cyan-300' 
+                    : 'hover:bg-cyan-500/10 text-gray-400'
+                }`}
+              >
+                2 Days Ago
+              </button>
+            </div>
+          )}
+        </div>
         
         {/* SST LEGEND - Show when SST is active */}
         {sstActive && <SSTLegend visible={true} />}
