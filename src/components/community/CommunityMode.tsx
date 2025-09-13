@@ -56,7 +56,6 @@ export default function CommunityMode() {
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const [activeChannel, setActiveChannel] = useState<'all' | 'tuna' | 'offshore' | 'inshore' | string>('all'); // Simplified channels
   const [channelActivity, setChannelActivity] = useState<Record<string, number>>({});
-  const [isDMPanelOpen, setIsDMPanelOpen] = useState(false);
   const [dmTargetUser, setDmTargetUser] = useState<{ id: string; username: string } | null>(null);
   const [unreadDMs, setUnreadDMs] = useState(0);
   const [activeTab, setActiveTab] = useState<'chat' | 'reports' | 'dms'>('chat');
@@ -427,7 +426,7 @@ export default function CommunityMode() {
                             // Generate a userId from captain name (in real app, would use actual userId)
                             const userId = `user_${captain.captainName || captain.name}`.toLowerCase().replace(/\s/g, '_');
                             setDmTargetUser({ id: userId, username: captain.captainName || captain.name });
-                            setIsDMPanelOpen(true);
+                            setActiveTab('dms');
                           }}
                           className="opacity-0 group-hover:opacity-100 p-1 hover:bg-cyan-500/20 rounded transition-all"
                           title="Send direct message"
@@ -670,20 +669,6 @@ export default function CommunityMode() {
                   </span>
                 </div>
                 </div>
-                
-                {/* DM Button */}
-                <button
-                  onClick={() => setIsDMPanelOpen(true)}
-                  className="relative px-4 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-full text-cyan-400 text-sm font-medium transition-all flex items-center gap-2"
-                >
-                  <Mail size={14} />
-                  <span>Messages</span>
-                  {unreadDMs > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-cyan-500 text-black text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                      {unreadDMs}
-                    </span>
-                  )}
-                </button>
               </div>
               
               {/* Channel indicator */}
@@ -712,7 +697,7 @@ export default function CommunityMode() {
                           onClick={() => {
                             const userId = `user_${msg.captainName || msg.user}`.toLowerCase().replace(/\s/g, '_');
                             setDmTargetUser({ id: userId, username: msg.captainName || msg.user });
-                            setIsDMPanelOpen(true);
+                            setActiveTab('dms');
                           }}
                           className="font-semibold text-cyan-300 hover:text-cyan-200 transition-colors cursor-pointer"
                         >
@@ -857,18 +842,6 @@ export default function CommunityMode() {
         </div>
       </div>
       
-      {/* Legacy DM Panel (for direct message button clicks from chat) */}
-      {isDMPanelOpen && activeTab !== 'dms' && (
-        <DMPanel 
-          isOpen={isDMPanelOpen}
-          onClose={() => {
-            setIsDMPanelOpen(false);
-            setDmTargetUser(null);
-          }}
-          targetUserId={dmTargetUser?.id}
-          targetUsername={dmTargetUser?.username}
-        />
-      )}
     </div>
   );
 }

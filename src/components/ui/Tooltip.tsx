@@ -55,7 +55,7 @@ export default function Tooltip({
       {children}
       {isVisible && (
         <div
-          className={`absolute ${getPositionClasses()} z-50 pointer-events-none`}
+          className={`absolute ${getPositionClasses()} z-[9999] pointer-events-none`}
         >
           <div className="bg-gray-900/95 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md whitespace-nowrap border border-gray-700/50 shadow-lg animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
             {text}

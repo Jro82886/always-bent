@@ -43,27 +43,20 @@ export function InletSelect({ value, onChange, label }: Props) {
       {/* Custom Dropdown Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 bg-black/60 backdrop-blur-sm border border-cyan-500/30 rounded-lg px-3 py-2 text-sm text-white hover:border-cyan-400/50 transition-all min-w-[280px]"
+        className={`flex items-center justify-between gap-2 bg-black/60 backdrop-blur-sm border border-cyan-500/30 px-3 py-2 text-sm text-white hover:border-cyan-400/50 transition-all min-w-[280px] ${
+          isOpen ? 'rounded-t-lg border-b-0' : 'rounded-lg'
+        }`}
       >
         {selectedInlet && (
-          <>
-            <div 
-              className="w-3 h-3 rounded-full shadow-lg"
-              style={{ 
-                backgroundColor: getInletColor(selectedInlet.id),
-                boxShadow: `0 0 8px ${getInletColor(selectedInlet.id)}40`
-              }}
-            />
-            <span className="flex-1 text-left">{selectedInlet.name}</span>
-          </>
+          <span className="flex-1 text-left">{selectedInlet.name}</span>
         )}
         <ChevronDown className={`w-4 h-4 text-cyan-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - Connected appearance */}
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-full max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg shadow-2xl">
-          {/* Simple flat list of all inlets */}
+        <div className="absolute z-50 -mt-[1px] w-full max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 border-t-0 rounded-b-lg shadow-2xl">
+          {/* Simple flat list of all inlets - no colors */}
           {INLETS.map((inlet) => (
             <button
               key={inlet.id}
@@ -71,20 +64,13 @@ export function InletSelect({ value, onChange, label }: Props) {
                 onChange(inlet.id);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-cyan-500/10 transition-all ${
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-cyan-500/10 transition-all ${
                 value === inlet.id ? 'bg-cyan-500/20 text-cyan-300' : 'text-white'
               }`}
             >
-              <div 
-                className="w-3 h-3 rounded-full shadow-lg"
-                style={{ 
-                  backgroundColor: getInletColor(inlet.id),
-                  boxShadow: `0 0 8px ${getInletColor(inlet.id)}40`
-                }}
-              />
               <span className="text-left">{inlet.name}</span>
               {value === inlet.id && (
-                <span className="ml-auto text-cyan-400">✓</span>
+                <span className="text-cyan-400">✓</span>
               )}
             </button>
           ))}
