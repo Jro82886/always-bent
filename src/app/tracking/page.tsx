@@ -55,6 +55,7 @@ export default function TrackingPage() {
   const [fleetData, setFleetData] = useState<any>(null);
   const [lastPosition, setLastPosition] = useState<Pos>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
+  const [stoppedSharingNotice, setStoppedSharingNotice] = useState(false);
   const fleetIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const positionIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -455,34 +456,27 @@ export default function TrackingPage() {
             </div>
           )}
           {!isTracking && (
-            <div className="text-xs text-gray-400/70 mt-2 text-center max-w-[200px]">
-              Share to see others • Stop anytime
+            <div className="text-xs text-gray-500/50 mt-1 text-center">
+              Share to see fleet
             </div>
           )}
         </div>
         
         <div className="bg-black/70 backdrop-blur-md rounded-full px-4 py-2 border border-cyan-500/20">
           <h3 className="text-cyan-400 text-xs font-semibold mb-2">Community Fleet</h3>
-          {!isTracking && (
-            <div className="text-yellow-400/80 text-xs mb-2 px-2">
-              ⚠️ Start sharing to see fleet
-            </div>
-          )}
           <div className="flex flex-col gap-1">
             <button
               onClick={() => {
                 if (!isTracking) {
-                  // Prompt to start sharing first
-                  setIsTracking(true);
-                  setShowVessels(true);
+                  // They hit the mirror - show them they need to share
+                  setShowVessels(true); // Turn on to trigger the notice
                 } else {
                   setShowVessels(!showVessels);
                 }
               }}
-              disabled={!isTracking}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 !isTracking
-                  ? 'bg-gray-800/40 text-gray-500 border border-gray-700/30 cursor-not-allowed'
+                  ? 'bg-black/40 text-gray-500 border border-gray-600/30' // Looks clickable but isn't functional
                   : showVessels 
                     ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
                     : 'bg-black/40 text-gray-400 border border-gray-600/30'
@@ -547,25 +541,17 @@ export default function TrackingPage() {
           </div>
         </div>
         
-        {/* Fair Sharing Notice */}
+        {/* Subtle notice when trying to view without sharing */}
         {!isTracking && showVessels && (
-          <div className="mt-2 bg-yellow-900/30 backdrop-blur-md rounded-lg px-3 py-2 border border-yellow-500/20 text-xs">
-            <div className="text-yellow-400 font-semibold mb-1 flex items-center gap-1">
-              <AlertCircle size={12} />
-              Fair Sharing
-            </div>
-            <div className="text-yellow-200/80 text-[11px] leading-relaxed">
-              To see where others are fishing, you need to share too.
-              <span className="font-semibold"> Everyone follows the same rules.</span>
-              <div className="mt-1 text-[10px] text-gray-300">
-                This is a paid members-only community. We all contribute equally.
-              </div>
+          <div className="mt-2 bg-black/50 backdrop-blur-md rounded-lg px-3 py-2 border border-gray-600/20 text-xs">
+            <div className="text-gray-400 text-[11px]">
+              Fleet view requires sharing your position
             </div>
             <button 
               onClick={() => setIsTracking(true)}
-              className="mt-2 text-yellow-300 underline text-[11px] hover:text-yellow-200"
+              className="mt-1 text-cyan-400/70 text-[10px] hover:text-cyan-300"
             >
-              Start sharing to see fleet →
+              Enable sharing →
             </button>
           </div>
         )}
@@ -582,9 +568,9 @@ export default function TrackingPage() {
             <div className="mt-2 pt-2 border-t border-cyan-500/10">
               <button 
                 onClick={() => setIsTracking(false)}
-                className="text-[10px] text-gray-400 hover:text-red-400 transition-colors"
+                className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
               >
-                Stop sharing (lose fleet view)
+                Stop sharing
               </button>
             </div>
           </div>
