@@ -41,11 +41,16 @@ export function getInlet60nmBounds(inlet: Inlet): [number, number, number, numbe
 export function flyToInlet60nm(map: mapboxgl.Map | null, inlet: Inlet) {
   if (!map || !inlet) return;
   
-  // Handle overview separately - zoom out to full East Coast
+  // Handle overview separately - zoom out to FULL East Coast (Maine to Florida)
   if (inlet.isOverview) {
-    map.flyTo({
-      center: inlet.center,
-      zoom: inlet.zoom,
+    // Use the full East Coast bounds for proper overview
+    const eastCoastBounds: [[number, number], [number, number]] = [
+      [-82.0, 24.0],  // Southwest: Florida Keys
+      [-65.0, 46.0],  // Northeast: Maine
+    ];
+    
+    map.fitBounds(eastCoastBounds as any, {
+      padding: { top: 50, bottom: 50, left: 100, right: 50 },
       duration: 1500,
       essential: true
     });
