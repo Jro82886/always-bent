@@ -248,33 +248,16 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
                   className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 outline-none"
                 >
                   <option value="">Select species...</option>
-                  <optgroup label="── Tuna ──">
-                    <option value="bluefin">Bluefin Tuna</option>
-                    <option value="yellowfin">Yellowfin Tuna</option>
-                    <option value="bigeye">Bigeye Tuna</option>
-                    <option value="skipjack">Skipjack Tuna</option>
-                  </optgroup>
-                  <optgroup label="── Offshore ──">
-                    <option value="mahi">Mahi Mahi</option>
-                    <option value="wahoo">Wahoo</option>
-                    <option value="marlin">Marlin</option>
-                    <option value="sailfish">Sailfish</option>
-                    <option value="swordfish">Swordfish</option>
-                  </optgroup>
-                  <optgroup label="── Inshore ──">
-                    <option value="stripers">Striped Bass</option>
-                    <option value="bluefish">Bluefish</option>
-                    <option value="fluke">Fluke/Flounder</option>
-                    <option value="seabass">Sea Bass</option>
-                    <option value="tautog">Tautog</option>
-                    <option value="weakfish">Weakfish</option>
-                  </optgroup>
-                  <optgroup label="── Other ──">
-                    <option value="shark">Shark (various)</option>
-                    <option value="cobia">Cobia</option>
-                    <option value="kingfish">King Mackerel</option>
-                    <option value="other">Other/Unknown</option>
-                  </optgroup>
+                  <option value="bigeye-tuna">Big Eye Tuna</option>
+                  <option value="bluefin-tuna">Blue Fin Tuna</option>
+                  <option value="yellowfin-tuna">Yellowfin Tuna</option>
+                  <option value="longfin-tuna">Long Fin Tuna</option>
+                  <option value="wahoo">Wahoo</option>
+                  <option value="mahi">Mahi</option>
+                  <option value="white-marlin">White Marlin</option>
+                  <option value="blue-marlin">Blue Marlin</option>
+                  <option value="cobia">Cobia</option>
+                  <option value="rockfish">Rockfish</option>
                 </select>
               </div>
               
