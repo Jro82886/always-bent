@@ -176,8 +176,8 @@ export default function LeftZone({
   const anyLayerActive = oceanActive || sstActive || chlActive;
   
   return (
-    <div className="absolute left-4 top-20 z-40 pointer-events-auto w-72">
-      <div className="space-y-3">
+    <div className="absolute left-4 top-24 z-40 pointer-events-auto w-72 max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-thin scrollbar-thumb-cyan-500/20 scrollbar-track-transparent">
+      <div className="space-y-3 pb-4">
         
         {/* OCEAN INTELLIGENCE + DATA LAYERS - Connected as one unit */}
         <div className="bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 overflow-hidden">

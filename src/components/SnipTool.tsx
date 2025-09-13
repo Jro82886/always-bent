@@ -492,9 +492,9 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   };
 
   return (
-    <div className="absolute top-20 right-4 bg-black/70 backdrop-blur-md rounded-full px-6 py-4 shadow-lg z-20 border border-cyan-500/20">
-      <h3 className="text-cyan-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2">
-        <Target size={14} className="text-cyan-400" />
+    <div className="absolute top-4 right-4 bg-gradient-to-br from-cyan-950/80 via-teal-950/80 to-emerald-950/80 backdrop-blur-md rounded-2xl px-6 py-4 shadow-[0_0_30px_rgba(0,255,136,0.3)] z-50 border border-emerald-400/30">
+      <h3 className="text-emerald-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2">
+        <Target size={14} className="text-emerald-400" />
         Ocean Analysis
       </h3>
       {/* TODO: REMOVE THIS WARNING WHEN REAL DATA IS CONNECTED */}
@@ -510,13 +510,13 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           disabled={isDrawing || isAnalyzing}
           className={`w-full px-4 py-2 ${
             isAnalyzing
-              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 cursor-not-allowed animate-pulse'
+              ? 'bg-gradient-to-r from-emerald-600 to-cyan-600 cursor-not-allowed animate-pulse'
               : isDrawing 
-              ? 'bg-gradient-to-r from-cyan-600 to-blue-600 cursor-not-allowed' 
-              : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400'
+              ? 'bg-gradient-to-r from-cyan-600 to-emerald-600 cursor-not-allowed' 
+              : 'bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400'
           } text-white rounded-full transition-all shadow-lg flex items-center justify-center gap-2 text-sm font-medium`}
           style={{
-            boxShadow: isAnalyzing || isDrawing ? '0 0 20px rgba(0, 200, 255, 0.4)' : undefined
+            boxShadow: isAnalyzing || isDrawing ? '0 0 20px rgba(0, 255, 136, 0.4)' : undefined
           }}
         >
           {isAnalyzing ? (
@@ -536,16 +536,16 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
         {currentArea > 0 && (
           <>
-            <div className="text-cyan-100 text-xs mt-2 p-2 bg-cyan-500/10 rounded-full border border-cyan-500/20">
+            <div className="text-emerald-100 text-xs mt-2 p-2 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 rounded-full border border-emerald-500/20">
               <div className="text-center">
                 <span className="font-bold text-sm">{currentArea.toFixed(2)} km²</span>
-                <span className="text-cyan-300/60 ml-1">({(currentArea * 0.386102).toFixed(2)} mi²)</span>
+                <span className="text-emerald-300/60 ml-1">({(currentArea * 0.386102).toFixed(2)} mi²)</span>
               </div>
             </div>
 
             <button
               onClick={clearDrawing}
-              className="w-full px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 rounded-full transition-all text-xs font-medium border border-cyan-500/20"
+              className="w-full px-3 py-1.5 bg-gradient-to-r from-cyan-600/20 to-emerald-600/20 hover:from-cyan-600/30 hover:to-emerald-600/30 text-emerald-300 rounded-full transition-all text-xs font-medium border border-emerald-500/20 shadow-[0_0_10px_rgba(0,255,136,0.2)]"
             >
               Clear Selection
             </button>

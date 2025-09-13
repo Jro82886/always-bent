@@ -68,6 +68,10 @@ export default function PolygonsPanel({ map }: Props) {
           console.error('❌ Polygon fetch failed:', res.status, res.statusText);
           // Try without bbox as fallback
           const fallbackRes = await fetch('/api/polygons');
+          if (!fallbackRes.ok) {
+            console.error('❌ Fallback fetch also failed:', fallbackRes.status);
+            return;
+          }
           data = await fallbackRes.json();
           console.log('📦 Fallback polygon data loaded:', data.features?.length || 0, 'features');
         } else {
