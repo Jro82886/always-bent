@@ -230,13 +230,40 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
             <div className="space-y-3">
               <div>
                 <label className="text-sm text-gray-400 block mb-1">Species (optional)</label>
-                <input
-                  type="text"
+                <select
                   value={formData.species}
                   onChange={(e) => setFormData({...formData, species: e.target.value})}
-                  placeholder="e.g., Mahi, Tuna, Wahoo"
                   className="w-full bg-black/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-white focus:border-cyan-400 outline-none"
-                />
+                >
+                  <option value="">Select species...</option>
+                  <optgroup label="🎯 Tuna">
+                    <option value="bluefin">Bluefin Tuna</option>
+                    <option value="yellowfin">Yellowfin Tuna</option>
+                    <option value="bigeye">Bigeye Tuna</option>
+                    <option value="skipjack">Skipjack Tuna</option>
+                  </optgroup>
+                  <optgroup label="🌊 Offshore">
+                    <option value="mahi">Mahi Mahi</option>
+                    <option value="wahoo">Wahoo</option>
+                    <option value="marlin">Marlin</option>
+                    <option value="sailfish">Sailfish</option>
+                    <option value="swordfish">Swordfish</option>
+                  </optgroup>
+                  <optgroup label="🎣 Inshore">
+                    <option value="stripers">Striped Bass</option>
+                    <option value="bluefish">Bluefish</option>
+                    <option value="fluke">Fluke/Flounder</option>
+                    <option value="seabass">Sea Bass</option>
+                    <option value="tautog">Tautog</option>
+                    <option value="weakfish">Weakfish</option>
+                  </optgroup>
+                  <optgroup label="🦈 Other">
+                    <option value="shark">Shark (various)</option>
+                    <option value="cobia">Cobia</option>
+                    <option value="kingfish">King Mackerel</option>
+                    <option value="other">Other/Unknown</option>
+                  </optgroup>
+                </select>
               </div>
               
               <div className="grid grid-cols-2 gap-3">
