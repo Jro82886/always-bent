@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { X, Target, Waves, Thermometer } from 'lucide-react';
+import { X, Target, Waves, Thermometer, Save } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 
 interface SnipAnalysisReportProps {
@@ -177,9 +177,16 @@ export default function SnipAnalysisReport({
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
           >
-            {isSaving ? 'Saving...' : '💾 Save Analysis'}
+            {isSaving ? (
+              'Saving...'
+            ) : (
+              <>
+                <Save size={18} className="text-white drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                Save Analysis
+              </>
+            )}
           </button>
           <button
             onClick={onClose}

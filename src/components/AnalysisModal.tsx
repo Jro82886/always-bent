@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { X, Target, Waves, Thermometer, Activity } from 'lucide-react';
+import { X, Target, Waves, Thermometer, Activity, Save } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 // Temporarily remove philosophy import to fix crash
 // import { getAnalysisQuote } from '@/lib/philosophy';
@@ -286,7 +286,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                 onClick={onSave}
                 className="px-6 py-2 bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-2"
               >
-                <span>💾</span>
+                <Save size={18} className="text-white drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]" />
                 <span>Save to Community</span>
               </button>
             )}
