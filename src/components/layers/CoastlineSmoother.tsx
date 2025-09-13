@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type mapboxgl from 'mapbox-gl';
 
 type Props = { 
@@ -8,8 +8,19 @@ type Props = {
 };
 
 export default function CoastlineSmoother({ map, enabled }: Props) {
+  const cleanupRef = useRef(false);
+  
   useEffect(() => {
-    if (!map || !map.loaded()) return;
+    cleanupRef.current = false;
+    
+    if (!map) return;
+    
+    // Safe check for map.loaded()
+    try {
+      if (!map.loaded()) return;
+    } catch (e) {
+      return; // Map might be destroyed
+    }
 
     const maskId = 'coastline-mask';
     const blurId = 'coastline-blur';

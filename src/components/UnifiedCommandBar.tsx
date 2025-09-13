@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { 
   Map, 
   Activity, 
@@ -16,21 +15,15 @@ import { INLET_COLORS } from '@/lib/inletColors';
 
 interface UnifiedCommandBarProps {
   map: mapboxgl.Map | null;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
-export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+export default function UnifiedCommandBar({ map, activeTab, onTabChange }: UnifiedCommandBarProps) {
   const [boatName, setBoatName] = useState<string>('');
   const [selectedInletId, setSelectedInletId] = useState<string>('overview');
   const [showInletDropdown, setShowInletDropdown] = useState(false);
   const inletDropdownRef = useRef<HTMLDivElement>(null);
-  
-  // Determine active tab from pathname
-  const activeTab = pathname?.includes('tracking') ? 'tracking' 
-                  : pathname?.includes('community') ? 'community'
-                  : pathname?.includes('trends') ? 'trends'
-                  : 'analysis';
   
   useEffect(() => {
     // Get boat name and inlet from localStorage
@@ -70,19 +63,7 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
   }, [showInletDropdown]);
   
   const handleTabClick = (tab: string) => {
-    switch(tab) {
-      case 'tracking':
-        router.push('/tracking');
-        break;
-      case 'community':
-        router.push('/community');
-        break;
-      case 'trends':
-        router.push('/trends');
-        break;
-      default:
-        router.push('/legendary');
-    }
+    onTabChange(tab);
   };
   
   const handleInletSelect = (inletId: string) => {

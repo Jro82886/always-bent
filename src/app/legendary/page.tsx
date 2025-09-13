@@ -10,6 +10,9 @@ import TutorialOverlay from '@/components/TutorialOverlay';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
+import CommunityMode from '@/components/community/CommunityMode';
+import TrackingMode from '@/components/tracking/TrackingMode';
+import TrendsMode from '@/components/trends/TrendsMode';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import '@/styles/mapSmoothing.css';
 
@@ -19,6 +22,9 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  
+  // Tab state - 'analysis' | 'tracking' | 'community' | 'trends'
+  const [activeTab, setActiveTab] = useState<string>('analysis');
   
   // Get boat name from localStorage
   const [boatName, setBoatName] = useState<string>('');
@@ -266,7 +272,11 @@ export default function LegendaryOceanPlatform() {
       {/* Map Container with enhanced rendering */}
       <div 
         ref={mapContainer} 
-        className="w-full h-full" 
+        className={`w-full h-full transition-all duration-500 ${
+          activeTab === 'community' || activeTab === 'trends' 
+            ? 'blur-sm opacity-40' 
+            : ''
+        }`} 
         style={{ 
           imageRendering: 'pixelated',
           transform: 'translateZ(0)',
@@ -280,38 +290,64 @@ export default function LegendaryOceanPlatform() {
       />
       
       {/* Unified Command Bar - Navigation + Boat Info */}
-      <UnifiedCommandBar map={map.current} />
-      
-      {/* LEFT ZONE - Intelligence & Planning (Over Land) */}
-      <LeftZone
-        oceanActive={oceanActive}
-        sstActive={sstActive}
-        chlActive={chlActive}
-        setOceanActive={setOceanActive}
-        setSstActive={setSstActive}
-        setChlActive={setChlActive}
-        oceanOpacity={oceanOpacity}
-        sstOpacity={sstOpacity}
-        chlOpacity={chlOpacity}
-        setOceanOpacity={setOceanOpacity}
-        setSstOpacity={setSstOpacity}
-        setChlOpacity={setChlOpacity}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        map={map.current}
+      <UnifiedCommandBar 
+        map={map.current} 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
       
-      {/* RIGHT ZONE - Action Controls (Over Ocean) */}
-      <RightZone map={map.current} />
+      {/* ANALYSIS MODE UI */}
+      {activeTab === 'analysis' && (
+        <>
+          {/* LEFT ZONE - Intelligence & Planning (Over Land) */}
+          <LeftZone
+            oceanActive={oceanActive}
+            sstActive={sstActive}
+            chlActive={chlActive}
+            setOceanActive={setOceanActive}
+            setSstActive={setSstActive}
+            setChlActive={setChlActive}
+            oceanOpacity={oceanOpacity}
+            sstOpacity={sstOpacity}
+            chlOpacity={chlOpacity}
+            setOceanOpacity={setOceanOpacity}
+            setSstOpacity={setSstOpacity}
+            setChlOpacity={setChlOpacity}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            map={map.current}
+          />
+          
+          {/* RIGHT ZONE - Action Controls (Over Ocean) */}
+          <RightZone map={map.current} />
+          
+          {/* SST Layer component - ONLY on Analysis tab */}
+          {map.current && <SSTLayer map={map.current} on={sstActive} selectedDate={selectedDate} />}
+          
+          {/* Coastline Smoother - ONLY on Analysis tab */}
+          {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
+          
+          {/* Tutorial Overlay */}
+          <TutorialOverlay />
+        </>
+      )}
       
-      {/* SST Layer component - Hidden but functional */}
-      <SSTLayer map={map.current} on={sstActive} selectedDate={selectedDate} />
+      {/* COMMUNITY MODE UI - Overlays on blurred map */}
+      {activeTab === 'community' && (
+        <div className="absolute inset-0 z-20 top-16 md:top-20 pointer-events-auto">
+          <CommunityMode />
+        </div>
+      )}
       
-      {/* Coastline Smoother - active when SST is shown */}
-      <CoastlineSmoother map={map.current} enabled={sstActive} />
+      {/* TRACKING MODE UI */}
+      {activeTab === 'tracking' && (
+        <TrackingMode map={map.current} />
+      )}
       
-      {/* Tutorial Overlay */}
-      <TutorialOverlay />
+      {/* TRENDS MODE UI - Dashboard (No map interaction) */}
+      {activeTab === 'trends' && (
+        <TrendsMode />
+      )}
 
     </div>
   );
