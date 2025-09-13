@@ -184,7 +184,7 @@ export default function WelcomePage() {
               value={captainName}
               onChange={(e) => setCaptainName(e.target.value)}
               placeholder="Captain name"
-              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
               maxLength={30}
             />
           </div>
@@ -202,7 +202,7 @@ export default function WelcomePage() {
               value={boatName}
               onChange={(e) => setBoatName(e.target.value)}
               placeholder="Boat name"
-              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
               maxLength={30}
             />
           </div>
@@ -219,7 +219,7 @@ export default function WelcomePage() {
             <div className="space-y-3">
               <button
                 onClick={() => setLocationChoice(true)}
-                className={`w-full p-4 rounded-lg border-2 transition-all ${
+                className={`w-full p-4 rounded-2xl border-2 transition-all ${
                   locationChoice === true 
                     ? 'bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border-teal-400 text-teal-300' 
                     : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
@@ -238,7 +238,7 @@ export default function WelcomePage() {
               
               <button
                 onClick={() => setLocationChoice(false)}
-                className={`w-full p-4 rounded-lg border-2 transition-all ${
+                className={`w-full p-4 rounded-2xl border-2 transition-all ${
                   locationChoice === false 
                     ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-cyan-400 text-cyan-300' 
                     : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
@@ -266,7 +266,7 @@ export default function WelcomePage() {
           <button
             onClick={handleEnterApp}
             disabled={!boatName.trim() || locationChoice === null || isLoading}
-            className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${
+            className={`w-full py-4 rounded-2xl font-bold text-lg transition-all ${
               boatName.trim() && locationChoice !== null && !isLoading
                 ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-500/30'
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed'
