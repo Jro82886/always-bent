@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { INLETS } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
-import { INLET_COLORS } from '@/lib/inletColors';
 
 interface ModernControlsProps {
   // Layer states
@@ -188,7 +187,7 @@ export default function ModernControls({
                   {selectedInletId !== 'overview' && (
                     <span 
                       className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: INLET_COLORS[selectedInletId as keyof typeof INLET_COLORS]?.color || '#00ffff' }}
+                      style={{ backgroundColor: INLETS.find(i => i.id === selectedInletId)?.color || '#00ffff' }}
                     />
                   )}
                   <ChevronDown size={12} className="text-cyan-400" />
@@ -226,8 +225,8 @@ export default function ModernControls({
                           <span 
                             className="w-2.5 h-2.5 rounded-full shadow-lg"
                             style={{ 
-                              backgroundColor: INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color || '#00ffff',
-                              boxShadow: `0 0 8px ${INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color}40`
+                              backgroundColor: inlet.color || '#00ffff',
+                              boxShadow: `0 0 8px ${inlet.color || '#00ffff'}40`
                             }}
                           />
                         )}

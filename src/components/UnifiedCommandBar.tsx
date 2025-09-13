@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { INLETS } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
-import { INLET_COLORS } from '@/lib/inletColors';
 import { useAppState } from '@/store/appState';
 
 interface UnifiedCommandBarProps {
@@ -49,9 +48,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   };
   
   const selectedInlet = INLETS.find(i => i.id === selectedInletId);
-  const inletColor = selectedInletId !== 'overview' 
-    ? INLET_COLORS[selectedInletId as keyof typeof INLET_COLORS]?.color 
-    : null;
+  const inletColor = selectedInlet?.color || null;
   
   return (
     <div className="absolute top-4 left-4 z-50 pointer-events-auto">
