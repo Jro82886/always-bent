@@ -91,18 +91,18 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             </div>
           )}
           
-          {/* Inlet Selector - Rainbow Glow Style */}
-          <div className="flex items-center gap-2">
+          {/* Inlet Selector - ALWAYS VISIBLE */}
+          <div className="flex items-center gap-2 min-w-[200px]">
             <MapPin size={14} className="text-cyan-400" />
             <div className="relative">
               <select
                 value={selectedInletId || 'overview'}
                 onChange={(e) => handleInletSelect(e.target.value)}
-                className="appearance-none bg-slate-900/90 border border-cyan-500/40 rounded-lg px-3 py-1.5 pr-8 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 cursor-pointer hover:bg-slate-800/90 transition-all font-medium"
+                className="appearance-none bg-slate-800 border-2 border-cyan-500/50 rounded-lg px-3 py-1.5 pr-8 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 cursor-pointer hover:bg-slate-700 transition-all font-medium"
                 style={{
-                  minWidth: '160px',
-                  backgroundImage: 'linear-gradient(to right, rgba(6, 182, 212, 0.05), rgba(20, 184, 166, 0.05))',
-                  boxShadow: '0 0 20px rgba(6, 182, 212, 0.15), inset 0 0 20px rgba(6, 182, 212, 0.05)'
+                  minWidth: '180px',
+                  backgroundImage: 'linear-gradient(to right, rgba(6, 182, 212, 0.1), rgba(20, 184, 166, 0.1))',
+                  boxShadow: '0 0 25px rgba(6, 182, 212, 0.2), inset 0 0 15px rgba(6, 182, 212, 0.1)'
                 }}
               >
                 <optgroup label="── Overview ──" className="bg-slate-900 text-cyan-300">
