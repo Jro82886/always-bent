@@ -5,13 +5,11 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
-import SSTLegend from '@/components/SSTLegend';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
-import GetOrganized from '@/components/GetOrganized';
-import SnipController from '@/components/SnipController';
-import ReportCatchButton from '@/components/ReportCatchButton';
 import TutorialOverlay from '@/components/TutorialOverlay';
-import ModernControls from '@/components/ModernControls';
+import UnifiedCommandBar from '@/components/UnifiedCommandBar';
+import LeftZone from '@/components/LeftZone';
+import RightZone from '@/components/RightZone';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import '@/styles/mapSmoothing.css';
 
@@ -251,8 +249,11 @@ export default function LegendaryOceanPlatform() {
         }}
       />
       
-      {/* Modern Unified Controls with Navigation */}
-      <ModernControls
+      {/* Unified Command Bar - Navigation + Boat Info */}
+      <UnifiedCommandBar map={map.current} />
+      
+      {/* LEFT ZONE - Intelligence & Planning (Over Land) */}
+      <LeftZone
         oceanActive={oceanActive}
         sstActive={sstActive}
         chlActive={chlActive}
@@ -269,23 +270,15 @@ export default function LegendaryOceanPlatform() {
         setSelectedDate={setSelectedDate}
         map={map.current}
       />
-      {/* SST Layer component */}
+      
+      {/* RIGHT ZONE - Action Controls (Over Ocean) */}
+      <RightZone map={map.current} />
+      
+      {/* SST Layer component - Hidden but functional */}
       <SSTLayer map={map.current} on={sstActive} selectedDate={selectedDate} />
       
       {/* Coastline Smoother - active when SST is shown */}
       <CoastlineSmoother map={map.current} enabled={sstActive} />
-      
-      {/* SST Temperature Legend */}
-      <SSTLegend visible={sstActive} />
-      
-      {/* Get Organized - SST Features */}
-      <GetOrganized map={map.current} />
-      
-      {/* Snip-It Controller - Handles drawing, analysis, and reporting */}
-      <SnipController map={map.current} />
-      
-      {/* Report Catch Button - Community Intelligence! */}
-      <ReportCatchButton map={map.current} />
       
       {/* Tutorial Overlay */}
       <TutorialOverlay />

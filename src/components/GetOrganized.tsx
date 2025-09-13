@@ -36,11 +36,11 @@ const LAYERS = {
 };
 
 export default function GetOrganized({ map }: Props) {
-  const [showPanel, setShowPanel] = useState(true);  // Show panel by default for visibility
+  const [showPanel, setShowPanel] = useState(false);  // Panel closed by default
   const [enabled, setEnabled] = useState({
-    eddy: true,  // Enable by default
-    edge: true,  // Enable by default
-    filament: true  // Enable by default
+    eddy: false,  // User controls what they see
+    edge: false,  // User controls what they see
+    filament: false  // User controls what they see
   });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
