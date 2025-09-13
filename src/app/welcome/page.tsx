@@ -120,11 +120,11 @@ export default function WelcomePage() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-black flex items-center justify-center p-4">
-      {/* Subtle ocean animation - grounded with black */}
+      {/* Subtle ocean background - static, no animation */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 via-transparent to-transparent" />
-        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-cyan-500/10 to-teal-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-cyan-500/10 to-teal-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 rounded-full blur-3xl" />
       </div>
       
       <div className="relative max-w-md w-full">
@@ -274,7 +274,7 @@ export default function WelcomePage() {
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
-                <Waves size={20} className="animate-pulse text-white" />
+                <Waves size={20} className="text-white" />
                 <span>Analyzing Ocean Data...</span>
               </span>
             ) : (
