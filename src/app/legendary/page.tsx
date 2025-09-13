@@ -15,6 +15,7 @@ import TrackingMode from '@/components/tracking/TrackingMode';
 import TrendsMode from '@/components/trends/TrendsMode';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
+import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
 import '@/styles/mapSmoothing.css';
 
 // Set Mapbox token
@@ -23,6 +24,9 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  
+  // Get selected inlet from global state
+  const { selectedInletId } = useAppState();
   
   // Tab state - 'analysis' | 'tracking' | 'community' | 'trends'
   const [activeTab, setActiveTab] = useState<string>('analysis');
@@ -267,6 +271,21 @@ export default function LegendaryOceanPlatform() {
     console.log(`🌿 Copernicus CHL ${newState ? 'ON' : 'OFF'}`);
   };
 
+  // Respond to inlet selection changes
+  useEffect(() => {
+    if (!map.current) return;
+    const inlet = getInletById(selectedInletId) || DEFAULT_INLET;
+    
+    // Fly to the selected inlet
+    map.current.flyTo({
+      center: inlet.center as [number, number],
+      zoom: inlet.zoom,
+      duration: 1500,
+      essential: true
+    });
+    
+    console.log(`📍 Flying to inlet: ${inlet.name}`);
+  }, [selectedInletId]);
 
   return (
     <div className={`w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 ${sstActive ? 'sst-active' : ''}`}>

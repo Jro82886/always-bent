@@ -91,12 +91,14 @@ export function MapShell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Fly map when inlet changes (only honor inlet on Tracking pages)
+  // Fly map when inlet changes (honor inlet on Tracking and Legendary pages)
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     const isTracking = Boolean(pathname && (pathname.startsWith('/tracking') || pathname.startsWith('/v2/tracking')));
-    const inlet = isTracking ? (getInletById(selectedInletId) || DEFAULT_INLET) : DEFAULT_INLET;
+    const isLegendary = Boolean(pathname && pathname.startsWith('/legendary'));
+    const shouldUseInlet = isTracking || isLegendary;
+    const inlet = shouldUseInlet ? (getInletById(selectedInletId) || DEFAULT_INLET) : DEFAULT_INLET;
     const target = inlet.isOverview
       ? { center: inlet.center, zoom: inlet.zoom }
       : adjustToShelf(inlet.center as any, inlet.zoom as any);
