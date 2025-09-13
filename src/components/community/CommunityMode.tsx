@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { MessageCircle, Users, Fish, Wind, Waves, Thermometer, Navigation, Camera, MapPin, Anchor, Send } from 'lucide-react';
+import { MessageCircle, Users, Fish, Wind, Waves, Thermometer, Navigation, Camera, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 import { INLETS, getInletById } from '@/lib/inlets';
 import { INLET_COLORS } from '@/lib/inletColors';
@@ -52,7 +52,7 @@ export default function CommunityMode() {
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
-  const [activeChannel, setActiveChannel] = useState<'all' | string>('all'); // 'all' or species id
+  const [activeChannel, setActiveChannel] = useState<'all' | 'pelagic' | 'predator' | 'bottom' | 'inshore' | string>('all'); // Channel categories
   const [channelActivity, setChannelActivity] = useState<Record<string, number>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const clientRef = useRef(new ChatClient());
@@ -498,59 +498,116 @@ export default function CommunityMode() {
           {/* Species Channel Selector */}
           <div className="border-b border-cyan-500/10 bg-black/20 backdrop-blur-sm">
             <div className="max-w-3xl mx-auto px-6 py-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* All Waters */}
                 <button
                   onClick={() => setActiveChannel('all')}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                     activeChannel === 'all'
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                      ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
                       : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    <MessageCircle size={14} />
-                    All {inlet.name}
+                    <Compass size={14} />
+                    All Waters
                   </span>
                 </button>
                 
-                {SPECIES.map(species => {
-                  const isActive = activeChannel === species.id;
-                  const activityCount = channelActivity[species.id] || 0;
-                  
-                  return (
-                    <button
-                      key={species.id}
-                      onClick={() => setActiveChannel(species.id)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
-                        isActive
-                          ? 'border'
-                          : 'bg-slate-800/50 hover:bg-slate-800/70'
-                      }`}
-                      style={isActive ? {
-                        backgroundColor: `${getSpeciesColor(species.id)}20`,
-                        borderColor: `${getSpeciesColor(species.id)}50`,
-                        color: getSpeciesColor(species.id)
-                      } : {
-                        color: 'rgba(255,255,255,0.6)'
-                      }}
-                      title={species.description}
-                    >
-                      <span className="text-base">{species.emoji}</span>
-                      <span>{species.name}</span>
-                      {activityCount > 0 && !isActive && (
-                        <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
-                          {activityCount}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                {/* Pelagic Hunters */}
+                <button
+                  onClick={() => setActiveChannel('pelagic')}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    activeChannel === 'pelagic'
+                      ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border border-blue-500/30'
+                      : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
+                  }`}
+                  title="Tuna, Mahi, Wahoo"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Zap size={14} />
+                    Pelagic Hunters
+                    {(channelActivity['pelagic'] || 0) > 0 && activeChannel !== 'pelagic' && (
+                      <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
+                        {channelActivity['pelagic']}
+                      </span>
+                    )}
+                  </span>
+                </button>
+                
+                {/* Apex Predators */}
+                <button
+                  onClick={() => setActiveChannel('predator')}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    activeChannel === 'predator'
+                      ? 'bg-gradient-to-r from-teal-500/20 to-green-500/20 text-teal-300 border border-teal-500/30'
+                      : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
+                  }`}
+                  title="Striped Bass, Bluefish"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Target size={14} />
+                    Apex Predators
+                    {(channelActivity['predator'] || 0) > 0 && activeChannel !== 'predator' && (
+                      <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
+                        {channelActivity['predator']}
+                      </span>
+                    )}
+                  </span>
+                </button>
+                
+                {/* Bottom Dwellers */}
+                <button
+                  onClick={() => setActiveChannel('bottom')}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    activeChannel === 'bottom'
+                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-500/30'
+                      : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
+                  }`}
+                  title="Fluke, Sea Bass, Tautog"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Activity size={14} />
+                    Bottom Dwellers
+                    {(channelActivity['bottom'] || 0) > 0 && activeChannel !== 'bottom' && (
+                      <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
+                        {channelActivity['bottom']}
+                      </span>
+                    )}
+                  </span>
+                </button>
+                
+                {/* Inshore Game */}
+                <button
+                  onClick={() => setActiveChannel('inshore')}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    activeChannel === 'inshore'
+                      ? 'bg-gradient-to-r from-green-500/20 to-teal-500/20 text-green-300 border border-green-500/30'
+                      : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
+                  }`}
+                  title="Weakfish, Flounder, Redfish"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Trophy size={14} />
+                    Inshore Game
+                    {(channelActivity['inshore'] || 0) > 0 && activeChannel !== 'inshore' && (
+                      <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
+                        {channelActivity['inshore']}
+                      </span>
+                    )}
+                  </span>
+                </button>
               </div>
               
               {/* Channel indicator */}
               {activeChannel !== 'all' && (
-                <div className="mt-2 text-xs text-white/40">
-                  {getSpeciesById(activeChannel)?.emoji} You're in the {getSpeciesById(activeChannel)?.name} channel
+                <div className="mt-2 text-xs text-white/40 flex items-center gap-1">
+                  <Sparkles size={12} />
+                  You're in the {activeChannel === 'pelagic' ? 'Pelagic Hunters' : 
+                                  activeChannel === 'predator' ? 'Apex Predators' :
+                                  activeChannel === 'bottom' ? 'Bottom Dwellers' :
+                                  activeChannel === 'inshore' ? 'Inshore Game' : 
+                                  getSpeciesById(activeChannel)?.name} channel
                 </div>
               )}
             </div>
@@ -572,14 +629,15 @@ export default function CommunityMode() {
                         )}
                         {msg.speciesId && (
                           <span 
-                            className="text-xs px-2 py-0.5 rounded-full font-medium"
+                            className="text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 inline-flex"
                             style={{
                               backgroundColor: `${getSpeciesColor(msg.speciesId)}20`,
                               color: getSpeciesColor(msg.speciesId),
                               border: `1px solid ${getSpeciesColor(msg.speciesId)}40`
                             }}
                           >
-                            {getSpeciesById(msg.speciesId)?.emoji} {getSpeciesById(msg.speciesId)?.name}
+                            <Fish size={10} />
+                            {getSpeciesById(msg.speciesId)?.name}
                           </span>
                         )}
                         {!msg.speciesId && msg.inletId && msg.inletId !== 'overview' && (
