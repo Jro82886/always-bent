@@ -13,13 +13,13 @@ export default function SSTLegend({ visible }: SSTLegendProps) {
   const maxTemp = 86;  // 86°F (warm Gulf Stream)
 
   return (
-    <div className="absolute bottom-4 right-20 bg-black/80 backdrop-blur-sm rounded-lg p-3 shadow-lg">
-      <div className="text-white text-xs font-semibold mb-1.5">
-        SST (°F)
+    <div className="bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 p-3">
+      <div className="text-cyan-300 text-sm font-medium mb-2">
+        SST Temperature (°F)
       </div>
       
       {/* Gradient bar */}
-      <div className="relative w-32 h-4 rounded overflow-hidden">
+      <div className="relative w-full h-5 rounded overflow-hidden">
         <div 
           className="absolute inset-0"
           style={{
@@ -41,14 +41,14 @@ export default function SSTLegend({ visible }: SSTLegendProps) {
       </div>
 
       {/* Temperature labels */}
-      <div className="flex justify-between mt-1 text-[10px] text-white/90">
+      <div className="flex justify-between mt-1.5 text-xs text-gray-300">
         <span>{minTemp}</span>
         <span>{Math.round((minTemp + maxTemp) / 2)}</span>
         <span>{maxTemp}</span>
       </div>
 
       {/* Additional info */}
-      <div className="text-[10px] text-white/60 mt-1">
+      <div className="text-[10px] text-cyan-400/60 mt-2 uppercase tracking-wider">
         ODYSSEA L4
       </div>
     </div>

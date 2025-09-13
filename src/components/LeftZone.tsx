@@ -16,7 +16,7 @@ import {
   MapPin
 } from 'lucide-react';
 import SSTLegend from '@/components/SSTLegend';
-import GetOrganized from '@/components/GetOrganized';
+import PolygonsPanel from '@/components/PolygonsPanel';
 
 interface LeftZoneProps {
   // Layer states
@@ -464,8 +464,8 @@ export default function LeftZone({
         {/* SST LEGEND - Show when SST is active */}
         {sstActive && <SSTLegend visible={true} />}
         
-        {/* POLYGONS PANEL - Integrated here */}
-        <GetOrganized map={map} />
+        {/* POLYGONS PANEL */}
+        <PolygonsPanel map={map} />
         
         {/* ANALYSIS RESULTS - Show if available */}
         {analysisResults && (
