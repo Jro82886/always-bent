@@ -91,49 +91,56 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             </div>
           )}
           
-          {/* Inlet Selector - ALWAYS VISIBLE */}
+          {/* Inlet Selector - Rainbow Glow Style */}
           <div className="flex items-center gap-2">
             <MapPin size={14} className="text-cyan-400" />
-            <select
-              value={selectedInletId || 'overview'}
-              onChange={(e) => handleInletSelect(e.target.value)}
-              className="bg-cyan-950/50 border border-cyan-500/30 rounded-lg px-3 py-1.5 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/20 cursor-pointer hover:bg-cyan-900/50 transition-all"
-              style={{
-                minWidth: '140px',
-                boxShadow: 'inset 0 0 10px rgba(0, 200, 255, 0.1)'
-              }}
-            >
-              <optgroup label="Overview">
-                <option value="overview">📍 East Coast Overview</option>
-              </optgroup>
-              <optgroup label="Northern Waters">
-                {INLETS.filter(i => i.id !== 'overview' && ['montauk', 'shinnecock', 'fire-island', 'jones'].includes(i.id)).map((inlet) => (
-                  <option key={inlet.id} value={inlet.id}>
-                    {inlet.name}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Mid-Atlantic">
-                {INLETS.filter(i => ['manasquan', 'barnegat', 'atlantic-city', 'cape-may'].includes(i.id)).map((inlet) => (
-                  <option key={inlet.id} value={inlet.id}>
-                    {inlet.name}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Southern Waters">
-                {INLETS.filter(i => ['indian-river', 'ocean-city-md', 'virginia-beach', 'oregon-inlet', 'hatteras'].includes(i.id)).map((inlet) => (
-                  <option key={inlet.id} value={inlet.id}>
-                    {inlet.name}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
+            <div className="relative">
+              <select
+                value={selectedInletId || 'overview'}
+                onChange={(e) => handleInletSelect(e.target.value)}
+                className="appearance-none bg-slate-900/90 border border-cyan-500/40 rounded-lg px-3 py-1.5 pr-8 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 cursor-pointer hover:bg-slate-800/90 transition-all font-medium"
+                style={{
+                  minWidth: '160px',
+                  backgroundImage: 'linear-gradient(to right, rgba(6, 182, 212, 0.05), rgba(20, 184, 166, 0.05))',
+                  boxShadow: '0 0 20px rgba(6, 182, 212, 0.15), inset 0 0 20px rgba(6, 182, 212, 0.05)'
+                }}
+              >
+                <optgroup label="📍 Overview" className="bg-slate-900 text-cyan-300">
+                  <option value="overview" className="bg-slate-900 hover:bg-slate-800">East Coast Overview</option>
+                </optgroup>
+                <optgroup label="🌊 Northern Waters" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.id !== 'overview' && ['montauk', 'shinnecock', 'fire-island', 'jones'].includes(i.id)).map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="⚓ Mid-Atlantic" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => ['manasquan', 'barnegat', 'atlantic-city', 'cape-may'].includes(i.id)).map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="🎣 Southern Waters" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => ['indian-river', 'ocean-city-md', 'virginia-beach', 'oregon-inlet', 'hatteras'].includes(i.id)).map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+              {/* Custom dropdown arrow */}
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                <ChevronDown size={14} className="text-cyan-400" />
+              </div>
+            </div>
             {inletColor && selectedInletId !== 'overview' && (
               <span 
-                className="w-3 h-3 rounded-full shadow-lg"
+                className="w-3 h-3 rounded-full animate-pulse"
                 style={{ 
                   backgroundColor: inletColor,
-                  boxShadow: `0 0 10px ${inletColor}60`
+                  boxShadow: `0 0 15px ${inletColor}80, 0 0 30px ${inletColor}40`
                 }}
               />
             )}

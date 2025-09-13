@@ -119,13 +119,12 @@ export default function WelcomePage() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-950 via-teal-950 to-cyan-900 flex items-center justify-center p-4">
-      {/* Ocean wave animation background with dual color palette */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/30 via-teal-500/20 to-transparent animate-pulse" />
-        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-cyan-500/10 via-transparent to-teal-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '4s' }} />
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-black flex items-center justify-center p-4">
+      {/* Subtle ocean animation - grounded with black */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 via-transparent to-transparent" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-cyan-500/10 to-teal-500/10 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
       </div>
       
       <div className="relative max-w-md w-full">
@@ -167,11 +166,11 @@ export default function WelcomePage() {
           </div>
         )}
         
-        {/* Main Card with dual color theme */}
+        {/* Main Card - grounded like analysis page */}
         <div className="relative">
-          {/* Dual glow behind card */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-cyan-500/20 rounded-2xl blur-xl" />
-          <div className="relative bg-gradient-to-br from-cyan-950/60 via-teal-950/60 to-cyan-900/60 backdrop-blur-xl rounded-2xl border border-cyan-400/30 p-8 shadow-2xl">
+          {/* Subtle glow behind card */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/10 to-teal-500/10 rounded-2xl blur-xl" />
+          <div className="relative bg-black/60 backdrop-blur-xl rounded-2xl border border-cyan-500/20 p-8 shadow-2xl">
           {/* Captain Name Input */}
           <div className="mb-6">
             <label className="flex items-center gap-2.5 text-sm font-semibold mb-2">

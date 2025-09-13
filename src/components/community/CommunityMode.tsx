@@ -499,7 +499,7 @@ export default function CommunityMode() {
           <div className="border-b border-cyan-500/10 bg-black/20 backdrop-blur-sm">
             <div className="max-w-3xl mx-auto px-6 py-3">
               <div className="flex items-center gap-2 flex-wrap">
-                {/* All Channels */}
+                {/* ABFI Network - Multi-inlet community */}
                 <button
                   onClick={() => setActiveChannel('all')}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -507,10 +507,11 @@ export default function CommunityMode() {
                       ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
                       : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                   }`}
+                  title="ABFI Network - All inlets, all species"
                 >
                   <span className="flex items-center gap-1.5">
                     <Compass size={14} />
-                    All Channels
+                    ABFI Network
                   </span>
                 </button>
                 
@@ -590,13 +591,14 @@ export default function CommunityMode() {
               </div>
               
               {/* Channel indicator */}
-              {activeChannel !== 'all' && (
+              {activeChannel && (
                 <div className="mt-2 text-xs text-white/40 flex items-center gap-1">
                   <Sparkles size={12} />
-                  You're in the {activeChannel === 'tuna' ? 'Tuna Chat' : 
-                                  activeChannel === 'offshore' ? 'Offshore Chat' :
-                                  activeChannel === 'inshore' ? 'Inshore Chat' : 
-                                  'Species'} channel
+                  {activeChannel === 'all' ? "Connected to ABFI Network - All inlets, all captains" :
+                   activeChannel === 'tuna' ? "You're in Tuna Chat" : 
+                   activeChannel === 'offshore' ? "You're in Offshore Chat" :
+                   activeChannel === 'inshore' ? "You're in Inshore Chat" : 
+                   "Species channel"}
                 </div>
               )}
             </div>
