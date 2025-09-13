@@ -438,17 +438,22 @@ export default function TrackingPage() {
             }`}
           >
             <Navigation size={14} className={isTracking ? 'animate-spin' : ''} />
-            {isTracking ? 'TRACKING ACTIVE' : 'START TRACKING'}
+            {isTracking ? 'SHARING LOCATION' : 'START SHARING'}
           </button>
           {isTracking && (
             <div className="text-xs text-green-400/70 mt-2 text-center">
-              Recording position every 30s
+              Helping fleet find fish together
+            </div>
+          )}
+          {!isTracking && (
+            <div className="text-xs text-gray-400/70 mt-2 text-center max-w-[200px]">
+              Share to help • Not surveillance
             </div>
           )}
         </div>
         
         <div className="bg-black/70 backdrop-blur-md rounded-full px-4 py-2 border border-cyan-500/20">
-          <h3 className="text-cyan-400 text-xs font-semibold mb-2">Fleet Tracking</h3>
+          <h3 className="text-cyan-400 text-xs font-semibold mb-2">Community Fleet</h3>
           <div className="flex flex-col gap-1">
             <button
               onClick={() => setShowVessels(!showVessels)}
@@ -520,11 +525,11 @@ export default function TrackingPage() {
         {/* Fleet Status - Simple, clean info */}
         {showVessels && fleetData && fleetData.total_active > 0 && (
           <div className="mt-2 bg-black/70 backdrop-blur-md rounded-lg px-3 py-2 border border-cyan-500/20 text-xs">
-            <div className="text-cyan-400 font-semibold mb-1">Fleet Status</div>
+            <div className="text-cyan-400 font-semibold mb-1">Community Activity</div>
             <div className="text-gray-300 space-y-0.5">
-              <div>{fleetData.total_active} boats active</div>
+              <div>{fleetData.total_active} captains sharing</div>
               <div>{fleetData.fishing_now} fishing now</div>
-              <div className="text-[10px] text-gray-400">Updated: just now</div>
+              <div className="text-[10px] text-gray-400">Helping each other find fish</div>
             </div>
           </div>
         )}
