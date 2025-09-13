@@ -75,12 +75,12 @@ export default function PolygonsPanel({ map }: Props) {
           console.log('📦 Polygon data loaded:', data.features?.length || 0, 'features');
         }
 
-        // Count features by type
+        // Count features by class (not type)
         const counts = { eddy: 0, edge: 0, filament: 0 };
         data.features?.forEach((f: any) => {
-          const type = f.properties?.type;
-          if (type && counts[type as keyof typeof counts] !== undefined) {
-            counts[type as keyof typeof counts]++;
+          const featureClass = f.properties?.class; // API uses 'class' not 'type'
+          if (featureClass && counts[featureClass as keyof typeof counts] !== undefined) {
+            counts[featureClass as keyof typeof counts]++;
           }
         });
         setStats(counts);
@@ -101,21 +101,25 @@ export default function PolygonsPanel({ map }: Props) {
 
         // Add layers for each feature type
         Object.entries(LAYERS).forEach(([type, config]) => {
+          // Check the actual property name in the data
+          // The API returns "class" not "type"
+          
           // Fill layer
           if (!map.getLayer(config.fill)) {
             map.addLayer({
               id: config.fill,
               type: 'fill',
               source: SOURCE_ID,
-              filter: ['==', ['get', 'type'], type],
+              filter: ['==', ['get', 'class'], type], // Changed from 'type' to 'class'
               paint: {
                 'fill-color': config.color,
-                'fill-opacity': 0.4
+                'fill-opacity': 0.3
               },
               layout: {
                 'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
               }
             });
+            console.log(`✅ Added fill layer for ${type}`);
           }
 
           // Line layer
@@ -124,16 +128,17 @@ export default function PolygonsPanel({ map }: Props) {
               id: config.line,
               type: 'line',
               source: SOURCE_ID,
-              filter: ['==', ['get', 'type'], type],
+              filter: ['==', ['get', 'class'], type], // Changed from 'type' to 'class'
               paint: {
                 'line-color': config.color,
-                'line-width': 3,
-                'line-opacity': 1
+                'line-width': 2,
+                'line-opacity': 0.8
               },
               layout: {
                 'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
               }
             });
+            console.log(`✅ Added line layer for ${type}`);
           }
         });
 

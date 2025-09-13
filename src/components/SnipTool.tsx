@@ -492,7 +492,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   };
 
   return (
-    <div className="absolute bottom-32 right-4 bg-black/70 backdrop-blur-md rounded-full px-6 py-4 shadow-lg z-20 border border-cyan-500/20">
+    <div className="absolute top-20 right-4 bg-black/70 backdrop-blur-md rounded-full px-6 py-4 shadow-lg z-20 border border-cyan-500/20">
       <h3 className="text-cyan-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2">
         <Target size={14} className="text-cyan-400" />
         Ocean Analysis

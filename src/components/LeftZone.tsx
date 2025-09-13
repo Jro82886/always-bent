@@ -179,13 +179,14 @@ export default function LeftZone({
     <div className="absolute left-4 top-20 z-40 pointer-events-auto w-72">
       <div className="space-y-3">
         
-        {/* INTELLIGENCE HEADER */}
-        <div className="bg-gradient-to-r from-cyan-950/95 to-blue-950/95 backdrop-blur-xl rounded-lg px-4 py-2.5 border border-cyan-500/20 shadow-xl">
-          <h2 className="text-sm font-bold text-cyan-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
-        </div>
-        
-        {/* LAYERS PANEL */}
+        {/* OCEAN INTELLIGENCE + DATA LAYERS - Connected as one unit */}
         <div className="bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 overflow-hidden">
+          {/* Intelligence Header */}
+          <div className="bg-gradient-to-r from-cyan-950/95 to-blue-950/95 px-4 py-2.5 border-b border-cyan-500/20">
+            <h2 className="text-sm font-bold text-cyan-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
+          </div>
+          
+          {/* Data Layers Section */}
           <button
             onClick={() => setShowLayers(!showLayers)}
             className="w-full px-4 py-3 flex items-center justify-between hover:bg-cyan-500/10 transition-colors"
