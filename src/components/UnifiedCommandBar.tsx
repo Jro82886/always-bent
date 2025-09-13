@@ -98,32 +98,96 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
               <select
                 value={selectedInletId || 'overview'}
                 onChange={(e) => handleInletSelect(e.target.value)}
-                className="appearance-none bg-slate-800 border-2 border-cyan-500/50 rounded-lg px-3 py-1.5 pr-8 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 cursor-pointer hover:bg-slate-700 transition-all font-medium"
+                className="appearance-none bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 border-cyan-400/60 rounded-xl px-4 py-2 pr-10 text-sm text-cyan-100 focus:outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40 cursor-pointer hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all font-semibold tracking-wide"
                 style={{
-                  minWidth: '180px',
-                  backgroundImage: 'linear-gradient(to right, rgba(6, 182, 212, 0.1), rgba(20, 184, 166, 0.1))',
-                  boxShadow: '0 0 25px rgba(6, 182, 212, 0.2), inset 0 0 15px rgba(6, 182, 212, 0.1)'
+                  minWidth: '220px',
+                  backgroundImage: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(20, 184, 166, 0.1), rgba(59, 130, 246, 0.15))',
+                  boxShadow: '0 0 30px rgba(6, 182, 212, 0.3), inset 0 0 20px rgba(6, 182, 212, 0.15), 0 4px 15px rgba(0, 0, 0, 0.3)',
+                  textShadow: '0 0 10px rgba(6, 182, 212, 0.3)'
                 }}
               >
-                <optgroup label="── Overview ──" className="bg-slate-900 text-cyan-300">
+                <optgroup label="── OVERVIEW ──" className="bg-slate-900 text-cyan-300">
                   <option value="overview" className="bg-slate-900 hover:bg-slate-800">East Coast Overview</option>
                 </optgroup>
-                <optgroup label="── Northern Waters ──" className="bg-slate-900 text-cyan-300">
-                  {INLETS.filter(i => i.id !== 'overview' && ['montauk', 'shinnecock', 'fire-island', 'jones'].includes(i.id)).map((inlet) => (
+                <optgroup label="── MAINE ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'ME').map((inlet) => (
                     <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
                       {inlet.name}
                     </option>
                   ))}
                 </optgroup>
-                <optgroup label="── Mid-Atlantic ──" className="bg-slate-900 text-cyan-300">
-                  {INLETS.filter(i => ['manasquan', 'barnegat', 'atlantic-city', 'cape-may'].includes(i.id)).map((inlet) => (
+                <optgroup label="── MASSACHUSETTS ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'MA').map((inlet) => (
                     <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
                       {inlet.name}
                     </option>
                   ))}
                 </optgroup>
-                <optgroup label="── Southern Waters ──" className="bg-slate-900 text-cyan-300">
-                  {INLETS.filter(i => ['indian-river', 'ocean-city-md', 'virginia-beach', 'oregon-inlet', 'hatteras'].includes(i.id)).map((inlet) => (
+                <optgroup label="── RHODE ISLAND ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'RI').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── NEW YORK ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'NY').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── NEW JERSEY ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'NJ').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── DELAWARE ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'DE').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── MARYLAND ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'MD').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── VIRGINIA ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'VA').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── NORTH CAROLINA ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'NC').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── SOUTH CAROLINA ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'SC').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── GEORGIA ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'GA' || i.state === 'GA/FL').map((inlet) => (
+                    <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
+                      {inlet.name}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="── FLORIDA ──" className="bg-slate-900 text-cyan-300">
+                  {INLETS.filter(i => i.state === 'FL' || i.state === 'FL Keys').map((inlet) => (
                     <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
                       {inlet.name}
                     </option>

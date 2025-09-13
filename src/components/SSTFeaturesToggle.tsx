@@ -130,15 +130,23 @@ export default function SSTFeaturesToggle({ map }: Props) {
             new mapboxgl.Popup()
               .setLngLat(e.lngLat)
               .setHTML(`
-                <div style="padding: 8px;">
-                  <h3 style="margin: 0 0 8px 0; color: ${props.type === 'eddy' ? '#00ff88' : '#ff6600'};">
-                    ${props.type === 'eddy' ? '🌀 Eddy' : '🌡️ Temperature Edge'}
-                  </h3>
-                  <div style="font-size: 12px;">
-                    <div>Gradient: <strong>${props.gradient?.toFixed(2) || 'N/A'}°F/mile</strong></div>
-                    <div>Avg Temp: <strong>${props.avgTemp?.toFixed(1) || 'N/A'}°F</strong></div>
-                    <div>Range: <strong>${props.minTemp?.toFixed(1) || 'N/A'} - ${props.maxTemp?.toFixed(1) || 'N/A'}°F</strong></div>
-                    <div>Confidence: <strong>${((props.confidence || 0) * 100).toFixed(0)}%</strong></div>
+                <div style="padding: 8px; font-family: system-ui, -apple-system, sans-serif;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <div style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">
+                      ${props.type === 'eddy' ? 
+                        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>' : 
+                        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6600" stroke-width="2"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>'
+                      }
+                    </div>
+                    <h3 style="margin: 0; color: ${props.type === 'eddy' ? '#00ff88' : '#ff6600'}; font-size: 14px; font-weight: 600;">
+                      ${props.type === 'eddy' ? 'Eddy' : 'Temperature Edge'}
+                    </h3>
+                  </div>
+                  <div style="font-size: 12px; color: #e0e0e0;">
+                    <div style="margin-bottom: 4px;">Gradient: <strong style="color: white;">${props.gradient?.toFixed(2) || 'N/A'}°F/mile</strong></div>
+                    <div style="margin-bottom: 4px;">Avg Temp: <strong style="color: white;">${props.avgTemp?.toFixed(1) || 'N/A'}°F</strong></div>
+                    <div style="margin-bottom: 4px;">Range: <strong style="color: white;">${props.minTemp?.toFixed(1) || 'N/A'} - ${props.maxTemp?.toFixed(1) || 'N/A'}°F</strong></div>
+                    <div>Confidence: <strong style="color: white;">${((props.confidence || 0) * 100).toFixed(0)}%</strong></div>
                   </div>
                 </div>
               `)
