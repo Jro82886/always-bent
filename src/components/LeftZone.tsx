@@ -183,25 +183,25 @@ export default function LeftZone({
       <div className="space-y-3 pb-4">
         
         {/* OCEAN INTELLIGENCE + DATA LAYERS - Connected as one unit */}
-        <div className="bg-gradient-to-br from-cyan-950/80 via-teal-950/80 to-cyan-900/80 backdrop-blur-md rounded-lg border border-cyan-400/30 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+        <div className="bg-gradient-to-br from-purple-950/80 via-indigo-950/80 to-purple-900/80 backdrop-blur-md rounded-lg border border-purple-400/30 overflow-hidden shadow-[0_0_20px_rgba(139,92,246,0.2)]">
           {/* Intelligence Header */}
-          <div className="bg-gradient-to-r from-cyan-950/95 via-teal-950/95 to-cyan-900/95 px-4 py-2.5 border-b border-cyan-500/30">
-            <h2 className="text-sm font-bold text-cyan-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
+          <div className="bg-gradient-to-r from-purple-950/95 via-indigo-950/95 to-purple-900/95 px-4 py-2.5 border-b border-purple-500/30">
+            <h2 className="text-sm font-bold text-purple-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
           </div>
           
           {/* Data Layers Section */}
           <button
             onClick={() => setShowLayers(!showLayers)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-cyan-500/10 transition-colors"
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-purple-500/10 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Layers size={14} className="text-cyan-400" />
-              <span className="text-sm font-medium text-cyan-300">Data Layers</span>
+              <Layers size={14} className="text-purple-400" />
+              <span className="text-sm font-medium text-purple-300">Data Layers</span>
             </div>
             {showLayers ? (
-              <ChevronUp size={14} className="text-cyan-400" />
+              <ChevronUp size={14} className="text-purple-400" />
             ) : (
-              <ChevronDown size={14} className="text-cyan-400" />
+              <ChevronDown size={14} className="text-purple-400" />
             )}
           </button>
           
@@ -233,7 +233,7 @@ export default function LeftZone({
                           }}
                           className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
                         >
-                          <Sliders size={12} className="text-cyan-400" />
+                          <Sliders size={12} className="text-purple-400" />
                         </button>
                       </Tooltip>
                       <Tooltip text="Enhance contrast" position="bottom">
@@ -372,12 +372,12 @@ export default function LeftZone({
                   onClick={() => toggleLayer('ocean')}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                     oceanActive
-                      ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                       : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    <Waves size={16} className="text-blue-300 drop-shadow-[0_0_6px_rgba(147,197,253,0.8)]" />
+                    <Waves size={16} className="text-purple-300 drop-shadow-[0_0_6px_rgba(196,181,253,0.8)]" />
                     Ocean
                   </span>
                 </button>
@@ -402,9 +402,9 @@ export default function LeftZone({
               
               {/* Ocean Opacity */}
               {showOceanOpacity && oceanActive && (
-                <div ref={oceanOpacityRef} className="bg-black/60 rounded-lg p-3 border border-blue-500/20">
+                <div ref={oceanOpacityRef} className="bg-black/60 rounded-lg p-3 border border-purple-500/20">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-blue-300">Opacity</span>
+                    <span className="text-xs text-purple-300">Opacity</span>
                     <input
                       type="range"
                       min="20"
