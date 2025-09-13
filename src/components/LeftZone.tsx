@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Layers, 
   ChevronDown,
@@ -63,6 +63,84 @@ export default function LeftZone({
   const [showSstEnhance, setShowSstEnhance] = useState(false);
   const [sstContrast, setSstContrast] = useState(50);
   const [sstSaturation, setSstSaturation] = useState(50);
+  
+  // Refs for click-outside detection
+  const sstEnhanceRef = useRef<HTMLDivElement>(null);
+  const sstOpacityRef = useRef<HTMLDivElement>(null);
+  const chlOpacityRef = useRef<HTMLDivElement>(null);
+  const oceanOpacityRef = useRef<HTMLDivElement>(null);
+  const dateSelectorRef = useRef<HTMLDivElement>(null);
+  const layersPanelRef = useRef<HTMLDivElement>(null);
+  
+  // Click outside handler - Smart closing for better UX
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      
+      // Close ALL sub-panels when clicking outside
+      // This creates a clean, predictable experience
+      
+      // SST Enhancement panel
+      if (showSstEnhance && sstEnhanceRef.current && !sstEnhanceRef.current.contains(target)) {
+        const sparklesButton = document.querySelector('[title="Enhance"]');
+        if (!sparklesButton?.contains(target)) {
+          setShowSstEnhance(false);
+        }
+      }
+      
+      // SST Opacity panel
+      if (showSstOpacity && sstOpacityRef.current && !sstOpacityRef.current.contains(target)) {
+        // Don't close if clicking on the SST layer button itself
+        const sstLayerButton = (target as HTMLElement).closest('.flex-1.px-3.py-2.rounded-lg');
+        if (!sstLayerButton) {
+          setShowSstOpacity(false);
+        }
+      }
+      
+      // CHL Opacity panel
+      if (showChlOpacity && chlOpacityRef.current && !chlOpacityRef.current.contains(target)) {
+        setShowChlOpacity(false);
+      }
+      
+      // Ocean Opacity panel
+      if (showOceanOpacity && oceanOpacityRef.current && !oceanOpacityRef.current.contains(target)) {
+        setShowOceanOpacity(false);
+      }
+      
+      // Date Selector dropdown
+      if (showDateSelector && dateSelectorRef.current && !dateSelectorRef.current.contains(target)) {
+        const dateButton = (target as HTMLElement).closest('[class*="hover:bg-cyan-500/10"]');
+        if (!dateButton) {
+          setShowDateSelector(false);
+        }
+      }
+      
+      // Close all opacity/enhance panels when clicking on any layer toggle
+      // This prevents multiple panels being open at once
+      const isLayerToggle = (target as HTMLElement).closest('button')?.textContent?.includes('SST') ||
+                           (target as HTMLElement).closest('button')?.textContent?.includes('CHL') ||
+                           (target as HTMLElement).closest('button')?.textContent?.includes('Ocean');
+      
+      if (isLayerToggle) {
+        // Close all secondary panels when toggling layers
+        setShowSstEnhance(false);
+        setShowSstOpacity(false);
+        setShowChlOpacity(false);
+        setShowOceanOpacity(false);
+      }
+    };
+    
+    // Add event listener with slight delay to prevent immediate closing
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+    
+    // Cleanup
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSstEnhance, showSstOpacity, showChlOpacity, showOceanOpacity, showDateSelector]);
   
   const toggleLayer = (layer: 'ocean' | 'sst' | 'chl') => {
     if (layer === 'ocean') {
@@ -165,7 +243,7 @@ export default function LeftZone({
               
               {/* SST Controls */}
               {showSstOpacity && sstActive && (
-                <div className="bg-black/60 rounded-lg p-3 border border-orange-500/20">
+                <div ref={sstOpacityRef} className="bg-black/60 rounded-lg p-3 border border-orange-500/20">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-orange-300">Opacity</span>
                     <input
@@ -182,7 +260,7 @@ export default function LeftZone({
               )}
               
               {showSstEnhance && sstActive && (
-                <div className="bg-black/60 rounded-lg p-3 border border-purple-500/20 space-y-2">
+                <div ref={sstEnhanceRef} className="bg-black/60 rounded-lg p-3 border border-purple-500/20 space-y-2">
                   <div className="text-xs font-bold text-purple-300 flex items-center gap-1">
                     <Sparkles size={12} /> Enhance SST
                   </div>
@@ -258,7 +336,7 @@ export default function LeftZone({
               
               {/* CHL Opacity */}
               {showChlOpacity && chlActive && (
-                <div className="bg-black/60 rounded-lg p-3 border border-green-500/20">
+                <div ref={chlOpacityRef} className="bg-black/60 rounded-lg p-3 border border-green-500/20">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-green-300">Opacity</span>
                     <input
@@ -304,7 +382,7 @@ export default function LeftZone({
               
               {/* Ocean Opacity */}
               {showOceanOpacity && oceanActive && (
-                <div className="bg-black/60 rounded-lg p-3 border border-blue-500/20">
+                <div ref={oceanOpacityRef} className="bg-black/60 rounded-lg p-3 border border-blue-500/20">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-blue-300">Opacity</span>
                     <input
@@ -342,7 +420,7 @@ export default function LeftZone({
             </button>
             
             {showDateSelector && (
-              <div className="mt-2 pt-2 border-t border-cyan-500/10 space-y-1">
+              <div ref={dateSelectorRef} className="mt-2 pt-2 border-t border-cyan-500/10 space-y-1">
                 <button
                   onClick={() => setSelectedDate('today')}
                   className={`w-full px-3 py-2 text-xs rounded transition-colors ${

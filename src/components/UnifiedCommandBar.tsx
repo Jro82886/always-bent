@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
   Map, 
@@ -24,6 +24,7 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
   const [boatName, setBoatName] = useState<string>('');
   const [selectedInletId, setSelectedInletId] = useState<string>('overview');
   const [showInletDropdown, setShowInletDropdown] = useState(false);
+  const inletDropdownRef = useRef<HTMLDivElement>(null);
   
   // Determine active tab from pathname
   const activeTab = pathname?.includes('tracking') ? 'tracking' 
@@ -43,6 +44,30 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
       setSelectedInletId(storedInlet);
     }
   }, []);
+  
+  // Click outside handler for inlet dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showInletDropdown && inletDropdownRef.current && !inletDropdownRef.current.contains(event.target as Node)) {
+        // Check if the click is not on the dropdown button itself
+        const dropdownButton = (event.target as HTMLElement).closest('button');
+        const isInletButton = dropdownButton?.querySelector('.text-xs.text-cyan-300\\/90');
+        if (!isInletButton) {
+          setShowInletDropdown(false);
+        }
+      }
+    };
+    
+    // Add with slight delay to prevent immediate closing
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showInletDropdown]);
   
   const handleTabClick = (tab: string) => {
     switch(tab) {
@@ -130,7 +155,7 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
               
               {/* Inlet Dropdown */}
               {showInletDropdown && (
-                <div className="absolute top-full mt-2 left-0 bg-black/95 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[220px] max-h-[400px] overflow-y-auto z-50 shadow-2xl">
+                <div ref={inletDropdownRef} className="absolute top-full mt-2 left-0 bg-black/95 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[220px] max-h-[400px] overflow-y-auto z-50 shadow-2xl">
                   {INLETS.map((inlet) => (
                     <button
                       key={inlet.id}
