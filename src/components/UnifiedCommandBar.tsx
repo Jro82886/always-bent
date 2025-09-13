@@ -105,24 +105,24 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                   boxShadow: '0 0 20px rgba(6, 182, 212, 0.15), inset 0 0 20px rgba(6, 182, 212, 0.05)'
                 }}
               >
-                <optgroup label="📍 Overview" className="bg-slate-900 text-cyan-300">
+                <optgroup label="── Overview ──" className="bg-slate-900 text-cyan-300">
                   <option value="overview" className="bg-slate-900 hover:bg-slate-800">East Coast Overview</option>
                 </optgroup>
-                <optgroup label="🌊 Northern Waters" className="bg-slate-900 text-cyan-300">
+                <optgroup label="── Northern Waters ──" className="bg-slate-900 text-cyan-300">
                   {INLETS.filter(i => i.id !== 'overview' && ['montauk', 'shinnecock', 'fire-island', 'jones'].includes(i.id)).map((inlet) => (
                     <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
                       {inlet.name}
                     </option>
                   ))}
                 </optgroup>
-                <optgroup label="⚓ Mid-Atlantic" className="bg-slate-900 text-cyan-300">
+                <optgroup label="── Mid-Atlantic ──" className="bg-slate-900 text-cyan-300">
                   {INLETS.filter(i => ['manasquan', 'barnegat', 'atlantic-city', 'cape-may'].includes(i.id)).map((inlet) => (
                     <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
                       {inlet.name}
                     </option>
                   ))}
                 </optgroup>
-                <optgroup label="🎣 Southern Waters" className="bg-slate-900 text-cyan-300">
+                <optgroup label="── Southern Waters ──" className="bg-slate-900 text-cyan-300">
                   {INLETS.filter(i => ['indian-river', 'ocean-city-md', 'virginia-beach', 'oregon-inlet', 'hatteras'].includes(i.id)).map((inlet) => (
                     <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
                       {inlet.name}
