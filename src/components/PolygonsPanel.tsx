@@ -36,11 +36,11 @@ const LAYERS = {
 };
 
 export default function PolygonsPanel({ map }: Props) {
-  const [showPanel, setShowPanel] = useState(false);
+  const [showPanel, setShowPanel] = useState(true); // Start open to see controls
   const [enabled, setEnabled] = useState({
-    eddy: false,
-    edge: false,
-    filament: false
+    eddy: true,    // Start visible for testing
+    edge: true,    // Start visible for testing
+    filament: true // Start visible for testing
   });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -113,13 +113,17 @@ export default function PolygonsPanel({ map }: Props) {
               filter: ['==', ['get', 'class'], type], // Changed from 'type' to 'class'
               paint: {
                 'fill-color': config.color,
-                'fill-opacity': 0.3
+                'fill-opacity': 0.25
               },
               layout: {
                 'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
               }
             });
             console.log(`✅ Added fill layer for ${type}`);
+          } else {
+            // Update visibility if layer exists
+            map.setLayoutProperty(config.fill, 'visibility', 
+              enabled[type as keyof typeof enabled] ? 'visible' : 'none');
           }
 
           // Line layer
@@ -131,16 +135,33 @@ export default function PolygonsPanel({ map }: Props) {
               filter: ['==', ['get', 'class'], type], // Changed from 'type' to 'class'
               paint: {
                 'line-color': config.color,
-                'line-width': 2,
-                'line-opacity': 0.8
+                'line-width': 3,
+                'line-opacity': 1
               },
               layout: {
                 'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
               }
             });
             console.log(`✅ Added line layer for ${type}`);
+          } else {
+            // Update visibility if layer exists
+            map.setLayoutProperty(config.line, 'visibility', 
+              enabled[type as keyof typeof enabled] ? 'visible' : 'none');
           }
         });
+        
+        // Move polygon layers to top to ensure visibility
+        setTimeout(() => {
+          Object.entries(LAYERS).forEach(([type, config]) => {
+            if (map.getLayer(config.fill)) {
+              map.moveLayer(config.fill);
+            }
+            if (map.getLayer(config.line)) {
+              map.moveLayer(config.line);
+            }
+          });
+          console.log('📍 Moved polygon layers to top');
+        }, 100);
 
       } catch (error) {
         console.error('Failed to load polygons:', error);
