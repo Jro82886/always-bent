@@ -1,5 +1,6 @@
 /**
- * Species categories and groups for community chat channels
+ * Simplified species categories for community chat channels
+ * Focused on Tuna and related offshore/inshore species
  */
 
 export interface Species {
@@ -7,26 +8,44 @@ export interface Species {
   name: string;
   emoji: string;
   color: string; // Tailwind color name
-  category: 'pelagic' | 'predator' | 'bottom' | 'inshore';
+  category: 'tuna' | 'offshore' | 'inshore';
   description: string;
 }
 
 export const SPECIES: Species[] = [
-  // Pelagic Hunters
+  // TUNA CHAT - Primary focus
   {
-    id: 'tuna',
-    name: 'Tuna',
+    id: 'bluefin',
+    name: 'Bluefin Tuna',
     emoji: '⚡',
     color: 'blue',
-    category: 'pelagic',
-    description: 'Bluefin, Yellowfin, Bigeye'
+    category: 'tuna',
+    description: 'Giants of the Atlantic'
   },
+  {
+    id: 'yellowfin',
+    name: 'Yellowfin Tuna',
+    emoji: '⚡',
+    color: 'yellow',
+    category: 'tuna',
+    description: 'Football to giants'
+  },
+  {
+    id: 'bigeye',
+    name: 'Bigeye Tuna',
+    emoji: '⚡',
+    color: 'indigo',
+    category: 'tuna',
+    description: 'Deep water tuna'
+  },
+  
+  // OFFSHORE CHAT
   {
     id: 'mahi',
     name: 'Mahi',
     emoji: '🌊',
-    color: 'yellow',
-    category: 'pelagic',
+    color: 'green',
+    category: 'offshore',
     description: 'Dolphinfish / Dorado'
   },
   {
@@ -34,86 +53,42 @@ export const SPECIES: Species[] = [
     name: 'Wahoo',
     emoji: '💨',
     color: 'purple',
-    category: 'pelagic',
+    category: 'offshore',
     description: 'High-speed predator'
   },
+  {
+    id: 'marlin',
+    name: 'Marlin',
+    emoji: '🎯',
+    color: 'cyan',
+    category: 'offshore',
+    description: 'Blue & White Marlin'
+  },
   
-  // Apex Predators
+  // INSHORE CHAT
   {
     id: 'stripers',
     name: 'Striped Bass',
-    emoji: '🎯',
-    color: 'green',
-    category: 'predator',
-    description: 'Coastal apex predator'
+    emoji: '🎣',
+    color: 'teal',
+    category: 'inshore',
+    description: 'Coastal favorite'
   },
   {
     id: 'bluefish',
     name: 'Bluefish',
     emoji: '🦈',
-    color: 'indigo',
-    category: 'predator',
-    description: 'Aggressive schooling predator'
+    color: 'slate',
+    category: 'inshore',
+    description: 'Aggressive schooling fish'
   },
-  {
-    id: 'sharks',
-    name: 'Sharks',
-    emoji: '🔱',
-    color: 'red',
-    category: 'predator',
-    description: 'Mako, Thresher, Blue sharks'
-  },
-  
-  // Bottom Dwellers
   {
     id: 'fluke',
     name: 'Fluke',
-    emoji: '🎣',
-    color: 'amber',
-    category: 'bottom',
-    description: 'Summer Flounder'
-  },
-  {
-    id: 'seabass',
-    name: 'Sea Bass',
-    emoji: '⚓',
-    color: 'slate',
-    category: 'bottom',
-    description: 'Black Sea Bass'
-  },
-  {
-    id: 'tautog',
-    name: 'Tautog',
-    emoji: '🪨',
-    color: 'stone',
-    category: 'bottom',
-    description: 'Blackfish / Tog'
-  },
-  
-  // Inshore Game
-  {
-    id: 'weakfish',
-    name: 'Weakfish',
-    emoji: '🌅',
-    color: 'orange',
-    category: 'inshore',
-    description: 'Gray Trout / Squeteague'
-  },
-  {
-    id: 'flounder',
-    name: 'Flounder',
     emoji: '🏖️',
-    color: 'teal',
+    color: 'amber',
     category: 'inshore',
-    description: 'Winter Flounder'
-  },
-  {
-    id: 'redfish',
-    name: 'Redfish',
-    emoji: '🌺',
-    color: 'rose',
-    category: 'inshore',
-    description: 'Red Drum'
+    description: 'Summer Flounder'
   }
 ];
 
@@ -126,50 +101,40 @@ export function getSpeciesColor(id: string): string {
   if (!species) return '#06b6d4'; // Default cyan
   
   const colorMap: Record<string, string> = {
-    'green': '#10b981',
     'blue': '#3b82f6',
-    'red': '#ef4444',
-    'amber': '#f59e0b',
-    'cyan': '#06b6d4',
     'yellow': '#eab308',
-    'purple': '#a855f7',
     'indigo': '#6366f1',
-    'slate': '#64748b',
-    'stone': '#78716c',
-    'orange': '#fb923c',
+    'green': '#10b981',
+    'purple': '#a855f7',
+    'cyan': '#06b6d4',
     'teal': '#14b8a6',
-    'rose': '#fb7185'
+    'slate': '#64748b',
+    'amber': '#f59e0b'
   };
   
   return colorMap[species.color] || '#06b6d4';
 }
 
-export function getSpeciesByCategory(category: 'pelagic' | 'predator' | 'bottom' | 'inshore'): Species[] {
+export function getSpeciesByCategory(category: 'tuna' | 'offshore' | 'inshore'): Species[] {
   return SPECIES.filter(s => s.category === category);
 }
 
 export const CATEGORY_INFO = {
-  pelagic: {
-    name: 'Pelagic Hunters',
-    description: 'Open ocean predators',
+  tuna: {
+    name: 'Tuna Chat',
+    description: 'Bluefin, Yellowfin, Bigeye',
     icon: 'Zap',
     color: 'from-blue-500 to-cyan-500'
   },
-  predator: {
-    name: 'Apex Predators',
-    description: 'Top of the food chain',
-    icon: 'Target',
-    color: 'from-teal-500 to-green-500'
-  },
-  bottom: {
-    name: 'Bottom Dwellers',
-    description: 'Structure and bottom fish',
+  offshore: {
+    name: 'Offshore Chat',
+    description: 'Mahi, Wahoo, Billfish',
     icon: 'Activity',
-    color: 'from-cyan-500 to-blue-500'
+    color: 'from-teal-500 to-cyan-500'
   },
   inshore: {
-    name: 'Inshore Game',
-    description: 'Bay and nearshore species',
+    name: 'Inshore Chat',
+    description: 'Stripers, Blues, Fluke',
     icon: 'Trophy',
     color: 'from-green-500 to-teal-500'
   }

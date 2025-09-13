@@ -52,7 +52,7 @@ export default function CommunityMode() {
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
-  const [activeChannel, setActiveChannel] = useState<'all' | 'pelagic' | 'predator' | 'bottom' | 'inshore' | string>('all'); // Channel categories
+  const [activeChannel, setActiveChannel] = useState<'all' | 'tuna' | 'offshore' | 'inshore' | string>('all'); // Simplified channels
   const [channelActivity, setChannelActivity] = useState<Record<string, number>>({});
   const inputRef = useRef<HTMLInputElement>(null);
   const clientRef = useRef(new ChatClient());
@@ -499,7 +499,7 @@ export default function CommunityMode() {
           <div className="border-b border-cyan-500/10 bg-black/20 backdrop-blur-sm">
             <div className="max-w-3xl mx-auto px-6 py-3">
               <div className="flex items-center gap-2 flex-wrap">
-                {/* All Waters */}
+                {/* All Channels */}
                 <button
                   onClick={() => setActiveChannel('all')}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -510,74 +510,53 @@ export default function CommunityMode() {
                 >
                   <span className="flex items-center gap-1.5">
                     <Compass size={14} />
-                    All Waters
+                    All Channels
                   </span>
                 </button>
                 
-                {/* Pelagic Hunters */}
+                {/* TUNA CHAT - Primary Channel */}
                 <button
-                  onClick={() => setActiveChannel('pelagic')}
+                  onClick={() => setActiveChannel('tuna')}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    activeChannel === 'pelagic'
+                    activeChannel === 'tuna'
                       ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border border-blue-500/30'
                       : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                   }`}
-                  title="Tuna, Mahi, Wahoo"
+                  title="Bluefin, Yellowfin, Bigeye"
                 >
                   <span className="flex items-center gap-1.5">
                     <Zap size={14} />
-                    Pelagic Hunters
-                    {(channelActivity['pelagic'] || 0) > 0 && activeChannel !== 'pelagic' && (
+                    Tuna Chat
+                    {(channelActivity['tuna'] || 0) > 0 && activeChannel !== 'tuna' && (
                       <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
-                        {channelActivity['pelagic']}
+                        {channelActivity['tuna']}
                       </span>
                     )}
                   </span>
                 </button>
                 
-                {/* Apex Predators */}
+                {/* Offshore Chat */}
                 <button
-                  onClick={() => setActiveChannel('predator')}
+                  onClick={() => setActiveChannel('offshore')}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    activeChannel === 'predator'
-                      ? 'bg-gradient-to-r from-teal-500/20 to-green-500/20 text-teal-300 border border-teal-500/30'
+                    activeChannel === 'offshore'
+                      ? 'bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 border border-teal-500/30'
                       : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                   }`}
-                  title="Striped Bass, Bluefish"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Target size={14} />
-                    Apex Predators
-                    {(channelActivity['predator'] || 0) > 0 && activeChannel !== 'predator' && (
-                      <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
-                        {channelActivity['predator']}
-                      </span>
-                    )}
-                  </span>
-                </button>
-                
-                {/* Bottom Dwellers */}
-                <button
-                  onClick={() => setActiveChannel('bottom')}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    activeChannel === 'bottom'
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-500/30'
-                      : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
-                  }`}
-                  title="Fluke, Sea Bass, Tautog"
+                  title="Mahi, Wahoo, Billfish"
                 >
                   <span className="flex items-center gap-1.5">
                     <Activity size={14} />
-                    Bottom Dwellers
-                    {(channelActivity['bottom'] || 0) > 0 && activeChannel !== 'bottom' && (
+                    Offshore Chat
+                    {(channelActivity['offshore'] || 0) > 0 && activeChannel !== 'offshore' && (
                       <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
-                        {channelActivity['bottom']}
+                        {channelActivity['offshore']}
                       </span>
                     )}
                   </span>
                 </button>
                 
-                {/* Inshore Game */}
+                {/* Inshore Chat */}
                 <button
                   onClick={() => setActiveChannel('inshore')}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -585,11 +564,11 @@ export default function CommunityMode() {
                       ? 'bg-gradient-to-r from-green-500/20 to-teal-500/20 text-green-300 border border-green-500/30'
                       : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                   }`}
-                  title="Weakfish, Flounder, Redfish"
+                  title="Stripers, Blues, Fluke"
                 >
                   <span className="flex items-center gap-1.5">
                     <Trophy size={14} />
-                    Inshore Game
+                    Inshore Chat
                     {(channelActivity['inshore'] || 0) > 0 && activeChannel !== 'inshore' && (
                       <span className="bg-white/20 text-xs px-1.5 py-0.5 rounded-full">
                         {channelActivity['inshore']}
@@ -597,17 +576,26 @@ export default function CommunityMode() {
                     )}
                   </span>
                 </button>
+                
+                {/* Coming Soon - Subtle hint at future channels */}
+                <div className="px-3 py-1.5 rounded-full text-sm font-medium bg-slate-900/30 text-white/30 border border-dashed border-white/10 cursor-not-allowed"
+                     title="More specialized channels coming soon!">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles size={14} className="opacity-50" />
+                    <span className="italic text-xs">Pelagic Hunters</span>
+                    <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded-full">Soon</span>
+                  </span>
+                </div>
               </div>
               
               {/* Channel indicator */}
               {activeChannel !== 'all' && (
                 <div className="mt-2 text-xs text-white/40 flex items-center gap-1">
                   <Sparkles size={12} />
-                  You're in the {activeChannel === 'pelagic' ? 'Pelagic Hunters' : 
-                                  activeChannel === 'predator' ? 'Apex Predators' :
-                                  activeChannel === 'bottom' ? 'Bottom Dwellers' :
-                                  activeChannel === 'inshore' ? 'Inshore Game' : 
-                                  getSpeciesById(activeChannel)?.name} channel
+                  You're in the {activeChannel === 'tuna' ? 'Tuna Chat' : 
+                                  activeChannel === 'offshore' ? 'Offshore Chat' :
+                                  activeChannel === 'inshore' ? 'Inshore Chat' : 
+                                  'Species'} channel
                 </div>
               )}
             </div>

@@ -22,8 +22,6 @@ interface UnifiedCommandBarProps {
 export default function UnifiedCommandBar({ map, activeTab, onTabChange }: UnifiedCommandBarProps) {
   const [boatName, setBoatName] = useState<string>('');
   const [selectedInletId, setSelectedInletId] = useState<string>('overview');
-  const [showInletDropdown, setShowInletDropdown] = useState(false);
-  const inletDropdownRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     // Get boat name and inlet from localStorage
@@ -38,37 +36,12 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
     }
   }, []);
   
-  // Click outside handler for inlet dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showInletDropdown && inletDropdownRef.current && !inletDropdownRef.current.contains(event.target as Node)) {
-        // Check if the click is not on the dropdown button itself
-        const dropdownButton = (event.target as HTMLElement).closest('button');
-        const isInletButton = dropdownButton?.querySelector('.text-xs.text-cyan-300\\/90');
-        if (!isInletButton) {
-          setShowInletDropdown(false);
-        }
-      }
-    };
-    
-    // Add with slight delay to prevent immediate closing
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
-    
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showInletDropdown]);
-  
   const handleTabClick = (tab: string) => {
     onTabChange(tab);
   };
   
   const handleInletSelect = (inletId: string) => {
     setSelectedInletId(inletId);
-    setShowInletDropdown(false);
     localStorage.setItem('abfi_selected_inlet', inletId);
     
     // Fly to inlet if map is available
@@ -108,69 +81,62 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
         </div>
         
         {/* Boat & Inlet Info */}
-        <div className="flex items-center px-4 border-r border-cyan-500/10">
-          <div className="flex flex-col">
-            {boatName && (
+        <div className="flex items-center gap-4 px-4 border-r border-cyan-500/10">
+          {/* Captain Info */}
+          {boatName && (
+            <div className="flex flex-col">
               <div className="text-xs text-cyan-100/80">
                 Captain: <span className="text-cyan-300 font-semibold">{boatName}</span>
               </div>
-            )}
-            {/* Inlet Selector */}
-            <div className="relative">
-              <button
-                onClick={() => setShowInletDropdown(!showInletDropdown)}
-                className="flex items-center gap-1.5 text-xs text-cyan-300/90 hover:text-cyan-200 transition-colors mt-1"
-              >
-                <MapPin size={10} />
-                <span className="font-medium">
-                  {selectedInlet?.name || 'Select Inlet'}
-                </span>
-                {inletColor && (
-                  <span 
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: inletColor }}
-                  />
-                )}
-                <ChevronDown size={10} />
-              </button>
-              
-              {/* Inlet Dropdown */}
-              {showInletDropdown && (
-                <div ref={inletDropdownRef} className="absolute top-full mt-2 left-0 bg-slate-900/95 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-2 min-w-[220px] max-h-[400px] overflow-y-auto z-[9999] shadow-2xl"
-                     style={{
-                       boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 200, 255, 0.2)'
-                     }}>
-                  <div className="text-[10px] text-cyan-400/70 uppercase tracking-wider mb-2 px-2">
-                    Select Inlet
-                  </div>
-                  {INLETS.map((inlet) => (
-                    <button
-                      key={inlet.id}
-                      onClick={() => handleInletSelect(inlet.id)}
-                      className={`w-full px-3 py-2.5 text-left text-sm rounded-md hover:bg-cyan-500/20 transition-all flex items-center gap-2 ${
-                        selectedInletId === inlet.id 
-                          ? 'bg-cyan-500/20 text-cyan-300 border-l-2 border-cyan-400' 
-                          : 'text-white/80 hover:text-cyan-200'
-                      }`}
-                    >
-                      {inlet.id !== 'overview' && (
-                        <span 
-                          className="w-2.5 h-2.5 rounded-full shadow-lg"
-                          style={{ 
-                            backgroundColor: INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color || '#00ffff',
-                            boxShadow: `0 0 8px ${INLET_COLORS[inlet.id as keyof typeof INLET_COLORS]?.color}40`
-                          }}
-                        />
-                      )}
-                      {inlet.id === 'overview' && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" />
-                      )}
-                      <span className="font-medium">{inlet.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
+          )}
+          
+          {/* Inlet Selector - ALWAYS VISIBLE */}
+          <div className="flex items-center gap-2">
+            <MapPin size={14} className="text-cyan-400" />
+            <select
+              value={selectedInletId || 'overview'}
+              onChange={(e) => handleInletSelect(e.target.value)}
+              className="bg-cyan-950/50 border border-cyan-500/30 rounded-lg px-3 py-1.5 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/20 cursor-pointer hover:bg-cyan-900/50 transition-all"
+              style={{
+                minWidth: '140px',
+                boxShadow: 'inset 0 0 10px rgba(0, 200, 255, 0.1)'
+              }}
+            >
+              <optgroup label="Overview">
+                <option value="overview">📍 East Coast Overview</option>
+              </optgroup>
+              <optgroup label="Northern Waters">
+                {INLETS.filter(i => i.id !== 'overview' && ['montauk', 'shinnecock', 'fire-island', 'jones'].includes(i.id)).map((inlet) => (
+                  <option key={inlet.id} value={inlet.id}>
+                    {inlet.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Mid-Atlantic">
+                {INLETS.filter(i => ['manasquan', 'barnegat', 'atlantic-city', 'cape-may'].includes(i.id)).map((inlet) => (
+                  <option key={inlet.id} value={inlet.id}>
+                    {inlet.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Southern Waters">
+                {INLETS.filter(i => ['indian-river', 'ocean-city-md', 'virginia-beach', 'oregon-inlet', 'hatteras'].includes(i.id)).map((inlet) => (
+                  <option key={inlet.id} value={inlet.id}>
+                    {inlet.name}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+            {inletColor && selectedInletId !== 'overview' && (
+              <span 
+                className="w-3 h-3 rounded-full shadow-lg"
+                style={{ 
+                  backgroundColor: inletColor,
+                  boxShadow: `0 0 10px ${inletColor}60`
+                }}
+              />
+            )}
           </div>
         </div>
         
