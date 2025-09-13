@@ -36,7 +36,7 @@ const LAYERS = {
 };
 
 export default function GetOrganized({ map }: Props) {
-  const [showPanel, setShowPanel] = useState(false);
+  const [showPanel, setShowPanel] = useState(true);  // Show panel by default for visibility
   const [enabled, setEnabled] = useState({
     eddy: true,  // Enable by default
     edge: true,  // Enable by default
@@ -54,6 +54,7 @@ export default function GetOrganized({ map }: Props) {
     if (!map) return;
     
     const loadPolygons = async () => {
+      console.log('🗺️ Loading polygons...');
       setLoading(true);
       try {
         // Get current map bounds
@@ -66,8 +67,20 @@ export default function GetOrganized({ map }: Props) {
         ].join(',') : '';
 
         // Fetch polygons from Jeff's endpoint
+        console.log('📡 Fetching from /api/polygons with bbox:', bbox);
         const res = await fetch(`/api/polygons?bbox=${bbox}`);
-        const data = await res.json();
+        
+        let data;
+        if (!res.ok) {
+          console.error('❌ Polygon fetch failed:', res.status, res.statusText);
+          // Try without bbox as fallback
+          const fallbackRes = await fetch('/api/polygons');
+          data = await fallbackRes.json();
+          console.log('📦 Fallback polygon data loaded:', data.features?.length || 0, 'features');
+        } else {
+          data = await res.json();
+          console.log('📦 Polygon data loaded:', data.features?.length || 0, 'features');
+        }
 
         // Count features by type
         const counts = {
