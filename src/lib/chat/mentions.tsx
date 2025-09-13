@@ -1,48 +1,47 @@
-import * as React from "react";
-import { nearestInlet, INLETS, DEFAULT_INLET } from "@/lib/inlets";
+import React from 'react';
 
-const MENTION_REGEX = /@([a-z0-9_\.]+)/gi;
-
-export function normalizeUser(u: string): string {
-  return (u || "").trim().toLowerCase();
-}
-
-export function parseMentions(text: string): string[] {
-  const found = new Set<string>();
-  let match: RegExpExecArray | null;
-  const regex = new RegExp(MENTION_REGEX);
-  while ((match = regex.exec(text)) !== null) {
-    const user = normalizeUser(match[1]);
-    if (user) found.add(user);
-  }
-  return Array.from(found);
-}
-
-export function highlightMentions(text: string, currentUser: string): React.ReactNode {
-  const me = normalizeUser(currentUser);
+/**
+ * Highlights @mentions in chat messages
+ */
+export function highlightMentions(text: string, currentUsername: string): React.ReactNode {
+  if (!text) return text;
+  
+  // Find all @mentions in the text
+  const mentionRegex = /@(\w+)/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  const regex = new RegExp(MENTION_REGEX);
-  while ((match = regex.exec(text)) !== null) {
-    const start = match.index;
-    const end = start + match[0].length;
-    if (start > lastIndex) {
-      parts.push(text.slice(lastIndex, start));
+  let match;
+  
+  while ((match = mentionRegex.exec(text)) !== null) {
+    // Add text before the mention
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
     }
-    const mentioned = normalizeUser(match[1]);
-    const isMe = mentioned === me;
+    
+    const mentionedUser = match[1];
+    const isCurrentUser = mentionedUser.toLowerCase() === currentUsername.toLowerCase();
+    
+    // Add the mention with styling
     parts.push(
-      <span key={`${mentioned}-${start}`} className={isMe ? "text-cyan-600 font-semibold" : "text-cyan-500"}>
-        {match[0]}
+      <span
+        key={match.index}
+        className={`${
+          isCurrentUser 
+            ? 'bg-cyan-500/30 text-cyan-300 px-1 rounded font-semibold' 
+            : 'text-cyan-400 font-medium'
+        }`}
+      >
+        @{mentionedUser}
       </span>
     );
-    lastIndex = end;
+    
+    lastIndex = match.index + match[0].length;
   }
+  
+  // Add any remaining text
   if (lastIndex < text.length) {
     parts.push(text.slice(lastIndex));
   }
+  
   return <>{parts}</>;
 }
-
-

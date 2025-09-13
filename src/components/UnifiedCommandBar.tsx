@@ -136,7 +136,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
               
               {/* Inlet Dropdown */}
               {showInletDropdown && (
-                <div ref={inletDropdownRef} className="absolute top-full mt-2 left-0 bg-black/95 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[220px] max-h-[400px] overflow-y-auto z-50 shadow-2xl">
+                <div ref={inletDropdownRef} className="absolute top-full mt-2 left-0 bg-black/95 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 min-w-[220px] max-h-[400px] overflow-y-auto z-[9999] shadow-2xl">
                   {INLETS.map((inlet) => (
                     <button
                       key={inlet.id}

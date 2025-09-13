@@ -6,6 +6,7 @@ import { getRandomPhilosophicalQuote, getTimeOfDayQuote } from '@/lib/philosophy
 
 export default function WelcomePage() {
   const router = useRouter();
+  const [captainName, setCaptainName] = useState('');
   const [boatName, setBoatName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [welcomeQuote, setWelcomeQuote] = useState('');
@@ -64,8 +65,13 @@ export default function WelcomePage() {
   }, []);
   
   const handleEnterApp = async () => {
+    if (!captainName.trim()) {
+      alert('We need your name, Captain!');
+      return;
+    }
+    
     if (!boatName.trim()) {
-      alert('Captain, we need your boat name!');
+      alert('What\'s your vessel\'s name?');
       return;
     }
     
@@ -77,7 +83,9 @@ export default function WelcomePage() {
     setIsLoading(true);
     
     // Store user preferences
+    localStorage.setItem('abfi_captain_name', captainName);
     localStorage.setItem('abfi_boat_name', boatName);
+    localStorage.setItem('abfi_username', captainName); // For backwards compatibility
     localStorage.setItem('abfi_location_enabled', locationChoice.toString());
     
     // If location enabled, request permission
@@ -151,16 +159,31 @@ export default function WelcomePage() {
         
         {/* Main Card */}
         <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-2xl">
+          {/* Captain Name Input */}
+          <div className="mb-6">
+            <label className="flex items-center gap-2 text-cyan-300 text-sm font-semibold mb-2">
+              <span className="text-xl">👨‍✈️</span> Your Name, Captain
+            </label>
+            <input
+              type="text"
+              value={captainName}
+              onChange={(e) => setCaptainName(e.target.value)}
+              placeholder="Captain name"
+              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+              maxLength={30}
+            />
+          </div>
+          
           {/* Boat Name Input */}
           <div className="mb-6">
             <label className="flex items-center gap-2 text-cyan-300 text-sm font-semibold mb-2">
-              <span className="text-xl">🚤</span> Enter Your Boat Name
+              <span className="text-xl">🚤</span> Your Vessel's Name
             </label>
             <input
               type="text"
               value={boatName}
               onChange={(e) => setBoatName(e.target.value)}
-              placeholder="Enter boat name"
+              placeholder="Boat name"
               className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
               maxLength={30}
             />

@@ -272,9 +272,11 @@ export default function LegendaryOceanPlatform() {
       {/* Map Container with enhanced rendering */}
       <div 
         ref={mapContainer} 
-        className={`w-full h-full transition-all duration-500 ${
-          activeTab === 'community' || activeTab === 'trends' 
-            ? 'blur-sm opacity-40' 
+        className={`w-full h-full transition-all duration-700 ${
+          activeTab === 'community' 
+            ? 'scale-105 blur-md opacity-30' 
+            : activeTab === 'trends'
+            ? 'blur-lg opacity-20'
             : ''
         }`} 
         style={{ 
