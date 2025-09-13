@@ -210,26 +210,26 @@ export default function PolygonsPanel({ map }: Props) {
   };
 
   return (
-    <div className="bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 overflow-hidden">
+    <div className="bg-gradient-to-br from-cyan-950/80 via-teal-950/80 to-emerald-950/80 backdrop-blur-md rounded-lg border border-emerald-400/30 overflow-hidden shadow-[0_0_20px_rgba(0,255,136,0.2)]">
       <button
         onClick={() => setShowPanel(!showPanel)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-cyan-500/10 transition-colors"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-emerald-500/10 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Layers size={14} className="text-cyan-400" />
-          <span className="text-sm font-medium text-cyan-300">Polygons</span>
+          <Layers size={14} className="text-emerald-400" />
+          <span className="text-sm font-medium text-emerald-300">Polygons</span>
           {loading && <span className="text-xs text-gray-500">(loading...)</span>}
         </div>
         {showPanel ? (
-          <ChevronUp size={14} className="text-cyan-400" />
+          <ChevronUp size={14} className="text-emerald-400" />
         ) : (
-          <ChevronDown size={14} className="text-cyan-400" />
+          <ChevronDown size={14} className="text-emerald-400" />
         )}
       </button>
       
       {showPanel && (
         <div className="px-4 pb-3 space-y-2">
-          <div className="text-xs text-cyan-400/70 uppercase tracking-wider mb-2">
+          <div className="text-xs text-emerald-400/70 uppercase tracking-wider mb-2">
             SST Features
           </div>
           
@@ -245,7 +245,7 @@ export default function PolygonsPanel({ map }: Props) {
                 onClick={() => toggleLayer(type as keyof typeof enabled)}
                 className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
                   isEnabled
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                    ? 'bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-[0_0_10px_rgba(0,255,136,0.15)]'
                     : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
                 }`}
               >
@@ -261,8 +261,8 @@ export default function PolygonsPanel({ map }: Props) {
           })}
           
           {/* Classification info */}
-          <div className="mt-3 pt-3 border-t border-cyan-500/10">
-            <div className="text-[10px] text-cyan-400/60 uppercase tracking-wider mb-1">
+          <div className="mt-3 pt-3 border-t border-emerald-500/10">
+            <div className="text-[10px] text-emerald-400/60 uppercase tracking-wider mb-1">
               Classification
             </div>
             <div className="text-[10px] text-gray-500 space-y-0.5">

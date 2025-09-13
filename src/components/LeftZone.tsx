@@ -180,25 +180,25 @@ export default function LeftZone({
       <div className="space-y-3 pb-4">
         
         {/* OCEAN INTELLIGENCE + DATA LAYERS - Connected as one unit */}
-        <div className="bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 overflow-hidden">
+        <div className="bg-gradient-to-br from-cyan-950/80 via-teal-950/80 to-emerald-950/80 backdrop-blur-md rounded-lg border border-emerald-400/30 overflow-hidden shadow-[0_0_20px_rgba(0,255,136,0.2)]">
           {/* Intelligence Header */}
-          <div className="bg-gradient-to-r from-cyan-950/95 to-blue-950/95 px-4 py-2.5 border-b border-cyan-500/20">
-            <h2 className="text-sm font-bold text-cyan-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
+          <div className="bg-gradient-to-r from-cyan-950/95 via-teal-950/95 to-emerald-950/95 px-4 py-2.5 border-b border-emerald-500/30">
+            <h2 className="text-sm font-bold text-emerald-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
           </div>
           
           {/* Data Layers Section */}
           <button
             onClick={() => setShowLayers(!showLayers)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-cyan-500/10 transition-colors"
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-emerald-500/10 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Layers size={14} className="text-cyan-400" />
-              <span className="text-sm font-medium text-cyan-300">Data Layers</span>
+              <Layers size={14} className="text-emerald-400" />
+              <span className="text-sm font-medium text-emerald-300">Data Layers</span>
             </div>
             {showLayers ? (
-              <ChevronUp size={14} className="text-cyan-400" />
+              <ChevronUp size={14} className="text-emerald-400" />
             ) : (
-              <ChevronDown size={14} className="text-cyan-400" />
+              <ChevronDown size={14} className="text-emerald-400" />
             )}
           </button>
           
@@ -223,17 +223,17 @@ export default function LeftZone({
                         setShowSstOpacity(!showSstOpacity);
                         setShowSstEnhance(false);
                       }}
-                      className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                      className="p-1.5 bg-black/60 rounded hover:bg-emerald-500/20 transition-colors"
                       title="Opacity"
                     >
-                      <Sliders size={12} className="text-cyan-400" />
+                      <Sliders size={12} className="text-emerald-400" />
                     </button>
                     <button
                       onClick={() => {
                         setShowSstEnhance(!showSstEnhance);
                         setShowSstOpacity(false);
                       }}
-                      className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-blue-600/60 rounded hover:from-cyan-500/60 hover:to-blue-500/60 transition-colors"
+                      className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-emerald-600/60 rounded hover:from-cyan-500/60 hover:to-emerald-500/60 transition-colors"
                       title="Enhance"
                     >
                       <Sparkles size={12} className="text-white" />
