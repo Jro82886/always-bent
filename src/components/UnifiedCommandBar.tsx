@@ -107,7 +107,7 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
   return (
     <div className="absolute top-4 left-4 z-50 pointer-events-auto">
       {/* Unified Command Bar - All connected with subtle separations */}
-      <div className="flex items-stretch bg-gradient-to-r from-cyan-950/90 via-blue-950/90 to-cyan-950/90 backdrop-blur-xl rounded-2xl border border-cyan-500/20 shadow-2xl overflow-hidden"
+      <div className="flex items-stretch bg-gradient-to-r from-cyan-950/90 via-blue-950/90 to-cyan-950/90 backdrop-blur-xl rounded-full border border-cyan-500/20 shadow-2xl overflow-hidden pr-2"
            style={{
              boxShadow: '0 0 40px rgba(0, 200, 255, 0.15), inset 0 0 30px rgba(0, 200, 255, 0.05)'
            }}>
@@ -184,11 +184,14 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
           {/* Analysis Tab */}
           <button
             onClick={() => handleTabClick('analysis')}
-            className={`px-5 py-3 text-sm font-medium transition-all flex items-center gap-2 border-r border-cyan-500/10 ${
+            className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
               activeTab === 'analysis'
-                ? 'bg-cyan-500/20 text-cyan-300 shadow-inner'
-                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10'
+                ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
+                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
             }`}
+            style={activeTab === 'analysis' ? {
+              boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
+            } : {}}
           >
             <Map size={14} />
             <span>Analysis</span>
@@ -197,11 +200,14 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
           {/* Tracking Tab */}
           <button
             onClick={() => handleTabClick('tracking')}
-            className={`px-5 py-3 text-sm font-medium transition-all flex items-center gap-2 border-r border-cyan-500/10 ${
+            className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
               activeTab === 'tracking'
-                ? 'bg-cyan-500/20 text-cyan-300 shadow-inner'
-                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10'
+                ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
+                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
             }`}
+            style={activeTab === 'tracking' ? {
+              boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
+            } : {}}
           >
             <Activity size={14} />
             <span>Tracking</span>
@@ -210,11 +216,14 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
           {/* Community Tab */}
           <button
             onClick={() => handleTabClick('community')}
-            className={`px-5 py-3 text-sm font-medium transition-all flex items-center gap-2 border-r border-cyan-500/10 ${
+            className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
               activeTab === 'community'
-                ? 'bg-cyan-500/20 text-cyan-300 shadow-inner'
-                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10'
+                ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
+                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
             }`}
+            style={activeTab === 'community' ? {
+              boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
+            } : {}}
           >
             <Users size={14} />
             <span>Community</span>
@@ -223,11 +232,14 @@ export default function UnifiedCommandBar({ map }: UnifiedCommandBarProps) {
           {/* Trends Tab */}
           <button
             onClick={() => handleTabClick('trends')}
-            className={`px-5 py-3 text-sm font-medium transition-all flex items-center gap-2 ${
+            className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
               activeTab === 'trends'
-                ? 'bg-cyan-500/20 text-cyan-300 shadow-inner'
-                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10'
+                ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
+                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
             }`}
+            style={activeTab === 'trends' ? {
+              boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
+            } : {}}
           >
             <TrendingUp size={14} />
             <span>Trends</span>
