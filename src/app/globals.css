@@ -176,3 +176,17 @@ html, body, #__next {
 .abfi-modal-card{width:min(820px,92vw);max-height:78vh;overflow:auto;border-radius:16px;background:linear-gradient(180deg,rgba(18,22,28,.82),rgba(12,16,20,.82));border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 60px rgba(0,200,255,.15);} 
 .abfi-modal-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.08);} 
 .abfi-modal-body{padding:18px 18px 22px;}
+
+/* Radar Sweep Animation */
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-sweep {
+  animation: sweep 1s ease-out;
+}

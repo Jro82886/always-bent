@@ -30,11 +30,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   if (!isVisible || !analysis) return null;
 
-  const { hotspot, stats, features, layerAnalysis } = analysis;
+  const { hotspot, stats, features, layerAnalysis, boatActivity } = analysis as any;
   
   // Find the strongest feature
   const strongestFeature = features.length > 0 ? 
-    features.reduce((best, current) => 
+    features.reduce((best: any, current: any) => 
       (current.properties.score > (best?.properties.score || 0)) ? current : best
     , features[0]) : null;
 
@@ -119,6 +119,62 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             </p>
           </div>
           
+          {/* Boat Activity - Jeff's Vision! */}
+          {boatActivity && (
+            <div className={`rounded-lg p-4 border ${
+              boatActivity.activity_level === 'HIGH' 
+                ? 'bg-cyan-500/10 border-cyan-500/30 animate-pulse' 
+                : boatActivity.activity_level === 'MODERATE'
+                  ? 'bg-blue-500/10 border-blue-500/30'
+                  : 'bg-gray-500/10 border-gray-500/20'
+            }`}>
+              <h3 className="font-semibold mb-2 flex items-center gap-2 text-cyan-300">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 18v-6a9 9 0 0118 0v6" />
+                  <path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" />
+                </svg>
+                Fleet Intelligence
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">Boat Activity:</span>
+                  <span className={`font-bold text-sm ${
+                    boatActivity.activity_level === 'HIGH' ? 'text-cyan-400' :
+                    boatActivity.activity_level === 'MODERATE' ? 'text-blue-400' :
+                    'text-gray-400'
+                  }`}>
+                    {boatActivity.activity_level}
+                  </span>
+                </div>
+                {boatActivity.unique_boats > 0 && (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">Vessels (48hrs):</span>
+                      <span className="text-white font-semibold">{boatActivity.unique_boats}</span>
+                    </div>
+                    {boatActivity.fishing_activity?.loitering_events > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Fishing Events:</span>
+                        <span className="text-green-400 font-semibold">{boatActivity.fishing_activity.loitering_events}</span>
+                      </div>
+                    )}
+                    {boatActivity.peak_activity && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Peak Time:</span>
+                        <span className="text-cyan-300 text-sm">{boatActivity.peak_activity.hour}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="mt-3 pt-3 border-t border-cyan-500/20">
+                  <p className="text-xs text-gray-300 leading-relaxed">
+                    {boatActivity.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Layer Analysis */}
           {layerAnalysis && (
             <div className="space-y-3">
@@ -174,13 +230,13 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               <span className="text-lg">🌀</span> Pattern Recognition
             </h3>
             <p className="text-gray-300 text-sm leading-relaxed">
-              {features.some(f => f.type === 'eddy') ? (
+              {features.some((f: any) => f.type === 'eddy') ? (
                 <>
                   An <span className="text-cyan-400">eddy formation</span> was detected - 
                   a circular current that traps nutrients and baitfish in its center. 
                   These are like underwater hurricanes that create isolated ecosystems.
                 </>
-              ) : features.some(f => f.type === 'filament') ? (
+              ) : features.some((f: any) => f.type === 'filament') ? (
                 <>
                   A <span className="text-cyan-400">filament structure</span> extends from the main current - 
                   these fingers of warm water carry nutrients far from their source, 

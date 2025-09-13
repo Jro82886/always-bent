@@ -7,6 +7,9 @@ import { useAppState } from '@/store/appState';
 
 const TABS = [
   { href: '/analysis', label: 'Analysis' },
+  { href: '/tracking', label: 'Tracking' },
+  { href: '/trends', label: 'Trends' },
+  { href: '/community', label: 'Community' },
 ];
 
 export default function NavTabs() {

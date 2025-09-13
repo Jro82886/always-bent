@@ -74,6 +74,12 @@ export interface AnalysisResult {
       description: string;
     };
   };
+  boatActivity?: {
+    unique_boats: number;
+    total_reports: number;
+    species: string[];
+    avg_catch_quality: number;
+  };
 }
 
 /**

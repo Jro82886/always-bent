@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { MessageCircle, Users, Fish, Wind, Waves, Thermometer, Navigation, Camera, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles } from 'lucide-react';
+import { MessageCircle, Users, Fish, Wind, Waves, Thermometer, Navigation, Camera, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles, Mail } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 import { INLETS, getInletById } from '@/lib/inlets';
 import { INLET_COLORS } from '@/lib/inletColors';
 import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
 import { highlightMentions } from '@/lib/chat/mentions';
 import { SPECIES, getSpeciesById, getSpeciesColor } from '@/lib/species';
+import DMPanel from './DMPanel';
 
 interface WeatherData {
   wind: { speed: number; direction: string };
@@ -54,6 +55,9 @@ export default function CommunityMode() {
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const [activeChannel, setActiveChannel] = useState<'all' | 'tuna' | 'offshore' | 'inshore' | string>('all'); // Simplified channels
   const [channelActivity, setChannelActivity] = useState<Record<string, number>>({});
+  const [isDMPanelOpen, setIsDMPanelOpen] = useState(false);
+  const [dmTargetUser, setDmTargetUser] = useState<{ id: string; username: string } | null>(null);
+  const [unreadDMs, setUnreadDMs] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const clientRef = useRef(new ChatClient());
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -391,7 +395,7 @@ export default function CommunityMode() {
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg blur" />
                   <div className="relative bg-gradient-to-r from-slate-800/30 to-transparent rounded-lg p-2.5 border border-cyan-500/10 group-hover:border-cyan-500/30 transition-all">
                     <div className="flex items-start justify-between">
-                      <div>
+                      <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-white">
                             {captain.captainName || captain.name}
@@ -415,7 +419,21 @@ export default function CommunityMode() {
                           </div>
                         )}
                       </div>
-                      <span className="text-xs text-white/40">{formatTime(captain.lastSeen)}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            // Generate a userId from captain name (in real app, would use actual userId)
+                            const userId = `user_${captain.captainName || captain.name}`.toLowerCase().replace(/\s/g, '_');
+                            setDmTargetUser({ id: userId, username: captain.captainName || captain.name });
+                            setIsDMPanelOpen(true);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-cyan-500/20 rounded transition-all"
+                          title="Send direct message"
+                        >
+                          <Mail size={14} className="text-cyan-400" />
+                        </button>
+                        <span className="text-xs text-white/40">{formatTime(captain.lastSeen)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -498,7 +516,8 @@ export default function CommunityMode() {
           {/* Species Channel Selector */}
           <div className="border-b border-cyan-500/10 bg-black/20 backdrop-blur-sm">
             <div className="max-w-3xl mx-auto px-6 py-3">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 flex-wrap">
                 {/* ABFI Network - Multi-inlet community */}
                 <button
                   onClick={() => setActiveChannel('all')}
@@ -588,6 +607,21 @@ export default function CommunityMode() {
                     <span className="w-1.5 h-1.5 rounded-full bg-white/10"></span>
                   </span>
                 </div>
+                </div>
+                
+                {/* DM Button */}
+                <button
+                  onClick={() => setIsDMPanelOpen(true)}
+                  className="relative px-4 py-1.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-full text-cyan-400 text-sm font-medium transition-all flex items-center gap-2"
+                >
+                  <Mail size={14} />
+                  <span>Messages</span>
+                  {unreadDMs > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-cyan-500 text-black text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                      {unreadDMs}
+                    </span>
+                  )}
+                </button>
               </div>
               
               {/* Channel indicator */}
@@ -612,9 +646,16 @@ export default function CommunityMode() {
                   <div className="bg-gradient-to-r from-slate-800/20 to-transparent rounded-xl p-4 border border-cyan-500/5 group-hover:border-cyan-500/20 transition-all backdrop-blur-sm">
                     <div className="flex items-baseline gap-3 mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-cyan-300">
+                        <button
+                          onClick={() => {
+                            const userId = `user_${msg.captainName || msg.user}`.toLowerCase().replace(/\s/g, '_');
+                            setDmTargetUser({ id: userId, username: msg.captainName || msg.user });
+                            setIsDMPanelOpen(true);
+                          }}
+                          className="font-semibold text-cyan-300 hover:text-cyan-200 transition-colors cursor-pointer"
+                        >
                           {msg.captainName || msg.user}
-                        </span>
+                        </button>
                         {msg.boatName && (
                           <span className="text-xs text-cyan-400/60">• {msg.boatName}</span>
                         )}
@@ -732,6 +773,17 @@ export default function CommunityMode() {
           </div>
         </div>
       </div>
+      
+      {/* DM Panel */}
+      <DMPanel 
+        isOpen={isDMPanelOpen}
+        onClose={() => {
+          setIsDMPanelOpen(false);
+          setDmTargetUser(null);
+        }}
+        targetUserId={dmTargetUser?.id}
+        targetUsername={dmTargetUser?.username}
+      />
     </div>
   );
 }

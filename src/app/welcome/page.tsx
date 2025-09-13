@@ -14,8 +14,6 @@ export default function WelcomePage() {
   const [quoteOpacity, setQuoteOpacity] = useState(1);
   const [locationChoice, setLocationChoice] = useState<boolean | null>(null);
   
-  // Glowing animation for the logo
-  const [glowIntensity, setGlowIntensity] = useState(0);
   
   useEffect(() => {
     // Set a random welcome quote on mount - use time-based for first quote
@@ -24,11 +22,6 @@ export default function WelcomePage() {
     
     // Keep track of shown quotes to avoid repeats
     const shownQuotes = new Set<string>([firstQuote]);
-    
-    // Glow animation
-    const glowInterval = setInterval(() => {
-      setGlowIntensity(prev => (prev + 1) % 100);
-    }, 50);
     
     // Change quote every 8 seconds for users who are reading/thinking
     const quoteInterval = setInterval(() => {
@@ -60,7 +53,6 @@ export default function WelcomePage() {
     }, 8000);
     
     return () => {
-      clearInterval(glowInterval);
       clearInterval(quoteInterval);
     };
   }, []);
@@ -130,14 +122,7 @@ export default function WelcomePage() {
       <div className="relative max-w-md w-full">
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <div 
-            className="inline-block mb-4 relative"
-            style={{
-              filter: `drop-shadow(0 0 ${20 + glowIntensity / 5}px rgba(0, 255, 255, ${0.5 + glowIntensity / 200}))`
-            }}
-          >
-            {/* Dual glow effect behind logo */}
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 blur-xl" />
+          <div className="inline-block mb-4 relative">
             <div className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-blue-400 bg-clip-text text-transparent relative">
               ALWAYS BENT
             </div>
@@ -268,13 +253,13 @@ export default function WelcomePage() {
             disabled={!boatName.trim() || locationChoice === null || isLoading}
             className={`w-full py-4 rounded-2xl font-bold text-lg transition-all ${
               boatName.trim() && locationChoice !== null && !isLoading
-                ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-500/30'
+                ? 'bg-gradient-to-r from-green-500/20 to-green-600/20 text-green-300 border-2 border-green-500/30 hover:from-green-500/30 hover:to-green-600/30 shadow-lg shadow-green-500/20'
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed'
             }`}
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
-                <Waves size={20} className="text-white" />
+                <Waves size={20} className="text-white animate-pulse" />
                 <span>Analyzing Ocean Data...</span>
               </span>
             ) : (

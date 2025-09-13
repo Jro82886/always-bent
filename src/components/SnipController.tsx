@@ -51,6 +51,20 @@ export default function SnipController({ map }: SnipControllerProps) {
       const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
       console.log('📍 Polygon bounds:', bounds);
       
+      // Query boat activity in the polygon area
+      let boatActivity = null;
+      try {
+        const polygonCoords = (polygon.geometry as GeoJSON.Polygon).coordinates[0];
+        const response = await fetch(`/api/tracking/activity?polygon=${encodeURIComponent(JSON.stringify(polygonCoords))}&hours=48`);
+        if (response.ok) {
+          const data = await response.json();
+          boatActivity = data.analysis;
+          console.log('🚤 Boat activity:', boatActivity);
+        }
+      } catch (error) {
+        console.error('Failed to fetch boat activity:', error);
+      }
+      
       // TODO: Replace with real data extraction from map tiles
       // For MVP, using mock data that simulates patterns
       const sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
@@ -67,6 +81,17 @@ export default function SnipController({ map }: SnipControllerProps) {
         sstData,
         chlData
       );
+      
+      // Add boat activity to the analysis result
+      if (boatActivity) {
+        analysis.boatActivity = boatActivity;
+        
+        // Boost hotspot confidence if there's significant boat activity
+        if (analysis.hotspot && boatActivity.unique_boats >= 3) {
+          const boostFactor = Math.min(1.3, 1 + (boatActivity.hotspot_weight * 0.3));
+          analysis.hotspot.confidence = Math.min(0.95, analysis.hotspot.confidence * boostFactor);
+        }
+      }
       
       console.log('✅ Analysis complete:', analysis);
       setCurrentAnalysis(analysis);

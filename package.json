@@ -20,6 +20,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/supabase-js": "^2.57.0",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "fast-xml-parser": "^5.2.5",
     "lucide-react": "^0.544.0",
     "mapbox-gl": "^3.14.0",
