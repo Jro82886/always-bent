@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import { X, Target, Waves, Thermometer } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 
 interface SnipAnalysisReportProps {
@@ -33,7 +34,12 @@ export default function SnipAnalysisReport({
       <div className="bg-gradient-to-r from-blue-600 to-green-600 p-4">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-white font-bold text-lg">📊 Area Analysis Report</h2>
+            <h2 className="text-white font-bold text-lg flex items-center gap-2">
+              <div className="w-5 h-5 bg-gradient-to-br from-purple-500/30 to-indigo-500/30 rounded flex items-center justify-center">
+                <div className="w-2 h-2 bg-purple-300 rounded-full shadow-[0_0_8px_rgba(216,180,254,0.8)]"></div>
+              </div>
+              Area Analysis Report
+            </h2>
             <p className="text-white/80 text-sm">
               {new Date().toLocaleString('en-US', { 
                 timeZone: 'America/New_York',
@@ -44,9 +50,9 @@ export default function SnipAnalysisReport({
           </div>
           <button
             onClick={onClose}
-            className="text-white/80 hover:text-white"
+            className="text-white/80 hover:text-white p-1 hover:bg-white/10 rounded transition-colors"
           >
-            ✕
+            <X size={20} />
           </button>
         </div>
       </div>
@@ -56,7 +62,8 @@ export default function SnipAnalysisReport({
         {hotspot && (
           <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-3">
             <h3 className="text-green-400 font-semibold mb-2 flex items-center gap-2">
-              🎯 PRIMARY HOTSPOT
+              <Target size={18} className="text-green-300 drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]" />
+              PRIMARY HOTSPOT
             </h3>
             <div className="text-white space-y-1 text-sm">
               <div>
@@ -92,7 +99,10 @@ export default function SnipAnalysisReport({
         {/* Detected Features */}
         {features.length > 0 && (
           <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3">
-            <h3 className="text-blue-400 font-semibold mb-2">🌊 Detected Features</h3>
+            <h3 className="text-blue-400 font-semibold mb-2 flex items-center gap-2">
+              <Waves size={18} className="text-cyan-300 drop-shadow-[0_0_8px_rgba(103,232,249,0.8)]" />
+              Detected Features
+            </h3>
             <div className="space-y-2">
               {features.map((feature, idx) => (
                 <div key={idx} className="text-white text-sm bg-black/30 rounded p-2">
@@ -122,7 +132,10 @@ export default function SnipAnalysisReport({
 
         {/* Temperature Statistics */}
         <div className="bg-gray-800/50 rounded-lg p-3">
-          <h3 className="text-gray-300 font-semibold mb-2">🌡️ Temperature Stats</h3>
+          <h3 className="text-gray-300 font-semibold mb-2 flex items-center gap-2">
+            <Thermometer size={18} className="text-orange-300 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]" />
+            Temperature Stats
+          </h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="text-gray-400">
               Min: <span className="text-blue-400 font-bold">{stats.min_temp_f.toFixed(1)}°F</span>

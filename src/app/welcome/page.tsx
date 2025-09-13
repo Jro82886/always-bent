@@ -159,8 +159,8 @@ export default function WelcomePage() {
           {/* Captain Name Input */}
           <div className="mb-6">
             <label className="flex items-center gap-2.5 text-sm font-semibold mb-2">
-              <div className="p-1.5 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-lg border border-cyan-500/30">
-                <User size={16} className="text-cyan-400" />
+              <div className="p-1.5 bg-gradient-to-br from-cyan-500/30 to-teal-500/30 rounded-lg border border-cyan-400/50 shadow-lg shadow-cyan-500/30">
+                <User size={16} className="text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
               </div>
               <span className="tracking-wider uppercase bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">Your Name, Captain</span>
             </label>
@@ -177,8 +177,8 @@ export default function WelcomePage() {
           {/* Boat Name Input */}
           <div className="mb-6">
             <label className="flex items-center gap-2.5 text-sm font-semibold mb-2">
-              <div className="p-1.5 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-lg border border-teal-500/30">
-                <Anchor size={16} className="text-teal-400" />
+              <div className="p-1.5 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 rounded-lg border border-emerald-400/50 shadow-lg shadow-emerald-500/30">
+                <Anchor size={16} className="text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
               </div>
               <span className="tracking-wider uppercase bg-gradient-to-r from-teal-300 to-cyan-300 bg-clip-text text-transparent">Your Vessel's Name</span>
             </label>
@@ -195,8 +195,8 @@ export default function WelcomePage() {
           {/* Location Services Choice */}
           <div className="mb-8">
             <label className="flex items-center gap-2.5 text-sm font-semibold mb-3">
-              <div className="p-1.5 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-lg border border-cyan-500/30">
-                <MapPin size={16} className="text-cyan-400" />
+              <div className="p-1.5 bg-gradient-to-br from-orange-500/30 to-amber-500/30 rounded-lg border border-orange-400/50 shadow-lg shadow-orange-500/30">
+                <MapPin size={16} className="text-orange-300 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]" />
               </div>
               <span className="tracking-wider uppercase bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">Enable Location Services?</span>
             </label>
@@ -211,7 +211,7 @@ export default function WelcomePage() {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Globe size={20} className={locationChoice === true ? 'text-teal-400' : 'text-slate-500'} />
+                  <Globe size={20} className={locationChoice === true ? 'text-teal-300 drop-shadow-[0_0_8px_rgba(94,234,212,0.8)]' : 'text-slate-500'} />
                   <div className="text-left flex-1">
                     <div className="font-semibold mb-1">YES - Join ABFI Community</div>
                     <div className="text-xs opacity-80">

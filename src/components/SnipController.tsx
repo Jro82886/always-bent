@@ -147,6 +147,10 @@ export default function SnipController({ map }: SnipControllerProps) {
       console.log('💾 Saving analysis...');
       
       // Prepare data for saving
+      const isTestMode = process.env.NODE_ENV === 'development' || 
+                        window.location.hostname === 'localhost' ||
+                        localStorage.getItem('abfi_test_mode') === 'true';
+      
       const analysisData = {
         geometry: currentAnalysis.polygon.geometry as GeoJSON.Polygon,
         conditions: {
@@ -169,7 +173,9 @@ export default function SnipController({ map }: SnipControllerProps) {
         success_prediction: currentAnalysis.hotspot ? currentAnalysis.hotspot.confidence * 0.85 : 0.5,
         layers_active: ['sst'],
         timestamp: new Date().toISOString(),
-        user_id: localStorage.getItem('abfi_username') || 'anonymous'
+        user_id: localStorage.getItem('abfi_username') || 'anonymous',
+        is_test_data: isTestMode, // Flag to identify test data
+        data_source: isTestMode ? 'test' : 'production'
       };
       
       // Try to save to Supabase if configured

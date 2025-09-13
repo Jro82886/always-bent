@@ -289,7 +289,7 @@ export default function LegendaryOceanPlatform() {
 
   return (
     <div className={`w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 ${sstActive ? 'sst-active' : ''}`}>
-      {/* Map Container with enhanced rendering */}
+      {/* Map Container with enhanced rendering - Hidden during tracking for clean separation */}
       <div 
         ref={mapContainer} 
         className={`w-full h-full transition-all duration-700 ${
@@ -297,6 +297,8 @@ export default function LegendaryOceanPlatform() {
             ? 'scale-105 blur-md opacity-30' 
             : activeTab === 'trends'
             ? 'blur-lg opacity-20'
+            : activeTab === 'tracking'
+            ? 'hidden' // Completely hide analysis map when tracking
             : ''
         }`} 
         style={{ 
@@ -361,15 +363,17 @@ export default function LegendaryOceanPlatform() {
         </div>
       )}
       
-      {/* TRACKING MODE UI */}
+      {/* TRACKING MODE UI - Uses its own fresh map, no analysis carryover! */}
       {activeTab === 'tracking' && (
-        <TrackingMode map={map.current} />
+        <TrackingMode />
       )}
       
       {/* TRENDS MODE UI - Dashboard (No map interaction) */}
       {activeTab === 'trends' && (
         <TrendsMode />
       )}
+      
+      {/* Test Data Admin - Only in development */}
 
     </div>
   );

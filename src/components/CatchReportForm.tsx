@@ -67,17 +67,29 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
   }, [visible, map]);
 
   const handleConfirm = () => {
-    // Add location to form data
+    // Check if we're in test mode
+    const isTestMode = process.env.NODE_ENV === 'development' || 
+                      window.location.hostname === 'localhost' ||
+                      localStorage.getItem('abfi_test_mode') === 'true';
+    
+    // Add location to form data with test flag
     const finalData = {
       ...formData,
       location,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      is_test_data: isTestMode,
+      data_source: isTestMode ? 'test' : 'production'
     };
     
-    // Save to localStorage (later to Supabase)
-    const catches = JSON.parse(localStorage.getItem('abfi_catches') || '[]');
+    // Save to localStorage with test data segregation
+    const storageKey = isTestMode ? 'abfi_test_catches' : 'abfi_catches';
+    const catches = JSON.parse(localStorage.getItem(storageKey) || '[]');
     catches.push(finalData);
-    localStorage.setItem('abfi_catches', JSON.stringify(catches));
+    localStorage.setItem(storageKey, JSON.stringify(catches));
+    
+    if (isTestMode) {
+      console.log('🧪 Test catch report saved (not affecting production data)');
+    }
     
     onConfirm(finalData);
     onClose();

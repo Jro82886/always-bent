@@ -10,18 +10,46 @@ interface TrendsModeProps {
 export default function TrendsMode({}: TrendsModeProps) {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'season' | 'year'>('week');
   const [selectedMetric, setSelectedMetric] = useState<'catches' | 'sst' | 'weather'>('catches');
+  const [showTestData, setShowTestData] = useState(false); // Default to hiding test data
+  const [stats, setStats] = useState({ catches: 0, analyses: 0 });
   
   // This component is completely independent of the map
   // It's a pure data dashboard
   
   useEffect(() => {
     console.log('📊 Trends dashboard activated');
-    // Future: Fetch historical data, analytics, etc.
+    
+    // Load data, filtering out test data unless explicitly shown
+    const loadTrendsData = () => {
+      // Get production data only (not test data)
+      const catches = JSON.parse(localStorage.getItem('abfi_catches') || '[]');
+      const analyses = JSON.parse(localStorage.getItem('abfi_analyses') || '[]');
+      
+      // Filter out any test data that might have leaked into production storage
+      const productionCatches = catches.filter((c: any) => !c.is_test_data);
+      const productionAnalyses = analyses.filter((a: any) => !a.is_test_data);
+      
+      setStats({
+        catches: productionCatches.length,
+        analyses: productionAnalyses.length
+      });
+      
+      console.log(`📊 Loaded production data: ${productionCatches.length} catches, ${productionAnalyses.length} analyses`);
+      
+      // Check for test data
+      const testCatches = JSON.parse(localStorage.getItem('abfi_test_catches') || '[]');
+      const testAnalyses = JSON.parse(localStorage.getItem('abfi_test_analyses') || '[]');
+      if (testCatches.length > 0 || testAnalyses.length > 0) {
+        console.log(`🧪 Test data available: ${testCatches.length} test catches, ${testAnalyses.length} test analyses (hidden by default)`);
+      }
+    };
+    
+    loadTrendsData();
     
     return () => {
       console.log('📊 Trends dashboard deactivated');
     };
-  }, []);
+  }, [showTestData]);
   
   return (
     <div className="absolute inset-0 z-20 top-16 md:top-20 pointer-events-auto overflow-y-auto">
@@ -57,9 +85,11 @@ export default function TrendsMode({}: TrendsModeProps) {
             <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
               <div className="flex items-center justify-between mb-2">
                 <Fish className="text-cyan-400" size={24} />
-                <span className="text-xs text-green-400">+12%</span>
+                {stats.catches > 0 && (
+                  <span className="text-xs text-green-400">Production</span>
+                )}
               </div>
-              <div className="text-2xl font-bold text-white mb-1">247</div>
+              <div className="text-2xl font-bold text-white mb-1">{stats.catches}</div>
               <div className="text-xs text-white/60">Total Catches</div>
             </div>
             

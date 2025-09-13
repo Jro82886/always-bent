@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { X, Target, Waves, Thermometer, Activity } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 // Temporarily remove philosophy import to fix crash
 // import { getAnalysisQuote } from '@/lib/philosophy';
@@ -78,7 +79,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           {layerAnalysis?.convergence?.detected && (
             <div className="bg-gradient-to-r from-cyan-500/20 via-green-500/20 to-cyan-500/20 rounded-xl p-4 border-2 border-cyan-400/50 animate-pulse">
               <h3 className="text-cyan-300 font-bold mb-2 flex items-center gap-2">
-                <span className="text-xl">🎯</span> CONVERGENCE ZONE DETECTED!
+                <Target size={20} className="text-cyan-300 drop-shadow-[0_0_10px_rgba(103,232,249,0.9)]" />
+                CONVERGENCE ZONE DETECTED!
               </h3>
               <p className="text-white font-semibold">
                 {layerAnalysis.convergence.description}
@@ -93,7 +95,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             <h3 className={`font-semibold mb-2 flex items-center gap-2 ${
               hotspot ? 'text-cyan-300' : 'text-yellow-300'
             }`}>
-              <span className="text-lg">{hotspot ? '🎯' : '📚'}</span> 
+              {hotspot ? (
+                <Target size={18} className="text-cyan-300 drop-shadow-[0_0_8px_rgba(103,232,249,0.8)]" />
+              ) : (
+                <Activity size={18} className="text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.8)]" />
+              )} 
               {hotspot ? 'Why This Spot?' : 'Water Analysis'}
             </h3>
             <p className="text-gray-300 leading-relaxed">
@@ -181,7 +187,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               {/* SST Analysis */}
               {layerAnalysis.sst?.active && (
                 <div className="bg-red-500/10 rounded-lg p-3 border border-red-500/20">
-                  <h4 className="text-red-300 text-sm font-semibold mb-1">🌡️ Temperature Analysis</h4>
+                  <h4 className="text-red-300 text-sm font-semibold mb-1 flex items-center gap-2">
+                    <Thermometer size={16} className="text-orange-300 drop-shadow-[0_0_6px_rgba(251,146,60,0.8)]" />
+                    Temperature Analysis
+                  </h4>
                   <p className="text-gray-300 text-sm">{layerAnalysis.sst.description}</p>
                 </div>
               )}
@@ -227,7 +236,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           {/* Pattern Explanation */}
           <div className="bg-gradient-to-r from-purple-500/5 to-blue-500/5 rounded-xl p-4 border border-cyan-500/20">
             <h3 className="text-cyan-300 font-semibold mb-2 flex items-center gap-2">
-              <span className="text-lg">🌀</span> Pattern Recognition
+              <Waves size={18} className="text-purple-300 drop-shadow-[0_0_8px_rgba(216,180,254,0.8)]" />
+              Pattern Recognition
             </h3>
             <p className="text-gray-300 text-sm leading-relaxed">
               {features.some((f: any) => f.type === 'eddy') ? (
