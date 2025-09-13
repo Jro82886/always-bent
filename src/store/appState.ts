@@ -34,8 +34,15 @@ export const useAppState = create<AppState>((set, get) => ({
   communityBadge: false,
 
   // Setters
-  setSelectedInletId: (id) =>
-    set({ selectedInletId: id ?? DEFAULT_INLET.id }),
+  setSelectedInletId: (id) => {
+    const inletId = id ?? DEFAULT_INLET.id;
+    set({ selectedInletId: inletId });
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('abfi_selected_inlet', inletId);
+      }
+    } catch {}
+  },
 
   setIsoDate: (d) =>
     set({ isoDate: d ?? todayISO() }),
@@ -57,8 +64,17 @@ export const useAppState = create<AppState>((set, get) => ({
     if (get()._hydrated) return;
     try {
       if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('abfi_username');
-        if (saved && saved.trim()) set({ username: saved.trim() });
+        // Hydrate username
+        const savedUsername = localStorage.getItem('abfi_username');
+        if (savedUsername && savedUsername.trim()) {
+          set({ username: savedUsername.trim() });
+        }
+        
+        // Hydrate inlet selection
+        const savedInlet = localStorage.getItem('abfi_selected_inlet');
+        if (savedInlet) {
+          set({ selectedInletId: savedInlet });
+        }
       }
     } catch {}
     set({ _hydrated: true });

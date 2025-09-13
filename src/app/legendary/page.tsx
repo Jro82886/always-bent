@@ -13,6 +13,7 @@ import RightZone from '@/components/RightZone';
 import CommunityMode from '@/components/community/CommunityMode';
 import TrackingMode from '@/components/tracking/TrackingMode';
 import TrendsMode from '@/components/trends/TrendsMode';
+import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import '@/styles/mapSmoothing.css';
 

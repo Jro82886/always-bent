@@ -12,6 +12,7 @@ import {
 import { INLETS } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
 import { INLET_COLORS } from '@/lib/inletColors';
+import { useAppState } from '@/store/appState';
 
 interface UnifiedCommandBarProps {
   map: mapboxgl.Map | null;
@@ -21,18 +22,13 @@ interface UnifiedCommandBarProps {
 
 export default function UnifiedCommandBar({ map, activeTab, onTabChange }: UnifiedCommandBarProps) {
   const [boatName, setBoatName] = useState<string>('');
-  const [selectedInletId, setSelectedInletId] = useState<string>('overview');
+  const { selectedInletId, setSelectedInletId } = useAppState();
   
   useEffect(() => {
-    // Get boat name and inlet from localStorage
+    // Get boat name from localStorage
     const storedBoatName = localStorage.getItem('abfi_boat_name');
     if (storedBoatName) {
       setBoatName(storedBoatName);
-    }
-    
-    const storedInlet = localStorage.getItem('abfi_selected_inlet');
-    if (storedInlet) {
-      setSelectedInletId(storedInlet);
     }
   }, []);
   
@@ -42,7 +38,6 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   
   const handleInletSelect = (inletId: string) => {
     setSelectedInletId(inletId);
-    localStorage.setItem('abfi_selected_inlet', inletId);
     
     // Fly to inlet if map is available
     if (map) {
@@ -96,7 +91,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             <MapPin size={14} className="text-cyan-400" />
             <div className="relative">
               <select
-                value={selectedInletId || 'overview'}
+                value={selectedInletId}
                 onChange={(e) => handleInletSelect(e.target.value)}
                 className="appearance-none bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 border-cyan-400/60 rounded-xl px-4 py-2 pr-10 text-sm text-cyan-100 focus:outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40 cursor-pointer hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all font-semibold tracking-wide"
                 style={{

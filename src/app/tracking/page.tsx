@@ -37,10 +37,18 @@ export default function TrackingPage() {
   const { coords, status, message } = useGeo();
   const pos: Pos = coords ? { lat: coords.lat, lng: coords.lon } : null;
   
+  // Get boat name from localStorage
+  const [boatName, setBoatName] = useState<string>('');
+  useEffect(() => {
+    const stored = localStorage.getItem('abfi_boat_name');
+    if (stored) setBoatName(stored);
+  }, []);
+  
   // Tracking feature toggles
   const [showVessels, setShowVessels] = useState(true);
   const [showRecBoats, setShowRecBoats] = useState(false);
   const [showAIS, setShowAIS] = useState(false);
+  const [showGFW, setShowGFW] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
   const [lastPosition, setLastPosition] = useState<Pos>(null);
   const [sessionId] = useState(() => crypto.randomUUID());
@@ -134,13 +142,66 @@ export default function TrackingPage() {
       const me: any = pos ? {
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [pos.lng, pos.lat] },
-        properties: { type: 'user', color: colorForInlet(selectedInletId), label: username || 'You' }
+        properties: { type: 'user', color: colorForInlet(selectedInletId), label: boatName || username || 'You' }
       } : null;
       upsertTrackingSource(map, me ? [me] : []);
     };
     if ((map as any).isStyleLoaded?.()) add();
     else map.once('style.load', add);
-  }, [map, pos, selectedInletId, username]);
+  }, [map, pos, selectedInletId, username, boatName]);
+
+  // Add/remove GFW fishing activity layer
+  useEffect(() => {
+    if (!map) return;
+
+    const addGFWLayer = () => {
+      if (showGFW) {
+        // Add GFW fishing activity source if it doesn't exist
+        if (!map.getSource('gfw-fishing')) {
+          map.addSource('gfw-fishing', {
+            type: 'raster',
+            tiles: [
+              'https://gateway.api.globalfishingwatch.org/v2/tilesets/public-fishing-effort:v20231026/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: 'Global Fishing Watch'
+          });
+        }
+
+        // Add the layer with cyan theming
+        if (!map.getLayer('gfw-fishing-layer')) {
+          map.addLayer({
+            id: 'gfw-fishing-layer',
+            type: 'raster',
+            source: 'gfw-fishing',
+            paint: {
+              'raster-opacity': 0.7,
+              'raster-hue-rotate': 180, // Shift colors to cyan
+              'raster-saturation': 0.3,
+              'raster-contrast': 0.1
+            }
+          });
+        }
+      } else {
+        // Remove layer if it exists
+        if (map.getLayer('gfw-fishing-layer')) {
+          map.removeLayer('gfw-fishing-layer');
+        }
+      }
+    };
+
+    if ((map as any).isStyleLoaded?.()) {
+      addGFWLayer();
+    } else {
+      map.once('style.load', addGFWLayer);
+    }
+
+    return () => {
+      if (map.getLayer('gfw-fishing-layer')) {
+        map.removeLayer('gfw-fishing-layer');
+      }
+    };
+  }, [map, showGFW]);
 
   return (
     <RequireUsername>
@@ -204,6 +265,17 @@ export default function TrackingPage() {
               <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Soon</span>
             </button>
             <button
+              onClick={() => setShowGFW(!showGFW)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                showGFW 
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' 
+                  : 'bg-black/40 text-gray-400 border border-gray-600/30'
+              }`}
+            >
+              <Radio size={12} />
+              Commercial (GFW)
+            </button>
+            <button
               onClick={() => setShowAIS(!showAIS)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 showAIS 
@@ -211,12 +283,30 @@ export default function TrackingPage() {
                   : 'bg-black/40 text-gray-400 border border-gray-600/30'
               }`}
             >
-              <Radio size={12} />
-              AIS/GFW
+              <Activity size={12} />
+              AIS Vessels
               <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">Soon</span>
             </button>
           </div>
         </div>
+        
+        {/* GFW Info Box - Shows when commercial layer is active */}
+        {showGFW && (
+          <div className="mt-2 bg-black/70 backdrop-blur-md rounded-lg px-3 py-2 border border-cyan-500/20 text-xs">
+            <div className="text-cyan-400 font-semibold mb-1">Commercial Fishing Activity</div>
+            <div className="text-gray-300 space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-cyan-400"></div>
+                <span>Low Activity</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-1 bg-gradient-to-r from-cyan-500/50 via-cyan-400 to-cyan-300"></div>
+                <span>High Activity</span>
+              </div>
+              <div className="text-[10px] text-gray-400 mt-1">Data: Global Fishing Watch</div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Vessel Tracker Component */}
@@ -227,7 +317,7 @@ export default function TrackingPage() {
       />
       
       <DevOverlay />
-      <UserDot pos={pos} color={colorForInlet(selectedInletId)} label={username || 'You'} />
+      <UserDot pos={pos} color={colorForInlet(selectedInletId)} label={boatName || username || 'You'} />
       {message && (
         <div
           style={{
