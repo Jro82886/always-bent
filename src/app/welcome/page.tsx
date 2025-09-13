@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getPhilosophicalQuote } from '@/lib/philosophy';
 import { getRandomPhilosophicalQuote, getTimeOfDayQuote } from '@/lib/philosophyBank';
+import { User, Anchor, MapPin, Globe, Shield, Waves } from 'lucide-react';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -161,8 +162,11 @@ export default function WelcomePage() {
         <div className="bg-black/40 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-2xl">
           {/* Captain Name Input */}
           <div className="mb-6">
-            <label className="flex items-center gap-2 text-cyan-300 text-sm font-semibold mb-2">
-              <span className="text-xl">👨‍✈️</span> Your Name, Captain
+            <label className="flex items-center gap-2.5 text-cyan-300 text-sm font-semibold mb-2">
+              <div className="p-1.5 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                <User size={16} className="text-cyan-400" />
+              </div>
+              <span className="tracking-wider uppercase">Your Name, Captain</span>
             </label>
             <input
               type="text"
@@ -176,8 +180,11 @@ export default function WelcomePage() {
           
           {/* Boat Name Input */}
           <div className="mb-6">
-            <label className="flex items-center gap-2 text-cyan-300 text-sm font-semibold mb-2">
-              <span className="text-xl">🚤</span> Your Vessel's Name
+            <label className="flex items-center gap-2.5 text-cyan-300 text-sm font-semibold mb-2">
+              <div className="p-1.5 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                <Anchor size={16} className="text-cyan-400" />
+              </div>
+              <span className="tracking-wider uppercase">Your Vessel's Name</span>
             </label>
             <input
               type="text"
@@ -191,8 +198,11 @@ export default function WelcomePage() {
           
           {/* Location Services Choice */}
           <div className="mb-8">
-            <label className="flex items-center gap-2 text-cyan-300 text-sm font-semibold mb-3">
-              <span className="text-xl">📍</span> Enable Location Services?
+            <label className="flex items-center gap-2.5 text-cyan-300 text-sm font-semibold mb-3">
+              <div className="p-1.5 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                <MapPin size={16} className="text-cyan-400" />
+              </div>
+              <span className="tracking-wider uppercase">Enable Location Services?</span>
             </label>
             
             <div className="space-y-3">
@@ -204,9 +214,14 @@ export default function WelcomePage() {
                     : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
                 }`}
               >
-                <div className="font-semibold mb-1">YES - Join ABFI Community</div>
-                <div className="text-xs opacity-80">
-                  Share location • See other boats • Save analyses • Full access
+                <div className="flex items-center gap-3">
+                  <Globe size={20} className={locationChoice === true ? 'text-green-400' : 'text-slate-500'} />
+                  <div className="text-left flex-1">
+                    <div className="font-semibold mb-1">YES - Join ABFI Community</div>
+                    <div className="text-xs opacity-80">
+                      Share location • See other boats • Save analyses • Full access
+                    </div>
+                  </div>
                 </div>
               </button>
               
@@ -218,9 +233,14 @@ export default function WelcomePage() {
                     : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
                 }`}
               >
-                <div className="font-semibold mb-1">NO - Private Mode</div>
-                <div className="text-xs opacity-80">
-                  Browse layers • Use tools • Chat only • No tracking
+                <div className="flex items-center gap-3">
+                  <Shield size={20} className={locationChoice === false ? 'text-blue-400' : 'text-slate-500'} />
+                  <div className="text-left flex-1">
+                    <div className="font-semibold mb-1">NO - Private Mode</div>
+                    <div className="text-xs opacity-80">
+                      Browse layers • Use tools • Chat only • No tracking
+                    </div>
+                  </div>
                 </div>
               </button>
             </div>
@@ -243,10 +263,14 @@ export default function WelcomePage() {
           >
             {isLoading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin">🌊</span> Analyzing Ocean Data...
+                <Waves size={20} className="animate-pulse text-white" />
+                <span>Analyzing Ocean Data...</span>
               </span>
             ) : (
-              'Enter ABFI Platform'
+              <span className="flex items-center justify-center gap-2">
+                <span>Enter ABFI Platform</span>
+                <Waves size={18} className="text-white/80" />
+              </span>
             )}
           </button>
         </div>
