@@ -10,6 +10,7 @@ import TutorialOverlay from '@/components/TutorialOverlay';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
+import ChatPanel from '@/components/ChatPanel';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import '@/styles/mapSmoothing.css';
 
@@ -282,6 +283,9 @@ export default function LegendaryOceanPlatform() {
       
       {/* Tutorial Overlay */}
       <TutorialOverlay />
+      
+      {/* Chat Panel */}
+      <ChatPanel />
 
     </div>
   );
