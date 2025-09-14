@@ -133,7 +133,8 @@ export default function IndividualTrackingWidget() {
                       geometry: {
                         type: 'LineString',
                         coordinates: positionHistory.current
-                      }
+                      },
+                      properties: {}
                     });
                   }
                 } else {
@@ -145,7 +146,8 @@ export default function IndividualTrackingWidget() {
                       geometry: {
                         type: 'LineString',
                         coordinates: positionHistory.current
-                      }
+                      },
+                      properties: {}
                     }
                   });
                   
