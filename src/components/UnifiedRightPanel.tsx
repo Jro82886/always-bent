@@ -9,6 +9,7 @@ interface UnifiedRightPanelProps {
   isTracking?: boolean;
   onStartTracking?: () => void;
   onStopTracking?: () => void;
+  onStartTutorial?: () => void;
 }
 
 export default function UnifiedRightPanel({ 
@@ -16,7 +17,8 @@ export default function UnifiedRightPanel({
   currentMode,
   isTracking = false,
   onStartTracking,
-  onStopTracking
+  onStopTracking,
+  onStartTutorial
 }: UnifiedRightPanelProps) {
   const [legendExpanded, setLegendExpanded] = useState(true);
   const [tutorialExpanded, setTutorialExpanded] = useState(false);
@@ -24,6 +26,9 @@ export default function UnifiedRightPanel({
   const startTutorial = () => {
     // Trigger the interactive tutorial
     localStorage.removeItem('abfi_tutorial_seen');
+    if (onStartTutorial) {
+      onStartTutorial();
+    }
     window.location.reload();
   };
   

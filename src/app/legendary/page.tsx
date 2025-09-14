@@ -30,6 +30,7 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 export default function LegendaryOceanPlatform() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const tutorialTriggerRef = useRef<(() => void) | null>(null);
   
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
@@ -387,6 +388,7 @@ export default function LegendaryOceanPlatform() {
           <RightZone 
             map={map.current} 
             onModalStateChange={setIsAnalysisModalOpen}
+            onStartTutorial={() => tutorialTriggerRef.current?.()}
           />
           
           {/* Inlet Regions - Subtle colored boundaries for each inlet */}
@@ -409,7 +411,7 @@ export default function LegendaryOceanPlatform() {
           
           {/* Interactive Tutorial - Second tutorial, only after first is complete */}
           {tutorialCompleted && activeTab === 'analysis' && (
-            <InteractiveTutorial />
+            <InteractiveTutorial triggerRef={tutorialTriggerRef} />
           )}
           
           {/* ABFI Button - Hidden during tutorial, only on Analysis tab */}

@@ -125,22 +125,8 @@ export default function InteractiveTutorial({ onComplete, autoStart = false, tri
   };
 
   if (!isActive) {
-    // Floating help button
-    return (
-      <button
-        onClick={() => {
-          setIsActive(true);
-          setCurrentStep(0);
-        }}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-300 group"
-        title="Show Tutorial"
-      >
-        <Info className="w-5 h-5" />
-        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-sm px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          Show Tutorial
-        </span>
-      </button>
-    );
+    // No floating button - tutorial is triggered from UnifiedRightPanel
+    return null;
   }
 
   const step = tutorialSteps[currentStep];
