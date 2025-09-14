@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapShell } from '@/lib/MapRef';
 import { useMapbox } from '@/lib/MapCtx';
 import NavTabs from '@/components/NavTabs';
@@ -13,8 +13,19 @@ export default function TrackingPage() {
   const [showTrails, setShowTrails] = useState(false);
   const [showGFW, setShowGFW] = useState(false);
 
+  useEffect(() => {
+    console.log('[TRACKING PAGE] Component mounted');
+    console.log('[TRACKING PAGE] Mapbox token:', process.env.NEXT_PUBLIC_MAPBOX_TOKEN ? 'EXISTS' : 'MISSING');
+    console.log('[TRACKING PAGE] Map instance:', map ? 'EXISTS' : 'NOT YET');
+  }, [map]);
+
   return (
     <div className="w-full h-screen bg-gray-950">
+      {/* DEBUG: Bright red banner to confirm page loads */}
+      <div className="absolute top-0 left-0 right-0 bg-red-600 text-white p-4 z-[9999] text-center font-bold">
+        TRACKING PAGE IS LOADING - DEBUG MODE
+      </div>
+      
       <MapShell>
         {/* Glass overlay - same structure as imagery page */}
         <div className="pointer-events-none absolute inset-0">
