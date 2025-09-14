@@ -20,15 +20,12 @@ export default function TrackingPage() {
   }, [map, username]);
 
   return (
-    <div className="w-full h-screen bg-gray-950 relative">
-      {/* Map Container */}
-      <MapShell>
-        {/* Navigation */}
-        <div className="absolute inset-0 pointer-events-none z-10">
-          <NavTabs />
-        </div>
-
-        {/* Main Tracking Panel - Top Left */}
+    <MapShell>
+      {/* Navigation and UI overlay - pointer-events-none on container */}
+      <div className="pointer-events-none absolute inset-0">
+        <NavTabs />
+        
+        {/* Fleet Command Bridge - Top Left - pointer-events-auto to make it interactive */}
         <div className="absolute top-20 left-4 bg-black/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-4 max-w-sm pointer-events-auto z-20">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -123,11 +120,11 @@ export default function TrackingPage() {
 
         {/* Status Bar - Bottom */}
         {isTracking && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600/90 text-white px-4 py-2 rounded-full text-sm font-medium pointer-events-auto z-20">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600/90 text-white px-4 py-2 rounded-full text-sm font-medium pointer-events-auto">
             🟢 Live Tracking Active
           </div>
         )}
-      </MapShell>
-    </div>
+      </div>
+    </MapShell>
   );
 }
