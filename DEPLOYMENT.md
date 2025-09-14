@@ -51,7 +51,7 @@ Test again
 ### Production (`alwaysbent.com`):
 ```
 # Mapbox
-NEXT_PUBLIC_MAPBOX_TOKEN=pk.eyJ1IjoiamVmZmpyODI4ODYiLCJhIjoiY21manBidTJ2MTJxOTJub3J3YW5nOGdlMCJ9.Z8eWrQsZTeUOtc3rq6pNog
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
 
 # === COPERNICUS MARINE DATA ===
 COPERNICUS_USER=your_copernicus_username
