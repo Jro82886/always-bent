@@ -17,6 +17,11 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
   mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 }
 
+// Prevent any accidental redirects
+if (typeof window !== 'undefined' && window.location.pathname !== '/tracking') {
+  console.warn('[Tracking] Page loaded on wrong path:', window.location.pathname);
+}
+
 type TrackingMode = 'individual' | 'fleet' | 'commercial';
 type ViewMode = 'map' | 'analytics' | 'split';
 
@@ -36,6 +41,7 @@ export default function TrackingPage() {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
+    console.log('[Tracking] Page mounted at:', window.location.pathname);
     console.log('[Tracking] Initializing map...');
     console.log('[Tracking] Mapbox token:', mapboxgl.accessToken ? 'Present' : 'Missing');
     console.log('[Tracking] Container:', mapContainer.current);
