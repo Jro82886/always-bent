@@ -12,6 +12,14 @@ interface IndividualTrackingWidgetProps {
 }
 
 export default function IndividualTrackingWidget({ map }: IndividualTrackingWidgetProps) {
+  // Early return if no map
+  if (!map) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-sm text-gray-500">Map loading...</p>
+      </div>
+    );
+  }
   
   // Core tracking state
   const [isTracking, setIsTracking] = useState(false);
