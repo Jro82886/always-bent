@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type mapboxgl from 'mapbox-gl';
-import { Navigation, Play, Stop, MapPin } from 'lucide-react';
+import { Navigation, Play, Square, MapPin } from 'lucide-react';
 
 interface SimpleTrackingWidgetProps {
   map: mapboxgl.Map | null;
@@ -130,7 +130,7 @@ export default function SimpleTrackingWidget({ map }: SimpleTrackingWidgetProps)
       >
         {isTracking ? (
           <>
-            <Stop className="w-4 h-4" />
+            <Square className="w-4 h-4" />
             Stop Tracking
           </>
         ) : (

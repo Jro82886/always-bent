@@ -131,7 +131,7 @@ export default function TrackingMapLayer({ map }: TrackingMapLayerProps) {
     if (!map || !isTracking || !userVessel) return;
 
     // Generate mock vessels based on mode
-    const mockVessels = [];
+    const mockVessels: any[] = [];
     
     if (mode === 'commercial') {
       // Simulate AIS commercial vessels
@@ -238,7 +238,9 @@ export default function TrackingMapLayer({ map }: TrackingMapLayerProps) {
           )
           .addTo(map);
         
-        vesselMarkersRef.current.set(vessel.id, marker);
+        if (marker) {
+          vesselMarkersRef.current.set(vessel.id, marker);
+        }
       } else {
         // Update existing marker
         marker.setLngLat([vessel.lng, vessel.lat]);
