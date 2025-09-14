@@ -137,11 +137,11 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed right-0 top-0 h-full w-96 bg-black/95 backdrop-blur-xl border-l border-cyan-500/20 transform transition-transform duration-300 z-50 ${
+    <div className={`fixed right-0 top-0 h-full w-96 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-emerald-950/95 backdrop-blur-xl border-l border-emerald-500/30 shadow-2xl transform transition-transform duration-300 z-50 ${
       isOpen ? 'translate-x-0' : 'translate-x-full'
     }`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-cyan-500/20">
+      <div className="flex items-center justify-between p-4 border-b border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
         <div className="flex items-center gap-2">
           {activeConversation && (
             <button
@@ -152,23 +152,23 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
                   dmClient.unsubscribeFromConversation(activeConversation.id);
                 }
               }}
-              className="p-1 hover:bg-cyan-500/10 rounded"
+              className="p-1 hover:bg-emerald-500/10 rounded transition-colors"
             >
-              <ChevronLeft className="w-5 h-5 text-cyan-400" />
+              <ChevronLeft className="w-5 h-5 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
             </button>
           )}
-          <h2 className="text-cyan-400 font-mono text-lg">
+          <h2 className="text-emerald-300 font-semibold text-lg tracking-wide drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">
             {activeConversation 
               ? `@${getOtherParticipant(activeConversation).username}`
-              : `DIRECT MESSAGES${unreadCount > 0 ? ` (${unreadCount})` : ''}`
+              : `Direct Messages${unreadCount > 0 ? ` (${unreadCount})` : ''}`
             }
           </h2>
         </div>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors"
+          className="p-2 hover:bg-emerald-500/10 rounded-lg transition-colors"
         >
-          <X className="w-5 h-5 text-cyan-400" />
+          <X className="w-5 h-5 text-emerald-400 hover:text-emerald-300 transition-colors" />
         </button>
       </div>
 
@@ -178,26 +178,26 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-500 font-mono text-sm">No messages yet</p>
-              <p className="text-gray-600 font-mono text-xs mt-2">
+              <p className="text-emerald-400/60 font-medium text-sm">No messages yet</p>
+              <p className="text-emerald-400/40 text-xs mt-2">
                 Click on a captain's name to start a conversation
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-cyan-500/10">
+            <div className="divide-y divide-emerald-500/10">
               {conversations.map(conv => {
                 const other = getOtherParticipant(conv);
                 return (
                   <button
                     key={conv.id}
                     onClick={() => openConversation(other.id, other.username)}
-                    className="w-full p-4 hover:bg-cyan-500/5 transition-colors text-left"
+                    className="w-full p-4 hover:bg-emerald-500/5 transition-colors text-left"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 bg-green-500 rounded-full" />
-                          <span className="text-cyan-400 font-semibold">
+                          <span className="text-emerald-400 font-semibold">
                             {other.username}
                           </span>
                         </div>
@@ -213,7 +213,7 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
                         </span>
                         {conv.unread_count && conv.unread_count > 0 && (
                           <div className="mt-1">
-                            <span className="bg-cyan-500 text-black text-xs px-2 py-0.5 rounded-full">
+                            <span className="bg-emerald-500 text-black text-xs px-2 py-0.5 rounded-full shadow-lg shadow-emerald-500/30">
                               {conv.unread_count}
                             </span>
                           </div>
@@ -245,11 +245,11 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
               >
                 <div className={`max-w-[70%] ${
                   msg.sender_id === userId 
-                    ? 'bg-cyan-500/20 text-cyan-100' 
+                    ? 'bg-emerald-500/20 text-emerald-100' 
                     : 'bg-gray-800 text-gray-100'
                 } rounded-lg px-4 py-2`}>
                   {msg.sender_id !== userId && (
-                    <div className="text-cyan-400 text-xs font-semibold mb-1">
+                    <div className="text-emerald-400 text-xs font-semibold mb-1">
                       {msg.sender_username}
                     </div>
                   )}
@@ -267,7 +267,7 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
           </div>
 
           {/* Message Input */}
-          <div className="border-t border-cyan-500/20 p-4">
+          <div className="border-t border-emerald-500/20 p-4">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -275,14 +275,14 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                 placeholder="Type a message..."
-                className="flex-1 bg-black/50 border border-cyan-500/30 rounded-lg px-4 py-2 text-cyan-100 placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                className="flex-1 bg-black/50 border border-emerald-500/30 rounded-lg px-4 py-2 text-emerald-100 placeholder-gray-500 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all"
               />
               <button
                 onClick={sendMessage}
                 disabled={!messageInput.trim()}
-                className="p-2 bg-cyan-500/20 hover:bg-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                className="p-2 bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors shadow-lg shadow-emerald-500/20"
               >
-                <Send className="w-5 h-5 text-cyan-400" />
+                <Send className="w-5 h-5 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
               </button>
             </div>
           </div>
