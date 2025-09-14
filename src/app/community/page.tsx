@@ -38,8 +38,8 @@ export default function CommunityPage() {
         // Add blur effect to map container after map loads
         const handleLoad = () => {
           if (mapContainer.current) {
-            mapContainer.current.style.filter = 'blur(8px)';
-            mapContainer.current.style.opacity = '0.4';
+            mapContainer.current.style.filter = 'blur(10px) saturate(0.5)';
+            mapContainer.current.style.opacity = '0.25';
           }
         };
         
@@ -78,7 +78,7 @@ export default function CommunityPage() {
 
   return (
     <RequireUsername>
-      <main className="h-screen w-screen bg-black text-white relative overflow-hidden">
+      <main className="h-screen w-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
         {/* Blurred Map Background */}
         <div ref={mapContainer} className="absolute inset-0 z-0" />
         
