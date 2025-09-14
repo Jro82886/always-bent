@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Target, ChevronDown, ChevronUp, Radio, Brain, Activity, Map, Navigation } from 'lucide-react';
+import { Target, ChevronDown, ChevronUp, Radio, Brain, Activity, Map, Navigation, HelpCircle, GraduationCap } from 'lucide-react';
 
 interface UnifiedRightPanelProps {
   onAnalyze: () => void;
@@ -19,6 +19,13 @@ export default function UnifiedRightPanel({
   onStopTracking
 }: UnifiedRightPanelProps) {
   const [legendExpanded, setLegendExpanded] = useState(true);
+  const [tutorialExpanded, setTutorialExpanded] = useState(false);
+  
+  const startTutorial = () => {
+    // Trigger the interactive tutorial
+    localStorage.removeItem('abfi_tutorial_seen');
+    window.location.reload();
+  };
   
   // Analysis mode legend - Historical data visualization
   const analysisLegendItems = [
@@ -96,8 +103,51 @@ export default function UnifiedRightPanel({
 
   return (
     <div className="absolute top-20 right-4 z-40 flex flex-col gap-0 w-[280px]">
+      {/* Tutorial Section - Only in Analysis Mode */}
+      {currentMode === 'analysis' && (
+        <div className="bg-slate-900/80 backdrop-blur-md rounded-t-xl border border-slate-500/20 border-b-0">
+          <button
+            onClick={() => setTutorialExpanded(!tutorialExpanded)}
+            className="w-full px-4 py-2 flex items-center justify-between hover:bg-slate-800/50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <GraduationCap size={14} className="text-slate-400" />
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                Learn Snipping Tool
+              </span>
+            </div>
+            {tutorialExpanded ? (
+              <ChevronUp size={12} className="text-slate-500" />
+            ) : (
+              <ChevronDown size={12} className="text-slate-500" />
+            )}
+          </button>
+          
+          {tutorialExpanded && (
+            <div className="px-4 pb-3 border-t border-slate-700/30">
+              <div className="space-y-2 mt-2">
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  Learn how to analyze ocean conditions and find fishing hotspots.
+                </p>
+                <button
+                  onClick={startTutorial}
+                  className="w-full px-3 py-1.5 bg-gradient-to-r from-slate-700/50 to-slate-600/50 
+                           hover:from-slate-700/70 hover:to-slate-600/70 
+                           text-slate-300 text-xs font-medium rounded-lg 
+                           border border-slate-600/30 transition-all duration-200
+                           flex items-center justify-center gap-2"
+                >
+                  <HelpCircle size={12} />
+                  <span>Start Tutorial</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
       {/* Top Action Section */}
-      <div className="bg-slate-900/80 backdrop-blur-md rounded-t-xl border border-cyan-500/20 border-b-0">
+      <div className={`bg-slate-900/80 backdrop-blur-md ${currentMode === 'analysis' && !tutorialExpanded ? 'border-t border-slate-700/30' : currentMode === 'tracking' ? 'rounded-t-xl' : ''} border-x border-cyan-500/20 border-b-0`}>
         <div className="px-4 py-3">
           {currentMode === 'analysis' ? (
             <>
@@ -227,11 +277,18 @@ export default function UnifiedRightPanel({
         )}
       </div>
 
-      {/* Current Mode Indicator - Subtle */}
+      {/* Current Mode Indicator - Clickable */}
       <div className="bg-slate-900/80 backdrop-blur-md rounded-b-xl border border-cyan-500/20 border-t-0">
         <div className="px-4 py-2">
           <div className="flex items-center justify-center">
-            <div className="flex items-center gap-2 px-2 py-1 bg-slate-800/30 rounded">
+            <button
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/30 hover:bg-slate-800/50 rounded transition-colors cursor-pointer"
+              onClick={() => {
+                // This will be handled by parent component
+                const modeSwitch = document.querySelector('[data-compact-mode-switch]') as HTMLButtonElement;
+                if (modeSwitch) modeSwitch.click();
+              }}
+            >
               {currentMode === 'analysis' ? (
                 <>
                   <Brain size={10} className="text-cyan-400/70" />
@@ -247,7 +304,7 @@ export default function UnifiedRightPanel({
                   </span>
                 </>
               )}
-            </div>
+            </button>
           </div>
         </div>
       </div>

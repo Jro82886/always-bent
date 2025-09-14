@@ -29,6 +29,7 @@ export default function CompactModeSwitcher({
       onMouseLeave={() => setIsHovered(false)}
     >
       <button
+        data-compact-mode-switch
         onClick={onSwitch}
         className={`
           group relative flex items-center gap-2 

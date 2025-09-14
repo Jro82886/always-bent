@@ -30,7 +30,7 @@ const tutorialSteps: TutorialStep[] = [
   {
     id: 'vessel-colors',
     title: 'Understanding Vessel Tracks',
-    content: '🟦 Cyan = Recreational boats\n🟠 Orange = Commercial vessels (GFW)\n🔵 Blue = Your fleet\n⭐ Yellow = Hotspots',
+    content: 'vesselLegend', // Special marker for custom content
     icon: <Ship className="w-6 h-6 text-orange-400" />,
   },
   {
@@ -170,9 +170,37 @@ export default function InteractiveTutorial({ onComplete, autoStart = false }: I
 
         {/* Content */}
         <div className="mb-6">
-          <p className="text-gray-300 whitespace-pre-line leading-relaxed">
-            {step.content}
-          </p>
+          {step.content === 'vesselLegend' ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-0.5 bg-cyan-500 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
+                <span className="text-cyan-300 text-sm">Cyan</span>
+                <span className="text-gray-400 text-sm">= Recreational boats</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-0.5 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(251,146,60,0.6)]" />
+                <span className="text-orange-300 text-sm">Orange</span>
+                <span className="text-gray-400 text-sm">= Commercial vessels (GFW)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-0.5 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                <span className="text-blue-300 text-sm">Blue</span>
+                <span className="text-gray-400 text-sm">= Your fleet</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-[0_0_12px_rgba(251,191,36,0.8)]" />
+                  <div className="absolute inset-0 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-30" />
+                </div>
+                <span className="text-yellow-300 text-sm ml-1">Yellow</span>
+                <span className="text-gray-400 text-sm">= Hotspots</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-300 whitespace-pre-line leading-relaxed">
+              {step.content}
+            </p>
+          )}
         </div>
 
         {/* Progress */}
