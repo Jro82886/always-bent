@@ -52,32 +52,163 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         features: []
       });
     }
-    
-    console.log('[CLEARED] Drawing cleared');
   };
 
-  // Setup layers once when component mounts
-  useEffect(() => {
-    if (!map) return;
+  const startDrawing = () => {
+    if (isDrawing || isAnalyzing || !map) {
+      console.log('[SKIP] Cannot start:', { isDrawing, isAnalyzing, hasMap: !!map });
+      return;
+    }
     
-    const setupLayers = () => {
-      console.log('[SETUP] Setting up rectangle layers...');
-      try {
-        // Remove existing if any
-        if (map.getLayer('rectangle-fill')) {
-          console.log('[REMOVE] Removing existing fill layer');
-          map.removeLayer('rectangle-fill');
-        }
-        if (map.getLayer('rectangle-outline')) {
-          console.log('[REMOVE] Removing existing outline layer');
-          map.removeLayer('rectangle-outline');
-        }
-        if (map.getSource('rectangle')) {
-          console.log('[REMOVE] Removing existing source');
-          map.removeSource('rectangle');
-        }
+    console.log('[START] Starting drawing mode');
+    setIsDrawing(true);
+    firstCorner.current = null;
+    
+    // Change cursor
+    map.getCanvas().style.cursor = 'crosshair';
+  };
 
-        // Add source for rectangle
+  const calculateArea = (polygon: GeoJSON.Feature<GeoJSON.Polygon>): number => {
+    // Calculate area in square meters
+    const areaM2 = turf.area(polygon);
+    // Convert to square kilometers
+    return areaM2 / 1000000;
+  };
+
+  const handleMapClick = async (e: mapboxgl.MapMouseEvent) => {
+    console.log('[CLICK] Map clicked, isDrawing:', isDrawingRef.current, 'isDragging:', isDragging.current);
+    
+    // Ignore clicks while dragging
+    if (isDragging.current) {
+      console.log('[SKIP] Ignoring click during drag');
+      isDragging.current = false;
+      return;
+    }
+
+    if (!isDrawingRef.current) {
+      console.log('[SKIP] Not in drawing mode');
+      return;
+    }
+
+    const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+
+    if (!firstCorner.current) {
+      // First click - set first corner
+      console.log('[CORNER1] First corner set:', coords);
+      firstCorner.current = coords;
+      
+      // Add a temporary point marker
+      if (map && map.getSource('rectangle')) {
+        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+        source.setData({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: coords
+          },
+          properties: {}
+        });
+      }
+    } else {
+      // Second click - complete rectangle
+      console.log('[CORNER2] Second corner set:', coords);
+      const bounds = [
+        firstCorner.current,
+        [coords[0], firstCorner.current[1]],
+        coords,
+        [firstCorner.current[0], coords[1]],
+        firstCorner.current
+      ];
+
+      const polygon: GeoJSON.Feature<GeoJSON.Polygon> = {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [bounds]
+        },
+        properties: {}
+      };
+
+      // Calculate and display area
+      const areaKm2 = calculateArea(polygon);
+      setCurrentArea(areaKm2);
+      console.log(`[AREA] Selected area: ${areaKm2.toFixed(2)} km²`);
+
+      // Store the rectangle
+      currentRectangle.current = polygon;
+
+      // Update visualization
+      if (map && map.getSource('rectangle')) {
+        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+        source.setData(polygon);
+      }
+
+      // Reset cursor
+      if (map) {
+        map.getCanvas().style.cursor = '';
+      }
+      
+      // End drawing mode
+      setIsDrawing(false);
+      console.log('[COMPLETE] Rectangle drawn, ready for analysis');
+      
+      // Trigger analysis if callback provided
+      if (onAnalyze && polygon) {
+        console.log('[ANALYZE] Triggering analysis callback');
+        setIsAnalyzing(true);
+        try {
+          await onAnalyze(polygon);
+        } finally {
+          setIsAnalyzing(false);
+        }
+      }
+    }
+  };
+
+  const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
+    if (!isDrawingRef.current || !firstCorner.current || !map) return;
+
+    const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+    
+    // Create preview rectangle
+    const bounds = [
+      firstCorner.current,
+      [coords[0], firstCorner.current[1]],
+      coords,
+      [firstCorner.current[0], coords[1]],
+      firstCorner.current
+    ];
+
+    const previewPolygon: GeoJSON.Feature<GeoJSON.Polygon> = {
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [bounds]
+      },
+      properties: { preview: true }
+    };
+
+    // Calculate and display area
+    const areaKm2 = calculateArea(previewPolygon);
+    setCurrentArea(areaKm2);
+
+    // Update visualization
+    if (map.getSource('rectangle')) {
+      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+      source.setData(previewPolygon);
+    }
+  };
+
+  // Set up map layers and interactions
+  useEffect(() => {
+    if (!map || layersInitialized.current) return;
+
+    console.log('[INIT] Setting up snip tool layers');
+
+    // Wait for map to be ready
+    const setupLayers = () => {
+      // Add source for rectangle
+      if (!map.getSource('rectangle')) {
         map.addSource('rectangle', {
           type: 'geojson',
           data: {
@@ -85,492 +216,201 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
             features: []
           }
         });
+      }
 
-        // Add fill layer with bright cyan color
+      // Add fill layer
+      if (!map.getLayer('rectangle-fill')) {
         map.addLayer({
           id: 'rectangle-fill',
           type: 'fill',
           source: 'rectangle',
           paint: {
-            'fill-color': '#475569',  // Slate-600 to match ocean analysis
-            'fill-opacity': 0.2  // More subtle transparency
+            'fill-color': '#00ffff',
+            'fill-opacity': 0.1
           }
         });
+      }
 
-        // Add outline layer with thick bright line
+      // Add outline layer
+      if (!map.getLayer('rectangle-outline')) {
         map.addLayer({
           id: 'rectangle-outline',
           type: 'line',
           source: 'rectangle',
           paint: {
-            'line-color': '#3b82f6',  // Blue-500 to match ocean analysis gradient
-            'line-width': 3,  // Slightly thinner
-            'line-opacity': 0.9  // Slightly transparent
+            'line-color': '#00ffff',
+            'line-width': 2,
+            'line-dasharray': [2, 2]
           }
         });
-        
-        // FORCE layers to absolute top - run multiple times to ensure
-        const ensureOnTop = () => {
-          try {
-            // Move to top, above all other layers including polygons
-            if (map.getLayer('rectangle-fill')) {
-              map.moveLayer('rectangle-fill');
-            }
-            if (map.getLayer('rectangle-outline')) {
-              map.moveLayer('rectangle-outline');
-            }
-          } catch (error) {
-            console.log('Layer ordering update:', error);
-          }
-        };
-        
-        // Run immediately and after delays to beat any other layers
-        ensureOnTop();
-        setTimeout(ensureOnTop, 100);
-        setTimeout(ensureOnTop, 500);
-        setTimeout(ensureOnTop, 1000);
-        setTimeout(ensureOnTop, 2000);
-        setTimeout(ensureOnTop, 3000);
-        
-        // Also ensure visibility on every map move/zoom
-        map.on('moveend', ensureOnTop);
-        map.on('zoomend', ensureOnTop);
-        map.on('sourcedata', ensureOnTop);
-        
-        console.log('[COMPLETE] Rectangle layers setup complete');
-      } catch (error) {
-        console.error('[ERROR] Setting up rectangle layers:', error);
       }
+
+      // Add corner points layer
+      if (!map.getLayer('rectangle-corners')) {
+        map.addLayer({
+          id: 'rectangle-corners',
+          type: 'circle',
+          source: 'rectangle',
+          filter: ['==', '$type', 'Point'],
+          paint: {
+            'circle-radius': 5,
+            'circle-color': '#00ffff',
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2
+          }
+        });
+      }
+
+      layersInitialized.current = true;
+      console.log('[INIT] Layers initialized');
     };
 
-    if (map.loaded()) {
+    if (map.isStyleLoaded()) {
       setupLayers();
     } else {
-      map.once('load', setupLayers);
+      map.once('style.load', setupLayers);
     }
 
+    // Add click handler
+    const clickHandler = (e: mapboxgl.MapMouseEvent) => {
+      // Use setTimeout to ensure drag detection works
+      setTimeout(() => {
+        handleMapClick(e);
+      }, 10);
+    };
+    
+    // Add mouse move handler for preview
+    const moveHandler = (e: mapboxgl.MapMouseEvent) => {
+      handleMouseMove(e);
+    };
+    
+    // Track dragging
+    const dragStartHandler = () => {
+      isDragging.current = true;
+      console.log('[DRAG] Started');
+    };
+    
+    const dragEndHandler = () => {
+      setTimeout(() => {
+        isDragging.current = false;
+        console.log('[DRAG] Ended');
+      }, 50);
+    };
+
+    map.on('click', clickHandler);
+    map.on('mousemove', moveHandler);
+    map.on('dragstart', dragStartHandler);
+    map.on('dragend', dragEndHandler);
+
     return () => {
-      // Cleanup layers on unmount
-      if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
+      map.off('click', clickHandler);
+      map.off('mousemove', moveHandler);
+      map.off('dragstart', dragStartHandler);
+      map.off('dragend', dragEndHandler);
+      
+      // Clean up layers
+      if (map.getLayer('rectangle-corners')) map.removeLayer('rectangle-corners');
       if (map.getLayer('rectangle-outline')) map.removeLayer('rectangle-outline');
+      if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
       if (map.getSource('rectangle')) map.removeSource('rectangle');
+      
+      layersInitialized.current = false;
     };
   }, [map]);
 
-  // Separate effect for event handlers that need current state
+  // Clean up on unmount
   useEffect(() => {
-    if (!map) return;
-
-    // Handle mouse down - start drawing
-    const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
-      if (!isDrawingRef.current) return;
-      
-      e.preventDefault();
-      const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-      firstCorner.current = coords;
-      isDragging.current = true;
-      
-      console.log('[DRAG] Started dragging from:', coords, 'isDrawing:', isDrawingRef.current);
-      
-      // Show initial point with bright color
-      const point: GeoJSON.FeatureCollection = {
-        type: 'FeatureCollection',
-        features: [{
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: coords
-          },
-          properties: {}
-        }]
-      };
-      
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-      if (source) {
-        source.setData(point);
-      }
-    };
-    
-    
-    // Handle mouse up - complete rectangle
-    const handleMouseUp = (e: mapboxgl.MapMouseEvent) => {
-      if (!isDragging.current || !firstCorner.current) return;
-      
-      isDragging.current = false;
-      
-      const corner1 = firstCorner.current;
-      const corner2: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-      
-      // Create final rectangle
-      const minLng = Math.min(corner1[0], corner2[0]);
-      const maxLng = Math.max(corner1[0], corner2[0]);
-      const minLat = Math.min(corner1[1], corner2[1]);
-      const maxLat = Math.max(corner1[1], corner2[1]);
-      
-      const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[
-            [minLng, minLat],
-            [maxLng, minLat],
-            [maxLng, maxLat],
-            [minLng, maxLat],
-            [minLng, minLat]
-          ]]
-        },
-        properties: {}
-      };
-      
-      // Calculate area
-      const area = turf.area(rectangle);
-      const areaKm2 = area / 1000000;
-      
-      console.log('[COMPLETE] Rectangle completed:', {
-        area: `${areaKm2.toFixed(2)} km²`,
-        bounds: [corner1, corner2]
-      });
-      
-      // Store the rectangle for analysis
-      currentRectangle.current = rectangle;
-      
-      // Transition to analyzing state
-      setIsDrawing(false);
-      setIsAnalyzing(true);
-      firstCorner.current = null;
-      
-      console.log('[ANALYZE] State set, isAnalyzing:', true);
-
-      // Add pulsing animation to the rectangle
-      if (map.getLayer('rectangle-fill')) {
-        // Animate opacity for pulsing effect
-        let opacity = 0.3;
-        let increasing = true;
-        let animationActive = true;
-        
-        const pulseInterval = setInterval(() => {
-          if (!animationActive || !map.getLayer('rectangle-fill')) {
-            clearInterval(pulseInterval);
-            return;
-          }
-          
-          if (increasing) {
-            opacity += 0.02;
-            if (opacity >= 0.6) increasing = false;
-          } else {
-            opacity -= 0.02;
-            if (opacity <= 0.3) increasing = true;
-          }
-          
-          try {
-            map.setPaintProperty('rectangle-fill', 'fill-opacity', opacity);
-          } catch (e) {
-            clearInterval(pulseInterval);
-          }
-        }, 50);
-        
-        // Store interval reference for cleanup
-        currentRectangle.current = rectangle;
-        
-        // Clear interval after 10 seconds max
-        setTimeout(() => {
-          animationActive = false;
-        }, 10000);
-      }
-
-      // Trigger analysis
-      if (onAnalyze) {
-        console.log('[TRIGGER] Analysis with rectangle:', rectangle);
-        console.log('[COORDS] Rectangle coordinates:', rectangle.geometry.coordinates);
-        console.log('[CHECK] onAnalyze function exists:', typeof onAnalyze);
-        
-        // Small delay for visual feedback, then call the parent's analysis
-        setTimeout(async () => {
-          console.log('[CALL] onAnalyze callback...');
-          console.log('⏱️ About to call onAnalyze at:', new Date().toISOString());
-          try {
-            const result = await onAnalyze(rectangle);
-            console.log('[SUCCESS] onAnalyze completed, result:', result);
-          } catch (error) {
-            console.error('[FAILED] onAnalyze error:', error);
-            console.error('Stack trace:', (error as Error).stack);
-          } finally {
-            // Only reset our local analyzing state after parent completes
-            console.log('[FINALLY] Resetting isAnalyzing state');
-            setIsAnalyzing(false);
-          }
-        }, 1000); // 1 second for visual feedback
-      } else {
-        console.error('[WARNING] No onAnalyze callback provided!');
-        setIsAnalyzing(false);
-        clearRectangle();
-      }
-    };
-
-    // Handle mouse move for preview
-    const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
-      if (!isDragging.current || !firstCorner.current) return;
-
-      const corner1 = firstCorner.current;
-      const corner2: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-
-      // Create preview rectangle with same approach as final rectangle
-      const minLng = Math.min(corner1[0], corner2[0]);
-      const maxLng = Math.max(corner1[0], corner2[0]);
-      const minLat = Math.min(corner1[1], corner2[1]);
-      const maxLat = Math.max(corner1[1], corner2[1]);
-      
-      // Create consistent rectangle shape
-      const rectangle: GeoJSON.Feature<GeoJSON.Polygon> = {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[
-            [minLng, minLat],
-            [maxLng, minLat],
-            [maxLng, maxLat],
-            [minLng, maxLat],
-            [minLng, minLat]
-          ]]
-        },
-        properties: {}
-      };
-
-      // Update visualization
-      const collection: GeoJSON.FeatureCollection = {
-        type: 'FeatureCollection',
-        features: [rectangle]
-      };
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-      if (source) {
-        source.setData(collection);
-        
-        // Calculate and update area
-        const area = turf.area(rectangle);
-        const areaKm2 = area / 1000000;
-        setCurrentArea(areaKm2);
-        
-        // Log every 10th mouse move to avoid spam
-        if (Math.random() < 0.1) {
-          console.log('[PREVIEW] Updating area:', areaKm2.toFixed(2), 'km²');
-        }
-      } else {
-        console.error('[ERROR] Rectangle source not found during preview!');
-      }
-    };
-
-    // Handle escape key to cancel drawing
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isDrawing) {
-        clearDrawing();
-        console.log('[CANCEL] Drawing cancelled');
-      }
-    };
-
-    // Add event listeners with immediate binding
-    map.on('mousedown', handleMouseDown);
-    map.on('mousemove', handleMouseMove);
-    map.on('mouseup', handleMouseUp);
-    document.addEventListener('keydown', handleKeyDown);
-    
-    // Also add to window for backup (convert regular mouse event)
-    const windowMouseUp = () => {
-      if (isDragging.current) {
-        handleMouseUp({} as mapboxgl.MapMouseEvent);
-      }
-    };
-    window.addEventListener('mouseup', windowMouseUp);
-
-    // Change cursor and disable map dragging when drawing
-    if (isDrawing) {
-      map.getCanvas().style.cursor = 'crosshair';
-      map.dragPan.disable();  // Disable map dragging
-      map.boxZoom.disable();  // Disable box zoom
-      map.doubleClickZoom.disable();  // Disable double click zoom
-      console.log('[LOCK] Map interactions disabled for drawing');
-    } else {
-      map.getCanvas().style.cursor = '';
-      map.dragPan.enable();   // Re-enable map dragging
-      map.boxZoom.enable();   // Re-enable box zoom
-      map.doubleClickZoom.enable();  // Re-enable double click zoom
-      console.log('[UNLOCK] Map interactions re-enabled');
-    }
-
-    // Cleanup
     return () => {
-      map.off('mousedown', handleMouseDown);
-      map.off('mousemove', handleMouseMove);
-      map.off('mouseup', handleMouseUp);
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('mouseup', windowMouseUp);
-      map.getCanvas().style.cursor = '';
-      map.dragPan.enable();  // Re-enable map dragging on cleanup
-      map.boxZoom.enable();  // Re-enable box zoom on cleanup
-      map.doubleClickZoom.enable();  // Re-enable double click zoom on cleanup
+      if (map) {
+        map.getCanvas().style.cursor = '';
+      }
     };
-  }, [map, isDrawing, onAnalyze]);
+  }, [map]);
 
-  const clearRectangle = () => {
-    if (!map) return;
-    
-    console.log('[CLEAR] Clearing rectangle...');
-    
-    // Clear the rectangle data
-    if (map.getSource('rectangle')) {
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-      source.setData({
-        type: 'FeatureCollection',
-        features: []
-      });
-    }
-    
-    // Reset all state
-    setCurrentArea(0);
-    setIsAnalyzing(false);
-    setIsDrawing(false);
-    firstCorner.current = null;
-    currentRectangle.current = null;
+  // Debug helper
+  const debugState = () => {
+    console.log('[DEBUG] Current state:');
+    console.log('[STATE] isDrawing:', isDrawing);
+    console.log('[STATE] isAnalyzing:', isAnalyzing);
+    console.log('[STATE] firstCorner:', firstCorner.current);
+    console.log('[STATE] currentArea:', currentArea);
+    console.log('[STATE] currentRectangle:', currentRectangle.current);
+    console.log('[STATE] isDragging:', isDragging.current);
   };
-  
-  // Handle shouldClear prop from parent
-  useEffect(() => {
-    if (shouldClear) {
-      console.log('[CLEAR] Parent requested clear');
-      clearRectangle();
-    }
-  }, [shouldClear]);
 
-  const startDrawing = () => {
-    if (!map) {
-      console.error('Map not available');
-      return;
-    }
+  // Add debug function to window
+  useEffect(() => {
+    (window as any).debugSnipTool = debugState;
     
-    console.log('[START] Drawing mode...');
-    console.log('[STATE] Current map:', {
-      loaded: map.loaded(),
-      hasRectangleSource: !!map.getSource('rectangle'),
-      hasRectangleLayers: !!map.getLayer('rectangle-fill')
-    });
+    // Also add keyboard shortcut for debugging
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'd' && e.ctrlKey) {
+        debugState();
+      }
+    };
     
-    setIsDrawing(true);
-    firstCorner.current = null;
-    setCurrentArea(0);
-    
-    // Clear any existing rectangle
-    const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData({
-        type: 'FeatureCollection',
-        features: []
-      });
-      console.log('[CLEARED] Existing rectangle');
-    } else {
-      console.error('[WARNING] Rectangle source not found! Layers may not be initialized');
-    }
-    
-    // Set cursor immediately
-    map.getCanvas().style.cursor = 'crosshair';
-    
-    // Force disable map dragging RIGHT NOW
-    map.dragPan.disable();
-    map.boxZoom.disable();
-    map.doubleClickZoom.disable();
-    
-    // Verify the changes took effect
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isDrawing, isAnalyzing, currentArea]);
+
+  // Test function
+  const testDraw = () => {
+    console.log('[TEST] Starting test draw');
+    startDrawing();
     setTimeout(() => {
-      console.log('[VERIFY] Rectangle drawing mode:');
-      console.log('[STATE] isDrawing:', true);
+      console.log('[STATE] isDrawing:', isDrawing);
       console.log('[STATE] isDrawingRef:', isDrawingRef.current);
-      console.log('[STATE] Map drag disabled:', !map.dragPan.isEnabled());
-      console.log('[STATE] Box zoom disabled:', !map.boxZoom.isEnabled());
-      console.log('[STATE] Double click zoom disabled:', !map.doubleClickZoom.isEnabled());
-      console.log('[STATE] Cursor:', map.getCanvas().style.cursor);
-      console.log('[STATE] firstCorner:', firstCorner.current);
       console.log('[STATE] isDragging:', isDragging.current);
     }, 100);
   };
 
   return (
-    <div className="hidden">
+    <>
       {/* Hidden button that can be triggered programmatically */}
       <button
         data-snip-button
         onClick={startDrawing}
         className="hidden"
+        aria-label="Start Analysis Area Selection"
       >
         Start Analysis
       </button>
-          {/* Sleek BETA Badge */}
-          <div className="group relative">
-            <span className="px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 text-[10px] font-bold rounded-full border border-cyan-500/30 cursor-help animate-pulse">
-              BETA
-            </span>
-            {/* Modern Tooltip */}
-            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-              <div className="bg-slate-900/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-xl border border-cyan-500/20 min-w-[200px]">
-                <div className="text-cyan-400 text-xs font-semibold mb-1">Demo Mode Active</div>
-                <div className="text-slate-300 text-[10px] leading-relaxed">
-                  Currently using simulated ocean data for demonstration. Real-time SST integration coming soon.
-                </div>
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-slate-900 border-r border-b border-cyan-500/20"></div>
-              </div>
-            </div>
       
       {/* Status indicators - will be shown as overlays when active */}
       {(isDrawing || isAnalyzing) && (
         <div className="absolute top-24 right-4 z-50">
           <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-cyan-500/30 shadow-lg">
-            <div className="flex items-center gap-2 text-sm ${
-            isAnalyzing
-              ? 'bg-gradient-to-r from-slate-600 to-blue-700 cursor-not-allowed animate-pulse'
-              : isDrawing 
-              ? 'bg-gradient-to-r from-slate-700 to-blue-700 cursor-not-allowed' 
-              : 'bg-gradient-to-r from-slate-600 to-blue-600 hover:from-slate-500 hover:to-blue-500'
-          } text-white rounded-full transition-all shadow-lg flex items-center justify-center gap-2 text-sm font-medium`}
-          style={{
-            boxShadow: isAnalyzing || isDrawing ? '0 0 20px rgba(6, 182, 212, 0.4)' : undefined
-          }}
-        >
-          {isAnalyzing ? (
-            <>
-              <svg className="inline-block w-4 h-4 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analyzing Ocean Data...
-            </>
-          ) : isDrawing ? (
-            <>
-              <span>▭</span> Drawing Area...
-            </>
-          ) : (
-            <>
-              <span>▭</span> Select Analysis Area
-            </>
-          )}
-        </button>
-
-        {currentArea > 0 && (
-          <>
-            <div className="text-slate-100 text-xs mt-2 p-2 bg-gradient-to-r from-slate-500/10 to-blue-500/10 rounded-full border border-slate-500/20">
-              <div className="text-center">
-                <span className="font-bold text-sm">{currentArea.toFixed(2)} km²</span>
-                <span className="text-cyan-300/60 ml-1">({(currentArea * 0.386102).toFixed(2)} mi²)</span>
-              </div>
+            <div className="flex items-center gap-2 text-sm text-cyan-300">
+              {isAnalyzing ? (
+                <>
+                  <svg className="inline-block w-4 h-4 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Analyzing Ocean Data...</span>
+                </>
+              ) : (
+                <>
+                  <span>▭</span>
+                  <span>Click two corners to draw area</span>
+                </>
+              )}
             </div>
-
-            <button
-              onClick={clearDrawing}
-              className="w-full px-3 py-1.5 bg-gradient-to-r from-slate-600/20 to-blue-600/20 hover:from-slate-600/30 hover:to-blue-600/30 text-slate-300 rounded-full transition-all text-xs font-medium border border-slate-500/20 shadow-[0_0_10px_rgba(71,85,105,0.2)]"
-            >
-              Clear Selection
-            </button>
-          </>
-        )}
-      </div>
-
-      {isDrawing && (
-        <div className="text-xs text-cyan-400 mt-2 animate-pulse text-center">
-          Click and drag to draw rectangle
+          </div>
         </div>
       )}
-    </div>
+      
+      {/* Area display - shown as floating indicator when drawing */}
+      {currentArea > 0 && !isAnalyzing && (
+        <div className="absolute top-36 right-4 z-50">
+          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-cyan-500/30 shadow-lg">
+            <div className="text-center">
+              <span className="font-bold text-sm text-cyan-300">{currentArea.toFixed(2)} km²</span>
+              <span className="text-cyan-300/60 ml-1 text-xs">({(currentArea * 0.386102).toFixed(2)} mi²)</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
