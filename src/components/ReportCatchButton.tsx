@@ -226,7 +226,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   return (
     <>
       {/* ABFI INTELLIGENCE BUTTON */}
-      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-30 group">
+      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
         <button
           onClick={handleReportCatch}
           className="relative px-6 py-3 rounded-full transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-cyan-900/80 to-blue-900/80 backdrop-blur-md border border-cyan-400/50 text-cyan-100 hover:from-cyan-800/90 hover:to-blue-800/90 hover:border-cyan-300/70"

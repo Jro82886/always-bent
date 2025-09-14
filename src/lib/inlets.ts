@@ -19,7 +19,7 @@ export const INLETS: Inlet[] = [
   { id: 'ma-cape-cod', name: 'Cape Cod Canal East', state: 'MA', center: [-70.5183, 41.7717], zoom: 10, color: '#10b981' }, // Emerald
   
   // Rhode Island
-  { id: 'ri-point-judith', name: 'Point Judith Harbor', state: 'RI', center: [-71.4900, 41.3617], zoom: 10, color: '#7c3aed' }, // Violet
+  { id: 'ri-point-judith', name: 'Point Judith Harbor', state: 'RI', center: [-71.4900, 41.3617], zoom: 10, color: '#0ea5e9' }, // Sky blue
   
   // New York
   { id: 'ny-montauk', name: 'Montauk Harbor', state: 'NY', center: [-71.9360, 41.0710], zoom: 10, color: '#dc2626' }, // Red
@@ -42,8 +42,8 @@ export const INLETS: Inlet[] = [
   // North Carolina
   { id: 'nc-oregon', name: 'Oregon Inlet', state: 'NC', center: [-75.5255, 35.7714], zoom: 10, color: '#2563eb' }, // Blue
   { id: 'nc-hatteras', name: 'Hatteras Inlet', state: 'NC', center: [-75.7540, 35.2060], zoom: 10, color: '#16a34a' }, // Green
-  { id: 'nc-ocracoke', name: 'Ocracoke Inlet', state: 'NC', center: [-75.9927, 35.1305], zoom: 10, color: '#9333ea' }, // Purple
-  { id: 'nc-beaufort', name: 'Beaufort Inlet', state: 'NC', center: [-76.6663, 34.6938], zoom: 10, color: '#e11d48' }, // Rose
+  { id: 'nc-ocracoke', name: 'Ocracoke Inlet', state: 'NC', center: [-75.9927, 35.1305], zoom: 10, color: '#0d9488' }, // Teal
+  { id: 'nc-beaufort', name: 'Beaufort Inlet', state: 'NC', center: [-76.6663, 34.6938], zoom: 10, color: '#b45309' }, // Burnt orange
   { id: 'nc-cape-fear', name: 'Cape Fear River', state: 'NC', center: [-77.9730, 33.8730], zoom: 10, color: '#f97316' }, // Orange
   
   // South Carolina
@@ -57,14 +57,14 @@ export const INLETS: Inlet[] = [
   // Florida
   { id: 'fl-jacksonville', name: 'St. Johns River', state: 'FL', center: [-81.3830, 30.4000], zoom: 10, color: '#3b82f6' }, // Blue
   { id: 'fl-ponce', name: 'Ponce de Leon Inlet', state: 'FL', center: [-80.9180, 29.0640], zoom: 10, color: '#22c55e' }, // Green
-  { id: 'fl-canaveral', name: 'Port Canaveral', state: 'FL', center: [-80.5920, 28.4158], zoom: 10, color: '#a855f7' }, // Purple
-  { id: 'fl-sebastian', name: 'Sebastian Inlet', state: 'FL', center: [-80.4450, 27.8600], zoom: 10, color: '#ec4899' }, // Pink
-  { id: 'fl-st-lucie', name: 'St. Lucie Inlet', state: 'FL', center: [-80.1511, 27.1669], zoom: 10, color: '#f43f5e' }, // Rose
+  { id: 'fl-canaveral', name: 'Port Canaveral', state: 'FL', center: [-80.5920, 28.4158], zoom: 10, color: '#1e293b' }, // Slate
+  { id: 'fl-sebastian', name: 'Sebastian Inlet', state: 'FL', center: [-80.4450, 27.8600], zoom: 10, color: '#0369a1' }, // Dark cyan
+  { id: 'fl-st-lucie', name: 'St. Lucie Inlet', state: 'FL', center: [-80.1511, 27.1669], zoom: 10, color: '#7c2d12' }, // Brown
   { id: 'fl-jupiter', name: 'Jupiter Inlet', state: 'FL', center: [-80.0730, 26.9480], zoom: 10, color: '#fb923c' }, // Orange
   { id: 'fl-lake-worth', name: 'Lake Worth Inlet', state: 'FL', center: [-80.0350, 26.7720], zoom: 10, color: '#fbbf24' }, // Amber
   { id: 'fl-port-everglades', name: 'Port Everglades', state: 'FL', center: [-80.1050, 26.0850], zoom: 10, color: '#a3e635' }, // Lime
   { id: 'fl-miami', name: 'Government Cut', state: 'FL', center: [-80.1300, 25.7650], zoom: 10, color: '#2dd4bf' }, // Teal
-  { id: 'fl-key-west', name: 'Key West Harbor', state: 'FL Keys', center: [-81.8069, 24.5561], zoom: 10, color: '#818cf8' } // Indigo
+  { id: 'fl-key-west', name: 'Key West Harbor', state: 'FL Keys', center: [-81.8069, 24.5561], zoom: 10, color: '#4338ca' } // Deep indigo
 ];
 
 export const DEFAULT_INLET = INLETS[0];

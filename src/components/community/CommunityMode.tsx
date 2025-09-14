@@ -8,6 +8,7 @@ import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
 import { highlightMentions } from '@/lib/chat/mentions';
 import { SPECIES, getSpeciesById, getSpeciesColor } from '@/lib/species';
 import DMPanel from './DMPanel';
+import DMInterface from './DMInterface';
 import ReportsPanel from './ReportsPanel';
 
 interface WeatherData {
@@ -830,13 +831,8 @@ export default function CommunityMode() {
           
           {/* DMs Tab Content */}
           {activeTab === 'dms' && (
-            <div className="flex-1">
-              <DMPanel 
-                isOpen={true}
-                onClose={() => setActiveTab('chat')}
-                targetUserId={dmTargetUser?.id}
-                targetUsername={dmTargetUser?.username}
-              />
+            <div className="flex-1 h-full">
+              <DMInterface />
             </div>
           )}
         </div>

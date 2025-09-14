@@ -38,25 +38,25 @@ export const INLET_COLORS: Record<string, { color: string; glow: string }> = {
   'nc-beaufort': { color: '#e74c3c', glow: 'rgba(231, 76, 60, 0.3)' },
   'nc-cape-fear': { color: '#e74c3c', glow: 'rgba(231, 76, 60, 0.3)' },
   
-  // South Carolina - Purple gradient
-  'sc-charleston': { color: '#9b59b6', glow: 'rgba(155, 89, 182, 0.3)' },
-  'sc-st-helena': { color: '#9b59b6', glow: 'rgba(155, 89, 182, 0.3)' },
+  // South Carolina - Steel Blue gradient
+  'sc-charleston': { color: '#475569', glow: 'rgba(71, 85, 105, 0.3)' },
+  'sc-st-helena': { color: '#475569', glow: 'rgba(71, 85, 105, 0.3)' },
   
-  // Georgia - Purple
-  'ga-savannah': { color: '#9b59b6', glow: 'rgba(155, 89, 182, 0.3)' },
-  'ga-st-marys': { color: '#9b59b6', glow: 'rgba(155, 89, 182, 0.3)' },
+  // Georgia - Deep Teal
+  'ga-savannah': { color: '#0d9488', glow: 'rgba(13, 148, 136, 0.3)' },
+  'ga-st-marys': { color: '#0d9488', glow: 'rgba(13, 148, 136, 0.3)' },
   
-  // Florida - Pink/Magenta gradient
-  'fl-jacksonville': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-ponce': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-canaveral': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-sebastian': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-st-lucie': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-jupiter': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-lake-worth': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-port-everglades': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-miami': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
-  'fl-key-west': { color: '#e91e63', glow: 'rgba(233, 30, 99, 0.3)' },
+  // Florida - Navy/Ocean gradient
+  'fl-jacksonville': { color: '#1e3a8a', glow: 'rgba(30, 58, 138, 0.3)' },
+  'fl-ponce': { color: '#1e3a8a', glow: 'rgba(30, 58, 138, 0.3)' },
+  'fl-canaveral': { color: '#1e293b', glow: 'rgba(30, 41, 59, 0.3)' },
+  'fl-sebastian': { color: '#0369a1', glow: 'rgba(3, 105, 161, 0.3)' },
+  'fl-st-lucie': { color: '#7c2d12', glow: 'rgba(124, 45, 18, 0.3)' },
+  'fl-jupiter': { color: '#b45309', glow: 'rgba(180, 83, 9, 0.3)' },
+  'fl-lake-worth': { color: '#a16207', glow: 'rgba(161, 98, 7, 0.3)' },
+  'fl-port-everglades': { color: '#166534', glow: 'rgba(22, 101, 52, 0.3)' },
+  'fl-miami': { color: '#0f766e', glow: 'rgba(15, 118, 110, 0.3)' },
+  'fl-key-west': { color: '#4338ca', glow: 'rgba(67, 56, 202, 0.3)' },
   
   // Default/Overview
   'overview': { color: '#26c281', glow: 'rgba(38, 194, 129, 0.3)' },

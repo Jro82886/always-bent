@@ -9,10 +9,8 @@ interface RightZoneProps {
 export default function RightZone({ map }: RightZoneProps) {
   return (
     <>
-      {/* ABFI Button - Bottom Right over ocean */}
-      <div className="absolute bottom-8 right-8 z-40">
-        <ReportCatchButton map={map} />
-      </div>
+      {/* ABFI Button - Let ReportCatchButton handle its own positioning */}
+      <ReportCatchButton map={map} />
       
       {/* Snip Controller - Handles the analyze area functionality */}
       <SnipController map={map} />

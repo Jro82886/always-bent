@@ -10,6 +10,11 @@
 }
 .animate-slide-fade { animation: slide-fade-in 220ms ease-out both; }
 
+@keyframes slideDown {
+  0% { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes slide-fade-out {
   from { opacity: 1; transform: translateY(0); }
   to   { opacity: 0; transform: translateY(8px); }

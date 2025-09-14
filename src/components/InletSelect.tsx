@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { INLETS } from "@/lib/inlets";
+import { INLETS, flyToInlet } from "@/lib/inlets";
 import { ChevronDown } from "lucide-react";
+import { useAppState } from "@/store/appState";
 
 type Props = {
   value: string;
@@ -15,6 +16,7 @@ export function InletSelect({ value, onChange, label }: Props) {
   const [isOpen, setIsOpen] = React.useState(false);
   const selectedInlet = INLETS.find(i => i.id === value);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const { setSelectedInletId } = useAppState();
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -60,14 +62,24 @@ export function InletSelect({ value, onChange, label }: Props) {
 
       {/* Dropdown Menu - Connected appearance with animation */}
       {isOpen && (
-        <div className="absolute z-[9999] -mt-[1px] w-full min-w-[280px] max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 border-t-0 rounded-b-lg shadow-2xl animate-in fade-in-0 slide-in-from-top-1 duration-150">
+        <div className="absolute z-[9999] top-full -mt-[1px] left-0 w-full min-w-[280px] max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 border-t-0 rounded-b-lg shadow-2xl pointer-events-auto" style={{
+          animation: 'slideDown 150ms ease-out',
+          maxHeight: '400px',
+          overflowY: 'auto'
+        }}>
           {/* Flat list of all inlets with glowing color dots */}
           {INLETS.map((inlet) => (
             <button
               key={inlet.id}
               onClick={() => {
                 onChange(inlet.id);
+                setSelectedInletId(inlet.id);
                 setIsOpen(false);
+                // Zoom to the selected inlet
+                const map = (window as any).abfiMap;
+                if (map && inlet) {
+                  flyToInlet(map, inlet);
+                }
               }}
               className={`w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-cyan-500/10 transition-all ${
                 value === inlet.id ? 'bg-cyan-500/20 text-cyan-300' : 'text-white'
