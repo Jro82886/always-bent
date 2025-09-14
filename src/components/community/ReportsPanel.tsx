@@ -12,17 +12,11 @@ interface FishingReport {
   notes?: string;
 }
 
-// Species with colors matching the app style
+// Species categories - simplified
 const ALL_SPECIES = [
-  { id: 'bigeye', name: 'BIG EYE TUNA', emoji: '🐟', color: '#8b5cf6' },
-  { id: 'yellowfin', name: 'YELLOWFIN TUNA', emoji: '🐠', color: '#fbbf24' },
-  { id: 'bluefin', name: 'BLUEFIN TUNA', emoji: '🐟', color: '#3b82f6' },
-  { id: 'mahi', name: 'MAHI', emoji: '🐠', color: '#10b981' },
-  { id: 'wahoo', name: 'WAHOO', emoji: '🐟', color: '#06b6d4' },
-  { id: 'white-marlin', name: 'WHITE MARLIN', emoji: '🐟', color: '#e5e7eb' },
-  { id: 'blue-marlin', name: 'BLUE MARLIN', emoji: '🐟', color: '#6366f1' },
-  { id: 'rockfish', name: 'ROCKFISH', emoji: '🐟', color: '#dc2626' },
-  { id: 'other', name: 'OTHER', emoji: '❓', color: '#9ca3af' }
+  { id: 'tuna', name: 'TUNA', color: '#3b82f6' }, // Blue
+  { id: 'meat-fish', name: 'MEAT FISH', color: '#10b981' }, // Emerald
+  { id: 'marlin', name: 'MARLIN', color: '#8b5cf6' } // Purple
 ];
 
 export default function ReportsPanel() {
@@ -134,18 +128,21 @@ export default function ReportsPanel() {
           <div className="text-center">
             <p className="text-xs text-cyan-400 mb-2">What species? (optional)</p>
             <div className="grid grid-cols-3 gap-1.5">
-              {ALL_SPECIES.filter(s => ['bluefin', 'yellowfin', 'striped-bass', 'mahi', 'bluefish', 'unknown'].includes(s.id)).map(species => (
+              {ALL_SPECIES.map(species => (
                 <button
                   key={species.id}
                   onClick={() => setReport(r => ({ ...r, species: species.id }))}
-                  className={`p-2 rounded-lg transition-all ${
+                  className={`px-3 py-2 rounded-lg transition-all font-medium text-xs ${
                     report.species === species.id
-                      ? 'bg-cyan-500/20 border border-cyan-400 text-cyan-300'
-                      : 'bg-black/40 border border-gray-700 text-gray-400 hover:border-cyan-500/50'
+                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400 text-cyan-300 shadow-lg shadow-cyan-500/20'
+                      : 'bg-black/40 border border-gray-700 text-gray-400 hover:border-cyan-500/50 hover:text-cyan-400'
                   }`}
+                  style={{
+                    borderColor: report.species === species.id ? species.color : undefined,
+                    boxShadow: report.species === species.id ? `0 0 20px ${species.color}40` : undefined
+                  }}
                 >
-                  <div className="text-lg mb-0.5">{species.emoji}</div>
-                  <div className="text-[10px]">{species.name}</div>
+                  {species.name}
                 </button>
               ))}
             </div>
