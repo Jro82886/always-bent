@@ -73,13 +73,13 @@ export async function getVesselTracksInArea(
   // Continue with mock individual tracks for now
   // In production, query Supabase for real user tracks
   
-  // Add some individual user tracks (recreational boats)
+  // Add some individual user tracks (recreational boats) - BRIGHT CYAN
   tracks.push({
     id: 'user-1',
     type: 'individual',
     vesselName: 'Sea Hunter',
     points: generateTrackThroughArea(bounds, 15),
-    color: '#00DDEB', // Cyan for individual boats
+    color: '#06b6d4', // cyan-500 - bright and visible
     timestamp: '2 hours ago'
   });
   
@@ -88,17 +88,17 @@ export async function getVesselTracksInArea(
     type: 'individual',
     vesselName: 'Blue Marlin',
     points: generateTrackThroughArea(bounds, 12),
-    color: '#00DDEB',
+    color: '#06b6d4', // cyan-500
     timestamp: '5 hours ago'
   });
   
-  // Add some GFW commercial vessel tracks
+  // Add some GFW commercial vessel tracks - BRIGHT ORANGE
   tracks.push({
     id: 'gfw-1',
     type: 'gfw',
     vesselName: 'FV Atlantic Dream',
     points: generateTrackThroughArea(bounds, 20),
-    color: '#FF6B6B', // Red for commercial vessels
+    color: '#fb923c', // orange-400 - bright and visible
     timestamp: '1 hour ago'
   });
   
@@ -107,7 +107,7 @@ export async function getVesselTracksInArea(
     type: 'gfw',
     vesselName: 'FV Ocean Harvest',
     points: generateTrackThroughArea(bounds, 18),
-    color: '#FF6B6B',
+    color: '#fb923c', // orange-400
     timestamp: '3 hours ago'
   });
   
@@ -204,9 +204,9 @@ function drawTracksOnMap(tracks: VesselTrack[], map: mapboxgl.Map) {
       source: sourceId,
       paint: {
         'line-color': track.color,
-        'line-width': track.type === 'gfw' ? 3 : 2, // Thicker for commercial
-        'line-opacity': 0.7,
-        'line-dasharray': track.type === 'gfw' ? [2, 1] : [1, 0] // Dashed for commercial
+        'line-width': track.type === 'gfw' ? 4 : 3, // Thicker lines for visibility
+        'line-opacity': 0.9, // Higher opacity for better visibility
+        'line-dasharray': track.type === 'gfw' ? [4, 2] : [1, 0] // Longer dashes for commercial
       }
     });
     

@@ -18,9 +18,16 @@ export default function RightZone({ map, onModalStateChange, onStartTutorial }: 
   
   const handleAnalyze = useCallback(() => {
     // Trigger the snip tool to start drawing
+    console.log('[RIGHTZONE] Triggering snip tool');
     const button = document.querySelector('[data-snip-button]') as HTMLButtonElement;
     if (button) {
+      console.log('[RIGHTZONE] Found button, clicking');
       button.click();
+    } else if ((window as any).startSnipping) {
+      console.log('[RIGHTZONE] Using window.startSnipping');
+      (window as any).startSnipping();
+    } else {
+      console.error('[RIGHTZONE] No way to trigger snipping tool');
     }
   }, []);
   

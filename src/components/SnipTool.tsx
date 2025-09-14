@@ -1,482 +1,382 @@
-"use client";
-import { useEffect, useRef, useState } from 'react';
+'use client';
+
+import { useState, useEffect, useRef, useCallback } from 'react';
+import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
-import type mapboxgl from 'mapbox-gl';
-import { Target } from 'lucide-react';
+import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
+import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData } from '@/lib/analysis/sst-analyzer';
+import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
+import { Maximize2, Loader2 } from 'lucide-react';
 
 interface SnipToolProps {
   map: mapboxgl.Map | null;
-  onAnalyze?: (polygon: GeoJSON.Feature) => Promise<void> | void;
-  shouldClear?: boolean;
+  onAnalysisComplete: (analysis: AnalysisResult) => void;
+  isActive?: boolean;
 }
 
-export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps) {
+export default function SnipTool({ map, onAnalysisComplete, isActive = false }: SnipToolProps) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentArea, setCurrentArea] = useState<number>(0);
-  const firstCorner = useRef<[number, number] | null>(null);
-  const rectangleId = useRef<string>('analysis-rectangle');
-  const currentRectangle = useRef<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
-  const layersInitialized = useRef<boolean>(false);
-  const isDragging = useRef<boolean>(false);
-  const isDrawingRef = useRef<boolean>(false);
+  
+  // Use refs for mouse tracking
+  const startPoint = useRef<[number, number] | null>(null);
+  const currentPolygon = useRef<any>(null);
 
-  // Keep ref in sync with state
-  useEffect(() => {
-    isDrawingRef.current = isDrawing;
-  }, [isDrawing]);
-
-  // Clear when parent tells us to
-  useEffect(() => {
-    if (shouldClear) {
-      console.log('[CLEAR] Parent requested clear');
-      clearDrawing();
-      // Ensure we're ready for new drawing
-      setIsDrawing(false);
-      setIsAnalyzing(false);
-    }
-  }, [shouldClear]);
-
-  const clearDrawing = () => {
-    setIsDrawing(false);
-    isDrawingRef.current = false;
-    setIsAnalyzing(false);
-    firstCorner.current = null;
-    currentRectangle.current = null;
-    setCurrentArea(0);
-    isDragging.current = false;
-    
-    // Clear visualization and re-enable map dragging
-    if (map) {
-      if (map.getSource('rectangle')) {
-        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-        source.setData({
-          type: 'FeatureCollection',
-          features: []
-        });
-      }
-      map.getCanvas().style.cursor = '';
-      map.dragPan.enable();
-      map.dragRotate.enable();
-      map.doubleClickZoom.enable();
-    }
-  };
-
-  const startDrawing = () => {
-    console.log('[START] Attempting to start drawing mode');
-    console.log('[STATE] Current state:', { 
-      isDrawing, 
-      isAnalyzing, 
-      hasMap: !!map,
-      mapId: map?.getContainer().id,
-      isDragging: isDragging.current 
-    });
-    
+  // Start drawing mode
+  const startDrawing = useCallback(() => {
     if (!map) {
-      console.log('[ERROR] No map available');
+      console.log('[SNIP] No map available');
       return;
     }
-    
-    if (isAnalyzing) {
-      console.log('[SKIP] Analysis in progress');
-      return;
-    }
-    
-    // Force clear any existing state
-    if (isDrawing) {
-      console.log('[CLEAR] Clearing existing drawing state');
-      clearDrawing();
-    }
-    
-    console.log('[START] Starting drawing mode NOW');
-    
-    // Reset all states
-    isDragging.current = false;
-    firstCorner.current = null;
-    currentRectangle.current = null;
-    setCurrentArea(0);
-    
-    // Set drawing state
+
+    console.log('[SNIP] Starting drawing mode');
     setIsDrawing(true);
-    isDrawingRef.current = true;
+    startPoint.current = null;
     
-    // Change cursor to crosshair
+    // Change cursor
     map.getCanvas().style.cursor = 'crosshair';
     
     // Disable map interactions
     map.dragPan.disable();
-    map.dragRotate.disable(); 
+    map.dragRotate.disable();
     map.doubleClickZoom.disable();
+    map.scrollZoom.disable();
+    map.boxZoom.disable();
     
-    console.log('[READY] Drawing mode ACTIVE - click to place first corner');
-    console.log('[READY] isDrawingRef.current =', isDrawingRef.current);
-  };
+    // Clear any existing rectangle
+    if (map.getSource('snip-rectangle')) {
+      const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
+    }
+    
+    // Update button text
+    const button = document.querySelector('button[onclick*="Analyze"]');
+    if (button && button.textContent?.includes('Select')) {
+      const originalText = button.innerHTML;
+      button.innerHTML = `
+        <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2" stroke-dasharray="3 3" />
+        </svg>
+        Drawing... Click and drag
+      `;
+      // Store original text for restoration
+      (window as any).__originalButtonText = originalText;
+    }
+  }, [map]);
 
-  const calculateArea = (polygon: GeoJSON.Feature<GeoJSON.Polygon>): number => {
-    // Calculate area in square meters
-    const areaM2 = turf.area(polygon);
-    // Convert to square kilometers
-    return areaM2 / 1000000;
-  };
+  // Clear drawing
+  const clearDrawing = useCallback(() => {
+    if (!map) return;
+    
+    console.log('[SNIP] Clearing drawing');
+    setIsDrawing(false);
+    setIsAnalyzing(false);
+    setCurrentArea(0);
+    startPoint.current = null;
+    currentPolygon.current = null;
+    
+    // Reset cursor
+    map.getCanvas().style.cursor = '';
+    
+    // Re-enable map interactions
+    map.dragPan.enable();
+    map.dragRotate.enable();
+    map.doubleClickZoom.enable();
+    map.scrollZoom.enable();
+    map.boxZoom.enable();
+    
+    // Clear rectangle
+    if (map.getSource('snip-rectangle')) {
+      const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
+    }
+    
+    // Restore button text
+    const button = document.querySelector('button[onclick*="Analyze"]');
+    if (button && (window as any).__originalButtonText) {
+      button.innerHTML = (window as any).__originalButtonText;
+      delete (window as any).__originalButtonText;
+    }
+  }, [map]);
 
-  const handleMapClick = async (e: mapboxgl.MapMouseEvent) => {
-    console.log('[CLICK] Map clicked at:', e.lngLat.lng, e.lngLat.lat);
-    console.log('[CLICK] States:', {
-      isDrawingRef: isDrawingRef.current,
-      isDragging: isDragging.current,
-      firstCorner: firstCorner.current
+  // Update rectangle
+  const updateRectangle = useCallback((corner1: [number, number], corner2: [number, number]) => {
+    if (!map || !map.getSource('snip-rectangle')) return;
+    
+    const minX = Math.min(corner1[0], corner2[0]);
+    const maxX = Math.max(corner1[0], corner2[0]);
+    const minY = Math.min(corner1[1], corner2[1]);
+    const maxY = Math.max(corner1[1], corner2[1]);
+    
+    const coords: [number, number][] = [
+      [minX, minY],
+      [maxX, minY],
+      [maxX, maxY],
+      [minX, maxY],
+      [minX, minY]
+    ];
+    
+    const polygon = {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'Polygon' as const,
+        coordinates: [coords]
+      }
+    };
+    
+    const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
+    source.setData({
+      type: 'FeatureCollection',
+      features: [polygon]
     });
     
-    // Ignore clicks while dragging
-    if (isDragging.current) {
-      console.log('[SKIP] Ignoring click during drag');
-      isDragging.current = false;
-      return;
-    }
+    // Calculate area
+    const polygonFeature = turf.polygon([coords]);
+    const areaM2 = turf.area(polygonFeature);
+    setCurrentArea(areaM2 / 1000000);
+    currentPolygon.current = polygon;
+  }, [map]);
 
-    if (!isDrawingRef.current) {
-      console.log('[SKIP] Not in drawing mode - isDrawingRef.current is false');
-      return;
-    }
-
-    const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-
-    if (!firstCorner.current) {
-      // First click - set first corner
-      console.log('[CORNER1] First corner set:', coords);
-      firstCorner.current = coords;
+  // Complete drawing and analyze
+  const completeDrawing = useCallback(async () => {
+    if (!map || !currentPolygon.current) return;
+    
+    console.log('[SNIP] Completing drawing and analyzing...');
+    setIsAnalyzing(true);
+    
+    try {
+      const polygon = currentPolygon.current;
       
-      // Add a temporary point marker
-      if (map && map.getSource('rectangle')) {
-        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-        source.setData({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: coords
-          },
-          properties: {}
-        });
-      }
-    } else {
-      // Second click - complete rectangle
-      console.log('[CORNER2] Second corner set:', coords);
-      const bounds = [
-        firstCorner.current,
-        [coords[0], firstCorner.current[1]],
-        coords,
-        [firstCorner.current[0], coords[1]],
-        firstCorner.current
-      ];
-
-      const polygon: GeoJSON.Feature<GeoJSON.Polygon> = {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [bounds]
-        },
-        properties: {}
+      // Get vessel tracks
+      const vesselData = await getVesselTracksInArea(polygon, map);
+      console.log('[SNIP] Found vessel tracks:', vesselData.tracks.length);
+      
+      // Check active layers
+      const activeLayers = {
+        sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
+        chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+        ocean: map.getLayer('ocean-layer') && map.getLayoutProperty('ocean-layer', 'visibility') === 'visible'
       };
-
-      // Calculate and display area
-      const areaKm2 = calculateArea(polygon);
-      setCurrentArea(areaKm2);
-      console.log(`[AREA] Selected area: ${areaKm2.toFixed(2)} km²`);
-
-      // Store the rectangle
-      currentRectangle.current = polygon;
-
-      // Update visualization
-      if (map && map.getSource('rectangle')) {
-        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-        source.setData(polygon);
-      }
-
-      // Reset cursor and re-enable map dragging
-      if (map) {
-        map.getCanvas().style.cursor = '';
-        map.dragPan.enable();
-        map.dragRotate.enable();
-        map.doubleClickZoom.enable();
-      }
       
-      // End drawing mode
-      setIsDrawing(false);
-      isDrawingRef.current = false;
-      console.log('[COMPLETE] Rectangle drawn, ready for analysis');
+      // Get bounds
+      const bbox = turf.bbox(polygon);
+      const bounds: [[number, number], [number, number]] = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
       
-      // Trigger analysis if callback provided
-      if (onAnalyze && polygon) {
-        console.log('[ANALYZE] Triggering analysis callback');
-        setIsAnalyzing(true);
-        try {
-          await onAnalyze(polygon);
-        } finally {
-          setIsAnalyzing(false);
-        }
-      }
-    }
-  };
-
-  const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
-    if (!isDrawingRef.current || !firstCorner.current || !map) return;
-
-    const coords: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-    
-    // Create preview rectangle
-    const bounds = [
-      firstCorner.current,
-      [coords[0], firstCorner.current[1]],
-      coords,
-      [firstCorner.current[0], coords[1]],
-      firstCorner.current
-    ];
-
-    const previewPolygon: GeoJSON.Feature<GeoJSON.Polygon> = {
-      type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [bounds]
-      },
-      properties: { preview: true }
-    };
-
-    // Calculate and display area
-    const areaKm2 = calculateArea(previewPolygon);
-    setCurrentArea(areaKm2);
-
-    // Update visualization
-    if (map.getSource('rectangle')) {
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-      source.setData(previewPolygon);
-    }
-  };
-
-  // Handle escape key to cancel drawing
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isDrawing) {
-        console.log('[ESCAPE] Cancelling drawing');
+      // Generate data
+      const sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
+      const chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
+      
+      // Analyze
+      const analysis = await analyzeMultiLayer(
+        polygon as GeoJSON.Feature<GeoJSON.Polygon>,
+        sstData,
+        chlData
+      );
+      
+      // Add vessel info
+      const analysisWithVessels = {
+        ...analysis,
+        vesselTracks: vesselData.summary
+      };
+      
+      console.log('[SNIP] Analysis complete:', analysisWithVessels);
+      onAnalysisComplete(analysisWithVessels);
+      
+      // Clear after delay
+      setTimeout(() => {
         clearDrawing();
-      }
-    };
-    
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [isDrawing]);
+      }, 500);
+    } catch (error) {
+      console.error('[SNIP] Analysis error:', error);
+      setIsAnalyzing(false);
+      clearDrawing();
+    }
+  }, [map, onAnalysisComplete, clearDrawing]);
 
-  // Set up map layers and interactions
+  // Initialize layers
   useEffect(() => {
-    if (!map || layersInitialized.current) return;
+    if (!map) return;
 
-    console.log('[INIT] Setting up snip tool layers');
-
-    // Wait for map to be ready
-    const setupLayers = () => {
-      // Add source for rectangle
-      if (!map.getSource('rectangle')) {
-        map.addSource('rectangle', {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: []
-          }
-        });
-      }
-
-      // Add fill layer - slate blue
-      if (!map.getLayer('rectangle-fill')) {
-        map.addLayer({
-          id: 'rectangle-fill',
-          type: 'fill',
-          source: 'rectangle',
-          paint: {
-            'fill-color': '#64748b',  // slate-500
-            'fill-opacity': 0.1
-          }
-        });
-      }
-
-      // Add outline layer - slate blue
-      if (!map.getLayer('rectangle-outline')) {
-        map.addLayer({
-          id: 'rectangle-outline',
-          type: 'line',
-          source: 'rectangle',
-          paint: {
-            'line-color': '#64748b',  // slate-500
-            'line-width': 2,
-            'line-dasharray': [2, 2]
-          }
-        });
-      }
-
-      // Add corner points layer - slate blue
-      if (!map.getLayer('rectangle-corners')) {
-        map.addLayer({
-          id: 'rectangle-corners',
-          type: 'circle',
-          source: 'rectangle',
-          filter: ['==', '$type', 'Point'],
-          paint: {
-            'circle-radius': 5,
-            'circle-color': '#64748b',  // slate-500
-            'circle-stroke-color': '#ffffff',
-            'circle-stroke-width': 2
-          }
-        });
-      }
-
-      layersInitialized.current = true;
-      console.log('[INIT] Layers initialized');
+    const initLayers = () => {
+      console.log('[SNIP] Initializing layers');
+      
+      // Remove existing
+      if (map.getLayer('snip-rectangle-fill')) map.removeLayer('snip-rectangle-fill');
+      if (map.getLayer('snip-rectangle-outline')) map.removeLayer('snip-rectangle-outline');
+      if (map.getSource('snip-rectangle')) map.removeSource('snip-rectangle');
+      
+      // Add source
+      map.addSource('snip-rectangle', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+      
+      // Add layers with prominent colors
+      map.addLayer({
+        id: 'snip-rectangle-fill',
+        type: 'fill',
+        source: 'snip-rectangle',
+        paint: {
+          'fill-color': '#475569',
+          'fill-opacity': 0.4
+        }
+      });
+      
+      map.addLayer({
+        id: 'snip-rectangle-outline',
+        type: 'line',
+        source: 'snip-rectangle',
+        paint: {
+          'line-color': '#1e293b',
+          'line-width': 4,
+          'line-opacity': 1.0
+        }
+      });
+      
+      // Keep on top
+      const moveToTop = () => {
+        try {
+          if (map.getLayer('snip-rectangle-fill')) map.moveLayer('snip-rectangle-fill');
+          if (map.getLayer('snip-rectangle-outline')) map.moveLayer('snip-rectangle-outline');
+        } catch (e) {
+          // Ignore
+        }
+      };
+      
+      map.on('data', moveToTop);
+      return () => map.off('data', moveToTop);
     };
 
     if (map.isStyleLoaded()) {
-      setupLayers();
+      const cleanup = initLayers();
+      return cleanup;
     } else {
-      map.once('style.load', setupLayers);
+      let cleanup: (() => void) | undefined;
+      const handleLoad = () => {
+        cleanup = initLayers();
+      };
+      map.once('style.load', handleLoad);
+      return () => {
+        if (cleanup) cleanup();
+        map.off('style.load', handleLoad);
+      };
     }
-
-    // Add click handler
-    const clickHandler = (e: mapboxgl.MapMouseEvent) => {
-      // Only handle clicks when in drawing mode
-      if (isDrawingRef.current) {
-        handleMapClick(e);
-      }
-    };
-    
-    // Add mouse move handler for preview
-    const moveHandler = (e: mapboxgl.MapMouseEvent) => {
-      handleMouseMove(e);
-    };
-    
-    // Track dragging
-    const dragStartHandler = () => {
-      isDragging.current = true;
-      console.log('[DRAG] Started');
-    };
-    
-    const dragEndHandler = () => {
-      setTimeout(() => {
-        isDragging.current = false;
-        console.log('[DRAG] Ended');
-      }, 50);
-    };
-
-    map.on('click', clickHandler);
-    map.on('mousemove', moveHandler);
-    map.on('dragstart', dragStartHandler);
-    map.on('dragend', dragEndHandler);
-
-    return () => {
-      map.off('click', clickHandler);
-      map.off('mousemove', moveHandler);
-      map.off('dragstart', dragStartHandler);
-      map.off('dragend', dragEndHandler);
-      
-      // Clean up layers
-      if (map.getLayer('rectangle-corners')) map.removeLayer('rectangle-corners');
-      if (map.getLayer('rectangle-outline')) map.removeLayer('rectangle-outline');
-      if (map.getLayer('rectangle-fill')) map.removeLayer('rectangle-fill');
-      if (map.getSource('rectangle')) map.removeSource('rectangle');
-      
-      layersInitialized.current = false;
-    };
   }, [map]);
 
-  // Clean up on unmount
+  // Mouse event handlers
   useEffect(() => {
+    if (!map || !isDrawing) return;
+
+    console.log('[SNIP] Setting up mouse handlers, isDrawing:', isDrawing);
+
+    const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
+      console.log('[SNIP] Mouse down');
+      e.preventDefault();
+      startPoint.current = [e.lngLat.lng, e.lngLat.lat];
+      updateRectangle(startPoint.current, startPoint.current);
+    };
+
+    const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      if (!startPoint.current) return;
+      const current: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      updateRectangle(startPoint.current, current);
+    };
+
+    const handleMouseUp = (e: mapboxgl.MapMouseEvent) => {
+      if (!startPoint.current) return;
+      
+      const endPoint: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      const dx = Math.abs(endPoint[0] - startPoint.current[0]);
+      const dy = Math.abs(endPoint[1] - startPoint.current[1]);
+      
+      console.log('[SNIP] Mouse up, distance:', dx, dy);
+      
+      if (dx > 0.0001 || dy > 0.0001) {
+        updateRectangle(startPoint.current, endPoint);
+        completeDrawing();
+      } else {
+        clearDrawing();
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') clearDrawing();
+    };
+
+    map.on('mousedown', handleMouseDown);
+    map.on('mousemove', handleMouseMove);
+    map.on('mouseup', handleMouseUp);
+    window.addEventListener('keydown', handleEscape);
+
     return () => {
-      if (map) {
-        map.getCanvas().style.cursor = '';
-      }
+      map.off('mousedown', handleMouseDown);
+      map.off('mousemove', handleMouseMove);
+      map.off('mouseup', handleMouseUp);
+      window.removeEventListener('keydown', handleEscape);
     };
-  }, [map]);
+  }, [map, isDrawing, updateRectangle, completeDrawing, clearDrawing]);
 
-  // Debug helper
-  const debugState = () => {
-    console.log('[DEBUG] Current state:');
-    console.log('[STATE] isDrawing:', isDrawing);
-    console.log('[STATE] isAnalyzing:', isAnalyzing);
-    console.log('[STATE] firstCorner:', firstCorner.current);
-    console.log('[STATE] currentArea:', currentArea);
-    console.log('[STATE] currentRectangle:', currentRectangle.current);
-    console.log('[STATE] isDragging:', isDragging.current);
-  };
-
-  // Add debug function to window
+  // Handle programmatic trigger
   useEffect(() => {
-    (window as any).debugSnipTool = debugState;
-    
-    // Also add keyboard shortcut for debugging
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'd' && e.ctrlKey) {
-        debugState();
-      }
+    const handleTrigger = () => {
+      console.log('[SNIP] Triggered programmatically');
+      startDrawing();
     };
     
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isDrawing, isAnalyzing, currentArea]);
-
-  // Test function
-  const testDraw = () => {
-    console.log('[TEST] Starting test draw');
-    startDrawing();
-    setTimeout(() => {
-      console.log('[STATE] isDrawing:', isDrawing);
-      console.log('[STATE] isDrawingRef:', isDrawingRef.current);
-      console.log('[STATE] isDragging:', isDragging.current);
-    }, 100);
-  };
+    // Add to window for easy access
+    (window as any).startSnipping = handleTrigger;
+    
+    return () => {
+      delete (window as any).startSnipping;
+    };
+  }, [startDrawing]);
 
   return (
-    <>
-      {/* Hidden button that can be triggered programmatically */}
+    <div className="hidden">
       <button
         data-snip-button
         onClick={startDrawing}
         className="hidden"
-        aria-label="Start Analysis Area Selection"
       >
-        Start Analysis
+        Start Snipping
       </button>
       
-      {/* Status indicators - will be shown as overlays when active */}
+      {/* Status display */}
       {(isDrawing || isAnalyzing) && (
-        <div className="absolute top-24 right-4 z-50">
-          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-slate-500/30 shadow-lg">
-            <div className="flex items-center gap-2 text-sm text-slate-300">
-              {isAnalyzing ? (
-                <>
-                  <svg className="inline-block w-4 h-4 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Analyzing Ocean Data...</span>
-                </>
-              ) : (
-                <>
-                  <span>▭</span>
-                  <span>Click two corners to draw area</span>
-                </>
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+          {isDrawing && !isAnalyzing && (
+            <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center gap-2">
+              <Maximize2 size={16} className="text-slate-400" />
+              <span className="text-sm text-slate-300">
+                Click and drag to select area
+              </span>
+              {currentArea > 0 && (
+                <span className="text-xs text-slate-400 ml-2">
+                  ({currentArea.toFixed(1)} km²)
+                </span>
               )}
             </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Area display - shown as floating indicator when drawing */}
-      {currentArea > 0 && !isAnalyzing && (
-        <div className="absolute top-36 right-4 z-50">
-          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-slate-500/30 shadow-lg">
-            <div className="text-center">
-              <span className="font-bold text-sm text-slate-300">{currentArea.toFixed(2)} km²</span>
-              <span className="text-slate-300/60 ml-1 text-xs">({(currentArea * 0.386102).toFixed(2)} mi²)</span>
+          )}
+          
+          {isAnalyzing && (
+            <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center gap-2">
+              <Loader2 size={16} className="text-cyan-400 animate-spin" />
+              <span className="text-sm text-cyan-300">Analyzing ocean data...</span>
             </div>
-          </div>
+          )}
         </div>
       )}
-    </>
+    </div>
   );
 }

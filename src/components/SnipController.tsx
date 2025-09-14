@@ -20,7 +20,6 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
   const [hotspotPosition, setHotspotPosition] = useState<[number, number] | null>(null);
   const [showHotspot, setShowHotspot] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [shouldClearTool, setShouldClearTool] = useState(false);
 
   // Notify parent component when modal state changes
   useEffect(() => {
@@ -150,8 +149,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       alert(`Analysis failed: ${(error as Error).message}`);
       
       // Clear the rectangle on error
-      setShouldClearTool(true);
-      setTimeout(() => setShouldClearTool(false), 100);
+      clearMapOverlays(map);
     } finally {
       console.log('[DONE] Analysis finished, setting isAnalyzing to false');
       
@@ -161,8 +159,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       }, 200); // Small delay for smooth transition
       
       // Clear the rectangle after successful analysis too
-      setShouldClearTool(true);
-      setTimeout(() => setShouldClearTool(false), 100);
+      // (Handled by SnipTool automatically after onAnalysisComplete)
     }
   }, [map]);
 
@@ -234,8 +231,6 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           setCurrentAnalysis(null);
           setShowHotspot(false);
           setHotspotPosition(null);
-          setShouldClearTool(true);
-          setTimeout(() => setShouldClearTool(false), 100);
         }, 1500);
       }
     } catch (error) {
@@ -260,15 +255,9 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       clearMapOverlays(map);
     }
     
-    // 4. Reset the snip tool (single call, no duplicates)
-    setShouldClearTool(true);
-    setTimeout(() => {
-      setShouldClearTool(false);
-      console.log('[READY] Ready for new snip!');
-      
-      // Show subtle feedback that tool is ready
-      showReadyToSnipToast();
-    }, 100);
+    // 4. Show subtle feedback that tool is ready
+    console.log('[READY] Ready for new snip!');
+    showReadyToSnipToast();
   }, [map]);
 
   // Test function to simulate analysis
@@ -295,8 +284,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     <>
       <SnipTool 
         map={map} 
-        onAnalyze={handleAnalyze}
-        shouldClear={shouldClearTool}
+        onAnalysisComplete={handleAnalyze}
       />
       
       {/* Test buttons - remove after debugging */}
@@ -616,6 +604,15 @@ function addFeatureOverlays(map: mapboxgl.Map, features: any[]) {
 
 function clearMapOverlays(map: mapboxgl.Map) {
   // Clear the rectangle from snip tool
+  if (map.getSource('snip-rectangle')) {
+    const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
+    source.setData({
+      type: 'FeatureCollection',
+      features: []
+    });
+  }
+  
+  // Also clear old rectangle source if it exists
   if (map.getSource('rectangle')) {
     const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
     source.setData({
