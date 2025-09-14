@@ -97,7 +97,7 @@ export function InletSelect({ value, onChange, label }: Props) {
                 <span className="text-left">{inlet.name}</span>
               </div>
               {value === inlet.id && (
-                <span className="text-cyan-400">✓</span>
+                <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
               )}
             </button>
           ))}

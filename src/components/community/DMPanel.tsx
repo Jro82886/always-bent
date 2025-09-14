@@ -257,7 +257,7 @@ export default function DMPanel({ isOpen, onClose, targetUserId, targetUsername 
                   <div className="text-xs text-gray-500 mt-1">
                     {format(new Date(msg.created_at), 'h:mm a')}
                     {msg.read_at && msg.sender_id === userId && (
-                      <span className="ml-2">✓✓</span>
+                      <span className="ml-2 text-cyan-400">read</span>
                     )}
                   </div>
                 </div>

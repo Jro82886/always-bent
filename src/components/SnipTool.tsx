@@ -29,7 +29,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   // Clear when parent tells us to
   useEffect(() => {
     if (shouldClear) {
-      console.log('🔄 Parent requested clear');
+      console.log('[CLEAR] Parent requested clear');
       clearDrawing();
       // Ensure we're ready for new drawing
       setIsDrawing(false);
@@ -53,7 +53,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       });
     }
     
-    console.log('🧹 Drawing cleared');
+    console.log('[CLEARED] Drawing cleared');
   };
 
   // Setup layers once when component mounts
@@ -61,19 +61,19 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     if (!map) return;
     
     const setupLayers = () => {
-      console.log('🔧 Setting up rectangle layers...');
+      console.log('[SETUP] Setting up rectangle layers...');
       try {
         // Remove existing if any
         if (map.getLayer('rectangle-fill')) {
-          console.log('🗑️ Removing existing fill layer');
+          console.log('[REMOVE] Removing existing fill layer');
           map.removeLayer('rectangle-fill');
         }
         if (map.getLayer('rectangle-outline')) {
-          console.log('🗑️ Removing existing outline layer');
+          console.log('[REMOVE] Removing existing outline layer');
           map.removeLayer('rectangle-outline');
         }
         if (map.getSource('rectangle')) {
-          console.log('🗑️ Removing existing source');
+          console.log('[REMOVE] Removing existing source');
           map.removeSource('rectangle');
         }
 
@@ -137,9 +137,9 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         map.on('zoomend', ensureOnTop);
         map.on('sourcedata', ensureOnTop);
         
-        console.log('✅ Rectangle layers setup complete');
+        console.log('[COMPLETE] Rectangle layers setup complete');
       } catch (error) {
-        console.error('❌ Error setting up rectangle layers:', error);
+        console.error('[ERROR] Setting up rectangle layers:', error);
       }
     };
 
@@ -170,7 +170,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       firstCorner.current = coords;
       isDragging.current = true;
       
-      console.log('🖱️ Started dragging from:', coords, 'isDrawing:', isDrawingRef.current);
+      console.log('[DRAG] Started dragging from:', coords, 'isDrawing:', isDrawingRef.current);
       
       // Show initial point with bright color
       const point: GeoJSON.FeatureCollection = {
@@ -226,7 +226,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       const area = turf.area(rectangle);
       const areaKm2 = area / 1000000;
       
-      console.log('✅ Rectangle completed:', {
+      console.log('[COMPLETE] Rectangle completed:', {
         area: `${areaKm2.toFixed(2)} km²`,
         bounds: [corner1, corner2]
       });
@@ -239,7 +239,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       setIsAnalyzing(true);
       firstCorner.current = null;
       
-      console.log('🎯 Analysis state set, isAnalyzing:', true);
+      console.log('[ANALYZE] State set, isAnalyzing:', true);
 
       // Add pulsing animation to the rectangle
       if (map.getLayer('rectangle-fill')) {
@@ -280,28 +280,28 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
       // Trigger analysis
       if (onAnalyze) {
-        console.log('🔄 Triggering analysis with rectangle:', rectangle);
-        console.log('📍 Rectangle coordinates:', rectangle.geometry.coordinates);
-        console.log('🔍 onAnalyze function exists:', typeof onAnalyze);
+        console.log('[TRIGGER] Analysis with rectangle:', rectangle);
+        console.log('[COORDS] Rectangle coordinates:', rectangle.geometry.coordinates);
+        console.log('[CHECK] onAnalyze function exists:', typeof onAnalyze);
         
         // Small delay for visual feedback, then call the parent's analysis
         setTimeout(async () => {
-          console.log('📊 Calling onAnalyze callback...');
+          console.log('[CALL] onAnalyze callback...');
           console.log('⏱️ About to call onAnalyze at:', new Date().toISOString());
           try {
             const result = await onAnalyze(rectangle);
-            console.log('✅ onAnalyze completed successfully, result:', result);
+            console.log('[SUCCESS] onAnalyze completed, result:', result);
           } catch (error) {
-            console.error('❌ onAnalyze failed:', error);
+            console.error('[FAILED] onAnalyze error:', error);
             console.error('Stack trace:', (error as Error).stack);
           } finally {
             // Only reset our local analyzing state after parent completes
-            console.log('🏁 Finally block: resetting isAnalyzing state');
+            console.log('[FINALLY] Resetting isAnalyzing state');
             setIsAnalyzing(false);
           }
         }, 1000); // 1 second for visual feedback
       } else {
-        console.error('⚠️ No onAnalyze callback provided!');
+        console.error('[WARNING] No onAnalyze callback provided!');
         setIsAnalyzing(false);
         clearRectangle();
       }
@@ -352,10 +352,10 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         
         // Log every 10th mouse move to avoid spam
         if (Math.random() < 0.1) {
-          console.log('👁️ Preview updating, area:', areaKm2.toFixed(2), 'km²');
+          console.log('[PREVIEW] Updating area:', areaKm2.toFixed(2), 'km²');
         }
       } else {
-        console.error('❌ Rectangle source not found during preview!');
+        console.error('[ERROR] Rectangle source not found during preview!');
       }
     };
 
@@ -363,7 +363,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isDrawing) {
         clearDrawing();
-        console.log('❌ Drawing cancelled');
+        console.log('[CANCEL] Drawing cancelled');
       }
     };
 
@@ -387,13 +387,13 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       map.dragPan.disable();  // Disable map dragging
       map.boxZoom.disable();  // Disable box zoom
       map.doubleClickZoom.disable();  // Disable double click zoom
-      console.log('🔒 Map interactions disabled for drawing');
+      console.log('[LOCK] Map interactions disabled for drawing');
     } else {
       map.getCanvas().style.cursor = '';
       map.dragPan.enable();   // Re-enable map dragging
       map.boxZoom.enable();   // Re-enable box zoom
       map.doubleClickZoom.enable();  // Re-enable double click zoom
-      console.log('🔓 Map interactions re-enabled');
+      console.log('[UNLOCK] Map interactions re-enabled');
     }
 
     // Cleanup
@@ -413,7 +413,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   const clearRectangle = () => {
     if (!map) return;
     
-    console.log('🧹 Clearing rectangle...');
+    console.log('[CLEAR] Clearing rectangle...');
     
     // Clear the rectangle data
     if (map.getSource('rectangle')) {
@@ -435,7 +435,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   // Handle shouldClear prop from parent
   useEffect(() => {
     if (shouldClear) {
-      console.log('🧹 Parent requested clear');
+      console.log('[CLEAR] Parent requested clear');
       clearRectangle();
     }
   }, [shouldClear]);
@@ -446,8 +446,8 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       return;
     }
     
-    console.log('🚀 Starting drawing mode...');
-    console.log('📍 Current map state:', {
+    console.log('[START] Drawing mode...');
+    console.log('[STATE] Current map:', {
       loaded: map.loaded(),
       hasRectangleSource: !!map.getSource('rectangle'),
       hasRectangleLayers: !!map.getLayer('rectangle-fill')
@@ -464,9 +464,9 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         type: 'FeatureCollection',
         features: []
       });
-      console.log('✅ Cleared existing rectangle');
+      console.log('[CLEARED] Existing rectangle');
     } else {
-      console.error('⚠️ Rectangle source not found! Layers may not be initialized');
+      console.error('[WARNING] Rectangle source not found! Layers may not be initialized');
     }
     
     // Set cursor immediately
@@ -479,15 +479,15 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     
     // Verify the changes took effect
     setTimeout(() => {
-      console.log('🎯 Rectangle drawing mode verification:');
-      console.log('📍 isDrawing state:', true);
-      console.log('📍 isDrawingRef current value:', isDrawingRef.current);
-      console.log('📍 Map drag disabled:', !map.dragPan.isEnabled());
-      console.log('📍 Box zoom disabled:', !map.boxZoom.isEnabled());
-      console.log('📍 Double click zoom disabled:', !map.doubleClickZoom.isEnabled());
-      console.log('📍 Cursor:', map.getCanvas().style.cursor);
-      console.log('📍 firstCorner:', firstCorner.current);
-      console.log('📍 isDragging:', isDragging.current);
+      console.log('[VERIFY] Rectangle drawing mode:');
+      console.log('[STATE] isDrawing:', true);
+      console.log('[STATE] isDrawingRef:', isDrawingRef.current);
+      console.log('[STATE] Map drag disabled:', !map.dragPan.isEnabled());
+      console.log('[STATE] Box zoom disabled:', !map.boxZoom.isEnabled());
+      console.log('[STATE] Double click zoom disabled:', !map.doubleClickZoom.isEnabled());
+      console.log('[STATE] Cursor:', map.getCanvas().style.cursor);
+      console.log('[STATE] firstCorner:', firstCorner.current);
+      console.log('[STATE] isDragging:', isDragging.current);
     }, 100);
   };
 
@@ -533,7 +533,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         >
           {isAnalyzing ? (
             <>
-              <span className="animate-spin">⚙️</span> Analyzing Ocean Data...
+              <svg className="inline-block w-4 h-4 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analyzing Ocean Data...
             </>
           ) : isDrawing ? (
             <>

@@ -28,14 +28,14 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
     console.log('[ANALYZE] handleAnalyze called with polygon:', polygon);
-    console.log('📋 Polygon type:', polygon.geometry.type);
+    console.log('[TYPE] Polygon type:', polygon.geometry.type);
     if (polygon.geometry.type === 'Polygon') {
       const polyGeom = polygon.geometry as GeoJSON.Polygon;
-      console.log('📏 Polygon coordinates count:', polyGeom.coordinates[0]?.length);
+      console.log('[COUNT] Polygon coordinates:', polyGeom.coordinates[0]?.length);
     }
     
     if (!map) {
-      console.error('❌ No map available for analysis');
+      console.error('[ERROR] No map available for analysis');
       return;
     }
     
@@ -110,17 +110,17 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       if (analysis.hotspot) {
         setHotspotPosition(analysis.hotspot.location);
         setShowHotspot(true);
-        console.log('💙 Hotspot location:', analysis.hotspot.location);
+        console.log('[HOTSPOT] Location:', analysis.hotspot.location);
         
         // Show toast notification instead of modal immediately
         showHotspotToast(() => {
-          console.log('🎭 User clicked toast - showing analysis modal');
+          console.log('[CLICK] User clicked toast - showing analysis modal');
           setShowModal(true);
         });
         
         // Don't auto-show modal - let user click hotspot or toast
       } else {
-        console.warn('⚠️ No hotspot found in analysis');
+        console.warn('[WARNING] No hotspot found in analysis');
         // For non-hotspot, show educational modal immediately
         setTimeout(() => {
           setShowModal(true);
@@ -133,7 +133,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       // }
       
     } catch (error) {
-      console.error('❌ Analysis failed with error:', error);
+      console.error('[ERROR] Analysis failed:', error);
       console.error('Error stack:', (error as Error).stack);
       alert(`Analysis failed: ${(error as Error).message}`);
       
@@ -158,7 +158,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     if (!currentAnalysis) return;
     
     try {
-      console.log('💾 Saving analysis...');
+      console.log('[SAVE] Saving analysis...');
       
       // Prepare data for saving
       const isTestMode = process.env.NODE_ENV === 'development' || 
@@ -199,7 +199,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         console.log('[SAVED] Analysis saved to database:', result);
         saved = true;
       } catch (dbError) {
-        console.warn('⚠️ Database save failed, saving locally:', dbError);
+        console.warn('[WARNING] Database save failed, saving locally:', dbError);
         // Fallback to localStorage if Supabase is not configured
         const localAnalyses = JSON.parse(localStorage.getItem('abfi_analyses') || '[]');
         localAnalyses.push({
@@ -208,7 +208,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           saved_at: new Date().toISOString()
         });
         localStorage.setItem('abfi_analyses', JSON.stringify(localAnalyses));
-        console.log('💾 Analysis saved to local storage');
+        console.log('[SAVED] Analysis saved to local storage');
         saved = true;
       }
       
@@ -227,13 +227,13 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         }, 1500);
       }
     } catch (error) {
-      console.error('❌ Failed to save analysis:', error);
+      console.error('[ERROR] Failed to save analysis:', error);
       alert('Failed to save analysis. Please try again.');
     }
   }, [currentAnalysis]);
 
   const handleCloseModal = useCallback(() => {
-    console.log('🔄 Resetting for new snip');
+    console.log('[RESET] Resetting for new snip');
     
     // 1. Close modal
     setShowModal(false);
@@ -261,7 +261,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
 
   // Test function to simulate analysis
   const testAnalysis = () => {
-    console.log('🧪 TEST: Triggering mock analysis');
+    console.log('[TEST] Triggering mock analysis');
     const mockPolygon: GeoJSON.Feature = {
       type: 'Feature',
       geometry: {
@@ -294,7 +294,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
             onClick={testAnalysis}
             className="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-purple-700"
           >
-            🧪 Test Analysis
+            Test Analysis
           </button>
           <button
             onClick={() => {
@@ -382,7 +382,7 @@ function showSaveSuccessToast() {
   toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50';
   toast.innerHTML = `
     <div class="bg-gradient-to-r from-green-500 to-cyan-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3">
-      <span class="text-2xl">💾</span>
+      <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2"></path></svg>
       <span class="font-bold">Analysis Saved to Community!</span>
       <span class="text-sm opacity-90">Helping others find fish</span>
     </div>

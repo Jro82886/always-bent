@@ -156,7 +156,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                         <span className="text-left truncate">{inlet.name}</span>
                       </div>
                       {selectedInletId === inlet.id && (
-                        <span className="text-cyan-400 text-[10px]">✓</span>
+                        <svg className="w-3 h-3 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                       )}
                     </button>
                   ))}

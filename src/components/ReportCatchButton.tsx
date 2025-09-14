@@ -212,7 +212,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
             left: 50%;
             transform: translateX(-50%);
             font-size: 20px;
-          ">🎣</div>
+          "><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
         </div>
       `;
       
@@ -247,7 +247,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
     toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-br from-emerald-600 via-cyan-600 to-blue-600 text-white px-10 py-6 rounded-2xl shadow-2xl z-[70] animate-slide-down border border-cyan-400/50';
     toast.innerHTML = `
       <div class="text-center">
-        <div class="text-2xl font-bold mb-2">🎣 Congratulations! You Got a Bite!</div>
+        <div class="text-2xl font-bold mb-2 flex items-center justify-center gap-2"><svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg> Congratulations! You Got a Bite!</div>
         <div class="text-sm opacity-90 mb-3">Your bite has been recorded to ABFI Intelligence</div>
         <div class="bg-black/20 rounded-lg px-4 py-3 text-xs space-y-1">
           <div class="flex justify-between"><span class="opacity-70">Captain:</span><span class="font-semibold">${localStorage.getItem('abfi_captain_name') || 'Unknown'}</span></div>
@@ -303,7 +303,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         {/* Tooltip on hover */}
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-72">
           <div className="bg-gradient-to-br from-cyan-950/95 to-blue-950/95 text-white text-sm rounded-lg px-4 py-3 border border-cyan-500/20">
-            <div className="font-bold mb-2 text-cyan-300 text-base">🧠 ABFI Intelligence Hub</div>
+            <div className="font-bold mb-2 text-cyan-300 text-base flex items-center gap-2"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg> ABFI Intelligence Hub</div>
             <div className="text-xs leading-relaxed mb-2 text-cyan-100/90">
               This is your "BITE" button - tap to instantly log any fish activity at your location. Every bite, nibble, or fish-on contributes to our collective ocean intelligence.
             </div>
