@@ -39,10 +39,12 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
   const clearDrawing = () => {
     setIsDrawing(false);
+    isDrawingRef.current = false;
     setIsAnalyzing(false);
     firstCorner.current = null;
     currentRectangle.current = null;
     setCurrentArea(0);
+    isDragging.current = false;
     
     // Clear visualization and re-enable map dragging
     if (map) {
@@ -56,25 +58,58 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       map.getCanvas().style.cursor = '';
       map.dragPan.enable();
       map.dragRotate.enable();
+      map.doubleClickZoom.enable();
     }
   };
 
   const startDrawing = () => {
-    if (isDrawing || isAnalyzing || !map) {
-      console.log('[SKIP] Cannot start:', { isDrawing, isAnalyzing, hasMap: !!map });
+    console.log('[START] Attempting to start drawing mode');
+    console.log('[STATE] Current state:', { 
+      isDrawing, 
+      isAnalyzing, 
+      hasMap: !!map,
+      mapId: map?.getContainer().id,
+      isDragging: isDragging.current 
+    });
+    
+    if (!map) {
+      console.log('[ERROR] No map available');
       return;
     }
     
-    console.log('[START] Starting drawing mode');
-    setIsDrawing(true);
-    firstCorner.current = null;
+    if (isAnalyzing) {
+      console.log('[SKIP] Analysis in progress');
+      return;
+    }
     
-    // Change cursor
+    // Force clear any existing state
+    if (isDrawing) {
+      console.log('[CLEAR] Clearing existing drawing state');
+      clearDrawing();
+    }
+    
+    console.log('[START] Starting drawing mode NOW');
+    
+    // Reset all states
+    isDragging.current = false;
+    firstCorner.current = null;
+    currentRectangle.current = null;
+    setCurrentArea(0);
+    
+    // Set drawing state
+    setIsDrawing(true);
+    isDrawingRef.current = true;
+    
+    // Change cursor to crosshair
     map.getCanvas().style.cursor = 'crosshair';
     
-    // Disable map dragging while drawing
+    // Disable map interactions
     map.dragPan.disable();
-    map.dragRotate.disable();
+    map.dragRotate.disable(); 
+    map.doubleClickZoom.disable();
+    
+    console.log('[READY] Drawing mode ACTIVE - click to place first corner');
+    console.log('[READY] isDrawingRef.current =', isDrawingRef.current);
   };
 
   const calculateArea = (polygon: GeoJSON.Feature<GeoJSON.Polygon>): number => {
@@ -85,7 +120,12 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   };
 
   const handleMapClick = async (e: mapboxgl.MapMouseEvent) => {
-    console.log('[CLICK] Map clicked, isDrawing:', isDrawingRef.current, 'isDragging:', isDragging.current);
+    console.log('[CLICK] Map clicked at:', e.lngLat.lng, e.lngLat.lat);
+    console.log('[CLICK] States:', {
+      isDrawingRef: isDrawingRef.current,
+      isDragging: isDragging.current,
+      firstCorner: firstCorner.current
+    });
     
     // Ignore clicks while dragging
     if (isDragging.current) {
@@ -95,7 +135,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     }
 
     if (!isDrawingRef.current) {
-      console.log('[SKIP] Not in drawing mode');
+      console.log('[SKIP] Not in drawing mode - isDrawingRef.current is false');
       return;
     }
 
@@ -157,10 +197,12 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         map.getCanvas().style.cursor = '';
         map.dragPan.enable();
         map.dragRotate.enable();
+        map.doubleClickZoom.enable();
       }
       
       // End drawing mode
       setIsDrawing(false);
+      isDrawingRef.current = false;
       console.log('[COMPLETE] Rectangle drawn, ready for analysis');
       
       // Trigger analysis if callback provided
@@ -297,10 +339,10 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
     // Add click handler
     const clickHandler = (e: mapboxgl.MapMouseEvent) => {
-      // Use setTimeout to ensure drag detection works
-      setTimeout(() => {
+      // Only handle clicks when in drawing mode
+      if (isDrawingRef.current) {
         handleMapClick(e);
-      }, 10);
+      }
     };
     
     // Add mouse move handler for preview
