@@ -431,60 +431,60 @@ export default function TrackingPage() {
 
   return (
     <RequireUsername>
-    <div className="w-full h-screen bg-gray-950">
-    <MapShell>
-      <div className="pointer-events-none absolute inset-0">
-        <NavTabs />
-        <TopHUD includeAbfi={false} showLayers={false} extraRight={
-          <div className="flex items-center gap-2">
-            <GeoControls />
+      <div className="w-full h-screen bg-gray-950">
+        <MapShell>
+          <div className="pointer-events-none absolute inset-0">
+            <NavTabs />
+            <TopHUD includeAbfi={false} showLayers={false} extraRight={
+              <div className="flex items-center gap-2">
+                <GeoControls />
+              </div>
+            } />
+            
+            {/* Fleet Command Center - Modern Tracking UI */}
+            <FleetCommand 
+              isTracking={isTracking}
+              onToggleTracking={() => setIsTracking(!isTracking)}
+              fleetCount={fleetData?.total_active || 0}
+              fishingCount={fleetData?.fishing_now || 0}
+              showFleet={showVessels}
+              onToggleFleet={() => {
+                if (!isTracking) {
+                  setShowVessels(true); // Trigger the fair sharing notice
+                } else {
+                  setShowVessels(!showVessels);
+                }
+              }}
+              showTrails={showTrails}
+              onToggleTrails={() => setShowTrails(!showTrails)}
+              showGFW={showGFW}
+              onToggleGFW={() => setShowGFW(!showGFW)}
+              userSpeed={pos && lastPosition ? calculateSpeed(lastPosition, pos) : 0}
+              userHeading={pos && lastPosition ? calculateHeading(lastPosition, pos) : 0}
+              boatName={boatName || 'My Vessel'}
+            />
           </div>
-        } />
-        
-        {/* Fleet Command Center - Modern Tracking UI */}
-        <FleetCommand 
-          isTracking={isTracking}
-          onToggleTracking={() => setIsTracking(!isTracking)}
-          fleetCount={fleetData?.total_active || 0}
-          fishingCount={fleetData?.fishing_now || 0}
-          showFleet={showVessels}
-          onToggleFleet={() => {
-            if (!isTracking) {
-              setShowVessels(true); // Trigger the fair sharing notice
-            } else {
-              setShowVessels(!showVessels);
-            }
-          }}
-          showTrails={showTrails}
-          onToggleTrails={() => setShowTrails(!showTrails)}
-          showGFW={showGFW}
-          onToggleGFW={() => setShowGFW(!showGFW)}
-          userSpeed={pos && lastPosition ? calculateSpeed(lastPosition, pos) : 0}
-          userHeading={pos && lastPosition ? calculateHeading(lastPosition, pos) : 0}
-          boatName={boatName || 'My Vessel'}
-        />
+          
+          {/* Keep essential vessel tracking */}
+          <VesselTracker 
+            map={map} 
+            inletId={selectedInletId || 'overview'} 
+            enabled={showVessels}
+          />
+          
+          {/* User position dot */}
+          <UserDot pos={pos} color={colorForInlet(selectedInletId)} label={boatName || username || 'You'} />
+          
+          {/* Location status message */}
+          {message && (
+            <div className="absolute bottom-4 right-4 z-20 bg-gray-950/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm max-w-xs">
+              {message}. Make sure location services are enabled.
+            </div>
+          )}
+          
+          <DevOverlay />
+        </MapShell>
       </div>
-      
-      {/* Keep essential vessel tracking */}
-      <VesselTracker 
-        map={map} 
-        inletId={selectedInletId || 'overview'} 
-        enabled={showVessels}
-      />
-      
-      {/* User position dot */}
-      <UserDot pos={pos} color={colorForInlet(selectedInletId)} label={boatName || username || 'You'} />
-      
-      {/* Location status message */}
-      {message && (
-        <div className="absolute bottom-4 right-4 z-20 bg-gray-950/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm max-w-xs">
-          {message}. Make sure location services are enabled.
-        </div>
-      )}
-      
-      <DevOverlay />
-    </MapShell>
-    </div>
     </RequireUsername>
   );
 }
