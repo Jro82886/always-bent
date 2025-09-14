@@ -411,7 +411,7 @@ export default function TrackingPage() {
                   ${props?.boat_name}
                 </h3>
                 <div style="font-size: 12px; color: #e0e0e0;">
-                  <div>Status: <strong>${props?.is_fishing ? '🎣 Fishing' : '🚤 Moving'}</strong></div>
+                  <div>Status: <strong>${props?.is_fishing ? 'Fishing' : 'Moving'}</strong></div>
                   <div>Speed: <strong>${props?.speed?.toFixed(1) || '0'} kts</strong></div>
                   <div>Last update: <strong>${props?.minutes_ago} min ago</strong></div>
                 </div>

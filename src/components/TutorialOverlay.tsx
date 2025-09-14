@@ -113,7 +113,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps = {
         onComplete?.(); // Notify parent to unblur
         
         // Smooth, relaxing zoom to East Coast
-        console.log('🌊 Settling into the East Coast view...');
+        console.log('[ZOOM] Settling into the East Coast view...');
         
         // Zoom to FULL East Coast view (Maine to Florida Keys)
         const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]]; // Full coast from Keys to Maine
@@ -131,7 +131,7 @@ export default function TutorialOverlay({ onComplete }: TutorialOverlayProps = {
         // Set max bounds after zoom completes
         setTimeout(() => {
           map.setMaxBounds([[-85, 23], [-64, 47]]); // Slightly larger bounds for panning
-          console.log('🌊 East Coast view ready - Maine to the Keys');
+          console.log('[VIEW] East Coast ready - Maine to the Keys');
         }, 2600);
       }, 100); // Almost instant
     } else {

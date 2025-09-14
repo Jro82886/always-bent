@@ -25,7 +25,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   }, []);
   
   const handleReportCatch = () => {
-    console.log('🎣 ABFI button clicked! Location enabled:', locationEnabled);
+    console.log('[ABFI] Button clicked! Location enabled:', locationEnabled);
     
     if (!locationEnabled) {
       // Ask user to enable location services
@@ -108,7 +108,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
             align-items: center;
             justify-content: center;
             font-size: 24px;
-          ">🎣</div>
+          "><span style="filter: brightness(2);">⚡</span></div>
         `;
         
         // Add animation if needed
@@ -157,7 +157,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         setTimeout(() => toast.remove(), 300);
       }, 2500);
       
-      console.log('🎣 Bite logged:', biteData);
+      console.log('[BITE] Logged:', biteData);
     };
     
     // Get location and log immediately
@@ -190,7 +190,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   };
   
   const handleConfirmCatch = (data: any) => {
-    console.log('📊 Catch confirmed:', data);
+    console.log('[CATCH] Confirmed:', data);
     
     // Add a temporary marker on the map
     if (map && data.location) {

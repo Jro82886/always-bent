@@ -27,7 +27,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
   }, [showModal, onModalStateChange]);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
-    console.log('🎯 handleAnalyze called with polygon:', polygon);
+    console.log('[ANALYZE] handleAnalyze called with polygon:', polygon);
     console.log('📋 Polygon type:', polygon.geometry.type);
     if (polygon.geometry.type === 'Polygon') {
       const polyGeom = polygon.geometry as GeoJSON.Polygon;
@@ -39,7 +39,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       return;
     }
     
-    console.log('✅ Map is available, proceeding with analysis');
+    console.log('[OK] Map is available, proceeding with analysis');
     
     // Smooth delay before showing analyzing state
     setTimeout(() => {
@@ -52,14 +52,14 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
       ocean: map.getLayer('ocean-layer') && map.getLayoutProperty('ocean-layer', 'visibility') === 'visible'
     };
-    console.log('🔍 Active layers:', activeLayers);
-    console.log('🔍 Starting multi-layer analysis for polygon:', polygon);
+    console.log('[SCAN] Active layers:', activeLayers);
+    console.log('[SCAN] Starting multi-layer analysis for polygon:', polygon);
 
     try {
       // Get polygon bounds
       const bbox = turf.bbox(polygon);
       const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
-      console.log('📍 Polygon bounds:', bounds);
+      console.log('[BOUNDS] Polygon bounds:', bounds);
       
       // Query boat activity in the polygon area
       let boatActivity = null;
@@ -69,7 +69,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         if (response.ok) {
           const data = await response.json();
           boatActivity = data.analysis;
-          console.log('🚤 Boat activity:', boatActivity);
+          console.log('[FLEET] Boat activity:', boatActivity);
         }
       } catch (error) {
         console.error('Failed to fetch boat activity:', error);
@@ -80,7 +80,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       const sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
       const chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
       
-      console.log('📊 Generated mock data:', { 
+      console.log('[DATA] Generated mock data:', { 
         sst: sstData ? `${sstData.length} points` : 'inactive',
         chl: chlData ? `${chlData.length} points` : 'inactive'
       });
@@ -103,7 +103,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         }
       }
       
-      console.log('✅ Analysis complete:', analysis);
+      console.log('[COMPLETE] Analysis complete:', analysis);
       setCurrentAnalysis(analysis);
       
       // Show the pulsing cyan hotspot
@@ -141,7 +141,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       setShouldClearTool(true);
       setTimeout(() => setShouldClearTool(false), 100);
     } finally {
-      console.log('🏁 Analysis finished, setting isAnalyzing to false');
+      console.log('[DONE] Analysis finished, setting isAnalyzing to false');
       
       // Smooth fade out of analyzing state
       setTimeout(() => {
@@ -196,7 +196,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       let saved = false;
       try {
         const result = await saveSnipAnalysis(analysisData as any);
-        console.log('✅ Analysis saved to database:', result);
+        console.log('[SAVED] Analysis saved to database:', result);
         saved = true;
       } catch (dbError) {
         console.warn('⚠️ Database save failed, saving locally:', dbError);
@@ -252,7 +252,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     setShouldClearTool(true);
     setTimeout(() => {
       setShouldClearTool(false);
-      console.log('✅ Ready for new snip!');
+      console.log('[READY] Ready for new snip!');
       
       // Show subtle feedback that tool is ready
       showReadyToSnipToast();
@@ -298,7 +298,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           </button>
           <button
             onClick={() => {
-              console.log('🔍 Checking SnipTool state...');
+              console.log('[DEBUG] Checking SnipTool state...');
               console.log('Map exists:', !!map);
               if (map) {
                 console.log('Rectangle source exists:', !!map.getSource('rectangle'));
@@ -307,7 +307,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
             }}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700"
           >
-            🔍 Check State
+            Debug State
           </button>
         </div>
       )}
@@ -317,7 +317,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         position={hotspotPosition}
         visible={showHotspot}
         onClick={() => {
-          console.log('🎯 Hotspot marker clicked - showing analysis');
+          console.log('[HOTSPOT] Marker clicked - showing analysis');
           setShowModal(true);
         }}
       />
@@ -355,7 +355,7 @@ function showReadyToSnipToast() {
   toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40';
   toast.innerHTML = `
     <div class="bg-gray-800/90 text-cyan-300 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm">
-      <span>✂️</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
       <span>Ready to snip again!</span>
     </div>
   `;
@@ -384,7 +384,7 @@ function showSaveSuccessToast() {
     <div class="bg-gradient-to-r from-green-500 to-cyan-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3">
       <span class="text-2xl">💾</span>
       <span class="font-bold">Analysis Saved to Community!</span>
-      <span class="text-sm opacity-90">Helping others find fish 🎣</span>
+      <span class="text-sm opacity-90">Helping others find fish</span>
     </div>
   `;
   
@@ -412,7 +412,7 @@ function showHotspotToast(onClickCallback: () => void) {
   toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-slide-down';
   toast.innerHTML = `
     <div class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 cursor-pointer hover:scale-105 transition-transform">
-      <span class="text-2xl animate-pulse">🎯</span>
+      <svg class="w-8 h-8 animate-pulse text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
       <span class="font-bold">Hotspot Detected!</span>
       <span class="text-sm opacity-90">Click to see analysis</span>
     </div>

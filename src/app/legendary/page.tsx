@@ -51,7 +51,7 @@ export default function LegendaryOceanPlatform() {
     if (inlet) {
       // Use proper Gulf Stream view for each inlet
       flyToInlet60nm(map.current, inlet);
-      console.log(`📍 Flying to inlet with Gulf Stream view: ${inlet.name}`);
+      console.log(`[NAV] Flying to inlet with Gulf Stream view: ${inlet.name}`);
     }
   }, [selectedInletId]);
   
@@ -96,14 +96,14 @@ export default function LegendaryOceanPlatform() {
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
     mapInstance.on('load', () => {
-      console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
+      console.log('[INIT] LEGENDARY OCEAN PLATFORM INITIALIZED');
       
       // Check if tutorial has been seen
       const tutorialSeen = localStorage.getItem('abfi_tutorial_seen');
       
       if (tutorialSeen === 'true') {
         // Tutorial already seen - go straight to East Coast view
-        console.log('🎣 Tutorial already completed - zooming to East Coast');
+        console.log('[TUTORIAL] Already completed - zooming to East Coast');
         const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]];
         mapInstance.fitBounds(EAST_COAST_BOUNDS as any, {
           padding: { top: 50, bottom: 50, left: 50, right: 50 },
@@ -132,7 +132,7 @@ export default function LegendaryOceanPlatform() {
       setTimeout(() => {
         const layers = mapInstance.getStyle().layers;
         console.log('🗺️ Available layers:', layers.map(l => l.id));
-        console.log('🌊 Ocean layer exists:', !!mapInstance.getLayer('ocean-layer'));
+        console.log('[OCEAN] Layer exists:', !!mapInstance.getLayer('ocean-layer'));
         console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-lyr'));
         console.log('🌿 CHL layer exists:', !!mapInstance.getLayer('chl-lyr'));
       }, 2000);
@@ -202,25 +202,25 @@ export default function LegendaryOceanPlatform() {
         }, firstSymbolId);  // Place below labels and land
       }
 
-      console.log('🌊 ESRI Ocean Basemap layer added (bathymetry) - Atlantic East Coast coverage');
+      console.log('[BASEMAP] ESRI Ocean layer added (bathymetry) - Atlantic East Coast coverage');
       console.log('🌡️ Copernicus SST layer added - High resolution temperature data');
       console.log('🌿 Copernicus Chlorophyll layer added - High resolution ocean color data');
 
       // Debug: Check if Copernicus is configured
       // Copernicus credentials are backend-only, frontend doesn't need them
-      console.log('🔍 SST tiles configured - using backend API proxy');
+      console.log('[SST] Tiles configured - using backend API proxy');
       (window as any).map = mapInstance;
     });
 
     // 🔒 Additional error handling (backup)
 
     mapInstance.on('sourcedataloading', (e: any) => {
-      console.log('📡 Loading data for source:', e.sourceId);
+      console.log('[LOADING] Data for source:', e.sourceId);
     });
 
     mapInstance.on('sourcedata', (e: any) => {
       if (e.isSourceLoaded) {
-        console.log('✅ Data loaded for source:', e.sourceId);
+        console.log('[LOADED] Data for source:', e.sourceId);
       }
     });
 
@@ -280,7 +280,7 @@ export default function LegendaryOceanPlatform() {
         map.current.triggerRepaint();
       }
     }
-    console.log(`🌊 ESRI Ocean Basemap ${newState ? 'ON' : 'OFF'}`);
+    console.log(`[BASEMAP] ESRI Ocean ${newState ? 'ON' : 'OFF'}`);
   };
 
   // Initialize layer defaults
