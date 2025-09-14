@@ -1,11 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Target, ChevronDown, ChevronUp, ArrowLeftRight, Radio, Brain, Activity, Map, Navigation } from 'lucide-react';
+import { Target, ChevronDown, ChevronUp, Radio, Brain, Activity, Map, Navigation } from 'lucide-react';
 
 interface UnifiedRightPanelProps {
   onAnalyze: () => void;
-  onModeSwitch: () => void;
   currentMode: 'analysis' | 'tracking';
   isTracking?: boolean;
   onStartTracking?: () => void;
@@ -14,7 +13,6 @@ interface UnifiedRightPanelProps {
 
 export default function UnifiedRightPanel({ 
   onAnalyze, 
-  onModeSwitch,
   currentMode,
   isTracking = false,
   onStartTracking,
@@ -172,7 +170,7 @@ export default function UnifiedRightPanel({
       </div>
 
       {/* Legend Section */}
-      <div className="bg-slate-900/80 backdrop-blur-md border-x border-cyan-500/20">
+      <div className={`bg-slate-900/80 backdrop-blur-md ${currentMode === 'analysis' ? 'border-x' : 'rounded-b-xl border border-t-0'} border-cyan-500/20`}>
         <button
           onClick={() => setLegendExpanded(!legendExpanded)}
           className="w-full px-4 py-2 flex items-center justify-between hover:bg-slate-800/50 transition-colors border-b border-cyan-500/10"
@@ -229,54 +227,28 @@ export default function UnifiedRightPanel({
         )}
       </div>
 
-      {/* Mode Switch Section */}
+      {/* Current Mode Indicator - Subtle */}
       <div className="bg-slate-900/80 backdrop-blur-md rounded-b-xl border border-cyan-500/20 border-t-0">
-        <div className="px-4 py-3 space-y-3">
-          {/* Current Mode Indicator */}
+        <div className="px-4 py-2">
           <div className="flex items-center justify-center">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700/50">
+            <div className="flex items-center gap-2 px-2 py-1 bg-slate-800/30 rounded">
               {currentMode === 'analysis' ? (
                 <>
-                  <Brain size={12} className="text-cyan-400" />
-                  <span className="text-[10px] font-medium text-cyan-300 uppercase tracking-wider">
-                    Historical Intelligence
+                  <Brain size={10} className="text-cyan-400/70" />
+                  <span className="text-[9px] font-medium text-cyan-300/70 uppercase tracking-wider">
+                    Historical Mode
                   </span>
                 </>
               ) : (
                 <>
-                  <Radio size={12} className="text-orange-400 animate-pulse" />
-                  <span className="text-[10px] font-medium text-orange-300 uppercase tracking-wider">
-                    Live Fleet Tracking
+                  <Radio size={10} className="text-orange-400/70" />
+                  <span className="text-[9px] font-medium text-orange-300/70 uppercase tracking-wider">
+                    Live Mode
                   </span>
                 </>
               )}
             </div>
           </div>
-
-          {/* Mode Switch Button */}
-          <button
-            onClick={onModeSwitch}
-            className={`w-full px-3 py-2 rounded-lg text-xs font-medium 
-                     transition-all duration-200 flex items-center justify-center gap-2
-                     ${currentMode === 'analysis' 
-                       ? 'bg-gradient-to-r from-orange-500/10 to-orange-600/10 hover:from-orange-500/20 hover:to-orange-600/20 text-orange-300 border border-orange-500/30'
-                       : 'bg-gradient-to-r from-cyan-500/10 to-cyan-600/10 hover:from-cyan-500/20 hover:to-cyan-600/20 text-cyan-300 border border-cyan-500/30'
-                     }`}
-          >
-            <ArrowLeftRight size={12} />
-            <span>Switch to</span>
-            {currentMode === 'analysis' ? (
-              <>
-                <Radio size={12} className="text-orange-400" />
-                <span className="font-bold">Live Tracking</span>
-              </>
-            ) : (
-              <>
-                <Brain size={12} className="text-cyan-400" />
-                <span className="font-bold">Historical Analysis</span>
-              </>
-            )}
-          </button>
         </div>
       </div>
     </div>

@@ -6,10 +6,9 @@ import UnifiedRightPanel from '@/components/UnifiedRightPanel';
 interface RightZoneProps {
   map: mapboxgl.Map | null;
   onModalStateChange?: (isOpen: boolean) => void;
-  onModeSwitch?: () => void;
 }
 
-export default function RightZone({ map, onModalStateChange, onModeSwitch }: RightZoneProps) {
+export default function RightZone({ map, onModalStateChange }: RightZoneProps) {
   const [snipControllerRef, setSnipControllerRef] = useState<any>(null);
   
   const handleModalStateChange = (isOpen: boolean) => {
@@ -32,13 +31,10 @@ export default function RightZone({ map, onModalStateChange, onModeSwitch }: Rig
       </div>
       
       {/* Unified Right Panel - Visible UI */}
-      {onModeSwitch && (
-        <UnifiedRightPanel 
-          onAnalyze={handleAnalyze}
-          onModeSwitch={onModeSwitch}
-          currentMode="analysis"
-        />
-      )}
+      <UnifiedRightPanel 
+        onAnalyze={handleAnalyze}
+        currentMode="analysis"
+      />
     </>
   );
 }

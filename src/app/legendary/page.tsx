@@ -17,6 +17,7 @@ import TrendsMode from '@/components/trends/TrendsMode';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
 import UnifiedRightPanel from '@/components/UnifiedRightPanel';
+import CompactModeSwitcher from '@/components/CompactModeSwitcher';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -386,7 +387,6 @@ export default function LegendaryOceanPlatform() {
           <RightZone 
             map={map.current} 
             onModalStateChange={setIsAnalysisModalOpen}
-            onModeSwitch={() => setActiveTab('tracking')}
           />
           
           {/* Inlet Regions - Subtle colored boundaries for each inlet */}
@@ -416,6 +416,12 @@ export default function LegendaryOceanPlatform() {
           {!showingTutorial && (
             <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
           )}
+          
+          {/* Compact Mode Switcher - Small beacon near zoom controls */}
+          <CompactModeSwitcher 
+            currentMode="analysis" 
+            onSwitch={() => setActiveTab('tracking')}
+          />
         </>
       )}
       
@@ -434,8 +440,13 @@ export default function LegendaryOceanPlatform() {
           {/* Unified Right Panel for Tracking */}
           <UnifiedRightPanel 
             currentMode="tracking"
-            onModeSwitch={() => setActiveTab('analysis')}
             onAnalyze={() => {}}
+          />
+          
+          {/* Compact Mode Switcher - Small beacon near zoom controls */}
+          <CompactModeSwitcher 
+            currentMode="tracking" 
+            onSwitch={() => setActiveTab('analysis')}
           />
         </>
       )}
