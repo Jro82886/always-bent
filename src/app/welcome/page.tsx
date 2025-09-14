@@ -64,7 +64,7 @@ export default function WelcomePage() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       {/* Subtle ocean background - static, no animation */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 via-transparent to-transparent" />
@@ -92,7 +92,7 @@ export default function WelcomePage() {
         <div className="relative">
           {/* Subtle glow behind card */}
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/10 to-teal-500/10 rounded-2xl blur-xl" />
-          <div className="relative bg-black/60 backdrop-blur-xl rounded-2xl border border-cyan-500/20 p-8 shadow-2xl">
+          <div className="relative bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-cyan-500/20 p-8 shadow-2xl">
           {/* Captain Name Input */}
           <div className="mb-6">
             <label className="flex items-center gap-2.5 text-sm font-semibold mb-2">

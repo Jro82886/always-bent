@@ -78,7 +78,7 @@ export default function CommunityPage() {
 
   return (
     <RequireUsername>
-      <main className="h-screen w-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+      <main className="h-screen w-screen bg-slate-900 text-white relative overflow-hidden">
         {/* Blurred Map Background */}
         <div ref={mapContainer} className="absolute inset-0 z-0" />
         

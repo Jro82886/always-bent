@@ -8,7 +8,7 @@ export default function GfwPage() {
   const placeholder = 'https://example.com';
   return (
     <RequireUsername>
-    <main className="h-screen w-screen bg-black text-white">
+    <main className="h-screen w-screen bg-slate-900 text-white">
       <div className="pointer-events-none absolute inset-0">
         <NavTabs />
         <TopHUD includeAbfi={false} />
