@@ -14,24 +14,15 @@ interface FishingReport {
 
 // Species with colors matching the app style
 const ALL_SPECIES = [
-  // Offshore
-  { id: 'bluefin', name: 'Bluefin Tuna', emoji: '🐟', color: '#3b82f6', category: 'OFFSHORE' },
-  { id: 'yellowfin', name: 'Yellowfin Tuna', emoji: '🐠', color: '#fbbf24', category: 'OFFSHORE' },
-  { id: 'bigeye', name: 'Bigeye Tuna', emoji: '🐟', color: '#8b5cf6', category: 'OFFSHORE' },
-  { id: 'mahi', name: 'Mahi Mahi', emoji: '🐠', color: '#10b981', category: 'OFFSHORE' },
-  { id: 'wahoo', name: 'Wahoo', emoji: '🐟', color: '#06b6d4', category: 'OFFSHORE' },
-  { id: 'marlin', name: 'Marlin', emoji: '🐟', color: '#6366f1', category: 'OFFSHORE' },
-  
-  // Inshore
-  { id: 'striped-bass', name: 'Striped Bass', emoji: '🐟', color: '#64748b', category: 'INSHORE' },
-  { id: 'bluefish', name: 'Bluefish', emoji: '🐟', color: '#0ea5e9', category: 'INSHORE' },
-  { id: 'fluke', name: 'Fluke', emoji: '🐟', color: '#a8a29e', category: 'INSHORE' },
-  { id: 'seabass', name: 'Sea Bass', emoji: '🐟', color: '#525252', category: 'INSHORE' },
-  { id: 'tautog', name: 'Tautog', emoji: '🐟', color: '#78716c', category: 'INSHORE' },
-  
-  // Other
-  { id: 'shark', name: 'Shark', emoji: '🦈', color: '#ef4444', category: 'OTHER' },
-  { id: 'unknown', name: 'Unknown/Other', emoji: '❓', color: '#9ca3af', category: 'OTHER' }
+  { id: 'bigeye', name: 'BIG EYE TUNA', emoji: '🐟', color: '#8b5cf6' },
+  { id: 'yellowfin', name: 'YELLOWFIN TUNA', emoji: '🐠', color: '#fbbf24' },
+  { id: 'bluefin', name: 'BLUEFIN TUNA', emoji: '🐟', color: '#3b82f6' },
+  { id: 'mahi', name: 'MAHI', emoji: '🐠', color: '#10b981' },
+  { id: 'wahoo', name: 'WAHOO', emoji: '🐟', color: '#06b6d4' },
+  { id: 'white-marlin', name: 'WHITE MARLIN', emoji: '🐟', color: '#e5e7eb' },
+  { id: 'blue-marlin', name: 'BLUE MARLIN', emoji: '🐟', color: '#6366f1' },
+  { id: 'rockfish', name: 'ROCKFISH', emoji: '🐟', color: '#dc2626' },
+  { id: 'other', name: 'OTHER', emoji: '❓', color: '#9ca3af' }
 ];
 
 export default function ReportsPanel() {

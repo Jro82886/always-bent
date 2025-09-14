@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { regionsToGeoJSON } from '@/lib/inletRegions';
+import { INLETS } from '@/lib/inlets';
 
 interface InletRegionsProps {
   map: mapboxgl.Map | null;
@@ -10,7 +10,7 @@ interface InletRegionsProps {
   opacity?: number;
 }
 
-export default function InletRegions({ map, enabled = true, opacity = 0.08 }: InletRegionsProps) {
+export default function InletRegions({ map, enabled = true, opacity = 0.25 }: InletRegionsProps) {
   const [regionsAdded, setRegionsAdded] = useState(false);
 
   useEffect(() => {
@@ -18,14 +18,14 @@ export default function InletRegions({ map, enabled = true, opacity = 0.08 }: In
 
     const setupRegions = () => {
       // Remove existing layers/sources if they exist
-      if (map.getLayer('inlet-regions-fill')) {
-        map.removeLayer('inlet-regions-fill');
+      if (map.getLayer('inlet-regions-glow')) {
+        map.removeLayer('inlet-regions-glow');
       }
-      if (map.getLayer('inlet-regions-border')) {
-        map.removeLayer('inlet-regions-border');
+      if (map.getLayer('inlet-regions-core')) {
+        map.removeLayer('inlet-regions-core');
       }
-      if (map.getSource('inlet-regions')) {
-        map.removeSource('inlet-regions');
+      if (map.getSource('inlet-points')) {
+        map.removeSource('inlet-points');
       }
 
       if (!enabled) {
@@ -33,36 +33,73 @@ export default function InletRegions({ map, enabled = true, opacity = 0.08 }: In
         return;
       }
 
-      // Add the inlet regions source
-      const geoJSON = regionsToGeoJSON();
-      
-      map.addSource('inlet-regions', {
+      // Create point features for each inlet
+      const features = INLETS.map(inlet => ({
+        type: 'Feature' as const,
+        properties: {
+          color: inlet.color || '#00ffff',
+          name: inlet.name
+        },
+        geometry: {
+          type: 'Point' as const,
+          coordinates: inlet.center
+        }
+      }));
+
+      // Add the inlet points source
+      map.addSource('inlet-points', {
         type: 'geojson',
-        data: geoJSON
+        data: {
+          type: 'FeatureCollection',
+          features
+        }
       });
 
-      // Add fill layer with inlet colors at low opacity
+      // Add large blurred circles for the gradient effect
       map.addLayer({
-        id: 'inlet-regions-fill',
-        type: 'fill',
-        source: 'inlet-regions',
+        id: 'inlet-regions-glow',
+        type: 'circle',
+        source: 'inlet-points',
         paint: {
-          'fill-color': ['get', 'color'],
-          'fill-opacity': opacity
-        }
-      }, 'settlement-subdivision-label'); // Add below place labels
-
-      // Add subtle border lines between regions
-      map.addLayer({
-        id: 'inlet-regions-border',
-        type: 'line',
-        source: 'inlet-regions',
-        paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 1,
-          'line-opacity': opacity * 2 // Slightly more visible than fill
+          'circle-radius': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            3, 30,
+            5, 50,
+            7, 80,
+            9, 120,
+            11, 160,
+            13, 200
+          ],
+          'circle-color': ['get', 'color'],
+          'circle-opacity': opacity * 0.3,
+          'circle-blur': 1 // Maximum blur for soft edges
         }
       }, 'settlement-subdivision-label');
+
+      // Add medium circles with less blur
+      map.addLayer({
+        id: 'inlet-regions-core',
+        type: 'circle',
+        source: 'inlet-points',
+        paint: {
+          'circle-radius': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            3, 15,
+            5, 25,
+            7, 40,
+            9, 60,
+            11, 80,
+            13, 100
+          ],
+          'circle-color': ['get', 'color'],
+          'circle-opacity': opacity * 0.5,
+          'circle-blur': 0.8
+        }
+      }, 'inlet-regions-glow');
 
       setRegionsAdded(true);
     };
@@ -76,14 +113,14 @@ export default function InletRegions({ map, enabled = true, opacity = 0.08 }: In
     // Cleanup
     return () => {
       if (map && !(map as any)._removed) {
-        if (map.getLayer('inlet-regions-fill')) {
-          map.removeLayer('inlet-regions-fill');
+        if (map.getLayer('inlet-regions-glow')) {
+          map.removeLayer('inlet-regions-glow');
         }
-        if (map.getLayer('inlet-regions-border')) {
-          map.removeLayer('inlet-regions-border');
+        if (map.getLayer('inlet-regions-core')) {
+          map.removeLayer('inlet-regions-core');
         }
-        if (map.getSource('inlet-regions')) {
-          map.removeSource('inlet-regions');
+        if (map.getSource('inlet-points')) {
+          map.removeSource('inlet-points');
         }
       }
     };
@@ -93,13 +130,13 @@ export default function InletRegions({ map, enabled = true, opacity = 0.08 }: In
   useEffect(() => {
     if (!map || !regionsAdded) return;
 
-    if (map.getLayer('inlet-regions-fill')) {
-      map.setPaintProperty('inlet-regions-fill', 'fill-opacity', opacity);
+    if (map.getLayer('inlet-regions-glow')) {
+      map.setPaintProperty('inlet-regions-glow', 'circle-opacity', opacity * 0.3);
     }
-    if (map.getLayer('inlet-regions-border')) {
-      map.setPaintProperty('inlet-regions-border', 'line-opacity', opacity * 2);
+    if (map.getLayer('inlet-regions-core')) {
+      map.setPaintProperty('inlet-regions-core', 'circle-opacity', opacity * 0.5);
     }
   }, [map, opacity, regionsAdded]);
 
-  return null; // This component doesn't render anything visible
+  return null;
 }
