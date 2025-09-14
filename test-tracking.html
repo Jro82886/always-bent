@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Tracking Page</title>
+</head>
+<body>
+    <h2>Testing Tracking Page Access</h2>
+    <button onclick="testTracking()">Test Tracking Page</button>
+    <div id="results"></div>
+    
+    <script>
+        async function testTracking() {
+            const results = document.getElementById('results');
+            
+            // Check localStorage
+            const username = localStorage.getItem('abfi_username');
+            results.innerHTML += '<p>Username in localStorage: ' + (username || 'NOT SET') + '</p>';
+            
+            // If no username, set one
+            if (!username) {
+                localStorage.setItem('abfi_username', 'TestUser');
+                results.innerHTML += '<p>Set username to: TestUser</p>';
+            }
+            
+            // Check if we can access the tracking page
+            try {
+                const response = await fetch('/tracking');
+                results.innerHTML += '<p>Tracking page status: ' + response.status + '</p>';
+            } catch (error) {
+                results.innerHTML += '<p>Error accessing tracking: ' + error.message + '</p>';
+            }
+            
+            results.innerHTML += '<p><a href="/tracking" target="_blank">Open Tracking Page</a></p>';
+        }
+    </script>
+</body>
+</html>

@@ -38,7 +38,42 @@ function colorForInlet(id: string | null) {
   return c[id ?? 'east-coast'] ?? '#26c281';
 }
 
+// Simple version for debugging
+function SimpleTrackingPage() {
+  return (
+    <div className="w-full h-screen bg-gray-950 flex items-center justify-center">
+      <div className="text-white text-center">
+        <h1 className="text-3xl font-bold mb-4">Tracking Page (Simple Version)</h1>
+        <p className="mb-4">If you can see this, the page is loading!</p>
+        <a href="/tracking?full=true" className="text-cyan-400 underline">
+          Try Full Version
+        </a>
+        <br />
+        <a href="/tracking-test" className="text-green-400 underline mt-2 inline-block">
+          Try Test Page
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function TrackingPage() {
+  // Check if we should show simple version
+  const [showSimple, setShowSimple] = useState(true);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('full') === 'true') {
+        setShowSimple(false);
+      }
+    }
+  }, []);
+  
+  // Show simple version first to verify page loads
+  if (showSimple) {
+    return <SimpleTrackingPage />;
+  }
   const map = useMapbox();
   const { selectedInletId, username } = useAppState();
   const active = INLETS.find(i => i.id === selectedInletId) ?? INLETS[0];
@@ -429,10 +464,29 @@ export default function TrackingPage() {
     }
   }, [map, fleetData, canSeeFleet, showTrails]);
 
-  return (
-    <RequireUsername>
-      <div className="w-full h-screen bg-gray-950 relative">
-        <MapShell>
+  // Temporary bypass for debugging
+  const [bypassUsername, setBypassUsername] = useState(false);
+  
+  // Check if we should bypass username requirement for debugging
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const shouldBypass = window.location.search.includes('debug=true');
+      if (shouldBypass) {
+        setBypassUsername(true);
+        console.log('[TrackingPage] Debug mode - bypassing username check');
+      }
+    }
+  }, []);
+  
+  const content = (
+    <div className="w-full h-screen bg-gray-950 relative">
+      {/* Debug info banner */}
+      <div className="absolute top-0 left-0 right-0 z-[200] bg-blue-600 text-white p-2 text-xs flex justify-between items-center">
+        <span>Tracking Page Status: {username ? `Logged in as ${username}` : 'No username set'}</span>
+        <span>Map: {map ? 'Loaded' : 'Loading...'} | Token: {mapboxgl.accessToken ? 'Set' : 'Missing'}</span>
+      </div>
+      
+      <MapShell>
           {/* Navigation and controls layer */}
           <div className="absolute inset-0 pointer-events-none z-10">
             <NavTabs />
@@ -486,6 +540,16 @@ export default function TrackingPage() {
           <DevOverlay />
         </MapShell>
       </div>
+  );
+  
+  // Return with or without RequireUsername wrapper based on debug mode
+  if (bypassUsername) {
+    return content;
+  }
+  
+  return (
+    <RequireUsername>
+      {content}
     </RequireUsername>
   );
 }
