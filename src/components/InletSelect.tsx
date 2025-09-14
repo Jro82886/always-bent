@@ -58,9 +58,9 @@ export function InletSelect({ value, onChange, label }: Props) {
         <ChevronDown className={`w-4 h-4 text-cyan-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Dropdown Menu - Connected appearance */}
+      {/* Dropdown Menu - Connected appearance with animation */}
       {isOpen && (
-        <div className="absolute z-[9999] -mt-[1px] w-full max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 border-t-0 rounded-b-lg shadow-2xl">
+        <div className="absolute z-[9999] -mt-[1px] w-full min-w-[280px] max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 border-t-0 rounded-b-lg shadow-2xl animate-in fade-in-0 slide-in-from-top-1 duration-150">
           {/* Flat list of all inlets with glowing color dots */}
           {INLETS.map((inlet) => (
             <button

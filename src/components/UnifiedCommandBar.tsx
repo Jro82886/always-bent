@@ -104,7 +104,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                 onClick={() => setInletDropdownOpen(!inletDropdownOpen)}
                 className="flex items-center justify-between gap-2 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 border-cyan-400/60 rounded-xl px-4 py-2 text-sm text-cyan-100 focus:outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40 cursor-pointer hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all font-semibold tracking-wide"
                 style={{
-                  minWidth: '220px',
+                  minWidth: '280px',
                   backgroundImage: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(20, 184, 166, 0.1), rgba(59, 130, 246, 0.15))',
                   boxShadow: '0 0 30px rgba(6, 182, 212, 0.3), inset 0 0 20px rgba(6, 182, 212, 0.15), 0 4px 15px rgba(0, 0, 0, 0.3)',
                   textShadow: '0 0 10px rgba(6, 182, 212, 0.3)'
@@ -127,9 +127,9 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                 <ChevronDown size={14} className={`text-cyan-400 transition-transform ${inletDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               
-              {/* Custom Dropdown Menu */}
+              {/* Custom Dropdown Menu with smooth animation */}
               {inletDropdownOpen && (
-                <div className="absolute z-[9999] mt-1 w-full max-h-[400px] overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400/40 rounded-xl shadow-2xl"
+                <div className="absolute z-[9999] mt-1 w-full min-w-[280px] max-h-[400px] overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400/40 rounded-xl shadow-2xl animate-in fade-in-0 slide-in-from-top-2 duration-200"
                   style={{
                     boxShadow: '0 10px 40px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.15)'
                   }}
