@@ -329,8 +329,9 @@ export default function VesselTrackingSystem({ map }: VesselTrackingSystemProps)
     if (!inlet) return [];
     
     const points: [number, number][] = [];
-    let lat = inlet.lat + (Math.random() - 0.5) * 0.1;
-    let lng = inlet.lng + (Math.random() - 0.5) * 0.1;
+    const [centerLng, centerLat] = inlet.center;
+    let lat = centerLat + (Math.random() - 0.5) * 0.1;
+    let lng = centerLng + (Math.random() - 0.5) * 0.1;
     
     for (let i = 0; i < pointCount; i++) {
       points.push([lng, lat]);
