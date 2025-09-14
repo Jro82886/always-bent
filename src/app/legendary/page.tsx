@@ -15,10 +15,8 @@ import CommunityMode from '@/components/community/CommunityMode';
 import VesselTrackingSystem from '@/components/tracking/VesselTrackingSystem';
 import TrendsMode from '@/components/trends/TrendsMode';
 import ReportCatchButton from '@/components/ReportCatchButton';
-import MapLegend from '@/components/MapLegend';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
-import ModeHeader from '@/components/ModeHeader';
-import QuickSwitch from '@/components/QuickSwitch';
+import UnifiedRightPanel from '@/components/UnifiedRightPanel';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -365,9 +363,6 @@ export default function LegendaryOceanPlatform() {
       {/* ANALYSIS MODE UI */}
       {activeTab === 'analysis' && (
         <>
-          {/* Mode Header - Shows what this mode is for */}
-          <ModeHeader mode="analysis" />
-          
           {/* LEFT ZONE - Intelligence & Planning (Over Land) */}
           <LeftZone
             oceanActive={oceanActive}
@@ -388,7 +383,11 @@ export default function LegendaryOceanPlatform() {
           />
           
           {/* RIGHT ZONE - Action Controls (Over Ocean) */}
-          <RightZone map={map.current} onModalStateChange={setIsAnalysisModalOpen} />
+          <RightZone 
+            map={map.current} 
+            onModalStateChange={setIsAnalysisModalOpen}
+            onModeSwitch={() => setActiveTab('tracking')}
+          />
           
           {/* Inlet Regions - Subtle colored boundaries for each inlet */}
           {map.current && <InletRegions map={map.current} enabled={!oceanActive && !sstActive && !chlActive} opacity={0.16} />}
@@ -407,8 +406,6 @@ export default function LegendaryOceanPlatform() {
             }} />
           )}
           
-          {/* Map Legend - Position adjusted to avoid conflicts */}
-          <MapLegend position="bottom-right" />
           
           {/* Interactive Tutorial - Second tutorial, only after first is complete */}
           {tutorialCompleted && activeTab === 'analysis' && (
@@ -419,9 +416,6 @@ export default function LegendaryOceanPlatform() {
           {!showingTutorial && (
             <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
           )}
-          
-          {/* Quick Switch to Tracking */}
-          <QuickSwitch currentMode="analysis" onSwitch={setActiveTab} />
         </>
       )}
       
@@ -435,11 +429,14 @@ export default function LegendaryOceanPlatform() {
       {/* TRACKING MODE UI - Vessel Tracking */}
       {activeTab === 'tracking' && (
         <>
-          <ModeHeader mode="tracking" />
           <VesselTrackingSystem map={map.current} />
           
-          {/* Quick Switch to Analysis */}
-          <QuickSwitch currentMode="tracking" onSwitch={setActiveTab} />
+          {/* Unified Right Panel for Tracking */}
+          <UnifiedRightPanel 
+            currentMode="tracking"
+            onModeSwitch={() => setActiveTab('analysis')}
+            onAnalyze={() => {}}
+          />
         </>
       )}
       

@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type mapboxgl from 'mapbox-gl';
-import { Navigation, Eye, EyeOff, MapPin, Clock, Users, Trophy } from 'lucide-react';
+import { Navigation, Eye, EyeOff, MapPin, Clock, Users, Trophy, ArrowLeftRight, Brain } from 'lucide-react';
 import { getInletById, INLETS } from '@/lib/inlets';
 import { getInletColor } from '@/lib/inletColors';
 import * as turf from '@turf/turf';
 
 interface VesselTrackingSystemProps {
   map: mapboxgl.Map | null;
+  onModeSwitch?: () => void;
 }
 
 interface VesselTrack {
@@ -28,7 +29,7 @@ interface FishingHotspot {
   timestamp: Date;
 }
 
-export default function VesselTrackingSystem({ map }: VesselTrackingSystemProps) {
+export default function VesselTrackingSystem({ map, onModeSwitch }: VesselTrackingSystemProps) {
   // Core state
   const [isTracking, setIsTracking] = useState(false);
   const [selectedInlet, setSelectedInlet] = useState<string>('');

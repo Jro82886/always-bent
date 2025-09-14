@@ -492,11 +492,15 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
   };
 
   return (
-    <div className="absolute top-4 right-4 bg-gradient-to-br from-slate-800/80 via-slate-700/80 to-blue-900/80 backdrop-blur-md rounded-2xl px-6 py-4 shadow-[0_0_30px_rgba(71,85,105,0.3)] z-50 border border-slate-500/30">
-      <div className="relative">
-        <h3 className="text-slate-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2">
-          <Target size={14} className="text-slate-400" />
-          Ocean Analysis
+    <div className="hidden">
+      {/* Hidden button that can be triggered programmatically */}
+      <button
+        data-snip-button
+        onClick={startDrawing}
+        className="hidden"
+      >
+        Start Analysis
+      </button>
           {/* Sleek BETA Badge */}
           <div className="group relative">
             <span className="px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 text-[10px] font-bold rounded-full border border-cyan-500/30 cursor-help animate-pulse">
@@ -512,15 +516,12 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-slate-900 border-r border-b border-cyan-500/20"></div>
               </div>
             </div>
-          </div>
-        </h3>
-      </div>
       
-      <div className="space-y-2">
-        <button
-          onClick={startDrawing}
-          disabled={isDrawing || isAnalyzing}
-          className={`w-full px-4 py-2 ${
+      {/* Status indicators - will be shown as overlays when active */}
+      {(isDrawing || isAnalyzing) && (
+        <div className="absolute top-24 right-4 z-50">
+          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-cyan-500/30 shadow-lg">
+            <div className="flex items-center gap-2 text-sm ${
             isAnalyzing
               ? 'bg-gradient-to-r from-slate-600 to-blue-700 cursor-not-allowed animate-pulse'
               : isDrawing 
