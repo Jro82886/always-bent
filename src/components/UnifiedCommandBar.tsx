@@ -21,6 +21,8 @@ interface UnifiedCommandBarProps {
 
 export default function UnifiedCommandBar({ map, activeTab, onTabChange }: UnifiedCommandBarProps) {
   const [boatName, setBoatName] = useState<string>('');
+  const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { selectedInletId, setSelectedInletId } = useAppState();
   
   useEffect(() => {
@@ -29,6 +31,17 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
     if (storedBoatName) {
       setBoatName(storedBoatName);
     }
+  }, []);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setInletDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   
   const handleTabClick = (tab: string) => {
@@ -86,11 +99,10 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
           {/* Inlet Selector - ALWAYS VISIBLE */}
           <div className="flex items-center gap-2 min-w-[200px]">
             <MapPin size={14} className="text-cyan-400" />
-            <div className="relative">
-              <select
-                value={selectedInletId}
-                onChange={(e) => handleInletSelect(e.target.value)}
-                className="appearance-none bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 border-cyan-400/60 rounded-xl px-4 py-2 pr-10 text-sm text-cyan-100 focus:outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40 cursor-pointer hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all font-semibold tracking-wide"
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setInletDropdownOpen(!inletDropdownOpen)}
+                className="flex items-center justify-between gap-2 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 border-cyan-400/60 rounded-xl px-4 py-2 text-sm text-cyan-100 focus:outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40 cursor-pointer hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all font-semibold tracking-wide"
                 style={{
                   minWidth: '220px',
                   backgroundImage: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(20, 184, 166, 0.1), rgba(59, 130, 246, 0.15))',
@@ -98,27 +110,59 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                   textShadow: '0 0 10px rgba(6, 182, 212, 0.3)'
                 }}
               >
-                {/* Simple flat list - no grouping */}
-                {INLETS.map((inlet) => (
-                  <option key={inlet.id} value={inlet.id} className="bg-slate-900 hover:bg-slate-800">
-                    {inlet.name}
-                  </option>
-                ))}
-              </select>
-              {/* Custom dropdown arrow */}
-              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                <ChevronDown size={14} className="text-cyan-400" />
-              </div>
+                <div className="flex items-center gap-2 flex-1">
+                  {selectedInlet && (
+                    <>
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor: selectedInlet.color || '#26c281',
+                          boxShadow: `0 0 12px ${selectedInlet.color || '#26c281'}`,
+                        }}
+                      />
+                      <span className="text-left truncate">{selectedInlet.name}</span>
+                    </>
+                  )}
+                </div>
+                <ChevronDown size={14} className={`text-cyan-400 transition-transform ${inletDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {/* Custom Dropdown Menu */}
+              {inletDropdownOpen && (
+                <div className="absolute z-[60] mt-1 w-full max-h-[400px] overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400/40 rounded-xl shadow-2xl"
+                  style={{
+                    boxShadow: '0 10px 40px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.15)'
+                  }}
+                >
+                  {INLETS.map((inlet) => (
+                    <button
+                      key={inlet.id}
+                      onClick={() => {
+                        handleInletSelect(inlet.id);
+                        setInletDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-cyan-400/10 transition-all ${
+                        selectedInletId === inlet.id ? 'bg-cyan-400/20 text-cyan-300' : 'text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2 h-2 rounded-full"
+                          style={{
+                            backgroundColor: inlet.color || '#26c281',
+                            boxShadow: `0 0 12px ${inlet.color || '#26c281'}`,
+                          }}
+                        />
+                        <span className="text-left">{inlet.name}</span>
+                      </div>
+                      {selectedInletId === inlet.id && (
+                        <span className="text-cyan-400">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            {inletColor && selectedInletId !== 'overview' && (
-              <span 
-                className="w-3 h-3 rounded-full animate-pulse"
-                style={{ 
-                  backgroundColor: inletColor,
-                  boxShadow: `0 0 15px ${inletColor}80, 0 0 30px ${inletColor}40`
-                }}
-              />
-            )}
           </div>
         </div>
         
