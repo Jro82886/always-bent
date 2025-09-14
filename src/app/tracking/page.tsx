@@ -58,9 +58,9 @@ export default function TrackingPage() {
   }, [userLocation]);
 
   return (
-    <div className="w-full h-screen">
-      {/* Simple header */}
-      <div className="absolute top-4 left-4 z-10 bg-white p-3 rounded shadow">
+    <div className="w-full h-screen bg-red-500">
+      {/* Simple header - BRIGHT COLORS TO SEE IF IT WORKS */}
+      <div className="absolute top-4 left-4 z-10 bg-yellow-400 p-6 rounded shadow border-4 border-black">
         <h1 className="text-lg font-bold text-black">User Tracking</h1>
         {userLocation ? (
           <p className="text-sm text-gray-600">
