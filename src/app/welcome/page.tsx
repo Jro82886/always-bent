@@ -70,12 +70,7 @@ export default function WelcomePage() {
         {/* Base grey gradient for anchoring */}
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 opacity-90" />
         
-        {/* Muted ocean glows */}
-        <div className="absolute inset-0 opacity-15">
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-800/20 via-transparent to-transparent" />
-          <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-cyan-900/30 to-teal-900/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-teal-900/30 to-slate-800/20 rounded-full blur-3xl" />
-        </div>
+        {/* Removed ocean glows - pure grey */}
         
         {/* Grey mesh overlay for texture */}
         <div className="absolute inset-0 opacity-30" style={{
