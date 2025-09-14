@@ -39,6 +39,7 @@ export default function IndividualTrackingWidget() {
   // References
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const userMarker = useRef<any>(null);
+  const nearbyMarkers = useRef<any[]>([]);
 
   // Initialize user position marker with custom boat icon
   useEffect(() => {
@@ -189,9 +190,70 @@ export default function IndividualTrackingWidget() {
     }
   }, [map, mockData]);
 
-  // Timer for tracking duration
+  // Timer for tracking duration and manage nearby vessels
   useEffect(() => {
     if (isTracking && !isPaused) {
+      // Add nearby vessel markers when tracking starts
+      if (map && nearbyMarkers.current.length === 0) {
+        const vesselPositions = [
+          { name: 'Sea Hawk', lat: mockData.position.lat + 0.01, lng: mockData.position.lng + 0.015, color: '#22d3ee' },
+          { name: 'Blue Runner', lat: mockData.position.lat - 0.025, lng: mockData.position.lng - 0.005, color: '#3b82f6' },
+          { name: 'Reel Deal', lat: mockData.position.lat + 0.005, lng: mockData.position.lng - 0.03, color: '#8b5cf6' }
+        ];
+        
+        vesselPositions.forEach(vessel => {
+          const el = document.createElement('div');
+          el.innerHTML = `
+            <div style="position: relative; width: 30px; height: 30px;">
+              <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background: radial-gradient(circle, ${vessel.color}40, transparent);
+                animation: vessel-pulse 3s ease-out infinite;
+              "></div>
+              <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 8px;
+                height: 8px;
+                background: ${vessel.color};
+                border: 2px solid white;
+                border-radius: 50%;
+                box-shadow: 0 0 10px ${vessel.color}80;
+              "></div>
+            </div>
+          `;
+          
+          const marker = new (window as any).mapboxgl.Marker({
+            element: el,
+            anchor: 'center'
+          })
+            .setLngLat([vessel.lng, vessel.lat])
+            .setPopup(
+              new (window as any).mapboxgl.Popup({ offset: 15 })
+                .setHTML(`
+                  <div style="padding: 6px;">
+                    <div style="font-weight: bold; color: ${vessel.color}; font-size: 12px;">${vessel.name}</div>
+                    <div style="font-size: 10px; color: #666; margin-top: 2px;">
+                      Commercial Vessel<br/>
+                      Speed: ${(5 + Math.random() * 10).toFixed(1)} kts
+                    </div>
+                  </div>
+                `)
+            )
+            .addTo(map);
+          
+          nearbyMarkers.current.push(marker);
+        });
+      }
+      
       timerInterval.current = setInterval(() => {
         setMockTimer(prev => prev + 1);
         
@@ -204,17 +266,41 @@ export default function IndividualTrackingWidget() {
           waterTemp: 70 + Math.random() * 6,
           depth: 100 + Math.random() * 50
         }));
+        
+        // Slightly move nearby vessels
+        nearbyMarkers.current.forEach((marker, i) => {
+          if (marker) {
+            const currentPos = marker.getLngLat();
+            marker.setLngLat([
+              currentPos.lng + (Math.random() - 0.5) * 0.0001,
+              currentPos.lat + (Math.random() - 0.5) * 0.0001
+            ]);
+          }
+        });
       }, 1000);
     } else {
       if (timerInterval.current) {
         clearInterval(timerInterval.current);
       }
+      
+      // Remove nearby vessel markers when tracking stops
+      if (!isTracking && nearbyMarkers.current.length > 0) {
+        nearbyMarkers.current.forEach(marker => {
+          if (marker) marker.remove();
+        });
+        nearbyMarkers.current = [];
+      }
     }
     
     return () => {
       if (timerInterval.current) clearInterval(timerInterval.current);
+      // Clean up markers on unmount
+      nearbyMarkers.current.forEach(marker => {
+        if (marker) marker.remove();
+      });
+      nearbyMarkers.current = [];
     };
-  }, [isTracking, isPaused]);
+  }, [isTracking, isPaused, map]);
 
   // Format timer
   const formatTime = (seconds: number) => {

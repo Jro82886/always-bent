@@ -12,10 +12,10 @@ export default function TrackingWidget() {
   const [mode, setMode] = useState<TrackingMode>('individual');
 
   return (
-    <div className="absolute top-4 left-4 bg-gradient-to-br from-slate-800/80 via-slate-700/80 to-blue-900/80 backdrop-blur-md rounded-2xl px-6 py-4 shadow-[0_0_30px_rgba(71,85,105,0.3)] z-50 border border-slate-500/30 w-80 max-h-[calc(100vh-100px)] overflow-y-auto">
+    <div className="absolute top-20 left-4 bg-gradient-to-br from-slate-800/80 via-slate-700/80 to-blue-900/80 backdrop-blur-md rounded-2xl px-6 py-4 shadow-[0_0_30px_rgba(71,85,105,0.3)] z-50 border border-slate-500/30 w-80 max-h-[calc(100vh-100px)] overflow-y-auto">
       <div className="relative">
-        <h3 className="text-slate-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2">
-          <Navigation size={14} className="text-slate-400" />
+        <h3 className="text-cyan-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2" style={{ textShadow: '0 0 10px rgba(6, 182, 212, 0.5)' }}>
+          <Navigation size={14} className="text-cyan-400" style={{ filter: 'drop-shadow(0 0 4px rgba(6, 182, 212, 0.6))' }} />
           Vessel Tracking
           {/* Live Badge */}
           <div className="group relative">
