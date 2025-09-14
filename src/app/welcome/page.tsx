@@ -67,8 +67,8 @@ export default function WelcomePage() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
       {/* Layered grey anchoring with muted ocean glow */}
       <div className="absolute inset-0">
-        {/* Base grey gradient for anchoring */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 opacity-90" />
+        {/* Pure dark grey background */}
+        <div className="absolute inset-0 bg-gray-800" />
         
         {/* Removed ocean glows - pure grey */}
         
