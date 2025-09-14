@@ -62,7 +62,22 @@ export default function TrackingPage() {
           center: [-74.0, 40.7], // NYC area
           zoom: 9,
           pitch: 0,
-          bearing: 0
+          bearing: 0,
+          fadeDuration: 0 // Disable fade to see immediate load
+        });
+        
+        // Log style loading
+        map.current.on('styledata', () => {
+          console.log('[Tracking] Style data loaded');
+        });
+        
+        map.current.on('style.load', () => {
+          console.log('[Tracking] Style fully loaded');
+          // Force a dark background
+          const bgLayer = map.current?.getLayer('background');
+          if (bgLayer) {
+            map.current?.setPaintProperty('background', 'background-color', '#111827');
+          }
         });
 
         map.current.on('load', () => {
@@ -101,7 +116,12 @@ export default function TrackingPage() {
       <div 
         ref={mapContainer} 
         className="absolute inset-0 w-full h-full"
-        style={{ minHeight: '100vh', minWidth: '100vw', backgroundColor: '#111827' }}
+        style={{ 
+          minHeight: '100vh', 
+          minWidth: '100vw', 
+          backgroundColor: '#111827',
+          zIndex: 0
+        }}
       />
       
       {/* UI Overlay */}
