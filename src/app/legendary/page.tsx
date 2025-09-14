@@ -14,6 +14,7 @@ import RightZone from '@/components/RightZone';
 import CommunityMode from '@/components/community/CommunityMode';
 // TrackingMode removed - tracking has its own page at /tracking
 import TrendsMode from '@/components/trends/TrendsMode';
+import ReportCatchButton from '@/components/ReportCatchButton';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -32,6 +33,9 @@ export default function LegendaryOceanPlatform() {
   
   // Tab state - 'analysis' | 'tracking' | 'community' | 'trends'
   const [activeTab, setActiveTab] = useState<string>('analysis');
+  
+  // Track if analysis modal is open to hide BITE button
+  const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   
   // Check if tutorial should be shown (client-side only)
   const [showingTutorial, setShowingTutorial] = useState(false);
@@ -377,7 +381,7 @@ export default function LegendaryOceanPlatform() {
           />
           
           {/* RIGHT ZONE - Action Controls (Over Ocean) */}
-          <RightZone map={map.current} />
+          <RightZone map={map.current} onModalStateChange={setIsAnalysisModalOpen} />
           
           {/* Inlet Regions - Subtle colored boundaries for each inlet */}
           {map.current && <InletRegions map={map.current} enabled={!oceanActive && !sstActive && !chlActive} opacity={0.16} />}
@@ -390,6 +394,9 @@ export default function LegendaryOceanPlatform() {
           
           {/* Tutorial Overlay */}
           <TutorialOverlay onComplete={() => setShowingTutorial(false)} />
+          
+          {/* ABFI Button - ONLY on Analysis tab, NEVER in analysis reports */}
+          <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
         </>
       )}
       

@@ -281,22 +281,25 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   
   return (
     <>
-      {/* ABFI INTELLIGENCE BUTTON */}
-      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
+      {/* ABFI INTELLIGENCE BUTTON - Sleek and Oblong */}
+      <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
         <button
           onClick={handleReportCatch}
-          className="relative px-8 py-4 rounded-full transition-all hover:scale-110 active:scale-95 bg-gradient-to-r from-cyan-600 to-blue-600 backdrop-blur-md border-2 border-cyan-400 text-white hover:from-cyan-500 hover:to-blue-500 hover:border-cyan-300 hover:shadow-2xl"
+          className="relative px-10 py-2.5 rounded-2xl transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-cyan-500/90 to-blue-500/90 backdrop-blur-md border border-cyan-400/50 text-white hover:from-cyan-400 hover:to-blue-400 hover:border-cyan-300 hover:shadow-xl"
           style={{
-            boxShadow: '0 0 40px rgba(0, 200, 255, 0.6), inset 0 0 20px rgba(0, 200, 255, 0.2)',
+            boxShadow: '0 4px 20px rgba(6, 182, 212, 0.3), 0 0 40px rgba(6, 182, 212, 0.15)',
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-            fontWeight: 800,
-            fontSize: '20px',
-            letterSpacing: '0.15em',
-            // No animation - keep button static
+            fontWeight: 600,
+            fontSize: '14px',
+            letterSpacing: '0.1em',
+            minWidth: '120px',
           }}
         >
-          <span className="relative flex items-center justify-center">
-            <span className="bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">ABFI</span>
+          <span className="relative flex items-center justify-center gap-2">
+            <svg className="w-4 h-4 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="text-cyan-50 font-semibold">ABFI</span>
           </span>
         </button>
         
