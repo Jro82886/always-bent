@@ -169,36 +169,54 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
         {/* Navigation Tabs - Seamlessly Connected */}
         <div className="flex items-center">
           {/* Analysis Tab */}
-          <button
-            onClick={() => handleTabClick('analysis')}
-            className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-              activeTab === 'analysis'
-                ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
-                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
-            }`}
-            style={activeTab === 'analysis' ? {
-              boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
-            } : {}}
-          >
-            <Map size={14} />
-            <span>Analysis</span>
-          </button>
+          <div className="relative group">
+            <button
+              onClick={() => handleTabClick('analysis')}
+              className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                activeTab === 'analysis'
+                  ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
+                  : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
+              }`}
+              style={activeTab === 'analysis' ? {
+                boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
+              } : {}}
+            >
+              <Map size={14} />
+              <span>Analysis</span>
+            </button>
+            {/* Tooltip */}
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50">
+              <div className="bg-slate-900/95 backdrop-blur-xl border border-cyan-400/30 rounded-lg px-3 py-2 whitespace-nowrap">
+                <div className="text-xs text-cyan-300 font-semibold">Historical Intelligence</div>
+                <div className="text-[10px] text-cyan-100/70">Where have vessels been? Find hotspots</div>
+              </div>
+            </div>
+          </div>
           
           {/* Tracking Tab */}
-          <button
-            onClick={() => handleTabClick('tracking')}
-            className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-              activeTab === 'tracking'
-                ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
-                : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
-            }`}
-            style={activeTab === 'tracking' ? {
-              boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
-            } : {}}
-          >
-            <Activity size={14} />
-            <span>Tracking</span>
-          </button>
+          <div className="relative group">
+            <button
+              onClick={() => handleTabClick('tracking')}
+              className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                activeTab === 'tracking'
+                  ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
+                  : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
+              }`}
+              style={activeTab === 'tracking' ? {
+                boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
+              } : {}}
+            >
+              <Activity size={14} />
+              <span>Tracking</span>
+            </button>
+            {/* Tooltip */}
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50">
+              <div className="bg-slate-900/95 backdrop-blur-xl border border-cyan-400/30 rounded-lg px-3 py-2 whitespace-nowrap">
+                <div className="text-xs text-cyan-300 font-semibold">Live Positions</div>
+                <div className="text-[10px] text-cyan-100/70">Where is everyone RIGHT NOW?</div>
+              </div>
+            </div>
+          </div>
           
           {/* Community Tab */}
           <button

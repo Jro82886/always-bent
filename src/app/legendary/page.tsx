@@ -17,6 +17,8 @@ import TrendsMode from '@/components/trends/TrendsMode';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import MapLegend from '@/components/MapLegend';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
+import ModeHeader from '@/components/ModeHeader';
+import QuickSwitch from '@/components/QuickSwitch';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -361,6 +363,9 @@ export default function LegendaryOceanPlatform() {
       {/* ANALYSIS MODE UI */}
       {activeTab === 'analysis' && (
         <>
+          {/* Mode Header - Shows what this mode is for */}
+          <ModeHeader mode="analysis" />
+          
           {/* LEFT ZONE - Intelligence & Planning (Over Land) */}
           <LeftZone
             oceanActive={oceanActive}
@@ -403,6 +408,9 @@ export default function LegendaryOceanPlatform() {
           
           {/* ABFI Button - ONLY on Analysis tab, NEVER in analysis reports */}
           <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
+          
+          {/* Quick Switch to Tracking */}
+          <QuickSwitch currentMode="analysis" onSwitch={setActiveTab} />
         </>
       )}
       
@@ -414,7 +422,15 @@ export default function LegendaryOceanPlatform() {
       )}
       
       {/* TRACKING MODE UI - Vessel Tracking */}
-      {activeTab === 'tracking' && <VesselTrackingSystem map={map.current} />}
+      {activeTab === 'tracking' && (
+        <>
+          <ModeHeader mode="tracking" />
+          <VesselTrackingSystem map={map.current} />
+          
+          {/* Quick Switch to Analysis */}
+          <QuickSwitch currentMode="tracking" onSwitch={setActiveTab} />
+        </>
+      )}
       
       {/* TRENDS MODE UI - Dashboard (No map interaction) */}
       {activeTab === 'trends' && (
