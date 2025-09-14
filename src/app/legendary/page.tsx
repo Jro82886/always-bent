@@ -32,6 +32,37 @@ export default function LegendaryOceanPlatform() {
   // Tab state - 'analysis' | 'tracking' | 'community' | 'trends'
   const [activeTab, setActiveTab] = useState<string>('analysis');
   
+  // Watch for inlet changes and fly to selected inlet
+  useEffect(() => {
+    if (!map.current || !selectedInletId) return;
+    
+    const inlet = getInletById(selectedInletId);
+    if (inlet) {
+      // Use the same zoom logic as UnifiedCommandBar
+      if (inlet.isOverview) {
+        const eastCoastBounds: [[number, number], [number, number]] = [
+          [-82.0, 24.0],  // Southwest: Florida Keys
+          [-65.0, 46.0],  // Northeast: Maine
+        ];
+        
+        map.current.fitBounds(eastCoastBounds, {
+          padding: { top: 50, bottom: 50, left: 100, right: 50 },
+          duration: 1500,
+          essential: true
+        });
+      } else {
+        map.current.flyTo({
+          center: inlet.center as [number, number],
+          zoom: inlet.zoom,
+          duration: 1500,
+          essential: true
+        });
+      }
+      
+      console.log(`📍 Flying to inlet: ${inlet.name}`);
+    }
+  }, [selectedInletId]);
+  
   // Get boat name from localStorage
   const [boatName, setBoatName] = useState<string>('');
   
