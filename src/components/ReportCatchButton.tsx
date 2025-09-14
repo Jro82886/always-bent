@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import type mapboxgl from 'mapbox-gl';
 import CatchReportForm from './CatchReportForm';
 
@@ -98,21 +99,30 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         setTimeout(() => marker.remove(), 120000);
       }
       
-      // Success feedback - quick toast, no modal!
+      // Success feedback - modern styled confirmation
       const toast = document.createElement('div');
-      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-full shadow-2xl z-50 animate-slide-down';
+      toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-slate-800/95 to-blue-900/95 backdrop-blur-xl text-white px-6 py-4 rounded-2xl shadow-2xl z-[9999] border border-cyan-500/30 animate-in fade-in-0 slide-in-from-top-4 duration-300';
+      toast.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3), 0 0 60px rgba(6,182,212,0.2)';
       toast.innerHTML = `
         <div class="flex items-center gap-3">
-          <span class="text-2xl">🎣</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
           <div>
-            <div class="font-bold">BITE LOGGED!</div>
-            <div class="text-xs opacity-90">${location.lat.toFixed(4)}°N, ${Math.abs(location.lng).toFixed(4)}°W</div>
+            <div class="font-bold text-cyan-300">BITE LOGGED!</div>
+            <div class="text-xs text-cyan-400/70 mt-0.5">${location.lat.toFixed(4)}°N, ${Math.abs(location.lng).toFixed(4)}°W</div>
           </div>
         </div>
       `;
       document.body.appendChild(toast);
       
-      setTimeout(() => toast.remove(), 3000);
+      // Add fade out animation before removing
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translate(-50%, -10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
       
       console.log('🎣 Bite logged:', biteData);
     };
