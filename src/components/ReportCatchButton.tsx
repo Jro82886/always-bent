@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import type mapboxgl from 'mapbox-gl';
 import CatchReportForm from './CatchReportForm';
+import { useAppState } from '@/store/appState';
 
 interface ReportCatchButtonProps {
   map?: mapboxgl.Map | null;
@@ -15,6 +16,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   const [showForm, setShowForm] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const { selectedInletId } = useAppState();
   
   useEffect(() => {
     // Check if location services are enabled
@@ -63,10 +65,32 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         }
       };
       
-      // Save to localStorage (later Supabase)
+      // Save to localStorage for local tracking
       const bites = JSON.parse(localStorage.getItem('abfi_bites') || '[]');
       bites.push(biteData);
       localStorage.setItem('abfi_bites', JSON.stringify(bites));
+      
+      // ALSO save to community reports for collective intelligence
+      const communityReports = JSON.parse(localStorage.getItem('abfi_community_reports') || '[]');
+      const communityReport = {
+        id: `bite_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: 'bite',
+        captain: localStorage.getItem('abfi_captain_name') || 'Anonymous',
+        vessel: biteData.boatName,
+        inlet: biteData.inlet || selectedInletId || 'unknown',
+        location: biteData.location,
+        timestamp: biteData.timestamp,
+        conditions: biteData.conditions,
+        visibility: 'public', // All bites are public for community benefit
+        verified: false,
+        upvotes: 0
+      };
+      communityReports.unshift(communityReport); // Add to beginning
+      // Keep only last 100 reports in localStorage
+      if (communityReports.length > 100) {
+        communityReports.length = 100;
+      }
+      localStorage.setItem('abfi_community_reports', JSON.stringify(communityReports));
       
       // Visual feedback - quick marker
       if (map) {

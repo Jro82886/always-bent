@@ -5,7 +5,7 @@ import { MapShell } from '@/lib/MapRef';
 import { useMapbox } from '@/lib/MapCtx';
 import TopHUD from '@/components/TopHUD';
 import GeoControls from '@/components/GeoControls';
-import ReportCatchButton from '@/components/ReportCatchButton';
+// Removed ReportCatchButton - should only be on Analysis tab
 import RequireUsername from '@/components/RequireUsername';
 import { useGeo } from '@/lib/useGeo';
 import DevOverlay from '@/components/DevOverlay';
@@ -438,7 +438,6 @@ export default function TrackingPage() {
         <TopHUD includeAbfi={false} showLayers={false} extraRight={
           <div className="flex items-center gap-2">
             <GeoControls />
-            <ReportCatchButton disabled={process.env.NEXT_PUBLIC_ENABLE_REPORT_CATCH !== 'true'} />
           </div>
         } />
       </div>

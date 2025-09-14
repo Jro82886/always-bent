@@ -36,7 +36,8 @@ export function getInlet60nmBounds(inlet: Inlet): [number, number, number, numbe
 }
 
 /**
- * Fly to inlet with 60nm offshore view
+ * Fly to inlet showing view out to Gulf Stream
+ * Each inlet has a custom zoom level designed to show from inlet to Gulf Stream
  */
 export function flyToInlet60nm(map: mapboxgl.Map | null, inlet: Inlet) {
   if (!map || !inlet) return;
@@ -59,21 +60,40 @@ export function flyToInlet60nm(map: mapboxgl.Map | null, inlet: Inlet) {
   
   const [lng, lat] = inlet.center;
   
-  // 60nm offshore to the east (positive longitude on east coast)
-  const eastOffset = 60 * NM_TO_DEGREES_LNG(lat);
+  // Calculate offshore distance based on latitude (Gulf Stream distance varies)
+  // Northern inlets: Gulf Stream is 60-90nm offshore
+  // Mid-Atlantic: Gulf Stream is 40-60nm offshore  
+  // South Florida: Gulf Stream is 5-20nm offshore
+  let offshoreDistance = 60; // default 60nm
   
-  // 30nm north and south for a good view
-  const northSouthOffset = 30 * NM_TO_DEGREES_LAT;
+  if (lat >= 40) {
+    // Maine to New York - Gulf Stream far offshore
+    offshoreDistance = 90;
+  } else if (lat >= 35) {
+    // New Jersey to North Carolina
+    offshoreDistance = 70;
+  } else if (lat >= 30) {
+    // South Carolina to North Florida
+    offshoreDistance = 50;
+  } else if (lat >= 26) {
+    // Central to South Florida - Gulf Stream close
+    offshoreDistance = 30;
+  } else {
+    // Florida Keys
+    offshoreDistance = 35;
+  }
   
-  // 5nm inland (west) to show coastline
-  const westOffset = 5 * NM_TO_DEGREES_LNG(lat);
+  // Calculate the view to show inlet to Gulf Stream
+  const eastOffset = offshoreDistance * NM_TO_DEGREES_LNG(lat);
+  const northSouthOffset = (offshoreDistance * 0.5) * NM_TO_DEGREES_LAT; // Half the distance for N/S
+  const westOffset = 10 * NM_TO_DEGREES_LNG(lat); // Show 10nm inland for context
   
   // Calculate bounds [west, south, east, north]
-  // Note: On east coast, offshore is EAST (positive longitude)
+  // Note: On east coast, offshore is EAST (positive longitude from inlet)
   const bounds: [number, number, number, number] = [
-    lng - westOffset,  // west (slightly inland)
+    lng - westOffset,  // west (10nm inland for coastline context)
     lat - northSouthOffset,  // south
-    lng + eastOffset,  // east (60nm offshore - positive for east coast)
+    lng + eastOffset,  // east (out to Gulf Stream)
     lat + northSouthOffset   // north
   ];
   
@@ -81,6 +101,6 @@ export function flyToInlet60nm(map: mapboxgl.Map | null, inlet: Inlet) {
     padding: { top: 80, bottom: 80, left: 20, right: 20 },
     duration: 1500,
     essential: true,
-    maxZoom: 9 // Don't zoom in too close
+    maxZoom: 9.5 // Allow slightly closer zoom
   });
 }
