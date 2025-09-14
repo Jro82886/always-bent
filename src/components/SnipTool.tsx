@@ -44,13 +44,18 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     currentRectangle.current = null;
     setCurrentArea(0);
     
-    // Clear visualization
-    if (map && map.getSource('rectangle')) {
-      const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
-      source.setData({
-        type: 'FeatureCollection',
-        features: []
-      });
+    // Clear visualization and re-enable map dragging
+    if (map) {
+      if (map.getSource('rectangle')) {
+        const source = map.getSource('rectangle') as mapboxgl.GeoJSONSource;
+        source.setData({
+          type: 'FeatureCollection',
+          features: []
+        });
+      }
+      map.getCanvas().style.cursor = '';
+      map.dragPan.enable();
+      map.dragRotate.enable();
     }
   };
 
@@ -66,6 +71,10 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     
     // Change cursor
     map.getCanvas().style.cursor = 'crosshair';
+    
+    // Disable map dragging while drawing
+    map.dragPan.disable();
+    map.dragRotate.disable();
   };
 
   const calculateArea = (polygon: GeoJSON.Feature<GeoJSON.Polygon>): number => {
@@ -143,9 +152,11 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         source.setData(polygon);
       }
 
-      // Reset cursor
+      // Reset cursor and re-enable map dragging
       if (map) {
         map.getCanvas().style.cursor = '';
+        map.dragPan.enable();
+        map.dragRotate.enable();
       }
       
       // End drawing mode
@@ -199,6 +210,19 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
     }
   };
 
+  // Handle escape key to cancel drawing
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isDrawing) {
+        console.log('[ESCAPE] Cancelling drawing');
+        clearDrawing();
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isDrawing]);
+
   // Set up map layers and interactions
   useEffect(() => {
     if (!map || layersInitialized.current) return;
@@ -218,34 +242,34 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
         });
       }
 
-      // Add fill layer
+      // Add fill layer - slate blue
       if (!map.getLayer('rectangle-fill')) {
         map.addLayer({
           id: 'rectangle-fill',
           type: 'fill',
           source: 'rectangle',
           paint: {
-            'fill-color': '#00ffff',
+            'fill-color': '#64748b',  // slate-500
             'fill-opacity': 0.1
           }
         });
       }
 
-      // Add outline layer
+      // Add outline layer - slate blue
       if (!map.getLayer('rectangle-outline')) {
         map.addLayer({
           id: 'rectangle-outline',
           type: 'line',
           source: 'rectangle',
           paint: {
-            'line-color': '#00ffff',
+            'line-color': '#64748b',  // slate-500
             'line-width': 2,
             'line-dasharray': [2, 2]
           }
         });
       }
 
-      // Add corner points layer
+      // Add corner points layer - slate blue
       if (!map.getLayer('rectangle-corners')) {
         map.addLayer({
           id: 'rectangle-corners',
@@ -254,7 +278,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           filter: ['==', '$type', 'Point'],
           paint: {
             'circle-radius': 5,
-            'circle-color': '#00ffff',
+            'circle-color': '#64748b',  // slate-500
             'circle-stroke-color': '#ffffff',
             'circle-stroke-width': 2
           }
@@ -379,11 +403,11 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       {/* Status indicators - will be shown as overlays when active */}
       {(isDrawing || isAnalyzing) && (
         <div className="absolute top-24 right-4 z-50">
-          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-cyan-500/30 shadow-lg">
-            <div className="flex items-center gap-2 text-sm text-cyan-300">
+          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-slate-500/30 shadow-lg">
+            <div className="flex items-center gap-2 text-sm text-slate-300">
               {isAnalyzing ? (
                 <>
-                  <svg className="inline-block w-4 h-4 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24">
+                  <svg className="inline-block w-4 h-4 animate-spin text-slate-400" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -403,10 +427,10 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
       {/* Area display - shown as floating indicator when drawing */}
       {currentArea > 0 && !isAnalyzing && (
         <div className="absolute top-36 right-4 z-50">
-          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-cyan-500/30 shadow-lg">
+          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 border border-slate-500/30 shadow-lg">
             <div className="text-center">
-              <span className="font-bold text-sm text-cyan-300">{currentArea.toFixed(2)} km²</span>
-              <span className="text-cyan-300/60 ml-1 text-xs">({(currentArea * 0.386102).toFixed(2)} mi²)</span>
+              <span className="font-bold text-sm text-slate-300">{currentArea.toFixed(2)} km²</span>
+              <span className="text-slate-300/60 ml-1 text-xs">({(currentArea * 0.386102).toFixed(2)} mi²)</span>
             </div>
           </div>
         </div>
