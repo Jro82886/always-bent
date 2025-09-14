@@ -9,7 +9,7 @@ const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono'
 
 export const metadata: Metadata = { title: 'Always Bent (v2 sandbox)' };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {https://vercel.com/jro82886s-projects/always-bent/Bsf4ESSqgPaVko8LtqDmy4SDLXa8
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body
