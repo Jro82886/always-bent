@@ -29,7 +29,7 @@ function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
     });
   }
   
-  // Add hotspot layer if not exists
+  // Add hotspot layer with deep purple/teal gradient
   if (!map.getLayer('snip-hotspots-layer')) {
     map.addLayer({
       id: 'snip-hotspots-layer',
@@ -40,17 +40,24 @@ function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
           'interpolate',
           ['linear'],
           ['get', 'confidence'],
-          0.5, 10,
-          1.0, 20
+          0.5, 8,
+          1.0, 15
         ],
-        'circle-color': '#ff6b6b',
-        'circle-opacity': 0.8,
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 2
+        'circle-color': [
+          'interpolate',
+          ['linear'],
+          ['get', 'confidence'],
+          0.3, '#2d3561', // Deep navy
+          0.6, '#5b21b6', // Deep purple
+          0.9, '#0d7377'  // Dark teal
+        ],
+        'circle-opacity': 0.85,
+        'circle-stroke-color': '#1e293b', // Dark slate
+        'circle-stroke-width': 1.5
       }
     });
     
-    // Add pulsing effect layer
+    // Add subtle pulsing effect layer
     map.addLayer({
       id: 'snip-hotspots-pulse',
       type: 'circle',
@@ -60,11 +67,11 @@ function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
           'interpolate',
           ['linear'],
           ['get', 'confidence'],
-          0.5, 20,
-          1.0, 40
+          0.5, 15,
+          1.0, 30
         ],
-        'circle-color': '#ff6b6b',
-        'circle-opacity': 0.3,
+        'circle-color': '#5b21b6', // Deep purple
+        'circle-opacity': 0.2,
         'circle-stroke-width': 0
       }
     });
@@ -89,61 +96,23 @@ function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
   });
 }
 
-function visualizeEdgesOnMap(map: mapboxgl.Map, features: any[]) {
-  if (!features || features.length === 0) return;
+// Edge visualization removed - handled by polygon filter
+// But we still process edges for the written analysis
+function processEdgesForAnalysis(features: any[]): string {
+  if (!features || features.length === 0) return '';
   
-  // Ensure source exists
-  if (!map.getSource('snip-edges')) {
-    map.addSource('snip-edges', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: []
-      }
-    });
+  const strongEdges = features.filter(f => f.properties?.score > 0.7);
+  const moderateEdges = features.filter(f => f.properties?.score > 0.4 && f.properties?.score <= 0.7);
+  
+  let edgeAnalysis = '';
+  if (strongEdges.length > 0) {
+    edgeAnalysis += `Strong temperature edges detected (${strongEdges.length} features). `;
+  }
+  if (moderateEdges.length > 0) {
+    edgeAnalysis += `Moderate edges present (${moderateEdges.length} features). `;
   }
   
-  // Add edge layer if not exists
-  if (!map.getLayer('snip-edges-layer')) {
-    map.addLayer({
-      id: 'snip-edges-layer',
-      type: 'line',
-      source: 'snip-edges',
-      paint: {
-        'line-color': [
-          'interpolate',
-          ['linear'],
-          ['get', 'strength'],
-          0, '#00d4ff',
-          0.5, '#ffaa00',
-          1, '#ff0000'
-        ],
-        'line-width': 3,
-        'line-opacity': 0.7
-      }
-    });
-  }
-  
-  // Convert features to lines if they have geometry
-  const edgeFeatures = features
-    .filter(f => f.geometry)
-    .map(f => ({
-      type: 'Feature' as const,
-      properties: {
-        strength: f.properties?.score || 0.5,
-        type: f.type,
-        gradient: f.properties?.grad_f_per_km_mean || 0
-      },
-      geometry: f.geometry
-    }));
-  
-  if (edgeFeatures.length > 0) {
-    const source = map.getSource('snip-edges') as mapboxgl.GeoJSONSource;
-    source.setData({
-      type: 'FeatureCollection',
-      features: edgeFeatures
-    });
-  }
+  return edgeAnalysis;
 }
 
 export default function SnipTool({ map, onAnalysisComplete, isActive = false }: SnipToolProps) {
@@ -260,17 +229,9 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       });
     }
     
-    // Clear analysis visualizations too
+    // Clear analysis visualizations
     if (map.getSource('snip-hotspots')) {
       const source = map.getSource('snip-hotspots') as mapboxgl.GeoJSONSource;
-      source.setData({
-        type: 'FeatureCollection',
-        features: []
-      });
-    }
-    
-    if (map.getSource('snip-edges')) {
-      const source = map.getSource('snip-edges') as mapboxgl.GeoJSONSource;
       source.setData({
         type: 'FeatureCollection',
         features: []
@@ -395,28 +356,39 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         visualizeHotspotOnMap(map, analysis.hotspot);
       }
       
-      // Visualize edges on map
+      // Process edges for analysis (no visualization - handled by polygon filter)
       if (analysis.features && analysis.features.length > 0) {
-        console.log('[SNIP] Visualizing', analysis.features.length, 'edge features');
-        visualizeEdgesOnMap(map, analysis.features);
+        console.log('[SNIP] Processing', analysis.features.length, 'edge features for analysis');
+        const edgeInfo = processEdgesForAnalysis(analysis.features);
+        if (edgeInfo) {
+          console.log('[SNIP] Edge analysis:', edgeInfo);
+        }
       }
       
-      // Visualize vessel tracks if any
+      // Log vessel tracks for analysis
       if (vesselData.tracks && vesselData.tracks.length > 0) {
         console.log('[SNIP] Found', vesselData.tracks.length, 'vessel tracks in area');
         // Vessel tracks are already visible on the map from the vessel tracking layer
       }
       
+      // Add edge analysis info to the result
+      const finalAnalysis = {
+        ...analysisWithVessels,
+        edgeAnalysis: analysis.features && analysis.features.length > 0 
+          ? processEdgesForAnalysis(analysis.features) 
+          : undefined
+      };
+      
       // Step 6: Store analysis and trigger completion callback
       console.log('[SNIP] Step 6: Analysis complete, showing results...');
-      console.log('[SNIP] Full analysis:', analysisWithVessels);
+      console.log('[SNIP] Full analysis:', finalAnalysis);
       
       // Store the analysis for later access when clicking
-      setLastAnalysis(analysisWithVessels);
+      setLastAnalysis(finalAnalysis);
       setHasAnalysisResults(true);
       
       // Show the analysis modal immediately
-      onAnalysisComplete(analysisWithVessels);
+      onAnalysisComplete(finalAnalysis);
       
       // Keep rectangle AND visualizations visible
       // Rectangle stays to show the analyzed area
@@ -543,22 +515,22 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     if (!map || !hasAnalysisResults || !lastAnalysis) return;
     
     const handleResultClick = (e: mapboxgl.MapMouseEvent) => {
-      // Check if click is on any of our analysis layers
+      // Check if click is on the rectangle (hotspots are within it)
       const features = map.queryRenderedFeatures(e.point, {
-        layers: ['snip-rectangle-fill', 'snip-hotspots-layer', 'snip-edges-layer']
+        layers: ['snip-rectangle-fill']
       });
       
       if (features.length > 0) {
-        console.log('[SNIP] Clicked on analysis result, showing report');
+        console.log('[SNIP] Clicked on analysis rectangle, showing report');
         // Re-show the analysis modal
         onAnalysisComplete(lastAnalysis);
       }
     };
     
-    // Add cursor change on hover
+    // Add cursor change on hover over rectangle
     const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
       const features = map.queryRenderedFeatures(e.point, {
-        layers: ['snip-rectangle-fill', 'snip-hotspots-layer', 'snip-edges-layer']
+        layers: ['snip-rectangle-fill']
       });
       
       map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
@@ -666,10 +638,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       {/* Click hint for analysis results */}
       {hasAnalysisResults && !isAnalyzing && !isDrawing && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 pointer-events-none z-[9999]">
-          <div className="bg-black/90 backdrop-blur-md rounded-lg px-4 py-2 flex items-center gap-2 border border-cyan-400/30">
-            <Target size={16} className="text-cyan-400" />
-            <span className="text-sm text-cyan-300">
-              Click the highlighted area to view analysis details
+          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 flex items-center gap-2 border border-slate-600/50">
+            <div className="w-2 h-2 rounded-full bg-teal-600 animate-pulse" />
+            <span className="text-sm text-slate-300">
+              Click the highlighted area to view ocean intelligence report
             </span>
           </div>
         </div>
