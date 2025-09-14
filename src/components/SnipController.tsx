@@ -7,6 +7,7 @@ import AnalysisModal from './AnalysisModal';
 import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData, type AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { saveSnipAnalysis } from '@/lib/supabase/ml-queries';
 import * as turf from '@turf/turf';
+import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 
 interface SnipControllerProps {
   map: mapboxgl.Map | null;
@@ -40,6 +41,10 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     }
     
     console.log('[OK] Map is available, proceeding with analysis');
+    
+    // Get vessel tracks in the area
+    const vesselData = await getVesselTracksInArea(polygon, map);
+    console.log('[VESSELS] Found tracks:', vesselData.tracks.length);
     
     // Smooth delay before showing analyzing state
     setTimeout(() => {
@@ -103,8 +108,14 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         }
       }
       
-      console.log('[COMPLETE] Analysis complete:', analysis);
-      setCurrentAnalysis(analysis);
+      // Add vessel track info to analysis
+      const analysisWithVessels = {
+        ...analysis,
+        vesselTracks: vesselData.summary
+      };
+      
+      console.log('[COMPLETE] Analysis complete:', analysisWithVessels);
+      setCurrentAnalysis(analysisWithVessels);
       
       // Show the pulsing cyan hotspot
       if (analysis.hotspot) {

@@ -6,7 +6,7 @@ import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 // import { getAnalysisQuote } from '@/lib/philosophy';
 
 interface AnalysisModalProps {
-  analysis: AnalysisResult | null;
+  analysis: (AnalysisResult & { vesselTracks?: string }) | null;
   visible: boolean;
   onClose: () => void;
   onSave?: () => void;
@@ -178,6 +178,19 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                   </p>
                 </div>
               </div>
+            </div>
+          )}
+          
+          {/* Vessel Tracks */}
+          {analysis.vesselTracks && (
+            <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
+              <h4 className="text-blue-300 text-sm font-semibold mb-2 flex items-center gap-2">
+                <Activity size={16} className="text-blue-400" />
+                Vessel Tracks in Area
+              </h4>
+              <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
+                {analysis.vesselTracks}
+              </pre>
             </div>
           )}
           
