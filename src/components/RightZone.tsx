@@ -12,8 +12,8 @@ export default function RightZone({ map }: RightZoneProps) {
   
   return (
     <>
-      {/* ABFI Button - Hide when analysis modal is open */}
-      {!isAnalysisModalOpen && <ReportCatchButton map={map} />}
+      {/* ABFI Button - ONLY show when analysis modal IS open */}
+      {isAnalysisModalOpen && <ReportCatchButton map={map} />}
       
       {/* Snip Controller - Handles the analyze area functionality */}
       <SnipController map={map} onModalStateChange={setIsAnalysisModalOpen} />
