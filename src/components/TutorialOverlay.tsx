@@ -54,23 +54,28 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   }
 ];
 
-export default function TutorialOverlay() {
+interface TutorialOverlayProps {
+  onComplete?: () => void;
+}
+
+export default function TutorialOverlay({ onComplete }: TutorialOverlayProps = {}) {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [hasSeenTutorial, setHasSeenTutorial] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    // Check if user has seen tutorial
+    // Check tutorial status on client side only
     const seen = localStorage.getItem('abfi_tutorial_seen');
     const skipTutorial = localStorage.getItem('abfi_skip_tutorial');
     
     if (!seen && skipTutorial !== 'true') {
-      // Quick, smooth entrance after welcome screen
+      // Show tutorial immediately with smooth animation
+      setIsVisible(true);
+      // Small delay for smooth entrance
       setTimeout(() => {
-        setIsVisible(true);
-        setIsAnimating(true); // Immediate animation, no extra delay
-      }, 800); // Much quicker transition from welcome
+        setIsAnimating(true);
+      }, 100);
     }
   }, []);
 
@@ -105,32 +110,34 @@ export default function TutorialOverlay() {
     if (map) {
       setTimeout(() => {
         setIsVisible(false);
+        onComplete?.(); // Notify parent to unblur
         
-        // Fast, dynamic zoom - like dropping into the action
-        console.log('🚀 Diving into the East Coast!');
+        // Smooth, relaxing zoom to East Coast
+        console.log('🌊 Settling into the East Coast view...');
         
         // Zoom to FULL East Coast view (Maine to Florida Keys)
         const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]]; // Full coast from Keys to Maine
         
         map.fitBounds(EAST_COAST_BOUNDS, {
           padding: { top: 50, bottom: 50, left: 50, right: 50 },
-          duration: 1800,  // Fast 1.8 second zoom
+          duration: 2500,  // Slower, more relaxing zoom
           essential: true,
           easing: (t: number) => {
-            // Aggressive easing - fast start, smooth landing
-            return 1 - Math.pow(1 - t, 3);
+            // Smooth easing for relaxing feel
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
           }
         });
         
         // Set max bounds after zoom completes
         setTimeout(() => {
           map.setMaxBounds([[-85, 23], [-64, 47]]); // Slightly larger bounds for panning
-          console.log('⚡ Full East Coast view ready - Maine to the Keys!');
-        }, 2000);
+          console.log('🌊 East Coast view ready - Maine to the Keys');
+        }, 2600);
       }, 100); // Almost instant
     } else {
       setTimeout(() => {
         setIsVisible(false);
+        onComplete?.();
       }, 150);
     }
   };
@@ -156,10 +163,12 @@ export default function TutorialOverlay() {
         setTimeout(() => {
           map.setMaxBounds([[-85, 23], [-64, 47]]);
         }, 1300);
+        onComplete?.(); // Notify parent
       }, 100);
     } else {
       setTimeout(() => {
         setIsVisible(false);
+        onComplete?.();
       }, 150);
     }
   };

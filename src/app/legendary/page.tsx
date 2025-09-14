@@ -33,6 +33,16 @@ export default function LegendaryOceanPlatform() {
   // Tab state - 'analysis' | 'tracking' | 'community' | 'trends'
   const [activeTab, setActiveTab] = useState<string>('analysis');
   
+  // Check if tutorial should be shown (client-side only)
+  const [showingTutorial, setShowingTutorial] = useState(false);
+  
+  useEffect(() => {
+    // Check tutorial status on client side
+    const seen = localStorage.getItem('abfi_tutorial_seen');
+    const skip = localStorage.getItem('abfi_skip_tutorial');
+    setShowingTutorial(!seen && skip !== 'true');
+  }, []);
+  
   // Watch for inlet changes and fly to selected inlet with Gulf Stream view
   useEffect(() => {
     if (!map.current || !selectedInletId) return;
@@ -315,7 +325,9 @@ export default function LegendaryOceanPlatform() {
       <div 
         ref={mapContainer} 
         className={`w-full h-full transition-all duration-700 ${
-          activeTab === 'community' 
+          showingTutorial
+            ? 'blur-md opacity-60' // Start blurred if tutorial will show
+            : activeTab === 'community' 
             ? 'scale-105 blur-md opacity-30' 
             : activeTab === 'trends'
             ? 'blur-lg opacity-20'
@@ -377,7 +389,7 @@ export default function LegendaryOceanPlatform() {
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
           {/* Tutorial Overlay */}
-          <TutorialOverlay />
+          <TutorialOverlay onComplete={() => setShowingTutorial(false)} />
         </>
       )}
       
