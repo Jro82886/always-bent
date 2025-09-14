@@ -57,9 +57,10 @@ const tutorialSteps: TutorialStep[] = [
 interface InteractiveTutorialProps {
   onComplete?: () => void;
   autoStart?: boolean;
+  triggerRef?: React.MutableRefObject<(() => void) | null>;
 }
 
-export default function InteractiveTutorial({ onComplete, autoStart = false }: InteractiveTutorialProps) {
+export default function InteractiveTutorial({ onComplete, autoStart = false, triggerRef }: InteractiveTutorialProps) {
   const [isActive, setIsActive] = useState(autoStart);
   const [currentStep, setCurrentStep] = useState(0);
   const [hasSeenTutorial, setHasSeenTutorial] = useState(false);
@@ -70,10 +71,20 @@ export default function InteractiveTutorial({ onComplete, autoStart = false }: I
     if (seen) {
       setHasSeenTutorial(true);
     } else if (!autoStart) {
-      // Auto-start for first-time users
-      setTimeout(() => setIsActive(true), 2000);
+      // Don't auto-start anymore - only via button
+      // setTimeout(() => setIsActive(true), 2000);
     }
   }, [autoStart]);
+
+  // Expose the start function via ref
+  useEffect(() => {
+    if (triggerRef) {
+      triggerRef.current = () => {
+        setIsActive(true);
+        setCurrentStep(0);
+      };
+    }
+  }, [triggerRef]);
 
   useEffect(() => {
     if (isActive && tutorialSteps[currentStep]?.highlight) {
