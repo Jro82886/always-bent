@@ -43,7 +43,10 @@ export default function IndividualTrackingWidget() {
 
   // Initialize user position marker with custom boat icon
   useEffect(() => {
+    console.log('[USER MARKER] Checking - map exists:', !!map, 'marker exists:', !!userMarker.current);
+    
     if (map && !userMarker.current) {
+      console.log('[USER MARKER] Creating user vessel marker');
       // Create custom boat marker element
       const el = document.createElement('div');
       el.className = 'user-vessel-marker';
@@ -192,9 +195,12 @@ export default function IndividualTrackingWidget() {
 
   // Timer for tracking duration and manage nearby vessels
   useEffect(() => {
+    console.log('[TRACKING] State changed - isTracking:', isTracking, 'isPaused:', isPaused, 'map exists:', !!map);
+    
     if (isTracking && !isPaused) {
       // Add nearby vessel markers when tracking starts
       if (map && nearbyMarkers.current.length === 0) {
+        console.log('[TRACKING] Adding vessel markers to map');
         const vesselPositions = [
           { name: 'Sea Hawk', lat: mockData.position.lat + 0.01, lng: mockData.position.lng + 0.015, color: '#22d3ee' },
           { name: 'Blue Runner', lat: mockData.position.lat - 0.025, lng: mockData.position.lng - 0.005, color: '#3b82f6' },
