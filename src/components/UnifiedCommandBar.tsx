@@ -129,7 +129,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
               
               {/* Custom Dropdown Menu */}
               {inletDropdownOpen && (
-                <div className="absolute z-[60] mt-1 w-full max-h-[400px] overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400/40 rounded-xl shadow-2xl"
+                <div className="absolute z-[9999] mt-1 w-full max-h-[400px] overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400/40 rounded-xl shadow-2xl"
                   style={{
                     boxShadow: '0 10px 40px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.15)'
                   }}

@@ -60,7 +60,7 @@ export function InletSelect({ value, onChange, label }: Props) {
 
       {/* Dropdown Menu - Connected appearance */}
       {isOpen && (
-        <div className="absolute z-50 -mt-[1px] w-full max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 border-t-0 rounded-b-lg shadow-2xl">
+        <div className="absolute z-[9999] -mt-[1px] w-full max-h-[400px] overflow-y-auto bg-black/95 backdrop-blur-xl border border-cyan-500/30 border-t-0 rounded-b-lg shadow-2xl">
           {/* Flat list of all inlets with glowing color dots */}
           {INLETS.map((inlet) => (
             <button
