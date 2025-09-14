@@ -107,12 +107,13 @@ export default function TutorialOverlay() {
         setIsVisible(false);
         
         // Fast, dynamic zoom - like dropping into the action
-        console.log('🚀 Diving into the Gulf Stream!');
+        console.log('🚀 Diving into the East Coast!');
         
-        // Quick punch zoom to East Coast
-        map.flyTo({
-          center: [-72, 37],  // East Coast center
-          zoom: 5.5,  // Optimal fishing view
+        // Zoom to FULL East Coast view (Maine to Florida Keys)
+        const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]]; // Full coast from Keys to Maine
+        
+        map.fitBounds(EAST_COAST_BOUNDS, {
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
           duration: 1800,  // Fast 1.8 second zoom
           essential: true,
           easing: (t: number) => {
@@ -121,11 +122,10 @@ export default function TutorialOverlay() {
           }
         });
         
-        // Quick bounds set
+        // Set max bounds after zoom completes
         setTimeout(() => {
-          const EAST_COAST_BOUNDS = [[-85, 24], [-65, 46]];
-          map.setMaxBounds(EAST_COAST_BOUNDS);
-          console.log('⚡ Ready to find fish!');
+          map.setMaxBounds([[-85, 23], [-64, 47]]); // Slightly larger bounds for panning
+          console.log('⚡ Full East Coast view ready - Maine to the Keys!');
         }, 2000);
       }, 100); // Almost instant
     } else {
@@ -136,12 +136,37 @@ export default function TutorialOverlay() {
   };
 
   const handleSkip = () => {
-    handleComplete();
+    // When skipping, still zoom to East Coast view
+    localStorage.setItem('abfi_tutorial_seen', 'true');
+    setIsAnimating(false);
+    
+    const map = (window as any).map || (globalThis as any).abfiMap;
+    if (map) {
+      setTimeout(() => {
+        setIsVisible(false);
+        
+        // Immediate zoom to full East Coast
+        const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]];
+        map.fitBounds(EAST_COAST_BOUNDS, {
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+          duration: 1200,  // Even faster for skip
+          essential: true
+        });
+        
+        setTimeout(() => {
+          map.setMaxBounds([[-85, 23], [-64, 47]]);
+        }, 1300);
+      }, 100);
+    } else {
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 150);
+    }
   };
 
   const handleDontShowAgain = () => {
     localStorage.setItem('abfi_skip_tutorial', 'true');
-    handleComplete();
+    handleSkip(); // Use skip logic to ensure proper zoom
   };
 
   if (!isVisible) return null;

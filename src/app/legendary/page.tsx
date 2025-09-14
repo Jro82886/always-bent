@@ -105,10 +105,28 @@ export default function LegendaryOceanPlatform() {
 
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
-      // Start with Atlantic Ocean view, don't immediately zoom to East Coast
-      // We'll zoom in after tutorial completes
-      // No max bounds initially to allow full Atlantic view
-      // mapInstance.setMaxBounds(EAST_COAST_BOUNDS as any);  // Will set after zoom
+      
+      // Check if tutorial has been seen
+      const tutorialSeen = localStorage.getItem('abfi_tutorial_seen');
+      
+      if (tutorialSeen === 'true') {
+        // Tutorial already seen - go straight to East Coast view
+        console.log('🎣 Tutorial already completed - zooming to East Coast');
+        const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]];
+        mapInstance.fitBounds(EAST_COAST_BOUNDS as any, {
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+          duration: 1500,
+          essential: true
+        });
+        
+        setTimeout(() => {
+          mapInstance.setMaxBounds([[-85, 23], [-64, 47]] as any);
+        }, 1600);
+      } else {
+        // First time - start with Atlantic view for tutorial
+        console.log('🌌 First visit - showing Atlantic Ocean view');
+        // Tutorial will handle the zoom to East Coast
+      }
       
       // Ensure map stays flat
       mapInstance.setPitch(0);
