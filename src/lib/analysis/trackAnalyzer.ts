@@ -12,10 +12,12 @@ export interface VesselTrack {
 /**
  * Get vessel tracks that pass through the snipped area
  * Returns both individual user tracks and GFW commercial vessel tracks
+ * Limited to last 4 days for snipped areas to ensure recent data
  */
 export async function getVesselTracksInArea(
   polygon: GeoJSON.Feature<GeoJSON.Polygon>,
-  map: mapboxgl.Map
+  map: mapboxgl.Map,
+  daysLimit: number = 4  // Default 4 days for snipped areas
 ): Promise<{ tracks: VesselTrack[], summary: string }> {
   const bounds = turf.bbox(polygon);
   const [minLng, minLat, maxLng, maxLat] = bounds;

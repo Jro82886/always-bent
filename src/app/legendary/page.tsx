@@ -12,7 +12,7 @@ import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
 import CommunityMode from '@/components/community/CommunityMode';
-import SimpleTrackingWidget from '@/components/tracking/SimpleTrackingWidget';
+import VesselTrackingSystem from '@/components/tracking/VesselTrackingSystem';
 import TrendsMode from '@/components/trends/TrendsMode';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import { useAppState } from '@/store/appState';
@@ -406,7 +406,7 @@ export default function LegendaryOceanPlatform() {
       )}
       
       {/* TRACKING MODE UI - Vessel Tracking */}
-      {activeTab === 'tracking' && <SimpleTrackingWidget map={map.current} />}
+      {activeTab === 'tracking' && <VesselTrackingSystem map={map.current} />}
       
       {/* TRENDS MODE UI - Dashboard (No map interaction) */}
       {activeTab === 'trends' && (
