@@ -17,6 +17,7 @@ import TrendsMode from '@/components/trends/TrendsMode';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
+import { flyToInlet60nm } from '@/lib/inletBounds';
 import '@/styles/mapSmoothing.css';
 
 // Set Mapbox token
@@ -32,34 +33,15 @@ export default function LegendaryOceanPlatform() {
   // Tab state - 'analysis' | 'tracking' | 'community' | 'trends'
   const [activeTab, setActiveTab] = useState<string>('analysis');
   
-  // Watch for inlet changes and fly to selected inlet
+  // Watch for inlet changes and fly to selected inlet with Gulf Stream view
   useEffect(() => {
     if (!map.current || !selectedInletId) return;
     
     const inlet = getInletById(selectedInletId);
     if (inlet) {
-      // Use the same zoom logic as UnifiedCommandBar
-      if (inlet.isOverview) {
-        const eastCoastBounds: [[number, number], [number, number]] = [
-          [-82.0, 24.0],  // Southwest: Florida Keys
-          [-65.0, 46.0],  // Northeast: Maine
-        ];
-        
-        map.current.fitBounds(eastCoastBounds, {
-          padding: { top: 50, bottom: 50, left: 100, right: 50 },
-          duration: 1500,
-          essential: true
-        });
-      } else {
-        map.current.flyTo({
-          center: inlet.center as [number, number],
-          zoom: inlet.zoom,
-          duration: 1500,
-          essential: true
-        });
-      }
-      
-      console.log(`📍 Flying to inlet: ${inlet.name}`);
+      // Use proper Gulf Stream view for each inlet
+      flyToInlet60nm(map.current, inlet);
+      console.log(`📍 Flying to inlet with Gulf Stream view: ${inlet.name}`);
     }
   }, [selectedInletId]);
   
@@ -322,21 +304,7 @@ export default function LegendaryOceanPlatform() {
     console.log(`🌿 Copernicus CHL ${newState ? 'ON' : 'OFF'}`);
   };
 
-  // Respond to inlet selection changes
-  useEffect(() => {
-    if (!map.current) return;
-    const inlet = getInletById(selectedInletId) || DEFAULT_INLET;
-    
-    // Fly to the selected inlet
-    map.current.flyTo({
-      center: inlet.center as [number, number],
-      zoom: inlet.zoom,
-      duration: 1500,
-      essential: true
-    });
-    
-    console.log(`📍 Flying to inlet: ${inlet.name}`);
-  }, [selectedInletId]);
+  // This duplicate inlet handler can be removed - already handled above
 
   return (
     <div className={`w-full h-screen relative bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 ${sstActive ? 'sst-active' : ''}`} style={{
