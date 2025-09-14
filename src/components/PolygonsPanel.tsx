@@ -36,11 +36,11 @@ const LAYERS = {
 };
 
 export default function PolygonsPanel({ map }: Props) {
-  const [showPanel, setShowPanel] = useState(true); // Start open to show polygons
+  const [showPanel, setShowPanel] = useState(false); // Start closed for clean entry
   const [enabled, setEnabled] = useState({
-    eddy: true,     // Start visible for nice entry effect
-    edge: true,     // Start visible for nice entry effect
-    filament: true  // Start visible for nice entry effect
+    eddy: false,    // Start hidden - user chooses to enable
+    edge: false,    // Start hidden - user chooses to enable
+    filament: false // Start hidden - user chooses to enable
   });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({

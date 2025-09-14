@@ -40,7 +40,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     }
     
     console.log('✅ Map is available, proceeding with analysis');
-    setIsAnalyzing(true);
+    
+    // Smooth delay before showing analyzing state
+    setTimeout(() => {
+      setIsAnalyzing(true);
+    }, 300); // Small delay for smooth transition
     
     // Detect which layers are currently active
     const activeLayers = {
@@ -138,7 +142,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       setTimeout(() => setShouldClearTool(false), 100);
     } finally {
       console.log('🏁 Analysis finished, setting isAnalyzing to false');
-      setIsAnalyzing(false);
+      
+      // Smooth fade out of analyzing state
+      setTimeout(() => {
+        setIsAnalyzing(false);
+      }, 200); // Small delay for smooth transition
       
       // Clear the rectangle after successful analysis too
       setShouldClearTool(true);
@@ -315,11 +323,18 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       />
       
       {isAnalyzing && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/90 rounded-lg p-6 shadow-2xl">
-          <div className="text-white text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-            <p className="text-lg font-semibold">Analyzing Ocean Data...</p>
-            <p className="text-sm text-cyan-300 mt-2">Finding the heartbeat of the ocean</p>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="text-white text-center animate-fade-in">
+            {/* Subtle pulsing circle instead of harsh spinner */}
+            <div className="relative w-16 h-16 mx-auto mb-4">
+              <div className="absolute inset-0 rounded-full bg-cyan-400/20 animate-ping"></div>
+              <div className="absolute inset-0 rounded-full bg-cyan-400/30 animate-ping animation-delay-200"></div>
+              <div className="relative rounded-full h-16 w-16 bg-gradient-to-br from-cyan-400/40 to-blue-500/40 backdrop-blur-sm flex items-center justify-center">
+                <div className="w-3 h-3 bg-cyan-300 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            {/* Softer, smaller text */}
+            <p className="text-sm font-light text-cyan-200/80 animate-pulse">Reading ocean patterns...</p>
           </div>
         </div>
       )}
