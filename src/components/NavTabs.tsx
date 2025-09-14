@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { useAppState } from '@/store/appState';
 
 const TABS = [
-  { href: '/analysis', label: 'Analysis' },
+  { href: '/legendary', label: 'Analysis' },
   { href: '/tracking', label: 'Tracking' },
   { href: '/trends', label: 'Trends' },
   { href: '/community', label: 'Community' },
