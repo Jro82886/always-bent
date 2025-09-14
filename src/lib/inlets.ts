@@ -12,65 +12,65 @@ export const INLETS: Inlet[] = [
   // Overview
   { id: 'overview', name: 'East Coast Overview', state: '', center: [-75.5, 34.5], zoom: 5.0, isOverview: true, color: '#22c55e' }, // Bright green - adjusted center and zoom for full coast view
   
-  // Maine - 90nm view (zoom ~7.9) - Captures offshore canyons and distant Gulf Stream
-  { id: 'me-portland', name: 'Portland Harbor / Casco Bay', state: 'ME', center: [-70.2460, 43.6561], zoom: 7.9, color: '#1e40af' }, // Deep blue
+  // Maine - 90nm view (zoom ~7.2) - Captures offshore canyons and distant Gulf Stream
+  { id: 'me-portland', name: 'Portland Harbor / Casco Bay', state: 'ME', center: [-70.2460, 43.6561], zoom: 7.2, color: '#1e40af' }, // Deep blue
   
-  // Massachusetts - 85nm view (zoom ~8.0) - Captures Georges Bank edges and canyons
-  { id: 'ma-cape-cod', name: 'Cape Cod Canal East', state: 'MA', center: [-70.5183, 41.7717], zoom: 8.0, color: '#10b981' }, // Emerald
+  // Massachusetts - 85nm view (zoom ~7.3) - Captures Georges Bank edges and canyons
+  { id: 'ma-cape-cod', name: 'Cape Cod Canal East', state: 'MA', center: [-70.5183, 41.7717], zoom: 7.3, color: '#10b981' }, // Emerald
   
-  // Rhode Island - 80nm view (zoom ~8.1) - Captures Block Canyon and shelf break
-  { id: 'ri-point-judith', name: 'Point Judith Harbor', state: 'RI', center: [-71.4900, 41.3617], zoom: 8.1, color: '#0ea5e9' }, // Sky blue
+  // Rhode Island - 80nm view (zoom ~7.4) - Captures Block Canyon and shelf break
+  { id: 'ri-point-judith', name: 'Point Judith Harbor', state: 'RI', center: [-71.4900, 41.3617], zoom: 7.4, color: '#0ea5e9' }, // Sky blue
   
-  // New York - 80nm view (zoom ~8.1) - Hudson Canyon and shelf break fishing
-  { id: 'ny-montauk', name: 'Montauk Harbor', state: 'NY', center: [-71.9360, 41.0710], zoom: 8.1, color: '#dc2626' }, // Red
-  { id: 'ny-shinnecock', name: 'Shinnecock Inlet', state: 'NY', center: [-72.4762, 40.8426], zoom: 8.1, color: '#ea580c' }, // Orange
+  // New York - 80nm view (zoom ~7.4) - Hudson Canyon and shelf break fishing
+  { id: 'ny-montauk', name: 'Montauk Harbor', state: 'NY', center: [-71.9360, 41.0710], zoom: 7.4, color: '#dc2626' }, // Red
+  { id: 'ny-shinnecock', name: 'Shinnecock Inlet', state: 'NY', center: [-72.4762, 40.8426], zoom: 7.4, color: '#ea580c' }, // Orange
   
-  // New Jersey - 75nm view (zoom ~8.2) - Captures Hudson Canyon south edge, shelf fishing
-  { id: 'nj-barnegat', name: 'Barnegat Inlet', state: 'NJ', center: [-74.1081, 39.7669], zoom: 8.2, color: '#ca8a04' }, // Amber
-  { id: 'nj-manasquan', name: 'Manasquan Inlet', state: 'NJ', center: [-74.0354, 40.1043], zoom: 8.2, color: '#64748b' }, // Slate
-  { id: 'nj-atlantic-city', name: 'Absecon Inlet', state: 'NJ', center: [-74.4050, 39.3704], zoom: 8.2, color: '#78716c' }, // Stone
+  // New Jersey - 75nm view (zoom ~7.5) - Captures Hudson Canyon south edge, shelf fishing
+  { id: 'nj-barnegat', name: 'Barnegat Inlet', state: 'NJ', center: [-74.1081, 39.7669], zoom: 7.5, color: '#ca8a04' }, // Amber
+  { id: 'nj-manasquan', name: 'Manasquan Inlet', state: 'NJ', center: [-74.0354, 40.1043], zoom: 7.5, color: '#64748b' }, // Slate
+  { id: 'nj-atlantic-city', name: 'Absecon Inlet', state: 'NJ', center: [-74.4050, 39.3704], zoom: 7.5, color: '#78716c' }, // Stone
   
-  // Delaware - 70nm view (zoom ~8.2) - Baltimore Canyon proximity
-  { id: 'de-indian-river', name: 'Indian River Inlet', state: 'DE', center: [-75.0677, 38.6073], zoom: 8.2, color: '#0891b2' }, // Cyan
+  // Delaware - 70nm view (zoom ~7.6) - Baltimore Canyon proximity
+  { id: 'de-indian-river', name: 'Indian River Inlet', state: 'DE', center: [-75.0677, 38.6073], zoom: 7.6, color: '#0891b2' }, // Cyan
   
-  // Maryland - 70nm view (zoom ~8.2) - Poor Man's Canyon, Washington Canyon edges
-  { id: 'md-ocean-city', name: 'Ocean City Inlet', state: 'MD', center: [-75.0906, 38.3286], zoom: 8.2, color: '#059669' }, // Teal
+  // Maryland - 70nm view (zoom ~7.6) - Poor Man's Canyon, Washington Canyon edges
+  { id: 'md-ocean-city', name: 'Ocean City Inlet', state: 'MD', center: [-75.0906, 38.3286], zoom: 7.6, color: '#059669' }, // Teal
   
-  // Virginia - 65nm view (zoom ~8.3) - Norfolk Canyon proximity
-  { id: 'va-chincoteague', name: 'Chincoteague Inlet', state: 'VA', center: [-75.4480, 37.8690], zoom: 8.3, color: '#4f46e5' }, // Indigo
+  // Virginia - 65nm view (zoom ~7.7) - Norfolk Canyon proximity
+  { id: 'va-chincoteague', name: 'Chincoteague Inlet', state: 'VA', center: [-75.4480, 37.8690], zoom: 7.7, color: '#4f46e5' }, // Indigo
   
   // North Carolina - Variable based on Gulf Stream proximity
-  { id: 'nc-oregon', name: 'Oregon Inlet', state: 'NC', center: [-75.5255, 35.7714], zoom: 8.4, color: '#2563eb' }, // 55nm - Stream 40-50nm out
-  { id: 'nc-hatteras', name: 'Hatteras Inlet', state: 'NC', center: [-75.7540, 35.2060], zoom: 8.5, color: '#16a34a' }, // 50nm - Stream closest here (15-30nm)
-  { id: 'nc-ocracoke', name: 'Ocracoke Inlet', state: 'NC', center: [-75.9927, 35.1305], zoom: 8.5, color: '#0d9488' }, // 50nm - Stream still close
-  { id: 'nc-beaufort', name: 'Beaufort Inlet', state: 'NC', center: [-76.6663, 34.6938], zoom: 8.4, color: '#b45309' }, // 55nm - Stream moving away
-  { id: 'nc-cape-fear', name: 'Cape Fear River', state: 'NC', center: [-77.9730, 33.8730], zoom: 8.3, color: '#f97316' }, // 65nm - Stream further offshore
+  { id: 'nc-oregon', name: 'Oregon Inlet', state: 'NC', center: [-75.5255, 35.7714], zoom: 7.8, color: '#2563eb' }, // 55nm - Stream 40-50nm out
+  { id: 'nc-hatteras', name: 'Hatteras Inlet', state: 'NC', center: [-75.7540, 35.2060], zoom: 7.9, color: '#16a34a' }, // 50nm - Stream closest here (15-30nm)
+  { id: 'nc-ocracoke', name: 'Ocracoke Inlet', state: 'NC', center: [-75.9927, 35.1305], zoom: 7.9, color: '#0d9488' }, // 50nm - Stream still close
+  { id: 'nc-beaufort', name: 'Beaufort Inlet', state: 'NC', center: [-76.6663, 34.6938], zoom: 7.8, color: '#b45309' }, // 55nm - Stream moving away
+  { id: 'nc-cape-fear', name: 'Cape Fear River', state: 'NC', center: [-77.9730, 33.8730], zoom: 7.7, color: '#f97316' }, // 65nm - Stream further offshore
   
-  // South Carolina - 65nm view (zoom ~8.3) - Gulf Stream 50-80nm offshore
-  { id: 'sc-charleston', name: 'Charleston Harbor', state: 'SC', center: [-79.9000, 32.7500], zoom: 8.3, color: '#eab308' }, // Yellow
-  { id: 'sc-st-helena', name: 'St. Helena Sound', state: 'SC', center: [-80.5500, 32.4330], zoom: 8.3, color: '#84cc16' }, // Lime
+  // South Carolina - 65nm view (zoom ~7.7) - Gulf Stream 50-80nm offshore
+  { id: 'sc-charleston', name: 'Charleston Harbor', state: 'SC', center: [-79.9000, 32.7500], zoom: 7.7, color: '#eab308' }, // Yellow
+  { id: 'sc-st-helena', name: 'St. Helena Sound', state: 'SC', center: [-80.5500, 32.4330], zoom: 7.7, color: '#84cc16' }, // Lime
   
-  // Georgia - 60nm view (zoom ~8.4) - Gulf Stream 50-70nm offshore
-  { id: 'ga-savannah', name: 'Savannah River', state: 'GA', center: [-80.9000, 32.0330], zoom: 8.4, color: '#06b6d4' }, // Cyan
-  { id: 'ga-st-marys', name: 'St. Marys Entrance', state: 'GA/FL', center: [-81.4200, 30.7200], zoom: 8.4, color: '#14b8a6' }, // Teal
+  // Georgia - 60nm view (zoom ~7.8) - Gulf Stream 50-70nm offshore
+  { id: 'ga-savannah', name: 'Savannah River', state: 'GA', center: [-80.9000, 32.0330], zoom: 7.8, color: '#06b6d4' }, // Cyan
+  { id: 'ga-st-marys', name: 'St. Marys Entrance', state: 'GA/FL', center: [-81.4200, 30.7200], zoom: 7.8, color: '#14b8a6' }, // Teal
   
-  // North Florida - 50nm view (zoom ~8.5) - Gulf Stream 30-50nm offshore
-  { id: 'fl-jacksonville', name: 'St. Johns River', state: 'FL', center: [-81.3830, 30.4000], zoom: 8.5, color: '#3b82f6' }, // Blue
-  { id: 'fl-ponce', name: 'Ponce de Leon Inlet', state: 'FL', center: [-80.9180, 29.0640], zoom: 8.6, color: '#22c55e' }, // 45nm - Stream moving closer
+  // North Florida - 50nm view (zoom ~7.9) - Gulf Stream 30-50nm offshore
+  { id: 'fl-jacksonville', name: 'St. Johns River', state: 'FL', center: [-81.3830, 30.4000], zoom: 7.9, color: '#3b82f6' }, // Blue
+  { id: 'fl-ponce', name: 'Ponce de Leon Inlet', state: 'FL', center: [-80.9180, 29.0640], zoom: 8.0, color: '#22c55e' }, // 45nm - Stream moving closer
   
-  // Central Florida - 40nm view (zoom ~8.7-8.8) - Gulf Stream 20-30nm offshore
-  { id: 'fl-canaveral', name: 'Port Canaveral', state: 'FL', center: [-80.5920, 28.4158], zoom: 8.7, color: '#1e293b' }, // 40nm
-  { id: 'fl-sebastian', name: 'Sebastian Inlet', state: 'FL', center: [-80.4450, 27.8600], zoom: 8.8, color: '#0369a1' }, // 35nm
-  { id: 'fl-st-lucie', name: 'St. Lucie Inlet', state: 'FL', center: [-80.1511, 27.1669], zoom: 8.8, color: '#7c2d12' }, // 35nm
-  { id: 'fl-jupiter', name: 'Jupiter Inlet', state: 'FL', center: [-80.0730, 26.9480], zoom: 8.9, color: '#fb923c' }, // 30nm - Stream very close
+  // Central Florida - 40nm view (zoom ~8.1-8.2) - Gulf Stream 20-30nm offshore
+  { id: 'fl-canaveral', name: 'Port Canaveral', state: 'FL', center: [-80.5920, 28.4158], zoom: 8.1, color: '#1e293b' }, // 40nm
+  { id: 'fl-sebastian', name: 'Sebastian Inlet', state: 'FL', center: [-80.4450, 27.8600], zoom: 8.2, color: '#0369a1' }, // 35nm
+  { id: 'fl-st-lucie', name: 'St. Lucie Inlet', state: 'FL', center: [-80.1511, 27.1669], zoom: 8.2, color: '#7c2d12' }, // 35nm
+  { id: 'fl-jupiter', name: 'Jupiter Inlet', state: 'FL', center: [-80.0730, 26.9480], zoom: 8.3, color: '#fb923c' }, // 30nm - Stream very close
   
-  // South Florida - 25-30nm view (zoom ~9.0-9.2) - Gulf Stream 5-15nm offshore
-  { id: 'fl-lake-worth', name: 'Lake Worth Inlet', state: 'FL', center: [-80.0350, 26.7720], zoom: 9.0, color: '#fbbf24' }, // 30nm
-  { id: 'fl-port-everglades', name: 'Port Everglades', state: 'FL', center: [-80.1050, 26.0850], zoom: 9.1, color: '#a3e635' }, // 25nm
-  { id: 'fl-miami', name: 'Government Cut', state: 'FL', center: [-80.1300, 25.7650], zoom: 9.2, color: '#2dd4bf' }, // 20nm - Stream 3-10nm
+  // South Florida - 25-30nm view (zoom ~8.4-8.6) - Gulf Stream 5-15nm offshore
+  { id: 'fl-lake-worth', name: 'Lake Worth Inlet', state: 'FL', center: [-80.0350, 26.7720], zoom: 8.4, color: '#fbbf24' }, // 30nm
+  { id: 'fl-port-everglades', name: 'Port Everglades', state: 'FL', center: [-80.1050, 26.0850], zoom: 8.5, color: '#a3e635' }, // 25nm
+  { id: 'fl-miami', name: 'Government Cut', state: 'FL', center: [-80.1300, 25.7650], zoom: 8.6, color: '#2dd4bf' }, // 20nm - Stream 3-10nm
   
-  // Florida Keys - 35nm view (zoom ~8.8) - Captures both Atlantic and Gulf sides
-  { id: 'fl-key-west', name: 'Key West Harbor', state: 'FL Keys', center: [-81.8069, 24.5561], zoom: 8.8, color: '#4338ca' } // Deep indigo
+  // Florida Keys - 35nm view (zoom ~8.2) - Captures both Atlantic and Gulf sides
+  { id: 'fl-key-west', name: 'Key West Harbor', state: 'FL Keys', center: [-81.8069, 24.5561], zoom: 8.2, color: '#4338ca' } // Deep indigo
 ];
 
 export const DEFAULT_INLET = INLETS[0];

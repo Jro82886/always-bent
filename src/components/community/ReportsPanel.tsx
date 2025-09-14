@@ -228,15 +228,37 @@ export default function ReportsPanel() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-base font-semibold text-white">{catchReport.captain}</span>
-                          {catchReport.inletId && (
-                            <div 
-                              className="w-2 h-2 rounded-full shadow-lg"
-                              style={{ 
-                                backgroundColor: getInletColor(catchReport.inletId),
-                                boxShadow: `0 0 8px ${getInletColor(catchReport.inletId)}40`
-                              }}
-                            />
-                          )}
+                          
+                          {/* ABFI Community Badge */}
+                          <div className="flex items-center gap-1.5">
+                            <div className="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center gap-1" title="ABFI Community Member">
+                              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
+                              <span className="text-[10px] font-bold text-cyan-400">ABFI</span>
+                            </div>
+                            
+                            {/* Inlet Badge */}
+                            {catchReport.inletId && (
+                              <div 
+                                className="px-2 py-0.5 rounded-full flex items-center gap-1.5 border"
+                                style={{ 
+                                  backgroundColor: `${getInletColor(catchReport.inletId)}15`,
+                                  borderColor: `${getInletColor(catchReport.inletId)}40`
+                                }}
+                                title={`Fishing from ${catchReport.inletId}`}
+                              >
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ 
+                                    backgroundColor: getInletColor(catchReport.inletId),
+                                    boxShadow: `0 0 6px ${getInletColor(catchReport.inletId)}60`
+                                  }}
+                                />
+                                <span className="text-[10px] font-medium text-white/70 uppercase">
+                                  {catchReport.inletId.split('-')[0]}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         {catchReport.boatName && (
                           <div className="text-sm text-green-400/70 flex items-center gap-1 mt-0.5">

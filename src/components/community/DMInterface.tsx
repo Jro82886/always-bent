@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   Search, Send, X, Users, MessageCircle, Clock, Check, CheckCheck, 
   MoreVertical, Smile, Phone, Video, Info, Star,
-  UserPlus, Settings, Archive, Trash2, Pin, Bell, BellOff
+  UserPlus, Settings, Archive, Trash2, Pin, Bell, BellOff,
+  Anchor, MapPin, ChevronRight
 } from 'lucide-react';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 
@@ -731,85 +732,209 @@ export default function DMInterface() {
         </div>
       )}
 
-      {/* User Search Modal */}
+      {/* Enhanced User Search Modal with Better Scrolling */}
       {showUserSearch && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl w-full max-w-md border border-cyan-500/20 shadow-2xl">
-            <div className="p-4 border-b border-cyan-500/10">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl w-full max-w-2xl border border-cyan-500/20 shadow-2xl" style={{ maxHeight: '85vh' }}>
+            <div className="p-4 border-b border-cyan-500/10 sticky top-0 bg-slate-900/95 backdrop-blur-sm rounded-t-2xl z-10">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-cyan-300">Start a conversation</h3>
+                <div>
+                  <h3 className="text-lg font-semibold text-cyan-300">Find Captains</h3>
+                  <p className="text-xs text-cyan-400/60 mt-1">
+                    {filteredUsers.length} captains {userSearchQuery && 'found'} • {users.filter(u => u.isOnline).length} online
+                  </p>
+                </div>
                 <button
-                  onClick={() => setShowUserSearch(false)}
+                  onClick={() => {
+                    setShowUserSearch(false);
+                    setUserSearchQuery('');
+                  }}
                   className="p-1 hover:bg-cyan-500/10 rounded-lg transition-colors"
                 >
                   <X size={20} className="text-cyan-400" />
                 </button>
               </div>
               
-              {/* Search input */}
+              {/* Enhanced Search with keyboard hint */}
               <div className="relative">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/50" />
                 <input
                   type="text"
                   value={userSearchQuery}
                   onChange={(e) => setUserSearchQuery(e.target.value)}
-                  placeholder="Search captains..."
-                  className="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-cyan-400/40 focus:outline-none focus:border-cyan-400/40"
+                  placeholder="Search by name, boat, or inlet..."
+                  className="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg pl-9 pr-24 py-2.5 text-sm text-white placeholder-cyan-400/40 focus:outline-none focus:border-cyan-400/40"
                   autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setShowUserSearch(false);
+                      setUserSearchQuery('');
+                    }
+                  }}
                 />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-cyan-400/40">
+                  <kbd className="px-1.5 py-0.5 bg-slate-700/50 text-cyan-400/60 rounded">Esc</kbd>
+                  <span>to close</span>
+                </div>
               </div>
             </div>
             
-            {/* User list */}
-            <div className="max-h-96 overflow-y-auto p-2">
+            {/* Enhanced User List with sections */}
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 140px)' }}>
               {filteredUsers.length === 0 ? (
-                <div className="p-8 text-center">
-                  <Users size={32} className="mx-auto text-cyan-500/20 mb-2" />
+                <div className="p-12 text-center">
+                  <Users size={48} className="mx-auto text-cyan-500/20 mb-3" />
                   <p className="text-cyan-400/60 text-sm">No captains found</p>
+                  {userSearchQuery && (
+                    <button
+                      onClick={() => setUserSearchQuery('')}
+                      className="mt-3 text-cyan-400 hover:text-cyan-300 text-sm"
+                    >
+                      Clear search
+                    </button>
+                  )}
                 </div>
               ) : (
-                <div className="space-y-1">
-                  {filteredUsers.map(user => (
-                    <button
-                      key={user.id}
-                      onClick={() => startConversation(user.id)}
-                      className="w-full p-3 hover:bg-cyan-500/10 rounded-lg transition-colors text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500/20 to-teal-500/20 flex items-center justify-center">
-                            <span className="text-cyan-300 font-semibold">
-                              {user.username[0].toUpperCase()}
-                            </span>
-                          </div>
-                          {user.isOnline && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-slate-900" />
-                          )}
-                        </div>
-                        
-                        <div className="flex-1">
-                          <div className="font-medium text-white">
-                            {user.captainName || user.username}
-                          </div>
-                          <div className="text-xs text-cyan-400/60">
-                            @{user.username}
-                            {user.boatName && ` • ${user.boatName}`}
-                          </div>
-                          {user.status && (
-                            <div className="text-xs text-cyan-100/60 mt-0.5">
-                              {user.status}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="text-xs text-cyan-400/40">
-                          {formatLastSeen(user.lastSeen, user.isOnline)}
-                        </div>
+                <div>
+                  {/* Online Captains Section */}
+                  {filteredUsers.filter(u => u.isOnline).length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-cyan-500/5 border-b border-cyan-500/10 sticky top-0 z-5">
+                        <h4 className="text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                          Online Captains ({filteredUsers.filter(u => u.isOnline).length})
+                        </h4>
                       </div>
-                    </button>
-                  ))}
+                      <div className="p-2">
+                        {filteredUsers.filter(u => u.isOnline).map((user, index) => (
+                          <button
+                            key={user.id}
+                            onClick={() => {
+                              startConversation(user.id);
+                              setShowUserSearch(false);
+                              setUserSearchQuery('');
+                            }}
+                            className="w-full p-3 hover:bg-cyan-500/10 rounded-lg transition-all text-left group focus:bg-cyan-500/20 focus:outline-none"
+                            tabIndex={index + 1}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500/30 to-teal-500/30 flex items-center justify-center group-hover:from-cyan-500/40 group-hover:to-teal-500/40 transition-colors">
+                                  <span className="text-cyan-300 font-bold text-lg">
+                                    {user.username[0].toUpperCase()}
+                                  </span>
+                                </div>
+                                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-slate-900 animate-pulse" />
+                              </div>
+                              
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-white group-hover:text-cyan-300 transition-colors">
+                                    {user.captainName || user.username}
+                                  </span>
+                                  <span className="text-cyan-400/60 text-sm">
+                                    @{user.username}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3 mt-0.5">
+                                  {user.boatName && (
+                                    <span className="text-xs text-cyan-400/60 flex items-center gap-1">
+                                      <Anchor size={10} />
+                                      {user.boatName}
+                                    </span>
+                                  )}
+                                  {user.inletId && (
+                                    <span className="text-xs text-cyan-400/60 flex items-center gap-1">
+                                      <MapPin size={10} />
+                                      {user.inletId}
+                                    </span>
+                                  )}
+                                  {user.status && (
+                                    <span className="text-xs text-green-400/80">
+                                      "{user.status}"
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <ChevronRight size={16} className="text-cyan-400/30 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Offline Captains Section */}
+                  {filteredUsers.filter(u => !u.isOnline).length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-slate-800/30 border-b border-cyan-500/10 sticky top-0 z-5">
+                        <h4 className="text-xs font-semibold text-cyan-400/60 uppercase tracking-wider">
+                          Offline Captains ({filteredUsers.filter(u => !u.isOnline).length})
+                        </h4>
+                      </div>
+                      <div className="p-2">
+                        {filteredUsers.filter(u => !u.isOnline).map((user, index) => (
+                          <button
+                            key={user.id}
+                            onClick={() => {
+                              startConversation(user.id);
+                              setShowUserSearch(false);
+                              setUserSearchQuery('');
+                            }}
+                            className="w-full p-3 hover:bg-cyan-500/5 rounded-lg transition-all text-left group focus:bg-cyan-500/10 focus:outline-none opacity-75 hover:opacity-100"
+                            tabIndex={filteredUsers.filter(u => u.isOnline).length + index + 1}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700/30 to-slate-600/30 flex items-center justify-center group-hover:from-cyan-500/20 group-hover:to-teal-500/20 transition-colors">
+                                  <span className="text-slate-400 group-hover:text-cyan-300 font-bold text-lg transition-colors">
+                                    {user.username[0].toUpperCase()}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-white/70 group-hover:text-white transition-colors">
+                                    {user.captainName || user.username}
+                                  </span>
+                                  <span className="text-cyan-400/40 text-sm">
+                                    @{user.username}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3 mt-0.5">
+                                  {user.boatName && (
+                                    <span className="text-xs text-slate-500 flex items-center gap-1">
+                                      <Anchor size={10} />
+                                      {user.boatName}
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-slate-600">
+                                    Last seen {formatDistanceToNow(user.lastSeen, { addSuffix: true })}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <ChevronRight size={16} className="text-slate-600 group-hover:text-cyan-400/50 group-hover:translate-x-1 transition-all" />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
+            </div>
+            
+            {/* Quick Actions Footer */}
+            <div className="p-3 border-t border-cyan-500/10 bg-slate-900/50 rounded-b-2xl">
+              <div className="flex items-center justify-between text-xs text-cyan-400/40">
+                <span>Scroll to browse all captains • Click to start conversation</span>
+                <span className="text-cyan-400">
+                  Total: {users.length} captains
+                </span>
+              </div>
             </div>
           </div>
         </div>
