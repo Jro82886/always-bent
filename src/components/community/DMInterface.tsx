@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
   Search, Send, X, Users, MessageCircle, Clock, Check, CheckCheck, 
-  MoreVertical, Paperclip, Smile, Phone, Video, Info, Star,
+  MoreVertical, Smile, Phone, Video, Info, Star,
   UserPlus, Settings, Archive, Trash2, Pin, Bell, BellOff
 } from 'lucide-react';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
@@ -53,7 +53,6 @@ export default function DMInterface() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showConversationInfo, setShowConversationInfo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mock data - replace with real data from your backend
@@ -545,12 +544,49 @@ export default function DMInterface() {
           </div>
 
           {/* Message Input */}
-          <div className="p-4 border-t border-cyan-500/10 bg-black/20">
+          <div className="p-4 border-t border-cyan-500/10 bg-black/20 relative">
+            {/* Emoji Picker */}
+            {showEmojiPicker && (
+              <div className="absolute bottom-full mb-2 right-4 bg-slate-900/95 backdrop-blur-xl rounded-xl border border-cyan-500/30 p-3 shadow-2xl z-50">
+                <div className="grid grid-cols-8 gap-1 max-w-sm">
+                  {['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', 
+                    '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😗',
+                    '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗',
+                    '🤭', '🤔', '🤐', '😐', '😑', '😶', '😏', '😒',
+                    '🙄', '😬', '😮', '😯', '😲', '😳', '🥺', '😦',
+                    '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖',
+                    '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡',
+                    '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙',
+                    '👏', '🙌', '👐', '🤝', '🙏', '✍️', '💪', '🦾',
+                    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
+                    '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘',
+                    '🎣', '🚤', '⚓', '🌊', '🐟', '🐠', '🐡', '🦈',
+                    '🐙', '🦀', '🦞', '🦐', '🦑', '🐚', '🏖️', '🌅'
+                  ].map((emoji, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setMessageInput(prev => prev + emoji);
+                        setShowEmojiPicker(false);
+                      }}
+                      className="text-2xl hover:bg-cyan-500/20 rounded p-1 transition-colors"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t border-cyan-500/20">
+                  <button
+                    onClick={() => setShowEmojiPicker(false)}
+                    className="text-xs text-cyan-400/60 hover:text-cyan-400"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+            
             <div className="flex items-end gap-2">
-              <button className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors">
-                <Paperclip size={20} className="text-cyan-400" />
-              </button>
-              
               <div className="flex-1 relative">
                 <textarea
                   value={messageInput}
@@ -573,9 +609,11 @@ export default function DMInterface() {
               
               <button 
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                className={`p-2 rounded-lg transition-colors ${
+                  showEmojiPicker ? 'bg-cyan-500/20 text-cyan-300' : 'hover:bg-cyan-500/10 text-cyan-400'
+                }`}
               >
-                <Smile size={20} className="text-cyan-400" />
+                <Smile size={20} />
               </button>
               
               <button
@@ -748,18 +786,6 @@ export default function DMInterface() {
           </div>
         </div>
       )}
-      
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        className="hidden"
-        accept="image/*,video/*"
-        onChange={(e) => {
-          // Handle file upload
-          console.log('File selected:', e.target.files?.[0]);
-        }}
-      />
     </div>
   );
 }
