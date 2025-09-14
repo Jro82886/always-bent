@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import type mapboxgl from 'mapbox-gl';
 import { 
   MapPin, Wifi, WifiOff, Battery, Users, Navigation, 
   Activity, Clock, Anchor, AlertCircle, TrendingUp, 
@@ -125,13 +126,16 @@ export default function IndividualTrackingWidget() {
               // Update trail line
               if (positionHistory.current.length > 1) {
                 if (trailLine.current) {
-                  map.getSource('trail-line').setData({
-                    type: 'Feature',
-                    geometry: {
-                      type: 'LineString',
-                      coordinates: positionHistory.current
-                    }
-                  });
+                  const source = map.getSource('trail-line') as mapboxgl.GeoJSONSource;
+                  if (source) {
+                    source.setData({
+                      type: 'Feature',
+                      geometry: {
+                        type: 'LineString',
+                        coordinates: positionHistory.current
+                      }
+                    });
+                  }
                 } else {
                   // Create trail line
                   map.addSource('trail-line', {

@@ -285,9 +285,9 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
         <button
           onClick={handleReportCatch}
-          className="relative px-10 py-2.5 rounded-2xl transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-cyan-500/90 to-blue-500/90 backdrop-blur-md border border-cyan-400/50 text-white hover:from-cyan-400 hover:to-blue-400 hover:border-cyan-300 hover:shadow-xl"
+          className="relative px-10 py-2.5 rounded-2xl transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-slate-600 to-blue-600 backdrop-blur-md border border-slate-500/30 text-white hover:from-slate-500 hover:to-blue-500 hover:border-slate-400/50 hover:shadow-xl"
           style={{
-            boxShadow: '0 4px 20px rgba(6, 182, 212, 0.3), 0 0 40px rgba(6, 182, 212, 0.15)',
+            boxShadow: '0 4px 20px rgba(71, 85, 105, 0.3), 0 0 30px rgba(59, 130, 246, 0.2)',
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
             fontWeight: 600,
             fontSize: '14px',

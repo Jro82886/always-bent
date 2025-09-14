@@ -50,7 +50,7 @@ export default function HotspotMarker({ map, position, visible, onClick }: Hotsp
         left: 50%;
         transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.8);
-        color: #8b5cf6;
+        color: #3b82f6;
         padding: 4px 8px;
         border-radius: 4px;
         font-size: 12px;
@@ -71,11 +71,11 @@ export default function HotspotMarker({ map, position, visible, onClick }: Hotsp
         transform: translate(-50%, -50%);
         width: 12px;
         height: 12px;
-        background: radial-gradient(circle, #6d28d9, #8b5cf6);
+        background: radial-gradient(circle, #475569, #3b82f6);
         border-radius: 50%;
         box-shadow: 
-          0 0 20px rgba(109, 40, 217, 0.8),
-          0 0 40px rgba(139, 92, 246, 0.5),
+          0 0 20px rgba(71, 85, 105, 0.8),
+          0 0 40px rgba(59, 130, 246, 0.5),
           inset 0 0 10px rgba(255, 255, 255, 0.3);
         animation: pulse-glow 2s ease-in-out infinite;
         z-index: 4;
@@ -88,7 +88,7 @@ export default function HotspotMarker({ map, position, visible, onClick }: Hotsp
         transform: translate(-50%, -50%);
         width: 20px;
         height: 20px;
-        border: 2px solid rgba(139, 92, 246, 0.8);
+        border: 2px solid rgba(59, 130, 246, 0.8);
         border-radius: 50%;
         animation: pulse-expand 3s ease-out infinite;
         opacity: 0;

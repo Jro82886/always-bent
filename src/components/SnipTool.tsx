@@ -92,7 +92,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           type: 'fill',
           source: 'rectangle',
           paint: {
-            'fill-color': '#6d28d9',  // Deep purple/indigo
+            'fill-color': '#475569',  // Slate-600 to match ocean analysis
             'fill-opacity': 0.2  // More subtle transparency
           }
         });
@@ -103,7 +103,7 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
           type: 'line',
           source: 'rectangle',
           paint: {
-            'line-color': '#8b5cf6',  // Lighter purple for outline
+            'line-color': '#3b82f6',  // Blue-500 to match ocean analysis gradient
             'line-width': 3,  // Slightly thinner
             'line-opacity': 0.9  // Slightly transparent
           }
