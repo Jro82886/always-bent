@@ -183,7 +183,7 @@ export default function LeftZone({
       <div className="space-y-3 pb-4">
         
         {/* OCEAN INTELLIGENCE + DATA LAYERS - Connected as one unit */}
-        <div className="bg-gradient-to-br from-cyan-950/80 via-teal-950/80 to-cyan-900/80 backdrop-blur-md rounded-lg border border-cyan-400/30 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+        <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-400/30 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.2)]">
           {/* Intelligence Header */}
           <div className="bg-gradient-to-r from-cyan-950/95 via-teal-950/95 to-cyan-900/95 px-4 py-2.5 border-b border-cyan-500/30">
             <h2 className="text-sm font-bold text-cyan-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
@@ -231,7 +231,7 @@ export default function LeftZone({
                             setShowSstOpacity(!showSstOpacity);
                             setShowSstEnhance(false);
                           }}
-                          className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                          className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
                         >
                           <Sliders size={12} className="text-purple-400" />
                         </button>
@@ -254,7 +254,7 @@ export default function LeftZone({
               
               {/* SST Controls */}
               {showSstOpacity && sstActive && (
-                <div ref={sstOpacityRef} className="bg-black/60 rounded-lg p-3 border border-orange-500/20">
+                <div ref={sstOpacityRef} className="bg-slate-700/60 rounded-lg p-3 border border-orange-500/20">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-orange-300">Opacity</span>
                     <input
@@ -271,7 +271,7 @@ export default function LeftZone({
               )}
               
               {showSstEnhance && sstActive && (
-                <div ref={sstEnhanceRef} className="bg-black/60 rounded-lg p-3 border border-purple-500/20 space-y-2">
+                <div ref={sstEnhanceRef} className="bg-slate-700/60 rounded-lg p-3 border border-purple-500/20 space-y-2">
                   <div className="text-xs font-bold text-purple-300 flex items-center gap-1">
                     <Sparkles size={12} /> Enhance SST
                   </div>
@@ -339,7 +339,7 @@ export default function LeftZone({
                           setShowSstOpacity(false);
                           setShowSstEnhance(false);
                         }}
-                        className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                        className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
                       >
                         <Sliders size={12} className="text-cyan-400" />
                       </button>
@@ -350,7 +350,7 @@ export default function LeftZone({
               
               {/* CHL Opacity */}
               {showChlOpacity && chlActive && (
-                <div ref={chlOpacityRef} className="bg-black/60 rounded-lg p-3 border border-green-500/20">
+                <div ref={chlOpacityRef} className="bg-slate-700/60 rounded-lg p-3 border border-green-500/20">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-green-300">Opacity</span>
                     <input
@@ -391,7 +391,7 @@ export default function LeftZone({
                           setShowChlOpacity(false);
                           setShowSstEnhance(false);
                         }}
-                        className="p-1.5 bg-black/60 rounded hover:bg-cyan-500/20 transition-colors"
+                        className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
                       >
                         <Sliders size={12} className="text-cyan-400" />
                       </button>
@@ -402,7 +402,7 @@ export default function LeftZone({
               
               {/* Ocean Opacity */}
               {showOceanOpacity && oceanActive && (
-                <div ref={oceanOpacityRef} className="bg-black/60 rounded-lg p-3 border border-purple-500/20">
+                <div ref={oceanOpacityRef} className="bg-slate-700/60 rounded-lg p-3 border border-purple-500/20">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-purple-300">Opacity</span>
                     <input
@@ -422,7 +422,7 @@ export default function LeftZone({
         </div>
         
         {/* DATE SELECTOR - Always visible, disabled when no layers active */}
-        <div className={`bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 px-4 py-3 ${
+        <div className={`bg-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-500/20 px-4 py-3 ${
           !anyLayerActive ? 'opacity-50' : ''
         }`}>
           <button
@@ -489,7 +489,7 @@ export default function LeftZone({
         
         {/* ANALYSIS RESULTS - Show if available */}
         {analysisResults && (
-          <div className="bg-black/80 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+          <div className="bg-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
             <h3 className="text-sm font-bold text-cyan-300 mb-2">Analysis Results</h3>
             <div className="text-xs text-gray-400">
               {/* Analysis results would go here */}

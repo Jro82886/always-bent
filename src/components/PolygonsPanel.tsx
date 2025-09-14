@@ -211,7 +211,7 @@ export default function PolygonsPanel({ map }: Props) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-cyan-950/80 via-teal-950/80 to-cyan-900/80 backdrop-blur-md rounded-lg border border-cyan-400/30 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+    <div className="bg-gradient-to-br from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-400/30 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.2)]">
       <button
         onClick={() => setShowPanel(!showPanel)}
         className="w-full px-4 py-3 flex items-center justify-between hover:bg-cyan-500/10 transition-colors"
