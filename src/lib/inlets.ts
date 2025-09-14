@@ -10,7 +10,7 @@ export interface Inlet {
 
 export const INLETS: Inlet[] = [
   // Overview
-  { id: 'overview', name: 'East Coast Overview', state: '', center: [-74.5, 38.5], zoom: 5.5, isOverview: true },
+  { id: 'overview', name: 'East Coast Overview', state: '', center: [-74.5, 38.5], zoom: 5.5, isOverview: true, color: '#22c55e' }, // Bright green
   
   // Maine
   { id: 'me-portland', name: 'Portland Harbor / Casco Bay', state: 'ME', center: [-70.2460, 43.6561], zoom: 10, color: '#1e40af' }, // Deep blue
