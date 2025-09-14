@@ -111,18 +111,16 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                 }}
               >
                 <div className="flex items-center gap-2 flex-1">
-                  {selectedInlet && (
-                    <>
-                      <div 
-                        className="w-2 h-2 rounded-full"
-                        style={{
-                          backgroundColor: selectedInlet.color || '#26c281',
-                          boxShadow: `0 0 12px ${selectedInlet.color || '#26c281'}`,
-                        }}
-                      />
-                      <span className="text-left truncate">{selectedInlet.name}</span>
-                    </>
-                  )}
+                  <div 
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor: selectedInlet?.color || '#26c281',
+                      boxShadow: `0 0 12px ${selectedInlet?.color || '#26c281'}`,
+                    }}
+                  />
+                  <span className="text-left truncate text-sm">
+                    {selectedInlet?.name || 'Select Inlet'}
+                  </span>
                 </div>
                 <ChevronDown size={14} className={`text-cyan-400 transition-transform ${inletDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -201,10 +199,12 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
       {/* Dropdown Menu - Rendered outside the rounded container */}
       {inletDropdownOpen && dropdownRef.current && (
         <div 
-          className="absolute z-[9999] min-w-[280px] max-h-[400px] overflow-y-auto bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400/40 rounded-xl shadow-2xl animate-in fade-in-0 slide-in-from-top-2 duration-200"
+          className="absolute z-[9999] w-[280px] bg-slate-900/95 backdrop-blur-xl border-2 border-cyan-400/40 rounded-xl shadow-2xl animate-in fade-in-0 slide-in-from-top-2 duration-200"
           style={{
             top: dropdownRef.current.getBoundingClientRect().bottom + 5,
             left: dropdownRef.current.getBoundingClientRect().left,
+            maxHeight: '320px',
+            overflowY: 'auto',
             boxShadow: '0 10px 40px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.15)'
           }}
         >
@@ -215,22 +215,22 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                 handleInletSelect(inlet.id);
                 setInletDropdownOpen(false);
               }}
-              className={`w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-cyan-400/10 transition-all ${
-                selectedInletId === inlet.id ? 'bg-cyan-400/20 text-cyan-300' : 'text-white'
+              className={`w-full flex items-center justify-between px-3 py-1.5 text-xs hover:bg-cyan-400/10 transition-all ${
+                selectedInletId === inlet.id ? 'bg-cyan-400/20 text-cyan-300' : 'text-white/80'
               }`}
             >
               <div className="flex items-center gap-2">
                 <div 
-                  className="w-2 h-2 rounded-full"
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                   style={{
                     backgroundColor: inlet.color || '#26c281',
-                    boxShadow: `0 0 12px ${inlet.color || '#26c281'}`,
+                    boxShadow: `0 0 8px ${inlet.color || '#26c281'}`,
                   }}
                 />
-                <span className="text-left">{inlet.name}</span>
+                <span className="text-left truncate">{inlet.name}</span>
               </div>
               {selectedInletId === inlet.id && (
-                <span className="text-cyan-400">✓</span>
+                <span className="text-cyan-400 text-[10px]">✓</span>
               )}
             </button>
           ))}
