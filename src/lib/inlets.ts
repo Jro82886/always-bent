@@ -10,7 +10,7 @@ export interface Inlet {
 
 export const INLETS: Inlet[] = [
   // Overview
-  { id: 'overview', name: 'East Coast Overview', state: '', center: [-74.5, 38.5], zoom: 5.5, isOverview: true, color: '#22c55e' }, // Bright green
+  { id: 'overview', name: 'East Coast Overview', state: '', center: [-75.5, 34.5], zoom: 5.0, isOverview: true, color: '#22c55e' }, // Bright green - adjusted center and zoom for full coast view
   
   // Maine - 60nm view (zoom ~8.4)
   { id: 'me-portland', name: 'Portland Harbor / Casco Bay', state: 'ME', center: [-70.2460, 43.6561], zoom: 8.4, color: '#1e40af' }, // Deep blue
@@ -80,10 +80,10 @@ export function flyToInlet(map: any, inlet: Inlet) {
   if (inlet.isOverview) {
     // Zoom out to full East Coast (Maine to Florida Keys visible)
     map.fitBounds([
-      [-82, 24.5], // Southwest (Florida Keys)
-      [-69, 44]    // Northeast (Maine)
+      [-83, 24.0], // Southwest (Florida Keys) - extended west and south
+      [-68, 45]    // Northeast (Maine) - extended north and east
     ], {
-      padding: { top: 50, bottom: 50, left: 50, right: 50 },
+      padding: { top: 20, bottom: 20, left: 20, right: 20 },
       duration: 1500,
       essential: true
     });
