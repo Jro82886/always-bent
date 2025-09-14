@@ -670,7 +670,7 @@ export default function CommunityMode() {
                         )}
                       </div>
                       <span className="text-xs text-white/40">
-                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
                       </span>
                     </div>
                     <div className="text-white/90 text-sm leading-relaxed">

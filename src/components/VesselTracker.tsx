@@ -254,7 +254,7 @@ export default function VesselTracker({ map, inletId, enabled }: Props) {
             <div className="flex justify-between">
               <span className="text-cyan-300/60">Last Update:</span>
               <span className="text-cyan-100">
-                {new Date(selectedVessel.lastUpdate).toLocaleTimeString()}
+                {new Date(selectedVessel.lastUpdate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
               </span>
             </div>
           </div>

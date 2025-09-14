@@ -23,7 +23,7 @@ export default function LegendaryOceanPlatform() {
   useEffect(() => {
     const updateTime = () => {
       setCurrentTime(new Date().toLocaleTimeString('en-US', {
-        hour12: false,
+        hour12: true,
         timeZone: 'UTC'
       }));
     };

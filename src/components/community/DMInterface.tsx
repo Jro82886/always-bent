@@ -214,11 +214,11 @@ export default function DMInterface() {
   const currentConversation = conversations.find(c => c.id === selectedConversation);
   const currentMessages = messages.filter(m => m.conversationId === selectedConversation);
 
-  // Format message time
+  // Format message time (12-hour format)
   const formatMessageTime = (date: Date) => {
-    if (isToday(date)) return format(date, 'HH:mm');
-    if (isYesterday(date)) return 'Yesterday ' + format(date, 'HH:mm');
-    return format(date, 'MMM d, HH:mm');
+    if (isToday(date)) return format(date, 'h:mm a');
+    if (isYesterday(date)) return 'Yesterday ' + format(date, 'h:mm a');
+    return format(date, 'MMM d, h:mm a');
   };
 
   // Format last seen
@@ -540,7 +540,7 @@ export default function DMInterface() {
                     <p className="text-sm text-white">{msg.content}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-cyan-400/40">
-                        {format(msg.timestamp, 'HH:mm')}
+                        {format(msg.timestamp, 'h:mm a')}
                       </span>
                       {isSelf && (
                         <span className="text-cyan-400/50">
