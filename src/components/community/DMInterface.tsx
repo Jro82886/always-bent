@@ -99,7 +99,7 @@ export default function DMInterface() {
     }
   ]);
 
-  const [conversations] = useState<Conversation[]>([
+  const [conversations, setConversations] = useState<Conversation[]>([
     {
       id: '1',
       participants: [users[0]],
@@ -131,7 +131,7 @@ export default function DMInterface() {
     }
   ]);
 
-  const [messages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm1',
       conversationId: '1',
@@ -226,10 +226,37 @@ export default function DMInterface() {
   const sendMessage = () => {
     if (!messageInput.trim() || !selectedConversation) return;
     
-    // In real app, send to server
-    console.log('Sending message:', messageInput);
+    // Create new message
+    const newMessage: Message = {
+      id: `m${Date.now()}`,
+      conversationId: selectedConversation,
+      senderId: 'self',
+      content: messageInput.trim(),
+      timestamp: new Date(),
+      read: false,
+      delivered: true
+    };
+    
+    // Add message to state
+    setMessages(prev => [...prev, newMessage]);
+    
+    // Update conversation's last message
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === selectedConversation) {
+        return {
+          ...conv,
+          lastMessage: newMessage
+        };
+      }
+      return conv;
+    }));
+    
+    // Clear input and typing state
     setMessageInput('');
     setIsTyping(false);
+    
+    // In real app, send to server
+    console.log('Message sent:', newMessage);
     
     // Scroll to bottom
     setTimeout(() => {
@@ -247,8 +274,21 @@ export default function DMInterface() {
     if (existing) {
       setSelectedConversation(existing.id);
     } else {
-      // In real app, create new conversation
-      console.log('Starting conversation with user:', userId);
+      // Create new conversation
+      const user = users.find(u => u.id === userId);
+      if (user) {
+        const newConversation: Conversation = {
+          id: `conv_${Date.now()}`,
+          participants: [user],
+          unreadCount: 0,
+          isPinned: false,
+          isMuted: false,
+          isArchived: false
+        };
+        setConversations(prev => [newConversation, ...prev]);
+        setSelectedConversation(newConversation.id);
+        console.log('Started new conversation with:', user.username);
+      }
     }
     setShowUserSearch(false);
   };
