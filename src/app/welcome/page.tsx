@@ -1,8 +1,6 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getPhilosophicalQuote } from '@/lib/philosophy';
-import { getRandomPhilosophicalQuote, getTimeOfDayQuote } from '@/lib/philosophyBank';
 import { User, Anchor, MapPin, Globe, Shield, Waves } from 'lucide-react';
 
 export default function WelcomePage() {
@@ -10,52 +8,7 @@ export default function WelcomePage() {
   const [captainName, setCaptainName] = useState('');
   const [boatName, setBoatName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [welcomeQuote, setWelcomeQuote] = useState('');
-  const [quoteOpacity, setQuoteOpacity] = useState(1);
   const [locationChoice, setLocationChoice] = useState<boolean | null>(null);
-  
-  
-  useEffect(() => {
-    // Set a random welcome quote on mount - use time-based for first quote
-    const firstQuote = Math.random() > 0.5 ? getTimeOfDayQuote() : getRandomPhilosophicalQuote();
-    setWelcomeQuote(firstQuote);
-    
-    // Keep track of shown quotes to avoid repeats
-    const shownQuotes = new Set<string>([firstQuote]);
-    
-    // Change quote every 8 seconds for users who are reading/thinking
-    const quoteInterval = setInterval(() => {
-      // Fade out
-      setQuoteOpacity(0);
-      
-      // After fade out, change quote and fade in
-      setTimeout(() => {
-        // Get a new random quote from the full bank
-        let newQuote = getRandomPhilosophicalQuote();
-        
-        // Avoid showing the same quote twice in this session
-        let attempts = 0;
-        while (shownQuotes.has(newQuote) && attempts < 10) {
-          newQuote = getRandomPhilosophicalQuote();
-          attempts++;
-        }
-        
-        shownQuotes.add(newQuote);
-        setWelcomeQuote(newQuote);
-        setQuoteOpacity(1);
-        
-        // Reset shown quotes if we've shown too many (avoid memory bloat)
-        if (shownQuotes.size > 50) {
-          shownQuotes.clear();
-          shownQuotes.add(newQuote);
-        }
-      }, 300);
-    }, 8000);
-    
-    return () => {
-      clearInterval(quoteInterval);
-    };
-  }, []);
   
   const handleEnterApp = async () => {
     if (!captainName.trim()) {
@@ -134,22 +87,6 @@ export default function WelcomePage() {
             Where Ocean Data Becomes Intuition
           </p>
         </div>
-        
-        {/* Inspirational Quote with dual glow */}
-        {welcomeQuote && (
-          <div className="mb-6 relative">
-            {/* Dual color glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-transparent to-teal-500/20 blur-xl" />
-            <div className="relative px-8 py-4 bg-gradient-to-br from-cyan-950/40 via-teal-950/40 to-cyan-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/30 shadow-lg shadow-cyan-500/10">
-              <p 
-                className="text-transparent bg-gradient-to-r from-cyan-300 via-teal-300 to-cyan-300 bg-clip-text italic text-center text-sm transition-opacity duration-300 font-medium"
-                style={{ opacity: quoteOpacity }}
-              >
-                "{welcomeQuote}"
-              </p>
-            </div>
-          </div>
-        )}
         
         {/* Main Card - grounded like analysis page */}
         <div className="relative">
