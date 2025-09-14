@@ -34,35 +34,45 @@ export default function TrackingPage() {
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    try {
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [-74.0, 40.7], // NYC area
-        zoom: 9,
-        pitch: 0,
-        bearing: 0
-      });
+    console.log('[Tracking] Initializing map...');
+    console.log('[Tracking] Mapbox token:', mapboxgl.accessToken ? 'Present' : 'Missing');
+    console.log('[Tracking] Container:', mapContainer.current);
 
-      map.current.on('load', () => {
-        setMapLoaded(true);
-        console.log('[Tracking] Map loaded successfully');
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      try {
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: 'mapbox://styles/mapbox/dark-v11',
+          center: [-74.0, 40.7], // NYC area
+          zoom: 9,
+          pitch: 0,
+          bearing: 0
+        });
 
-        // Add navigation controls
-        map.current?.addControl(new mapboxgl.NavigationControl(), 'top-right');
-        map.current?.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
-      });
+        map.current.on('load', () => {
+          setMapLoaded(true);
+          console.log('[Tracking] Map loaded successfully');
 
-      map.current.on('error', (e) => {
-        console.error('[Tracking] Map error:', e);
-      });
+          // Add navigation controls
+          map.current?.addControl(new mapboxgl.NavigationControl(), 'top-right');
+          map.current?.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
+        });
 
-    } catch (error) {
-      console.error('[Tracking] Failed to initialize map:', error);
-    }
+        map.current.on('error', (e) => {
+          console.error('[Tracking] Map error:', e);
+          setMapLoaded(false);
+        });
+
+      } catch (error) {
+        console.error('[Tracking] Failed to initialize map:', error);
+        setMapLoaded(false);
+      }
+    }, 100);
 
     // Cleanup
     return () => {
+      clearTimeout(timer);
       if (map.current) {
         map.current.remove();
         map.current = null;
@@ -73,7 +83,11 @@ export default function TrackingPage() {
   return (
     <div className="relative w-full h-screen bg-gray-950 overflow-hidden">
       {/* Map Container - Full screen background */}
-      <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
+      <div 
+        ref={mapContainer} 
+        className="absolute inset-0 w-full h-full"
+        style={{ minHeight: '100vh', minWidth: '100vw', backgroundColor: '#111827' }}
+      />
       
       {/* UI Overlay */}
       <div className="absolute inset-0 pointer-events-none">
