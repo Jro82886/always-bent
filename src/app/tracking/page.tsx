@@ -1,12 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useMapbox } from '@/lib/MapCtx';
+import { useState } from 'react';
 import NavTabs from '@/components/NavTabs';
 import TopHUD from '@/components/TopHUD';
 import GeoControls from '@/components/GeoControls';
-import VesselMap from '@/components/tracking/VesselMap';
-import AnalyticsDashboard from '@/components/tracking/AnalyticsDashboard';
 import { 
   Radio, Users, Activity, Map, Eye, EyeOff, 
   Anchor, Ship, Navigation, Waves, AlertTriangle,
@@ -36,19 +33,10 @@ export default function TrackingPage() {
   const [trackingMode, setTrackingMode] = useState<TrackingMode>('individual');
   const [viewMode, setViewMode] = useState<ViewMode>('map');
   const [isTracking, setIsTracking] = useState(false);
-  const [showMyPosition, setShowMyPosition] = useState(true);
-  const [showFleet, setShowFleet] = useState(true);
   const [showTrails, setShowTrails] = useState(false);
   const [showGFW, setShowGFW] = useState(false);
   const [showAIS, setShowAIS] = useState(false);
-  const [selectedVessel, setSelectedVessel] = useState<VesselData | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
-
-  const handleVesselSelect = (vessel: VesselData) => {
-    setSelectedVessel(vessel);
-  };
 
   return (
     <div className="w-full h-screen bg-gray-950 relative">
