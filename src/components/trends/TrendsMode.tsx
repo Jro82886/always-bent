@@ -240,14 +240,14 @@ export default function TrendsMode({}: TrendsModeProps) {
               </div>
             </div>
             
-            {/* Conditions Correlation */}
-            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            {/* Success Factors - Matching Catch Trends design */}
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-cyan-400 flex items-center gap-2">
-                  <PieChart size={20} />
+                <h3 className="text-base font-medium text-cyan-400 flex items-center gap-2">
+                  <PieChart size={18} />
                   Success Factors
                 </h3>
-                <button className="text-xs text-cyan-400 hover:text-cyan-300">Details →</button>
+                <button className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">Details →</button>
               </div>
               {/* Placeholder for chart */}
               <div className="h-64 flex items-center justify-center border border-cyan-500/10 rounded-lg">
@@ -256,41 +256,62 @@ export default function TrendsMode({}: TrendsModeProps) {
             </div>
           </div>
           
-          {/* Insights Section */}
-          <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
-            <h3 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
-              <TrendingUp size={20} />
-              Key Insights
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-green-400 mt-1.5" />
-                <div>
-                  <div className="text-sm text-white mb-1">Best performing days are 2-3 days after a cold front</div>
-                  <div className="text-xs text-white/60">Based on last 30 days of data</div>
+          {/* Real-Time Activity Feed - NEW SECTION */}
+          <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-medium text-cyan-400 flex items-center gap-2">
+                <Activity size={18} />
+                Real-Time Activity Feed
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">Live</span>
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              </div>
+            </div>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {/* Mock real-time activity items */}
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 animate-pulse" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Bluefin landed - 42lbs</div>
+                  <div className="text-xs text-gray-400">Barnegat Inlet • 2 min ago • SST: 68°F</div>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5" />
-                <div>
-                  <div className="text-sm text-white mb-1">68-72°F water temperature shows 40% higher catch rates</div>
-                  <div className="text-xs text-white/60">Compared to seasonal average</div>
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Temperature break detected</div>
+                  <div className="text-xs text-gray-400">60-80ft contour • 3°F gradient • High activity zone</div>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-purple-400 mt-1.5" />
-                <div>
-                  <div className="text-sm text-white mb-1">Edge zones near temperature breaks are most productive</div>
-                  <div className="text-xs text-white/60">Especially 2-4°F gradients</div>
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Fleet concentration building</div>
+                  <div className="text-xs text-gray-400">5 boats • Canyon edge • Morning bite starting</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Pattern alert: Tide change in 30 min</div>
+                  <div className="text-xs text-gray-400">Historical data shows 45% increase in activity</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Striped bass on - multiple hookups</div>
+                  <div className="text-xs text-gray-400">Montauk Point • 8 min ago • Dawn patrol success</div>
                 </div>
               </div>
             </div>
           </div>
           
           {/* Historical Calendar */}
-          <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6 mt-6">
-            <h3 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
-              <Calendar size={20} />
+          <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5 mt-6">
+            <h3 className="text-base font-medium text-cyan-400 mb-4 flex items-center gap-2">
+              <Calendar size={18} />
               Historical Performance
             </h3>
             <div className="grid grid-cols-7 gap-2">
@@ -298,7 +319,7 @@ export default function TrendsMode({}: TrendsModeProps) {
               {Array.from({ length: 28 }).map((_, i) => (
                 <div
                   key={i}
-                  className="aspect-square rounded bg-gray-950/60 border border-cyan-500/20 flex items-center justify-center text-xs text-white/40"
+                  className="aspect-square rounded bg-gray-950/30 border border-cyan-500/10 flex items-center justify-center text-xs text-white/40 hover:border-cyan-500/30 transition-all cursor-pointer"
                 >
                   {i + 1}
                 </div>
