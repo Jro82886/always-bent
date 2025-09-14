@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Fish, MapPin, Clock, Send, Sparkles, ChevronDown, CircleCheck, Eye, X, CircleSlash } from 'lucide-react';
+import { Fish, MapPin, Clock, Send, Sparkles, ChevronDown, CircleCheck, Eye, X, CircleSlash, CheckCircle2 } from 'lucide-react';
 import Tooltip from '@/components/ui/Tooltip';
 
 interface FishingReport {
@@ -199,9 +199,15 @@ export default function ReportsPanel() {
       <div className="p-6 border-t border-cyan-500/10">
         {showSuccess ? (
           <div className="text-center py-4">
-            <div className="text-4xl mb-2">✅</div>
-            <p className="text-green-400 font-semibold">Thanks for sharing!</p>
-            <p className="text-xs text-gray-400 mt-1">Your report helps everyone</p>
+            <div className="flex justify-center mb-3">
+              <CheckCircle2 
+                size={48} 
+                className="text-emerald-500/80 drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]" 
+                strokeWidth={1.5}
+              />
+            </div>
+            <p className="text-emerald-400/80 font-semibold">Thanks for sharing!</p>
+            <p className="text-xs text-emerald-400/50 mt-1">Your report helps everyone</p>
           </div>
         ) : (
           <button
