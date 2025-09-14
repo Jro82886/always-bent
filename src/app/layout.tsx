@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body
-        className={`h-screen w-screen overflow-hidden bg-neutral-900 text-neutral-100 antialiased ${geistSans.variable} ${geistMono.variable}`}
+        className={`h-screen w-screen overflow-hidden bg-gray-950 text-neutral-100 antialiased ${geistSans.variable} ${geistMono.variable}`}
       >
         <GuardsClient />
         {children}

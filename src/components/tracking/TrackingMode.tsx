@@ -43,7 +43,7 @@ export default function TrackingMode({ map }: TrackingModeProps) {
     <>
       {/* LEFT PANEL - Fleet Management */}
       <div className="absolute left-4 top-24 bottom-4 w-80 pointer-events-auto z-30">
-        <div className="bg-black/80 backdrop-blur-xl rounded-xl border border-cyan-500/30 h-full flex flex-col overflow-hidden">
+        <div className="bg-gray-950/90 backdrop-blur-xl rounded-xl border border-cyan-500/30 h-full flex flex-col overflow-hidden">
           {/* Header */}
           <div className="p-4 border-b border-cyan-500/20">
             <div className="flex items-center justify-between mb-2">
@@ -120,7 +120,7 @@ export default function TrackingMode({ map }: TrackingModeProps) {
       
       {/* RIGHT PANEL - Tracking Controls */}
       <div className="absolute right-4 top-24 w-64 pointer-events-auto z-30">
-        <div className="bg-black/80 backdrop-blur-xl rounded-xl border border-cyan-500/30 p-4">
+        <div className="bg-gray-950/90 backdrop-blur-xl rounded-xl border border-cyan-500/30 p-4">
           <h3 className="text-sm font-bold text-cyan-400 mb-3 flex items-center gap-2">
             <Target size={16} />
             Tracking Options
@@ -132,7 +132,7 @@ export default function TrackingMode({ map }: TrackingModeProps) {
               <span className="text-xs text-white/70">Auto-center on vessel</span>
               <input
                 type="checkbox"
-                className="w-4 h-4 rounded bg-black/50 border-cyan-500/50 text-cyan-400 focus:ring-cyan-500/50"
+                className="w-4 h-4 rounded bg-gray-950/70 border-cyan-500/50 text-cyan-400 focus:ring-cyan-500/50"
               />
             </label>
             
@@ -142,14 +142,14 @@ export default function TrackingMode({ map }: TrackingModeProps) {
               <input
                 type="checkbox"
                 defaultChecked
-                className="w-4 h-4 rounded bg-black/50 border-cyan-500/50 text-cyan-400 focus:ring-cyan-500/50"
+                className="w-4 h-4 rounded bg-gray-950/70 border-cyan-500/50 text-cyan-400 focus:ring-cyan-500/50"
               />
             </label>
             
             {/* Update Frequency */}
             <div>
               <label className="text-xs text-white/70 block mb-1">Update frequency</label>
-              <select className="w-full px-2 py-1 rounded bg-black/50 border border-cyan-500/30 text-white text-xs">
+              <select className="w-full px-2 py-1 rounded bg-gray-950/70 border border-cyan-500/30 text-white text-xs">
                 <option>Every 30 seconds</option>
                 <option>Every 1 minute</option>
                 <option>Every 5 minutes</option>
@@ -159,7 +159,7 @@ export default function TrackingMode({ map }: TrackingModeProps) {
         </div>
         
         {/* Track Statistics */}
-        <div className="bg-black/80 backdrop-blur-xl rounded-xl border border-cyan-500/30 p-4 mt-4">
+        <div className="bg-gray-950/90 backdrop-blur-xl rounded-xl border border-cyan-500/30 p-4 mt-4">
           <h3 className="text-sm font-bold text-cyan-400 mb-3 flex items-center gap-2">
             <Activity size={16} />
             Track Statistics
@@ -188,7 +188,7 @@ export default function TrackingMode({ map }: TrackingModeProps) {
       
       {/* Bottom Status Bar */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-auto z-30">
-        <div className="bg-black/80 backdrop-blur-xl rounded-full border border-cyan-500/30 px-6 py-2 flex items-center gap-4">
+        <div className="bg-gray-950/90 backdrop-blur-xl rounded-full border border-cyan-500/30 px-6 py-2 flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${trackingEnabled ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
             <span className="text-xs text-white/70">

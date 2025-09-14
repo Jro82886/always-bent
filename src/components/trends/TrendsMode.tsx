@@ -96,7 +96,7 @@ export default function TrendsMode({}: TrendsModeProps) {
           {/* Main Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {/* Total Catches */}
-            <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
               <div className="flex items-center justify-between mb-2">
                 <Fish className="text-cyan-400" size={24} />
                 {stats.catches > 0 && (
@@ -108,7 +108,7 @@ export default function TrendsMode({}: TrendsModeProps) {
             </div>
             
             {/* Average SST */}
-            <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
               <div className="flex items-center justify-between mb-2">
                 <Thermometer className="text-orange-400" size={24} />
                 <span className="text-xs text-white/60">±2°F</span>
@@ -118,7 +118,7 @@ export default function TrendsMode({}: TrendsModeProps) {
             </div>
             
             {/* Best Conditions */}
-            <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
               <div className="flex items-center justify-between mb-2">
                 <Wind className="text-blue-400" size={24} />
                 <span className="text-xs text-white/60">NE</span>
@@ -128,7 +128,7 @@ export default function TrendsMode({}: TrendsModeProps) {
             </div>
             
             {/* Peak Activity */}
-            <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
               <div className="flex items-center justify-between mb-2">
                 <Activity className="text-purple-400" size={24} />
                 <span className="text-xs text-white/60">Dawn</span>
@@ -141,7 +141,7 @@ export default function TrendsMode({}: TrendsModeProps) {
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Catch Trend Chart */}
-            <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-cyan-400 flex items-center gap-2">
                   <BarChart3 size={20} />
@@ -206,7 +206,7 @@ export default function TrendsMode({}: TrendsModeProps) {
             </div>
             
             {/* Conditions Correlation */}
-            <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-cyan-400 flex items-center gap-2">
                   <PieChart size={20} />
@@ -222,7 +222,7 @@ export default function TrendsMode({}: TrendsModeProps) {
           </div>
           
           {/* Insights Section */}
-          <div className="bg-black/60 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+          <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
             <h3 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
               <TrendingUp size={20} />
               Key Insights
@@ -263,7 +263,7 @@ export default function TrendsMode({}: TrendsModeProps) {
               {Array.from({ length: 28 }).map((_, i) => (
                 <div
                   key={i}
-                  className="aspect-square rounded bg-black/40 border border-cyan-500/20 flex items-center justify-center text-xs text-white/40"
+                  className="aspect-square rounded bg-gray-950/60 border border-cyan-500/20 flex items-center justify-center text-xs text-white/40"
                 >
                   {i + 1}
                 </div>
