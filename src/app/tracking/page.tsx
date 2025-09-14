@@ -12,8 +12,10 @@ import {
   BarChart3, Maximize2, Activity, Battery, Signal
 } from 'lucide-react';
 
-// Set Mapbox token
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
+// Set Mapbox token with safety check
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
+  mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+}
 
 type TrackingMode = 'individual' | 'fleet' | 'commercial';
 type ViewMode = 'map' | 'analytics' | 'split';
@@ -41,6 +43,13 @@ export default function TrackingPage() {
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
       try {
+        // Check if token is available
+        if (!mapboxgl.accessToken) {
+          console.error('[Tracking] Mapbox token is missing!');
+          setMapLoaded(false);
+          return;
+        }
+
         map.current = new mapboxgl.Map({
           container: mapContainer.current!,
           style: 'mapbox://styles/mapbox/dark-v11',
@@ -101,8 +110,18 @@ export default function TrackingPage() {
         {!mapLoaded && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-950/50">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-cyan-400">Loading map...</p>
+              {!mapboxgl.accessToken ? (
+                <>
+                  <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                  <p className="text-yellow-400">Mapbox token not configured</p>
+                  <p className="text-gray-400 text-sm mt-2">Please check environment variables</p>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-cyan-400">Loading map...</p>
+                </>
+              )}
             </div>
           </div>
         )}
