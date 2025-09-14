@@ -524,11 +524,11 @@ export default function CommunityMode() {
                     onClick={() => setActiveTab('chat')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                       activeTab === 'chat'
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30 shadow-lg shadow-cyan-500/20'
                         : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                     }`}
                   >
-                    <MessageCircle size={14} />
+                    <MessageCircle size={14} className="drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
                     Chat
                   </button>
                   
@@ -536,11 +536,11 @@ export default function CommunityMode() {
                     onClick={() => setActiveTab('reports')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                       activeTab === 'reports'
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
+                        ? 'bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-purple-300 border border-purple-500/30 shadow-lg shadow-purple-500/20'
                         : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                     }`}
                   >
-                    <FileText size={14} />
+                    <FileText size={14} className={activeTab === 'reports' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]' : ''} />
                     Reports
                   </button>
                   
@@ -548,14 +548,14 @@ export default function CommunityMode() {
                     onClick={() => setActiveTab('dms')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 relative ${
                       activeTab === 'dms'
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
+                        ? 'bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-300 border border-emerald-500/30 shadow-lg shadow-emerald-500/20'
                         : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                     }`}
                   >
-                    <Mail size={14} />
+                    <Mail size={14} className={activeTab === 'dms' ? 'drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]' : ''} />
                     DMs
                     {unreadDMs > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-cyan-500 text-black text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                      <span className="absolute -top-1 -right-1 bg-emerald-500 text-black text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-lg shadow-emerald-500/50">
                         {unreadDMs}
                       </span>
                     )}
