@@ -151,6 +151,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentArea, setCurrentArea] = useState<number>(0);
   const [analysisStep, setAnalysisStep] = useState<string>('');
+  const [lastAnalysis, setLastAnalysis] = useState<AnalysisResult | null>(null);
+  const [hasAnalysisResults, setHasAnalysisResults] = useState(false);
   
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
@@ -164,6 +166,12 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     }
 
     console.log('[SNIP] Starting drawing mode');
+    
+    // Clear any previous analysis before starting new one
+    clearDrawing();
+    setHasAnalysisResults(false);
+    setLastAnalysis(null);
+    
     setIsDrawing(true);
     startPoint.current = null;
     
@@ -252,6 +260,27 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       });
     }
     
+    // Clear analysis visualizations too
+    if (map.getSource('snip-hotspots')) {
+      const source = map.getSource('snip-hotspots') as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
+    }
+    
+    if (map.getSource('snip-edges')) {
+      const source = map.getSource('snip-edges') as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
+    }
+    
+    // Clear analysis state
+    setHasAnalysisResults(false);
+    setLastAnalysis(null);
+    
     // Restore button text
     const button = document.querySelector('button[onclick*="Analyze"]');
     if (button && (window as any).__originalButtonText) {
@@ -335,6 +364,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Step 3: Get bounds and generate data
       console.log('[SNIP] Step 3: Generating ocean data...');
+      setAnalysisStep('Extracting temperature and chlorophyll data...');
       const bbox = turf.bbox(polygon);
       const bounds: [[number, number], [number, number]] = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
       
@@ -344,6 +374,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Step 4: Run analysis
       console.log('[SNIP] Step 4: Running multi-layer analysis...');
+      setAnalysisStep('Detecting edges, fronts, and convergence zones...');
       const analysis = await analyzeMultiLayer(
         polygon as GeoJSON.Feature<GeoJSON.Polygon>,
         sstData,
@@ -352,6 +383,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Step 5: Add vessel info and visualize on map
       console.log('[SNIP] Step 5: Adding visualizations to map...');
+      setAnalysisStep('Mapping hotspots and vessel activity...');
       const analysisWithVessels = {
         ...analysis,
         vesselTracks: vesselData.summary
@@ -359,33 +391,40 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Visualize hotspots on map
       if (analysis.hotspot) {
+        console.log('[SNIP] Visualizing hotspot at:', analysis.hotspot.location);
         visualizeHotspotOnMap(map, analysis.hotspot);
       }
       
       // Visualize edges on map
       if (analysis.features && analysis.features.length > 0) {
+        console.log('[SNIP] Visualizing', analysis.features.length, 'edge features');
         visualizeEdgesOnMap(map, analysis.features);
       }
       
-      // Step 6: Trigger completion callback
+      // Visualize vessel tracks if any
+      if (vesselData.tracks && vesselData.tracks.length > 0) {
+        console.log('[SNIP] Found', vesselData.tracks.length, 'vessel tracks in area');
+        // Vessel tracks are already visible on the map from the vessel tracking layer
+      }
+      
+      // Step 6: Store analysis and trigger completion callback
       console.log('[SNIP] Step 6: Analysis complete, showing results...');
       console.log('[SNIP] Full analysis:', analysisWithVessels);
+      
+      // Store the analysis for later access when clicking
+      setLastAnalysis(analysisWithVessels);
+      setHasAnalysisResults(true);
+      
+      // Show the analysis modal immediately
       onAnalysisComplete(analysisWithVessels);
       
-      // Keep visualizations visible, only clear drawing rectangle
-      setTimeout(() => {
-        // Only clear the drawing rectangle, not the analysis results
-        if (map.getSource('snip-rectangle')) {
-          const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
-          source.setData({
-            type: 'FeatureCollection',
-            features: []
-          });
-        }
-        setIsDrawing(false);
-        setIsAnalyzing(false);
-        setCurrentArea(0);
-      }, 1000);
+      // Keep rectangle AND visualizations visible
+      // Rectangle stays to show the analyzed area
+      setIsDrawing(false);
+      setIsAnalyzing(false);
+      setAnalysisStep('');
+      // Don't clear the rectangle or area - keep them visible
+      // The rectangle will only clear when user starts a new selection
     } catch (error) {
       console.error('[SNIP] Analysis error:', error);
       alert('Analysis failed. Please try again.');
@@ -499,14 +538,49 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     }
   }, [map]);
 
-  // Mouse event handlers
+  // Handle clicks on analysis results
+  useEffect(() => {
+    if (!map || !hasAnalysisResults || !lastAnalysis) return;
+    
+    const handleResultClick = (e: mapboxgl.MapMouseEvent) => {
+      // Check if click is on any of our analysis layers
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['snip-rectangle-fill', 'snip-hotspots-layer', 'snip-edges-layer']
+      });
+      
+      if (features.length > 0) {
+        console.log('[SNIP] Clicked on analysis result, showing report');
+        // Re-show the analysis modal
+        onAnalysisComplete(lastAnalysis);
+      }
+    };
+    
+    // Add cursor change on hover
+    const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['snip-rectangle-fill', 'snip-hotspots-layer', 'snip-edges-layer']
+      });
+      
+      map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
+    };
+    
+    map.on('click', handleResultClick);
+    map.on('mousemove', handleMouseMove);
+    
+    return () => {
+      map.off('click', handleResultClick);
+      map.off('mousemove', handleMouseMove);
+    };
+  }, [map, hasAnalysisResults, lastAnalysis, onAnalysisComplete]);
+  
+  // Mouse event handlers for drawing
   useEffect(() => {
     if (!map || !isDrawing) return;
 
-    console.log('[SNIP] Setting up mouse handlers, isDrawing:', isDrawing);
+    console.log('[SNIP] Setting up drawing handlers, isDrawing:', isDrawing);
 
     const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
-      console.log('[SNIP] Mouse down');
+      console.log('[SNIP] Mouse down for drawing');
       e.preventDefault();
       startPoint.current = [e.lngLat.lng, e.lngLat.lat];
       updateRectangle(startPoint.current, startPoint.current);
@@ -528,9 +602,21 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       console.log('[SNIP] Mouse up, distance:', dx, dy);
       
       if (dx > 0.0001 || dy > 0.0001) {
+        // Keep rectangle visible and trigger analysis
         updateRectangle(startPoint.current, endPoint);
+        
+        // Re-enable map interactions but keep rectangle
+        map.dragPan.enable();
+        map.dragRotate.enable();
+        map.doubleClickZoom.enable();
+        map.scrollZoom.enable();
+        map.boxZoom.enable();
+        map.getCanvas().style.cursor = '';
+        
+        // Trigger analysis while keeping rectangle visible
         completeDrawing();
       } else {
+        // Too small, clear everything
         clearDrawing();
       }
     };
@@ -576,6 +662,18 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       >
         Start Snipping
       </button>
+      
+      {/* Click hint for analysis results */}
+      {hasAnalysisResults && !isAnalyzing && !isDrawing && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 pointer-events-none z-[9999]">
+          <div className="bg-black/90 backdrop-blur-md rounded-lg px-4 py-2 flex items-center gap-2 border border-cyan-400/30">
+            <Target size={16} className="text-cyan-400" />
+            <span className="text-sm text-cyan-300">
+              Click the highlighted area to view analysis details
+            </span>
+          </div>
+        </div>
+      )}
       
       {/* Enhanced Status display with better visibility */}
       {(isDrawing || isAnalyzing) && (
