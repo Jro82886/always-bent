@@ -378,7 +378,7 @@ export default function LegendaryOceanPlatform() {
           <RightZone map={map.current} />
           
           {/* Inlet Regions - Subtle colored boundaries for each inlet */}
-          {map.current && <InletRegions map={map.current} enabled={!oceanActive && !sstActive && !chlActive} opacity={0.11} />}
+          {map.current && <InletRegions map={map.current} enabled={!oceanActive && !sstActive && !chlActive} opacity={0.16} />}
           
           {/* SST Layer component - ONLY on Analysis tab */}
           {map.current && <SSTLayer map={map.current} on={sstActive} selectedDate={selectedDate} />}
