@@ -60,22 +60,63 @@ export default function CommunityMode() {
 
   // Load mock weather data (will replace with NOAA API)
   useEffect(() => {
-    // Mock data - future: fetch from NOAA based on inlet
     // Map inlets to their closest NOAA buoys
     const buoyMap: Record<string, string> = {
-      'montauk': '44017', // Montauk Point - 23 NM SSW
-      'shinnecock': '44025', // Long Island - 33 NM South  
-      'fire-island': '44025', // Long Island Buoy
-      'jones': '44025', // Long Island Buoy
-      'manasquan': '44091', // Barnegat - 16 NM East
-      'barnegat': '44091', // Barnegat Bay
-      'atlantic-city': '44091', // Barnegat (closest)
-      'cape-may': '44009', // Delaware Bay - 26 NM SE
-      'indian-river': '44009', // Delaware Bay
-      'ocean-city-md': '44009', // Delaware Bay
-      'virginia-beach': '44014', // Virginia Beach - 64 NM East
-      'oregon-inlet': '44014', // Virginia Beach (closest)
-      'hatteras': '41025', // Diamond Shoals
+      // Maine
+      'me-portland': '44007', // Portland - 12 NM SE
+      
+      // Massachusetts  
+      'ma-cape-cod': '44018', // Cape Cod - 30 NM East
+      
+      // Rhode Island
+      'ri-point-judith': '44097', // Block Island - 17 NM SE
+      
+      // New York
+      'ny-montauk': '44017', // Montauk Point - 23 NM SSW
+      'ny-shinnecock': '44025', // Long Island - 33 NM South
+      
+      // New Jersey
+      'nj-manasquan': '44091', // Barnegat - 16 NM East
+      'nj-barnegat': '44091', // Barnegat Bay
+      'nj-atlantic-city': '44091', // Barnegat (closest)
+      
+      // Delaware
+      'de-indian-river': '44009', // Delaware Bay - 26 NM SE
+      
+      // Maryland
+      'md-ocean-city': '44009', // Delaware Bay
+      
+      // Virginia
+      'va-chincoteague': '44014', // Virginia Beach - 64 NM East
+      
+      // North Carolina
+      'nc-oregon': '44014', // Virginia Beach (closest)
+      'nc-hatteras': '41025', // Diamond Shoals
+      'nc-ocracoke': '41025', // Diamond Shoals
+      'nc-beaufort': '41013', // Frying Pan Shoals - 35 NM SE
+      'nc-cape-fear': '41013', // Frying Pan Shoals
+      
+      // South Carolina
+      'sc-charleston': '41004', // EDISTO - 41 NM Southeast
+      'sc-st-helena': '41004', // EDISTO
+      
+      // Georgia
+      'ga-savannah': '41008', // Grays Reef - 40 NM East
+      'ga-st-marys': '41008', // Grays Reef
+      
+      // Florida
+      'fl-jacksonville': '41012', // St. Augustine - 40 NM ENE
+      'fl-ponce': '41012', // St. Augustine
+      'fl-canaveral': '41009', // Canaveral - 20 NM East
+      'fl-sebastian': '41009', // Canaveral
+      'fl-st-lucie': '41114', // Fort Pierce - 33 NM East
+      'fl-jupiter': '41114', // Fort Pierce
+      'fl-lake-worth': '41114', // Fort Pierce
+      'fl-port-everglades': '41114', // Fort Pierce
+      'fl-miami': '41114', // Fort Pierce (closest)
+      'fl-key-west': 'KYWF1', // Key West Station
+      
+      // Default
       'overview': '44025' // Default to Long Island
     };
     
