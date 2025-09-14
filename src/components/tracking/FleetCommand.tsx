@@ -77,9 +77,12 @@ export default function FleetCommand({
     return 'text-green-400';  // Running
   };
 
+  // Debug log
+  console.log('[FLEET COMMAND] Rendering with props:', { isTracking, fleetCount, showFleet });
+  
   return (
-    <div className="absolute top-20 left-4 z-40 w-80">
-      <div className="bg-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-lg overflow-hidden">
+    <div className="absolute top-20 left-4 z-50 w-80 pointer-events-auto">
+      <div className="bg-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-lg overflow-hidden shadow-2xl">
         {/* Header */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
