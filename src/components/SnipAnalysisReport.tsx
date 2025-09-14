@@ -29,7 +29,7 @@ export default function SnipAnalysisReport({
   const { hotspot, features, stats } = analysis;
 
   return (
-    <div className="absolute bottom-4 left-4 w-96 bg-black/95 backdrop-blur-sm rounded-lg shadow-2xl overflow-hidden">
+    <div className="absolute bottom-4 left-4 w-96 bg-black/95 backdrop-blur-sm rounded-lg shadow-2xl overflow-hidden z-[70]">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-green-600 p-4">
         <div className="flex justify-between items-start">

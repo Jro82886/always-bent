@@ -25,7 +25,7 @@ export default function SnipAnalysisCard(){
 
   if(!snipOn || !summary) return null;
   return (
-    <div className="absolute bottom-4 right-4 max-w-sm bg-white text-black rounded-lg shadow-xl border border-neutral-200">
+    <div className="absolute bottom-4 right-4 max-w-sm bg-white text-black rounded-lg shadow-xl border border-neutral-200 z-[70]">
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="text-sm uppercase tracking-wide text-neutral-500">Snip Analysis</div>
