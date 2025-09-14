@@ -90,7 +90,7 @@ export default function LegendaryOceanPlatform() {
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',  // Dark base for contrast with layers
+      style: 'mapbox://styles/mapbox/dark-v11',  // Dark base with grey anchoring
       center: [-40, 35],  // Start with Atlantic Ocean view (like your image)
       zoom: 3.5,  // Zoomed out to see whole North Atlantic with Gulf Stream
       pitch: 0,  // Ensure flat map (no 3D tilt)
@@ -321,7 +321,10 @@ export default function LegendaryOceanPlatform() {
   }, [selectedInletId]);
 
   return (
-    <div className={`w-full h-screen relative bg-gray-950 ${sstActive ? 'sst-active' : ''}`}>
+    <div className={`w-full h-screen relative bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 ${sstActive ? 'sst-active' : ''}`} style={{
+      backgroundImage: 'linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(3, 7, 18, 1), rgba(15, 23, 42, 0.95))',
+      backgroundBlendMode: 'multiply'
+    }}>
       {/* Map Container with enhanced rendering - Hidden during tracking for clean separation */}
       <div 
         ref={mapContainer} 

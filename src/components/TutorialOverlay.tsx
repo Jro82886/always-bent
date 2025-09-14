@@ -179,9 +179,11 @@ export default function TutorialOverlay() {
           transform: 'translate(-50%, -50%)'
         }}
       >
-        <div className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 rounded-2xl shadow-2xl border border-cyan-500/30 max-w-md w-full">
+        <div className="bg-gradient-to-br from-gray-900/95 via-slate-900/95 to-gray-950/95 rounded-2xl shadow-2xl border border-slate-600/30 max-w-md w-full" style={{
+          boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.7), 0 0 40px rgba(6, 182, 212, 0.08)'
+        }}>
           {/* Progress bar */}
-          <div className="h-1 bg-gray-800 rounded-t-2xl overflow-hidden">
+          <div className="h-1 bg-slate-800/60 rounded-t-2xl overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -189,7 +191,7 @@ export default function TutorialOverlay() {
           </div>
           
           {/* Header */}
-          <div className="p-6 border-b border-cyan-500/20">
+          <div className="p-6 border-b border-slate-700/40 bg-gradient-to-b from-slate-900/50 to-transparent">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 {currentStep === 0 && <Fish size={20} className="text-cyan-300 drop-shadow-[0_0_8px_rgba(103,232,249,0.8)]" />}
@@ -219,7 +221,7 @@ export default function TutorialOverlay() {
             </p>
             
             {step.tip && (
-              <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
+              <div className="bg-gradient-to-br from-slate-800/40 to-cyan-900/20 border border-slate-600/40 rounded-lg p-3">
                 <p className="text-cyan-300 text-sm flex items-start gap-2">
                   <Lightbulb size={16} className="text-yellow-300 drop-shadow-[0_0_6px_rgba(253,224,71,0.8)] mt-0.5 flex-shrink-0" />
                   <span><span className="font-semibold">Tip:</span> {step.tip}</span>
@@ -228,7 +230,7 @@ export default function TutorialOverlay() {
             )}
             
             {step.action && (
-              <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-3 border border-blue-500/30">
+              <div className="bg-gradient-to-r from-slate-800/40 to-blue-900/20 rounded-lg p-3 border border-slate-600/40">
                 <p className="text-blue-300 text-sm font-medium flex items-center gap-2">
                   <HandMetal size={16} className="text-cyan-300 drop-shadow-[0_0_6px_rgba(103,232,249,0.8)]" />
                   {step.action}
@@ -238,7 +240,7 @@ export default function TutorialOverlay() {
           </div>
           
           {/* Footer */}
-          <div className="p-6 border-t border-cyan-500/20">
+          <div className="p-6 border-t border-slate-700/40 bg-gradient-to-t from-slate-900/30 to-transparent">
             <div className="flex items-center justify-between">
               <button
                 onClick={handleDontShowAgain}

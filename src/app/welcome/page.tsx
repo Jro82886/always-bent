@@ -65,11 +65,23 @@ export default function WelcomePage() {
   
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
-      {/* Subtle ocean background - static, no animation */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 via-transparent to-transparent" />
-        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-cyan-500/10 to-teal-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-teal-500/10 to-cyan-500/10 rounded-full blur-3xl" />
+      {/* Layered grey anchoring with muted ocean glow */}
+      <div className="absolute inset-0">
+        {/* Base grey gradient for anchoring */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 opacity-90" />
+        
+        {/* Muted ocean glows */}
+        <div className="absolute inset-0 opacity-15">
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-800/20 via-transparent to-transparent" />
+          <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-cyan-900/30 to-teal-900/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-teal-900/30 to-slate-800/20 rounded-full blur-3xl" />
+        </div>
+        
+        {/* Grey mesh overlay for texture */}
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(71, 85, 105, 0.1) 0%, transparent 50%)',
+          backgroundSize: '100% 100%'
+        }} />
       </div>
       
       <div className="relative max-w-md w-full">
@@ -91,8 +103,10 @@ export default function WelcomePage() {
         {/* Main Card - grounded like analysis page */}
         <div className="relative">
           {/* Subtle glow behind card */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/10 to-teal-500/10 rounded-2xl blur-xl" />
-          <div className="relative bg-gray-950/90 backdrop-blur-xl rounded-2xl border border-cyan-500/20 p-8 shadow-2xl">
+          <div className="absolute -inset-1 bg-gradient-to-r from-slate-700/10 via-cyan-900/10 to-slate-700/10 rounded-2xl blur-xl" />
+          <div className="relative bg-gradient-to-br from-gray-900/95 via-slate-900/95 to-gray-950/95 backdrop-blur-xl rounded-2xl border border-slate-600/20 p-8 shadow-2xl" style={{
+            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.5), 0 0 60px rgba(6, 182, 212, 0.05)'
+          }}>
           {/* Captain Name Input */}
           <div className="mb-6">
             <label className="flex items-center gap-2.5 text-sm font-semibold mb-2">
@@ -106,7 +120,7 @@ export default function WelcomePage() {
               value={captainName}
               onChange={(e) => setCaptainName(e.target.value)}
               placeholder="Captain name"
-              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
+              className="w-full px-4 py-3 bg-gray-900/60 border border-slate-600/40 rounded-2xl text-gray-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/40 focus:ring-2 focus:ring-cyan-500/15 transition-all"
               maxLength={30}
             />
           </div>
@@ -124,7 +138,7 @@ export default function WelcomePage() {
               value={boatName}
               onChange={(e) => setBoatName(e.target.value)}
               placeholder="Boat name"
-              className="w-full px-4 py-3 bg-slate-900/50 border border-cyan-500/30 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+              className="w-full px-4 py-3 bg-gray-900/60 border border-slate-600/40 rounded-2xl text-gray-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500/40 focus:ring-2 focus:ring-cyan-500/15 transition-all"
               maxLength={30}
             />
           </div>
@@ -143,8 +157,8 @@ export default function WelcomePage() {
                 onClick={() => setLocationChoice(true)}
                 className={`w-full p-4 rounded-2xl border-2 transition-all ${
                   locationChoice === true 
-                    ? 'bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border-teal-400 text-teal-300' 
-                    : 'bg-slate-900/30 border-slate-700 text-slate-300 hover:border-cyan-500/50'
+                    ? 'bg-gradient-to-r from-slate-800/40 to-cyan-900/30 border-cyan-600/40 text-cyan-300/90' 
+                    : 'bg-gray-900/40 border-slate-700/50 text-slate-400 hover:border-slate-600'
                 }`}
               >
                 <div className="flex items-center gap-3">
