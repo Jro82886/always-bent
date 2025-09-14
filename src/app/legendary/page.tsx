@@ -15,6 +15,8 @@ import CommunityMode from '@/components/community/CommunityMode';
 import VesselTrackingSystem from '@/components/tracking/VesselTrackingSystem';
 import TrendsMode from '@/components/trends/TrendsMode';
 import ReportCatchButton from '@/components/ReportCatchButton';
+import MapLegend from '@/components/MapLegend';
+import InteractiveTutorial from '@/components/InteractiveTutorial';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -392,6 +394,12 @@ export default function LegendaryOceanPlatform() {
           
           {/* Tutorial Overlay */}
           <TutorialOverlay onComplete={() => setShowingTutorial(false)} />
+          
+          {/* Map Legend - Always visible for reference */}
+          <MapLegend position="bottom-left" />
+          
+          {/* Interactive Tutorial - Shows on first visit */}
+          <InteractiveTutorial />
           
           {/* ABFI Button - ONLY on Analysis tab, NEVER in analysis reports */}
           <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
