@@ -5,7 +5,7 @@ import {
   Search, Send, X, Users, MessageCircle, Clock, Check, CheckCheck, 
   MoreVertical, Smile, Phone, Video, Info, Star,
   UserPlus, Settings, Archive, Trash2, Pin, Bell, BellOff,
-  Anchor, MapPin, ChevronRight
+  Anchor, MapPin, ChevronRight, Shield
 } from 'lucide-react';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 
@@ -940,92 +940,127 @@ export default function DMInterface() {
         </div>
       )}
 
-      {/* Settings Modal */}
+      {/* Enhanced Stylized Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl w-full max-w-md border border-cyan-500/20 shadow-2xl">
-            <div className="p-6 border-b border-cyan-500/10">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-cyan-300">Message Settings</h3>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-slate-900/95 via-cyan-950/20 to-slate-900/95 rounded-2xl w-full max-w-md border border-cyan-400/30 shadow-2xl overflow-hidden"
+               style={{
+                 boxShadow: '0 0 60px rgba(6, 182, 212, 0.15), inset 0 0 30px rgba(6, 182, 212, 0.05)'
+               }}>
+            {/* Header with ocean wave effect */}
+            <div className="relative p-6 border-b border-cyan-400/20 bg-gradient-to-r from-cyan-900/30 via-teal-900/30 to-cyan-900/30">
+              <div className="absolute inset-0 bg-gradient-to-b from-cyan-400/5 to-transparent" />
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-cyan-300 tracking-wide">Message Settings</h3>
+                  <p className="text-xs text-cyan-400/60 mt-1">Configure your ABFI communication preferences</p>
+                </div>
                 <button
                   onClick={() => setShowSettings(false)}
-                  className="p-1 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                  className="p-2 hover:bg-cyan-400/10 rounded-xl transition-all hover:rotate-90 duration-300"
                 >
                   <X size={20} className="text-cyan-400" />
                 </button>
               </div>
             </div>
             
-            <div className="p-6 space-y-6">
-              {/* Notifications Section */}
-              <div>
-                <h4 className="text-sm font-medium text-cyan-400 mb-3">Notifications</h4>
-                <div className="space-y-3">
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-white/80">Enable notifications</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.notifications}
-                      onChange={(e) => setSettings({...settings, notifications: e.target.checked})}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
-                    />
+            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+              {/* Notifications Section with icon */}
+              <div className="group">
+                <div className="flex items-center gap-2 mb-4">
+                  <Bell size={16} className="text-cyan-400" />
+                  <h4 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Notifications</h4>
+                </div>
+                <div className="space-y-3 pl-6">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                    <span className="text-sm text-white/90">Enable notifications</span>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={settings.notifications}
+                        onChange={(e) => setSettings({...settings, notifications: e.target.checked})}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                    </div>
                   </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-white/80">Sound alerts</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.soundEnabled}
-                      onChange={(e) => setSettings({...settings, soundEnabled: e.target.checked})}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
-                    />
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                    <span className="text-sm text-white/90">Sound alerts</span>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={settings.soundEnabled}
+                        onChange={(e) => setSettings({...settings, soundEnabled: e.target.checked})}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                    </div>
                   </label>
                 </div>
               </div>
 
-              {/* Privacy Section */}
-              <div>
-                <h4 className="text-sm font-medium text-cyan-400 mb-3">Privacy</h4>
-                <div className="space-y-3">
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-white/80">Show online status</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.showOnlineStatus}
-                      onChange={(e) => setSettings({...settings, showOnlineStatus: e.target.checked})}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
-                    />
+              {/* Privacy Section with icon */}
+              <div className="group">
+                <div className="flex items-center gap-2 mb-4">
+                  <Shield size={16} className="text-cyan-400" />
+                  <h4 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Privacy</h4>
+                </div>
+                <div className="space-y-3 pl-6">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                    <span className="text-sm text-white/90">Show online status</span>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={settings.showOnlineStatus}
+                        onChange={(e) => setSettings({...settings, showOnlineStatus: e.target.checked})}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                    </div>
                   </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-white/80">Read receipts</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.readReceipts}
-                      onChange={(e) => setSettings({...settings, readReceipts: e.target.checked})}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
-                    />
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                    <span className="text-sm text-white/90">Read receipts</span>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={settings.readReceipts}
+                        onChange={(e) => setSettings({...settings, readReceipts: e.target.checked})}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                    </div>
                   </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-white/80">Typing indicators</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.typingIndicators}
-                      onChange={(e) => setSettings({...settings, typingIndicators: e.target.checked})}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
-                    />
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                    <span className="text-sm text-white/90">Typing indicators</span>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={settings.typingIndicators}
+                        onChange={(e) => setSettings({...settings, typingIndicators: e.target.checked})}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                    </div>
                   </label>
                 </div>
               </div>
 
-              {/* Message History Section */}
-              <div>
-                <h4 className="text-sm font-medium text-cyan-400 mb-3">Message History</h4>
-                <div className="space-y-3">
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-white/80">Keep messages for</span>
+              {/* Message History Section with icon */}
+              <div className="group">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock size={16} className="text-cyan-400" />
+                  <h4 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Message History</h4>
+                </div>
+                <div className="space-y-3 pl-6">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors">
+                    <span className="text-sm text-white/90">Keep messages for</span>
                     <select
                       value={settings.messageHistory}
                       onChange={(e) => setSettings({...settings, messageHistory: e.target.value})}
-                      className="bg-slate-800 border border-cyan-500/30 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-cyan-400/50"
+                      className="bg-slate-800/80 border border-cyan-400/30 rounded-lg px-3 py-1.5 text-sm text-cyan-300 focus:outline-none focus:border-cyan-400 hover:bg-slate-800 transition-colors"
+                      style={{
+                        boxShadow: 'inset 0 0 10px rgba(6, 182, 212, 0.1)'
+                      }}
                     >
                       <option value="7">7 days</option>
                       <option value="30">30 days</option>
@@ -1033,20 +1068,23 @@ export default function DMInterface() {
                       <option value="forever">Forever</option>
                     </select>
                   </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-white/80">Auto-delete old messages</span>
-                    <input
-                      type="checkbox"
-                      checked={settings.autoDeleteOld}
-                      onChange={(e) => setSettings({...settings, autoDeleteOld: e.target.checked})}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
-                    />
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                    <span className="text-sm text-white/90">Auto-delete old messages</span>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={settings.autoDeleteOld}
+                        onChange={(e) => setSettings({...settings, autoDeleteOld: e.target.checked})}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                    </div>
                   </label>
                 </div>
               </div>
 
               {/* Clear Data Section */}
-              <div className="pt-4 border-t border-cyan-500/10">
+              <div className="pt-4 border-t border-cyan-400/10">
                 <button
                   onClick={() => {
                     if (confirm('Clear all message history? This cannot be undone.')) {
@@ -1054,21 +1092,31 @@ export default function DMInterface() {
                       setConversations([]);
                       localStorage.removeItem('dm_messages');
                       localStorage.removeItem('dm_conversations');
-                      alert('Message history cleared');
+                      // Show success feedback
+                      const toast = document.createElement('div');
+                      toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg border border-emerald-500/30 z-[60] backdrop-blur-sm';
+                      toast.textContent = 'Message history cleared';
+                      document.body.appendChild(toast);
+                      setTimeout(() => toast.remove(), 2000);
                     }
                   }}
-                  className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm font-medium border border-red-500/30"
+                  className="w-full py-3 bg-gradient-to-r from-red-900/20 to-red-800/20 hover:from-red-900/30 hover:to-red-800/30 text-red-400 rounded-xl transition-all text-sm font-bold border border-red-500/30 flex items-center justify-center gap-2 group"
+                  style={{
+                    boxShadow: '0 0 20px rgba(239, 68, 68, 0.1)'
+                  }}
                 >
+                  <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
                   Clear All Messages
                 </button>
               </div>
             </div>
 
-            <div className="p-6 border-t border-cyan-500/10">
+            {/* Footer with branded buttons */}
+            <div className="p-6 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-950/20 via-slate-900/30 to-cyan-950/20">
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowSettings(false)}
-                  className="px-4 py-2 text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium"
+                  className="px-6 py-2.5 text-cyan-400 hover:text-cyan-300 transition-all text-sm font-bold uppercase tracking-wider hover:bg-cyan-400/5 rounded-lg"
                 >
                   Cancel
                 </button>
@@ -1079,12 +1127,15 @@ export default function DMInterface() {
                     setShowSettings(false);
                     // Show success feedback
                     const toast = document.createElement('div');
-                    toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg border border-emerald-500/30 z-[60]';
-                    toast.textContent = 'Settings saved';
+                    toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-400 px-6 py-3 rounded-xl border border-emerald-500/30 z-[60] backdrop-blur-sm shadow-2xl';
+                    toast.innerHTML = '<div class="flex items-center gap-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span class="font-semibold">Settings saved successfully</span></div>';
                     document.body.appendChild(toast);
                     setTimeout(() => toast.remove(), 2000);
                   }}
-                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white rounded-lg transition-all text-sm font-medium"
+                  className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white rounded-lg transition-all text-sm font-bold uppercase tracking-wider shadow-lg hover:shadow-xl transform hover:scale-105"
+                  style={{
+                    boxShadow: '0 4px 20px rgba(6, 182, 212, 0.3)'
+                  }}
                 >
                   Save Settings
                 </button>
