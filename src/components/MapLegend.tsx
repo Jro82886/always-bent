@@ -14,52 +14,52 @@ interface LegendItem {
 
 const legendItems: LegendItem[] = [
   {
-    icon: <div className="w-3 h-0.5 bg-cyan-500/80 rounded-full" />,
-    color: '#06b6d4',
-    glow: 'rgba(6, 182, 212, 0.3)',
-    label: 'Recreational',
-    description: 'Private vessels',
-    shape: 'line'
+    icon: <div className="w-3 h-3 bg-white rounded-full border border-cyan-400/50" />,
+    color: '#ffffff',
+    glow: 'rgba(14, 165, 233, 0.4)',
+    label: 'You',
+    description: 'Your vessel',
+    shape: 'dot'
   },
   {
-    icon: <div className="w-3 h-0.5 bg-orange-500/80 rounded-full" />,
-    color: '#fb923c',
-    glow: 'rgba(251, 146, 60, 0.3)',
-    label: 'Commercial',
-    description: 'GFW tracked',
-    shape: 'line'
-  },
-  {
-    icon: <div className="w-3 h-0.5 bg-emerald-500/80 rounded-full" />,
-    color: '#10b981',
-    glow: 'rgba(16, 185, 129, 0.3)',
+    icon: <div className="w-2.5 h-2.5 bg-current rounded-full" />,
+    color: 'var(--inlet-color, #e74c3c)',
+    glow: 'var(--inlet-glow, rgba(231, 76, 60, 0.3))',
     label: 'Fleet',
-    description: 'Your network',
+    description: 'Inlet members',
+    shape: 'dot'
+  },
+  {
+    icon: <div className="w-0 h-0 border-l-[3px] border-r-[3px] border-b-[6px] border-transparent border-b-orange-500" />,
+    color: '#f39c12',
+    glow: 'rgba(243, 156, 18, 0.3)',
+    label: 'Commercial',
+    description: 'GFW vessels',
+    shape: 'dot'
+  },
+  {
+    icon: <div className="w-3 h-0.5 bg-white/40 rounded-full" />,
+    color: '#ffffff',
+    glow: 'rgba(255, 255, 255, 0.2)',
+    label: 'Your Track',
+    description: 'Last 24hrs',
     shape: 'line'
   },
   {
-    icon: <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />,
-    color: '#fbbf24',
-    glow: 'rgba(251, 191, 36, 0.5)',
-    label: 'Hotspot',
-    description: 'High confidence',
-    shape: 'pulse'
+    icon: <div className="w-3 h-0.5 bg-current/40 rounded-full" style={{ borderStyle: 'dashed' }} />,
+    color: 'var(--inlet-color, #e74c3c)',
+    glow: 'var(--inlet-glow, rgba(231, 76, 60, 0.2))',
+    label: 'Fleet Tracks',
+    description: 'Last 4 days',
+    shape: 'line'
   },
   {
-    icon: <div className="w-3 h-3 bg-gradient-to-r from-red-500/40 to-orange-500/40 rounded" />,
-    color: '#ef4444',
-    glow: 'rgba(239, 68, 68, 0.2)',
-    label: 'SST Break',
-    description: 'Temp gradient',
-    shape: 'dot'
-  },
-  {
-    icon: <div className="w-3 h-3 bg-gradient-to-r from-teal-500/40 to-green-500/40 rounded" />,
-    color: '#14b8a6',
-    glow: 'rgba(20, 184, 166, 0.2)',
-    label: 'Chlorophyll',
-    description: 'Baitfish zone',
-    shape: 'dot'
+    icon: <div className="w-3 h-0.5 bg-orange-500/40 rounded-full" style={{ borderStyle: 'dotted' }} />,
+    color: '#f39c12',
+    glow: 'rgba(243, 156, 18, 0.2)',
+    label: 'Commercial Tracks',
+    description: 'Historical',
+    shape: 'line'
   }
 ];
 
