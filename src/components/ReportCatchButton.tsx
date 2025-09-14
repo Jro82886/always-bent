@@ -4,6 +4,7 @@ import { CheckCircle2 } from 'lucide-react';
 import type mapboxgl from 'mapbox-gl';
 import CatchReportForm from './CatchReportForm';
 import { useAppState } from '@/store/appState';
+import { reportCatch, type CatchDraft } from '@/lib/reportCatch';
 
 interface ReportCatchButtonProps {
   map?: mapboxgl.Map | null;
@@ -40,7 +41,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
     }
     
     // ONE TAP = INSTANT LOG! No forms, no friction
-    const logBite = (location: { lat: number; lng: number }) => {
+    const logBite = async (location: { lat: number; lng: number }) => {
       // Auto-capture EVERYTHING
       const biteData = {
         boatName: localStorage.getItem('abfi_boat_name') || 'Unknown',
@@ -70,6 +71,33 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       bites.push(biteData);
       localStorage.setItem('abfi_bites', JSON.stringify(bites));
       
+      // Save to database via API
+      try {
+        const catchDraft: CatchDraft = {
+          user_id: localStorage.getItem('abfi_user_id') || 'anonymous',
+          lat: location.lat,
+          lon: location.lng,
+          captured_at: new Date().toISOString(),
+          inlet_id: selectedInletId || localStorage.getItem('abfi_current_inlet') || undefined,
+          species: 'bite', // Using species field to indicate bite activity
+          method: 'live',
+          notes: JSON.stringify({
+            type: 'bite',
+            vessel: biteData.boatName,
+            conditions: biteData.conditions,
+            captain: localStorage.getItem('abfi_captain_name') || 'Anonymous'
+          }),
+          app_version: '1.0.0',
+          device: navigator.userAgent
+        };
+        
+        await reportCatch(catchDraft);
+        console.log('[BITE] Saved to database successfully');
+      } catch (error) {
+        console.error('[BITE] Failed to save to database:', error);
+        // Continue anyway - local storage still has it
+      }
+      
       // ALSO save to community reports for collective intelligence
       const communityReports = JSON.parse(localStorage.getItem('abfi_community_reports') || '[]');
       const communityReport = {
@@ -92,23 +120,23 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       }
       localStorage.setItem('abfi_community_reports', JSON.stringify(communityReports));
       
-      // Visual feedback - quick marker
+      // Visual feedback - quick marker with cyan/teal aesthetic
       if (map) {
         const el = document.createElement('div');
         el.innerHTML = `
           <div style="
             width: 40px;
             height: 40px;
-            background: radial-gradient(circle, #FFD700, #FFA500);
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.9), rgba(20, 184, 166, 0.7));
             border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.6), 0 0 20px rgba(20, 184, 166, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.3);
             animation: pulse 2s infinite;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-          "><span style="filter: brightness(2);">⚡</span></div>
+          "><span style="filter: brightness(2) drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));">⚡</span></div>
         `;
         
         // Add animation if needed
@@ -132,19 +160,21 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         setTimeout(() => marker.remove(), 120000);
       }
       
-      // Success feedback - modern styled confirmation
+      // Success feedback - Ocean Analysis styled confirmation
       const toast = document.createElement('div');
-      toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-slate-800/95 to-blue-900/95 backdrop-blur-xl text-white px-6 py-4 rounded-2xl shadow-2xl z-[9999] border border-cyan-500/30';
-      toast.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3), 0 0 60px rgba(6,182,212,0.2)';
+      toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 backdrop-blur-xl text-white px-6 py-4 rounded-2xl shadow-2xl z-[9999]';
+      toast.style.background = 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(6, 182, 212, 0.15) 50%, rgba(20, 184, 166, 0.15) 100%)';
+      toast.style.border = '1px solid rgba(6, 182, 212, 0.3)';
+      toast.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3), 0 0 60px rgba(6,182,212,0.3), inset 0 1px 2px rgba(255, 255, 255, 0.1)';
       toast.innerHTML = `
         <div class="flex items-center gap-3">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: rgb(6, 182, 212); filter: drop-shadow(0 0 8px rgba(6,182,212,0.6));">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
           <div>
-            <div class="font-bold text-cyan-300">BITE LOGGED!</div>
-            <div class="text-xs text-cyan-400/70 mt-0.5">${location.lat.toFixed(4)}°N, ${Math.abs(location.lng).toFixed(4)}°W</div>
+            <div style="font-weight: bold; color: rgb(103, 232, 249);">BITE LOGGED!</div>
+            <div style="font-size: 12px; color: rgba(103, 232, 249, 0.7); margin-top: 2px;">${location.lat.toFixed(4)}°N, ${Math.abs(location.lng).toFixed(4)}°W</div>
           </div>
         </div>
       `;
@@ -281,25 +311,37 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   
   return (
     <>
-      {/* ABFI INTELLIGENCE BUTTON - Sleek and Oblong */}
+      {/* ABFI INTELLIGENCE BUTTON - Ocean Analysis Aesthetic */}
       <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
         <button
           onClick={handleReportCatch}
-          className="relative px-10 py-2.5 rounded-2xl transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-slate-600 to-blue-600 backdrop-blur-md border border-slate-500/30 text-white hover:from-slate-500 hover:to-blue-500 hover:border-slate-400/50 hover:shadow-xl"
+          className="relative px-10 py-2.5 rounded-2xl transition-all hover:scale-105 active:scale-95"
           style={{
-            boxShadow: '0 4px 20px rgba(71, 85, 105, 0.3), 0 0 30px rgba(59, 130, 246, 0.2)',
+            background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.85) 0%, rgba(20, 184, 166, 0.85) 50%, rgba(59, 130, 246, 0.85) 100%)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(6, 182, 212, 0.3)',
+            boxShadow: '0 8px 32px rgba(6, 182, 212, 0.25), 0 0 40px rgba(20, 184, 166, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.1)',
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
             fontWeight: 600,
             fontSize: '14px',
             letterSpacing: '0.1em',
             minWidth: '120px',
+            color: 'white',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.95) 0%, rgba(20, 184, 166, 0.95) 50%, rgba(59, 130, 246, 0.95) 100%)';
+            e.currentTarget.style.boxShadow = '0 12px 40px rgba(6, 182, 212, 0.35), 0 0 60px rgba(20, 184, 166, 0.25), inset 0 1px 3px rgba(255, 255, 255, 0.2)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.85) 0%, rgba(20, 184, 166, 0.85) 50%, rgba(59, 130, 246, 0.85) 100%)';
+            e.currentTarget.style.boxShadow = '0 8px 32px rgba(6, 182, 212, 0.25), 0 0 40px rgba(20, 184, 166, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.1)';
           }}
         >
           <span className="relative flex items-center justify-center gap-2">
-            <svg className="w-4 h-4 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.5))' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span className="text-cyan-50 font-semibold">ABFI</span>
+            <span className="font-semibold" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)' }}>ABFI</span>
           </span>
         </button>
         

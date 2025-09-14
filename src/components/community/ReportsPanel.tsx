@@ -44,10 +44,27 @@ export default function ReportsPanel() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [recentCatches, setRecentCatches] = useState<CatchReport[]>([]);
 
-  // Load recent catches
+  // Load recent catches including ABFI bite button reports
   useEffect(() => {
-    // Mock data - will be replaced with real data from API
-    setRecentCatches([
+    // Load community reports from localStorage (includes ABFI bite button reports)
+    const communityReports = JSON.parse(localStorage.getItem('abfi_community_reports') || '[]');
+    const manualReports = JSON.parse(localStorage.getItem('abfi_manual_reports') || '[]');
+    
+    // Convert community reports to display format
+    const formattedReports = communityReports.map((report: any) => ({
+      id: report.id,
+      captain: report.captain || 'Anonymous',
+      boatName: report.vessel || 'Unknown',
+      location: report.location ? `${report.location.lat.toFixed(4)}°N, ${Math.abs(report.location.lng).toFixed(4)}°W` : 'Unknown',
+      species: report.type === 'bite' ? '⚡ BITE' : report.species || 'Unknown',
+      description: report.type === 'bite' ? 'Quick bite logged via ABFI button' : (report.notes || ''),
+      timestamp: new Date(report.timestamp).getTime(),
+      hasPhoto: false,
+      inletId: report.inlet
+    }));
+    
+    // Combine with mock data for demo
+    const mockData = [
       {
         id: '1',
         captain: 'Captain Mike',
@@ -103,7 +120,31 @@ export default function ReportsPanel() {
         hasPhoto: false,
         inletId: 'fire-island'
       }
-    ]);
+    ];
+    
+    // Combine all reports and sort by timestamp (newest first)
+    const allReports = [...formattedReports, ...mockData].sort((a, b) => b.timestamp - a.timestamp);
+    setRecentCatches(allReports);
+    
+    // Set up interval to refresh reports
+    const interval = setInterval(() => {
+      const updatedCommunityReports = JSON.parse(localStorage.getItem('abfi_community_reports') || '[]');
+      const updatedFormattedReports = updatedCommunityReports.map((report: any) => ({
+        id: report.id,
+        captain: report.captain || 'Anonymous',
+        boatName: report.vessel || 'Unknown',
+        location: report.location ? `${report.location.lat.toFixed(4)}°N, ${Math.abs(report.location.lng).toFixed(4)}°W` : 'Unknown',
+        species: report.type === 'bite' ? '⚡ BITE' : report.species || 'Unknown',
+        description: report.type === 'bite' ? 'Quick bite logged via ABFI button' : (report.notes || ''),
+        timestamp: new Date(report.timestamp).getTime(),
+        hasPhoto: false,
+        inletId: report.inlet
+      }));
+      const updatedAllReports = [...updatedFormattedReports, ...mockData].sort((a, b) => b.timestamp - a.timestamp);
+      setRecentCatches(updatedAllReports);
+    }, 5000); // Refresh every 5 seconds
+    
+    return () => clearInterval(interval);
   }, []);
 
   const formatTime = (timestamp: number) => {
