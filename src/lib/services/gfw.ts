@@ -1,6 +1,7 @@
 /**
  * Global Fishing Watch API Integration
  * Provides commercial vessel AIS data for analysis
+ * API Version: v3
  */
 
 interface GFWVessel {
@@ -20,35 +21,54 @@ interface GFWVessel {
   }>;
 }
 
-interface GFWApiResponse {
+interface GFWSearchResponse {
+  total: number;
+  limit: number;
+  offset: number;
   entries: Array<{
     id: string;
-    vessel: {
-      mmsi: string;
-      name?: string;
-      flag?: string;
-      type?: string;
-    };
-    positions: Array<{
+    mmsi: string;
+    shipname?: string;
+    flag?: string;
+    geartype?: string;
+    vesselType?: string;
+    firstTransmissionDate?: string;
+    lastTransmissionDate?: string;
+    dataset?: string;
+  }>;
+}
+
+interface GFWEventsResponse {
+  total: number;
+  entries: Array<{
+    id: string;
+    type: string;
+    start: string;
+    end: string;
+    position: {
       lat: number;
       lon: number;
-      timestamp: string;
-      speed?: number;
-      course?: number;
-    }>;
+    };
+    vessel: {
+      id: string;
+      name?: string;
+      ssvid: string;
+      flag?: string;
+    };
+    fishing?: {
+      totalDistanceKm: number;
+      averageSpeedKnots: number;
+    };
   }>;
 }
 
 const GFW_API_TOKEN = process.env.NEXT_PUBLIC_GFW_API_TOKEN;
-const GFW_API_URL = process.env.GFW_API_URL || 'https://gateway.api.globalfishingwatch.org/v3';
+const GFW_API_URL = 'https://gateway.api.globalfishingwatch.org/v3';
 
 /**
- * Get commercial vessel tracks within a bounding box
- * @param bounds [minLng, minLat, maxLng, maxLat]
- * @param startDate ISO date string
- * @param endDate ISO date string
+ * Search for vessels in a specific area using GFW API v3
  */
-export async function getGFWVesselsInArea(
+export async function searchGFWVesselsInArea(
   bounds: [number, number, number, number],
   startDate: string,
   endDate: string
@@ -61,47 +81,55 @@ export async function getGFWVesselsInArea(
   const [minLng, minLat, maxLng, maxLat] = bounds;
   
   try {
-    // GFW API v3 vessel tracks endpoint
-    const params = new URLSearchParams({
-      'start-date': startDate,
-      'end-date': endDate,
-      'geojson': JSON.stringify({
-        type: 'Polygon',
-        coordinates: [[
-          [minLng, minLat],
-          [maxLng, minLat],
-          [maxLng, maxLat],
-          [minLng, maxLat],
-          [minLng, minLat]
-        ]]
-      }),
-      'datasets': 'public-global-fishing-vessels:v3.0',
-      'limit': '50' // Limit for performance
+    // First, search for fishing vessels in the area
+    const searchParams = new URLSearchParams({
+      'datasets': 'public-global-fishing-vessels:latest,public-global-carrier-vessels:latest',
+      'limit': '50',
+      'offset': '0'
     });
 
-    const response = await fetch(`${GFW_API_URL}/vessels/search?${params}`, {
+    const searchResponse = await fetch(`${GFW_API_URL}/vessels/search?${searchParams}`, {
       headers: {
         'Authorization': `Bearer ${GFW_API_TOKEN}`,
         'Content-Type': 'application/json'
       }
     });
 
-    if (!response.ok) {
-      console.error('GFW API error:', response.status, response.statusText);
+    if (!searchResponse.ok) {
+      console.error('GFW search error:', searchResponse.status);
       return getMockGFWData(bounds);
     }
 
-    const data: GFWApiResponse = await response.json();
-    
-    // Transform to our format
-    return data.entries.map(entry => ({
-      id: entry.id,
-      mmsi: entry.vessel.mmsi,
-      name: entry.vessel.name,
-      flag: entry.vessel.flag,
-      type: entry.vessel.type,
-      positions: entry.positions || []
-    }));
+    const searchData: GFWSearchResponse = await searchResponse.json();
+    const vessels: GFWVessel[] = [];
+
+    // For each vessel found, get their fishing events in the area
+    for (const vessel of searchData.entries.slice(0, 10)) { // Limit to 10 vessels for performance
+      const events = await getVesselFishingEvents(
+        vessel.id,
+        startDate,
+        endDate,
+        bounds
+      );
+      
+      if (events.length > 0) {
+        vessels.push({
+          id: vessel.id,
+          mmsi: vessel.mmsi,
+          name: vessel.shipname,
+          flag: vessel.flag,
+          type: vessel.geartype || vessel.vesselType || 'Commercial',
+          positions: events.map(e => ({
+            lat: e.position.lat,
+            lon: e.position.lon,
+            timestamp: e.start,
+            speed: e.fishing?.averageSpeedKnots
+          }))
+        });
+      }
+    }
+
+    return vessels.length > 0 ? vessels : getMockGFWData(bounds);
   } catch (error) {
     console.error('Failed to fetch GFW data:', error);
     return getMockGFWData(bounds);
@@ -109,12 +137,71 @@ export async function getGFWVesselsInArea(
 }
 
 /**
+ * Get fishing events for a specific vessel using GFW Events API
+ */
+async function getVesselFishingEvents(
+  vesselId: string,
+  startDate: string,
+  endDate: string,
+  bounds: [number, number, number, number]
+): Promise<any[]> {
+  const [minLng, minLat, maxLng, maxLat] = bounds;
+  
+  try {
+    const response = await fetch(`${GFW_API_URL}/events`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GFW_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        datasets: ['public-global-fishing-events:latest'],
+        vessels: [vesselId],
+        startDate: startDate.split('T')[0],
+        endDate: endDate.split('T')[0],
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [minLng, minLat],
+            [maxLng, minLat],
+            [maxLng, maxLat],
+            [minLng, maxLat],
+            [minLng, minLat]
+          ]]
+        }
+      })
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data: GFWEventsResponse = await response.json();
+    return data.entries || [];
+  } catch (error) {
+    console.error('Failed to fetch vessel events:', error);
+    return [];
+  }
+}
+
+/**
+ * Get commercial vessel tracks within a bounding box
+ * This is the main function to call from the track analyzer
+ */
+export async function getGFWVesselsInArea(
+  bounds: [number, number, number, number],
+  startDate: string,
+  endDate: string
+): Promise<GFWVessel[]> {
+  // Use the search function which handles the v3 API properly
+  return searchGFWVesselsInArea(bounds, startDate, endDate);
+}
+
+/**
  * Get mock GFW data for development/fallback
  */
 function getMockGFWData(bounds: [number, number, number, number]): GFWVessel[] {
   const [minLng, minLat, maxLng, maxLat] = bounds;
-  const centerLng = (minLng + maxLng) / 2;
-  const centerLat = (minLat + maxLat) / 2;
   
   // Generate some mock commercial vessels
   const vessels: GFWVessel[] = [];
