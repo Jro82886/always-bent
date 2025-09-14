@@ -12,7 +12,7 @@ import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
 import CommunityMode from '@/components/community/CommunityMode';
-// TrackingMode removed - tracking has its own page at /tracking
+import TrackingWidget from '@/components/tracking/TrackingWidget';
 import TrendsMode from '@/components/trends/TrendsMode';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import { useAppState } from '@/store/appState';
@@ -335,9 +335,7 @@ export default function LegendaryOceanPlatform() {
             ? 'scale-105 blur-md opacity-30' 
             : activeTab === 'trends'
             ? 'blur-lg opacity-20'
-            : activeTab === 'tracking'
-            ? 'hidden' // Completely hide analysis map when tracking
-            : ''
+            : '' // Keep map visible for tracking and analysis
         }`} 
         style={{ 
           imageRendering: 'pixelated',
@@ -407,7 +405,12 @@ export default function LegendaryOceanPlatform() {
         </div>
       )}
       
-      {/* Tracking has its own dedicated page at /tracking */}
+      {/* TRACKING MODE UI - Vessel Tracking */}
+      {activeTab === 'tracking' && (
+        <div className="absolute top-20 left-4 z-40 w-80 max-h-[calc(100vh-100px)] overflow-y-auto pointer-events-auto">
+          <TrackingWidget />
+        </div>
+      )}
       
       {/* TRENDS MODE UI - Dashboard (No map interaction) */}
       {activeTab === 'trends' && (
