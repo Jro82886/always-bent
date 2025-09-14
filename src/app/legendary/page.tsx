@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
+import InletRegions from '@/components/InletRegions';
 import TutorialOverlay from '@/components/TutorialOverlay';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import LeftZone from '@/components/LeftZone';
@@ -344,6 +345,9 @@ export default function LegendaryOceanPlatform() {
           
           {/* RIGHT ZONE - Action Controls (Over Ocean) */}
           <RightZone map={map.current} />
+          
+          {/* Inlet Regions - Subtle colored boundaries for each inlet */}
+          {map.current && <InletRegions map={map.current} enabled={!oceanActive && !sstActive && !chlActive} opacity={0.08} />}
           
           {/* SST Layer component - ONLY on Analysis tab */}
           {map.current && <SSTLayer map={map.current} on={sstActive} selectedDate={selectedDate} />}
