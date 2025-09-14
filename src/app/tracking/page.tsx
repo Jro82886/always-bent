@@ -442,8 +442,7 @@ export default function TrackingPage() {
         } />
       </div>
       
-      {/* Tracking Controls */}
-      {/* Fleet Command Center */}
+      {/* Fleet Command Center - Modern Tracking UI */}
       <FleetCommand 
         isTracking={isTracking}
         onToggleTracking={() => setIsTracking(!isTracking)}
@@ -466,27 +465,24 @@ export default function TrackingPage() {
         boatName={boatName || 'My Vessel'}
       />
       
-      {/* Vessel Tracker Component */}
+      {/* Keep essential vessel tracking */}
       <VesselTracker 
         map={map} 
         inletId={selectedInletId || 'overview'} 
         enabled={showVessels}
       />
       
-      <DevOverlay />
+      {/* User position dot */}
       <UserDot pos={pos} color={colorForInlet(selectedInletId)} label={boatName || username || 'You'} />
+      
+      {/* Location status message */}
       {message && (
-        <div
-          style={{
-            position: 'absolute', bottom: 12, right: 12, zIndex: 20,
-            background: 'rgba(0,0,0,0.55)', color: '#fff',
-            padding: '8px 10px', borderRadius: 8, fontSize: 12,
-            maxWidth: 280, lineHeight: 1.4
-          }}
-        >
-          {message}. Make sure location services are enabled for this site.
+        <div className="absolute bottom-4 right-4 z-20 bg-gray-950/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm max-w-xs">
+          {message}. Make sure location services are enabled.
         </div>
       )}
+      
+      <DevOverlay />
     </MapShell>
     </div>
     </RequireUsername>
