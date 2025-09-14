@@ -3,8 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import NavTabs from '@/components/NavTabs';
+import TopHUD from '@/components/TopHUD';
+import TrackingWidget from '@/components/tracking/TrackingWidget';
 
-// Set token
+// Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
 export default function TrackingPage() {
@@ -33,16 +36,16 @@ export default function TrackingPage() {
     // Create map
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12', // Simple streets style
-      center: userLocation ? [userLocation.lng, userLocation.lat] : [-74.0, 40.7],
+      style: 'mapbox://styles/mapbox/dark-v11', // Dark theme for tracking
+      center: userLocation ? [userLocation.lng, userLocation.lat] : [-70.0, 42.0], // East Coast default
       zoom: userLocation ? 12 : 8
     });
 
     // When map loads, add user location if we have it
     map.current.on('load', () => {
       if (userLocation) {
-        // Add a simple marker for user location
-        new mapboxgl.Marker({ color: 'red' })
+        // Add a marker for user location
+        new mapboxgl.Marker({ color: '#00DDEB' }) // ABFI cyan color
           .setLngLat([userLocation.lng, userLocation.lat])
           .setPopup(new mapboxgl.Popup().setText('Your Location'))
           .addTo(map.current!);
@@ -58,21 +61,22 @@ export default function TrackingPage() {
   }, [userLocation]);
 
   return (
-    <div className="w-full h-screen bg-red-500">
-      {/* Simple header - BRIGHT COLORS TO SEE IF IT WORKS */}
-      <div className="absolute top-4 left-4 z-10 bg-yellow-400 p-6 rounded shadow border-4 border-black">
-        <h1 className="text-lg font-bold text-black">User Tracking</h1>
-        {userLocation ? (
-          <p className="text-sm text-gray-600">
-            Location: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
-          </p>
-        ) : (
-          <p className="text-sm text-gray-600">No location saved</p>
-        )}
+    <div className="w-full h-screen bg-gray-950 relative">
+      {/* Navigation */}
+      <div className="absolute top-0 left-0 right-0 z-50 pointer-events-none">
+        <div className="pointer-events-auto">
+          <NavTabs />
+          <TopHUD includeAbfi={false} />
+        </div>
       </div>
 
-      {/* Map container */}
+      {/* Map */}
       <div ref={mapContainer} className="w-full h-full" />
+
+      {/* Tracking Widget - Positioned over map */}
+      <div className="absolute top-20 left-4 z-40 w-80 max-h-[calc(100vh-100px)] overflow-y-auto">
+        <TrackingWidget />
+      </div>
     </div>
   );
 }
