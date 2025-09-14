@@ -45,6 +45,17 @@ export default function TrackingPage() {
   const { coords, status, message } = useGeo();
   const pos: Pos = coords ? { lat: coords.lat, lng: coords.lon } : null;
   
+  // Debug logging
+  useEffect(() => {
+    console.log('[TrackingPage] Component mounted', {
+      map: !!map,
+      username,
+      selectedInletId,
+      hasCoords: !!coords,
+      mapboxToken: !!mapboxgl.accessToken
+    });
+  }, [map, username, selectedInletId, coords]);
+  
   // Get boat name from localStorage
   const [boatName, setBoatName] = useState<string>('');
   useEffect(() => {
@@ -431,39 +442,45 @@ export default function TrackingPage() {
 
   return (
     <RequireUsername>
-      <div className="w-full h-screen bg-gray-950">
+      <div className="w-full h-screen bg-gray-950 relative">
+        {/* Debug indicator */}
+        <div className="absolute top-0 left-0 z-[200] bg-red-500 text-white p-2 text-xs">
+          Tracking Page Loaded - Username: {username || 'none'}
+        </div>
+        
         <MapShell>
-          <div className="pointer-events-none absolute inset-0">
+          {/* Navigation and controls layer */}
+          <div className="absolute inset-0 pointer-events-none z-10">
             <NavTabs />
             <TopHUD includeAbfi={false} showLayers={false} extraRight={
               <div className="flex items-center gap-2">
                 <GeoControls />
               </div>
             } />
-            
-            {/* Fleet Command Center - Modern Tracking UI */}
-            <FleetCommand 
-              isTracking={isTracking}
-              onToggleTracking={() => setIsTracking(!isTracking)}
-              fleetCount={fleetData?.total_active || 0}
-              fishingCount={fleetData?.fishing_now || 0}
-              showFleet={showVessels}
-              onToggleFleet={() => {
-                if (!isTracking) {
-                  setShowVessels(true); // Trigger the fair sharing notice
-                } else {
-                  setShowVessels(!showVessels);
-                }
-              }}
-              showTrails={showTrails}
-              onToggleTrails={() => setShowTrails(!showTrails)}
-              showGFW={showGFW}
-              onToggleGFW={() => setShowGFW(!showGFW)}
-              userSpeed={pos && lastPosition ? calculateSpeed(lastPosition, pos) : 0}
-              userHeading={pos && lastPosition ? calculateHeading(lastPosition, pos) : 0}
-              boatName={boatName || 'My Vessel'}
-            />
           </div>
+          
+          {/* Fleet Command Center - Modern Tracking UI */}
+          <FleetCommand 
+            isTracking={isTracking}
+            onToggleTracking={() => setIsTracking(!isTracking)}
+            fleetCount={fleetData?.total_active || 0}
+            fishingCount={fleetData?.fishing_now || 0}
+            showFleet={showVessels}
+            onToggleFleet={() => {
+              if (!isTracking) {
+                setShowVessels(true); // Trigger the fair sharing notice
+              } else {
+                setShowVessels(!showVessels);
+              }
+            }}
+            showTrails={showTrails}
+            onToggleTrails={() => setShowTrails(!showTrails)}
+            showGFW={showGFW}
+            onToggleGFW={() => setShowGFW(!showGFW)}
+            userSpeed={pos && lastPosition ? calculateSpeed(lastPosition, pos) : 0}
+            userHeading={pos && lastPosition ? calculateHeading(lastPosition, pos) : 0}
+            boatName={boatName || 'My Vessel'}
+          />
           
           {/* Keep essential vessel tracking */}
           <VesselTracker 
@@ -477,7 +494,7 @@ export default function TrackingPage() {
           
           {/* Location status message */}
           {message && (
-            <div className="absolute bottom-4 right-4 z-20 bg-gray-950/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm max-w-xs">
+            <div className="absolute bottom-4 right-4 z-20 bg-gray-950/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm max-w-xs pointer-events-auto">
               {message}. Make sure location services are enabled.
             </div>
           )}
