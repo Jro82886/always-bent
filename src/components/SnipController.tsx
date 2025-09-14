@@ -284,7 +284,12 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     <>
       <SnipTool 
         map={map} 
-        onAnalysisComplete={handleAnalyze}
+        onAnalysisComplete={(analysis) => {
+          // SnipTool already performed the analysis, just set it
+          console.log('[SnipController] Received analysis from SnipTool:', analysis);
+          setCurrentAnalysis(analysis);
+          setShowModal(true);
+        }}
       />
       
       {/* Test buttons - remove after debugging */}
