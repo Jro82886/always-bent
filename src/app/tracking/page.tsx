@@ -52,7 +52,7 @@ export default function TrackingPage() {
       
       {/* Tracking Widget - Positioned over map */}
       <div className="absolute top-20 left-4 z-40 w-80 max-h-[calc(100vh-100px)] overflow-y-auto">
-        <TrackingWidget />
+        <TrackingWidget map={map} />
       </div>
     </MapShell>
   );

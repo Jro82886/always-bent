@@ -71,3 +71,8 @@ export function buildInletColorMap(): Record<string, string> {
   });
   return map;
 }
+
+// Get color for a specific inlet
+export function getInletColor(inletId: string): string {
+  return INLET_COLORS[inletId]?.color || '#26c281'; // Default to green
+}
