@@ -216,15 +216,38 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       }, 10000);
     }
     
-    // Show success toast
+    // Show detailed success message with bite data
+    const currentLat = currentLocation?.lat || 0;
+    const currentLng = currentLocation?.lng || 0;
     const toast = document.createElement('div');
-    toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-600 to-cyan-600 text-white px-8 py-4 rounded-full shadow-2xl z-50 animate-slide-down';
-    toast.innerHTML = '✅ Catch logged successfully! Your data helps predict future hotspots 🧠';
+    toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-br from-emerald-600 via-cyan-600 to-blue-600 text-white px-10 py-6 rounded-2xl shadow-2xl z-[70] animate-slide-down border border-cyan-400/50';
+    toast.innerHTML = `
+      <div class="text-center">
+        <div class="text-2xl font-bold mb-2">🎣 Congratulations! You Got a Bite!</div>
+        <div class="text-sm opacity-90 mb-3">Your bite has been recorded to ABFI Intelligence</div>
+        <div class="bg-black/20 rounded-lg px-4 py-3 text-xs space-y-1">
+          <div class="flex justify-between"><span class="opacity-70">Captain:</span><span class="font-semibold">${localStorage.getItem('abfi_captain_name') || 'Unknown'}</span></div>
+          <div class="flex justify-between"><span class="opacity-70">Vessel:</span><span class="font-semibold">${localStorage.getItem('abfi_boat_name') || 'Unknown'}</span></div>
+          <div class="flex justify-between"><span class="opacity-70">Location:</span><span class="font-semibold">${currentLat.toFixed(4)}°N, ${Math.abs(currentLng).toFixed(4)}°W</span></div>
+          <div class="flex justify-between"><span class="opacity-70">Time:</span><span class="font-semibold">${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span></div>
+          <div class="flex justify-between"><span class="opacity-70">Inlet:</span><span class="font-semibold">${localStorage.getItem('abfi_current_inlet') || 'East Coast'}</span></div>
+        </div>
+        <div class="text-xs mt-3 opacity-80 italic">Contributing to collective ocean intelligence...</div>
+      </div>
+    `;
     document.body.appendChild(toast);
     
+    // Fade out after 5 seconds
     setTimeout(() => {
-      toast.remove();
-    }, 4000);
+      toast.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+      toast.style.opacity = '0';
+      toast.style.transform = 'translate(-50%, -20px)';
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 500);
+    }, 5000);
   };
   
   // Don't show button if explicitly disabled
@@ -245,7 +268,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
             fontWeight: 800,
             fontSize: '20px',
             letterSpacing: '0.15em',
-            animation: 'pulse 2s infinite'
+            // No animation - keep button static
           }}
         >
           <span className="relative flex items-center justify-center">
