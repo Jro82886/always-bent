@@ -42,8 +42,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     
     console.log('[OK] Map is available, proceeding with analysis');
     
+    // Type-safe cast to Polygon feature for vessel tracking
+    const polygonFeature = polygon as GeoJSON.Feature<GeoJSON.Polygon>;
+    
     // Get vessel tracks in the area
-    const vesselData = await getVesselTracksInArea(polygon, map);
+    const vesselData = await getVesselTracksInArea(polygonFeature, map);
     console.log('[VESSELS] Found tracks:', vesselData.tracks.length);
     
     // Smooth delay before showing analyzing state
