@@ -27,7 +27,12 @@ export default function SnipAnalysisCard(){
   return (
     <div className="absolute bottom-4 right-4 max-w-sm bg-white text-black rounded-lg shadow-xl border border-neutral-200">
       <div className="p-4">
-        <div className="text-sm uppercase tracking-wide text-neutral-500 mb-1">Snip Analysis (MVP)</div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-sm uppercase tracking-wide text-neutral-500">Snip Analysis</div>
+          <span className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[9px] font-bold rounded-full">
+            BETA DEMO
+          </span>
+        </div>
         <div className="text-sm"><b>Date:</b> {summary.date}</div>
         <div className="text-sm"><b>Box:</b> {summary.coords}</div>
         {summary.sstRange && <div className="text-sm"><b>SST:</b> {summary.sstRange}</div>}

@@ -39,6 +39,19 @@ export default function SnipAnalysisReport({
                 <div className="w-2 h-2 bg-purple-300 rounded-full shadow-[0_0_8px_rgba(216,180,254,0.8)]"></div>
               </div>
               Area Analysis Report
+              <div className="relative group">
+                <span className="px-2 py-0.5 bg-white/20 text-white text-[10px] font-bold rounded-full border border-white/30 animate-pulse ml-2">
+                  BETA
+                </span>
+                <div className="absolute top-full mt-1 left-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                  <div className="bg-slate-900/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-xl border border-white/20 w-52">
+                    <div className="text-[10px] text-cyan-400 font-semibold">Demo Mode Active</div>
+                    <div className="text-[9px] text-slate-300 mt-1">
+                      This analysis uses simulated ocean data for demonstration purposes. Real-time SST data integration is in development.
+                    </div>
+                  </div>
+                </div>
+              </div>
             </h2>
             <p className="text-white/80 text-sm">
               {new Date().toLocaleString('en-US', { 

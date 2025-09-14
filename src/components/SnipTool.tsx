@@ -493,16 +493,28 @@ export default function SnipTool({ map, onAnalyze, shouldClear }: SnipToolProps)
 
   return (
     <div className="absolute top-4 right-4 bg-gradient-to-br from-slate-800/80 via-slate-700/80 to-blue-900/80 backdrop-blur-md rounded-2xl px-6 py-4 shadow-[0_0_30px_rgba(71,85,105,0.3)] z-50 border border-slate-500/30">
-      <h3 className="text-slate-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2">
-        <Target size={14} className="text-slate-400" />
-        Ocean Analysis
-      </h3>
-      {/* TODO: REMOVE THIS WARNING WHEN REAL DATA IS CONNECTED */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="text-yellow-400 text-[10px] mb-1 px-2 py-1 bg-yellow-500/10 rounded-full">
-          ⚠️ Using mock data - not real SST
-        </div>
-      )}
+      <div className="relative">
+        <h3 className="text-slate-300 font-semibold mb-3 text-sm text-center flex items-center justify-center gap-2">
+          <Target size={14} className="text-slate-400" />
+          Ocean Analysis
+          {/* Sleek BETA Badge */}
+          <div className="group relative">
+            <span className="px-2 py-0.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 text-[10px] font-bold rounded-full border border-cyan-500/30 cursor-help animate-pulse">
+              BETA
+            </span>
+            {/* Modern Tooltip */}
+            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+              <div className="bg-slate-900/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-xl border border-cyan-500/20 min-w-[200px]">
+                <div className="text-cyan-400 text-xs font-semibold mb-1">Demo Mode Active</div>
+                <div className="text-slate-300 text-[10px] leading-relaxed">
+                  Currently using simulated ocean data for demonstration. Real-time SST integration coming soon.
+                </div>
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-slate-900 border-r border-b border-cyan-500/20"></div>
+              </div>
+            </div>
+          </div>
+        </h3>
+      </div>
       
       <div className="space-y-2">
         <button
