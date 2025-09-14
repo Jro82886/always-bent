@@ -43,12 +43,14 @@ export default function LegendaryOceanPlatform() {
   
   // Check if tutorial should be shown (client-side only)
   const [showingTutorial, setShowingTutorial] = useState(false);
+  const [tutorialCompleted, setTutorialCompleted] = useState(false);
   
   useEffect(() => {
     // Check tutorial status on client side
     const seen = localStorage.getItem('abfi_tutorial_seen');
     const skip = localStorage.getItem('abfi_skip_tutorial');
     setShowingTutorial(!seen && skip !== 'true');
+    setTutorialCompleted(seen === 'true');
   }, []);
   
   // Watch for inlet changes and fly to selected inlet with Gulf Stream view
@@ -397,17 +399,26 @@ export default function LegendaryOceanPlatform() {
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
-          {/* Tutorial Overlay */}
-          <TutorialOverlay onComplete={() => setShowingTutorial(false)} />
+          {/* Tutorial Overlay - First tutorial for new users */}
+          {!tutorialCompleted && (
+            <TutorialOverlay onComplete={() => {
+              setShowingTutorial(false);
+              setTutorialCompleted(true);
+            }} />
+          )}
           
-          {/* Map Legend - Always visible for reference */}
-          <MapLegend position="bottom-left" />
+          {/* Map Legend - Position adjusted to avoid conflicts */}
+          <MapLegend position="bottom-right" />
           
-          {/* Interactive Tutorial - Shows on first visit */}
-          <InteractiveTutorial />
+          {/* Interactive Tutorial - Second tutorial, only after first is complete */}
+          {tutorialCompleted && activeTab === 'analysis' && (
+            <InteractiveTutorial />
+          )}
           
-          {/* ABFI Button - ONLY on Analysis tab, NEVER in analysis reports */}
-          <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
+          {/* ABFI Button - Hidden during tutorial, only on Analysis tab */}
+          {!showingTutorial && (
+            <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
+          )}
           
           {/* Quick Switch to Tracking */}
           <QuickSwitch currentMode="analysis" onSwitch={setActiveTab} />

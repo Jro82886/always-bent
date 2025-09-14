@@ -6,7 +6,7 @@ import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 // import { getAnalysisQuote } from '@/lib/philosophy';
 
 interface AnalysisModalProps {
-  analysis: (AnalysisResult & { vesselTracks?: string }) | null;
+  analysis: (AnalysisResult & { vesselTracks?: any }) | null;
   visible: boolean;
   onClose: () => void;
   onSave?: () => void;
@@ -31,7 +31,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   if (!isVisible || !analysis) return null;
 
-  const { hotspot, stats, features, layerAnalysis, boatActivity } = analysis as any;
+  const { hotspot, stats, features, layerAnalysis, boatActivity, vesselTracks } = analysis as any;
   
   // Find the strongest feature
   const strongestFeature = features.length > 0 ? 
@@ -182,15 +182,47 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           )}
           
           {/* Vessel Tracks */}
-          {analysis.vesselTracks && (
-            <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
-              <h4 className="text-blue-300 text-sm font-semibold mb-2 flex items-center gap-2">
-                <Activity size={16} className="text-blue-400" />
-                Vessel Tracks in Area
+          {vesselTracks && (
+            <div className="bg-gradient-to-r from-orange-500/10 to-cyan-500/10 rounded-xl p-4 border border-orange-500/20">
+              <h4 className="text-orange-300 font-semibold mb-3 flex items-center gap-2">
+                <Activity size={18} className="text-orange-400" />
+                Vessel Activity (Last 4 Days)
               </h4>
-              <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
-                {analysis.vesselTracks}
-              </pre>
+              <div className="space-y-3">
+                {vesselTracks.recreational > 0 && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-0.5 bg-cyan-500 rounded-full" />
+                      <span className="text-cyan-300 text-sm">Recreational Vessels</span>
+                    </div>
+                    <span className="text-white font-bold">{vesselTracks.recreational}</span>
+                  </div>
+                )}
+                {vesselTracks.commercial > 0 && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-0.5 bg-orange-500 rounded-full" />
+                      <span className="text-orange-300 text-sm">Commercial (GFW)</span>
+                    </div>
+                    <span className="text-white font-bold">{vesselTracks.commercial}</span>
+                  </div>
+                )}
+                {vesselTracks.total > 0 && (
+                  <div className="pt-2 mt-2 border-t border-orange-500/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm">Total Tracks</span>
+                      <span className="text-cyan-300 font-bold text-lg">{vesselTracks.total}</span>
+                    </div>
+                  </div>
+                )}
+                {vesselTracks.total > 5 && (
+                  <div className="bg-cyan-500/10 rounded-lg p-2 mt-2">
+                    <p className="text-cyan-300 text-xs">
+                      ⚡ High vessel convergence indicates productive fishing area
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           

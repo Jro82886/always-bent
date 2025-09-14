@@ -9,8 +9,8 @@ interface ModeHeaderProps {
 export default function ModeHeader({ mode }: ModeHeaderProps) {
   if (mode === 'analysis') {
     return (
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
-        <div className="bg-gradient-to-r from-slate-900/80 via-cyan-950/80 to-slate-900/80 backdrop-blur-xl border border-cyan-400/20 rounded-full px-6 py-2 shadow-2xl"
+      <div className="absolute top-24 right-4 z-30 pointer-events-none">
+        <div className="bg-gradient-to-r from-slate-900/60 via-cyan-950/60 to-slate-900/60 backdrop-blur-md border border-cyan-400/10 rounded-lg px-4 py-1.5 shadow-lg"
              style={{
                boxShadow: '0 0 30px rgba(0, 200, 255, 0.2), inset 0 0 20px rgba(0, 200, 255, 0.05)'
              }}>
@@ -32,8 +32,8 @@ export default function ModeHeader({ mode }: ModeHeaderProps) {
 
   if (mode === 'tracking') {
     return (
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
-        <div className="bg-gradient-to-r from-slate-900/80 via-orange-950/80 to-slate-900/80 backdrop-blur-xl border border-orange-400/20 rounded-full px-6 py-2 shadow-2xl"
+      <div className="absolute top-24 right-4 z-30 pointer-events-none">
+        <div className="bg-gradient-to-r from-slate-900/60 via-orange-950/60 to-slate-900/60 backdrop-blur-md border border-orange-400/10 rounded-lg px-4 py-1.5 shadow-lg"
              style={{
                boxShadow: '0 0 30px rgba(255, 150, 0, 0.2), inset 0 0 20px rgba(255, 150, 0, 0.05)'
              }}>

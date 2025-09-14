@@ -126,13 +126,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         setShowHotspot(true);
         console.log('[HOTSPOT] Location:', analysis.hotspot.location);
         
-        // Show toast notification instead of modal immediately
-        showHotspotToast(() => {
-          console.log('[CLICK] User clicked toast - showing analysis modal');
+        // Auto-show modal with analysis including vessel tracks
+        setTimeout(() => {
+          console.log('[AUTO] Showing analysis modal with vessel tracks');
           setShowModal(true);
-        });
-        
-        // Don't auto-show modal - let user click hotspot or toast
+        }, 800); // Small delay for smooth transition
       } else {
         console.warn('[WARNING] No hotspot found in analysis');
         // For non-hotspot, show educational modal immediately
@@ -419,7 +417,7 @@ function showSaveSuccessToast() {
   }, 3000);
 }
 
-// Helper function to show hotspot toast notification
+// Helper function to show hotspot toast notification (deprecated - now auto-showing modal)
 function showHotspotToast(onClickCallback: () => void) {
   // Create toast element
   const toast = document.createElement('div');
