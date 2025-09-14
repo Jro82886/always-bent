@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { TrendingUp, Calendar, BarChart3, PieChart, Activity, Fish, Thermometer, Wind } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { TrendingUp, Calendar, BarChart3, PieChart, Activity, Fish, Thermometer, Wind, ChevronDown } from 'lucide-react';
 
 interface TrendsModeProps {
   // No map needed for trends - it's a dashboard!
@@ -12,9 +12,23 @@ export default function TrendsMode({}: TrendsModeProps) {
   const [selectedMetric, setSelectedMetric] = useState<'catches' | 'sst' | 'weather'>('catches');
   const [showTestData, setShowTestData] = useState(false); // Default to hiding test data
   const [stats, setStats] = useState({ catches: 0, analyses: 0 });
+  const [trendFilter, setTrendFilter] = useState('By Species');
+  const [showTrendDropdown, setShowTrendDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   // This component is completely independent of the map
   // It's a pure data dashboard
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowTrendDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   useEffect(() => {
     console.log('📊 Trends dashboard activated');
@@ -133,11 +147,57 @@ export default function TrendsMode({}: TrendsModeProps) {
                   <BarChart3 size={20} />
                   Catch Trends
                 </h3>
-                <select className="px-3 py-1 rounded bg-black/50 border border-cyan-500/30 text-white text-xs">
-                  <option>By Species</option>
-                  <option>By Location</option>
-                  <option>By Time</option>
-                </select>
+                {/* Custom Stylized Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowTrendDropdown(!showTrendDropdown)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 border border-cyan-400/40 rounded-full text-cyan-100 hover:from-cyan-800/50 hover:to-blue-800/50 transition-all group"
+                    style={{
+                      boxShadow: '0 0 20px rgba(6, 182, 212, 0.2), inset 0 0 15px rgba(6, 182, 212, 0.1)',
+                    }}
+                  >
+                    <span className="text-sm font-medium tracking-wide">{trendFilter}</span>
+                    <ChevronDown 
+                      size={16} 
+                      className={`text-cyan-400 transition-transform group-hover:text-cyan-300 ${
+                        showTrendDropdown ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  {showTrendDropdown && (
+                    <div 
+                      className="absolute top-full mt-2 right-0 z-50 min-w-[160px] bg-slate-900/95 backdrop-blur-xl border border-cyan-400/40 rounded-xl shadow-2xl overflow-hidden"
+                      style={{
+                        boxShadow: '0 10px 40px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.15)'
+                      }}
+                    >
+                      {['By Species', 'By Location', 'By Time'].map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => {
+                            setTrendFilter(option);
+                            setShowTrendDropdown(false);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left text-sm hover:bg-cyan-400/10 transition-all flex items-center gap-3 ${
+                            trendFilter === option ? 'bg-cyan-400/20 text-cyan-300' : 'text-white/80'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            {option === 'By Species' && <Fish size={14} className="text-cyan-400" />}
+                            {option === 'By Location' && <Activity size={14} className="text-cyan-400" />}
+                            {option === 'By Time' && <Calendar size={14} className="text-cyan-400" />}
+                            <span>{option}</span>
+                          </div>
+                          {trendFilter === option && (
+                            <span className="text-cyan-400">✓</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               {/* Placeholder for chart */}
               <div className="h-64 flex items-center justify-center border border-cyan-500/10 rounded-lg">
