@@ -13,7 +13,7 @@ export default function TrackingWidget() {
   const [mode, setMode] = useState<TrackingMode>('individual');
 
   return (
-    <WidgetShell title="🚢 LIVE VESSEL TRACKING - UPDATED!"">
+    <WidgetShell title="🚢 LIVE VESSEL TRACKING - UPDATED!">
       {/* Mode Selector */}
       <div className="flex gap-2 mb-4">
         <button
