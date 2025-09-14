@@ -7,6 +7,7 @@ import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData } from '@/lib/analysis/sst-analyzer';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { Maximize2, Loader2, Target, TrendingUp } from 'lucide-react';
+import { getVesselsInBounds, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
 
 interface SnipToolProps {
   map: mapboxgl.Map | null;
@@ -93,6 +94,62 @@ function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
         coordinates: hotspot.location
       }
     }]
+  });
+}
+
+// Visualize vessels within the snipped area
+function visualizeVesselsOnMap(map: mapboxgl.Map, vessels: any[], selectedInlet?: string) {
+  if (!vessels || vessels.length === 0) return;
+  
+  // Create vessel markers matching the tracking page style
+  vessels.forEach(vessel => {
+    const style = getVesselStyle(vessel, selectedInlet);
+    
+    const el = document.createElement('div');
+    el.className = `vessel-marker vessel-${vessel.type}`;
+    
+    // Style based on vessel type matching tracking page
+    if (vessel.type === 'user') {
+      el.innerHTML = `
+        <div style="
+          width: 12px;
+          height: 12px;
+          background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+          border: 1.5px solid rgba(255, 255, 255, 0.9);
+          border-radius: 50%;
+          box-shadow: 0 0 15px ${style.glow};
+        "></div>
+      `;
+    } else if (vessel.type === 'fleet') {
+      el.innerHTML = `
+        <div style="
+          width: 10px;
+          height: 10px;
+          background: ${style.color};
+          border-radius: 50%;
+          box-shadow: 0 0 10px ${style.glow};
+        "></div>
+      `;
+    } else if (vessel.type === 'commercial') {
+      el.innerHTML = `
+        <div style="
+          width: 0;
+          height: 0;
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          border-bottom: 10px solid ${style.color};
+          filter: drop-shadow(0 0 4px ${style.glow});
+        "></div>
+      `;
+    }
+    
+    // Add marker to map
+    new (window as any).mapboxgl.Marker({
+      element: el,
+      anchor: 'center'
+    })
+      .setLngLat(vessel.position)
+      .addTo(map);
   });
 }
 
@@ -309,10 +366,31 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     try {
       const polygon = currentPolygon.current;
       
-      // Step 1: Get vessel tracks
-      console.log('[SNIP] Step 1: Getting vessel tracks...');
-      const vesselData = await getVesselTracksInArea(polygon, map);
-      console.log('[SNIP] Found vessel tracks:', vesselData.tracks.length);
+      // Step 1: Get vessel data from shared service (source of truth)
+      console.log('[SNIP] Step 1: Getting vessel data from tracking system...');
+      
+      // Get bounds from polygon for vessel detection
+      const bbox = turf.bbox(polygon);
+      const bounds: [[number, number], [number, number]] = [
+        [bbox[0], bbox[1]], // Southwest
+        [bbox[2], bbox[3]]  // Northeast
+      ];
+      
+      // Get vessels from the shared data service
+      const vesselsInBounds = getVesselsInBounds(bounds);
+      const vesselSummary = getVesselTrackingSummary(vesselsInBounds);
+      
+      console.log('[SNIP] Found vessels in area:', vesselSummary.summary);
+      
+      // Build vessel data in expected format
+      const vesselData = {
+        tracks: vesselsInBounds.flatMap(v => v.track || [[v.position[0], v.position[1]]]),
+        summary: vesselSummary.summary,
+        total: vesselSummary.totalVessels,
+        userVessels: vesselSummary.userVessels,
+        fleetVessels: vesselSummary.fleetVessels,
+        commercialVessels: vesselSummary.commercialVessels
+      };
       
       // Step 2: Check active layers
       console.log('[SNIP] Step 2: Checking active layers...');
@@ -323,13 +401,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       };
       console.log('[SNIP] Active layers:', activeLayers);
       
-      // Step 3: Get bounds and generate data
+      // Step 3: Generate ocean data using already calculated bounds
       console.log('[SNIP] Step 3: Generating ocean data...');
       setAnalysisStep('Extracting temperature and chlorophyll data...');
-      const bbox = turf.bbox(polygon);
-      const bounds: [[number, number], [number, number]] = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
       
-      // Generate data (using mock for now)
+      // Generate data (using mock for now) - reuse bounds from Step 1
       const sstData = activeLayers.sst || true ? generateMockSSTData(bounds) : null; // Always generate SST for demo
       const chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
       
@@ -383,6 +459,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         visualizeHotspotOnMap(map, analysis.hotspot);
       }
       
+      // Visualize vessels within snipped area (matching tracking page style)
+      if (vesselsInBounds && vesselsInBounds.length > 0) {
+        console.log('[SNIP] Visualizing', vesselsInBounds.length, 'vessels in snipped area');
+        // Get selected inlet for fleet colors (from global state if needed)
+        const selectedInlet = localStorage.getItem('abfi_selected_inlet') || 'nc-hatteras';
+        visualizeVesselsOnMap(map, vesselsInBounds, selectedInlet);
+      }
+      
       // Process edges for analysis (no visualization - handled by polygon filter)
       if (analysis.features && analysis.features.length > 0) {
         console.log('[SNIP] Processing', analysis.features.length, 'edge features for analysis');
@@ -395,7 +479,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Log vessel tracks for analysis
       if (vesselData.tracks && vesselData.tracks.length > 0) {
         console.log('[SNIP] Found', vesselData.tracks.length, 'vessel tracks in area');
-        // Vessel tracks are already visible on the map from the vessel tracking layer
+        // Tracks will be shown if user enables them on tracking page
       }
       
       // Add edge analysis info to the result

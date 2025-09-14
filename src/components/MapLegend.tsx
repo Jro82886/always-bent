@@ -66,13 +66,34 @@ const legendItems: LegendItem[] = [
 interface MapLegendProps {
   collapsed?: boolean;
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  mode?: 'analysis' | 'tracking';
+  showUser?: boolean;
+  showFleet?: boolean;
+  showCommercial?: boolean;
+  showTracks?: boolean;
 }
 
 export default function MapLegend({ 
   collapsed: initialCollapsed = false, 
-  position = 'bottom-left' 
+  position = 'bottom-left',
+  mode = 'analysis',
+  showUser = true,
+  showFleet = true,
+  showCommercial = true,
+  showTracks = false
 }: MapLegendProps) {
   const [isCollapsed, setIsCollapsed] = useState(initialCollapsed);
+  
+  // Filter legend items based on mode and visibility settings
+  const filteredItems = mode === 'tracking' 
+    ? legendItems.filter(item => {
+        if (item.label === 'You' && !showUser) return false;
+        if (item.label === 'Fleet' && !showFleet) return false;
+        if (item.label === 'Commercial' && !showCommercial) return false;
+        if (item.shape === 'line' && !showTracks) return false;
+        return true;
+      })
+    : legendItems;
 
   const positionClasses = {
     'top-left': 'top-20 left-4',
@@ -116,7 +137,7 @@ export default function MapLegend({
 
           {/* Compact Legend Items */}
           <div className="p-2 space-y-1">
-            {legendItems.map((item, index) => (
+            {filteredItems.map((item, index) => (
               <div
                 key={index}
                 className="flex items-center gap-2 py-1 px-2 rounded hover:bg-slate-800/30 transition-colors group"

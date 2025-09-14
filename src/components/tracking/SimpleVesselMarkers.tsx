@@ -6,7 +6,11 @@ import { getInletColor, INLET_COLORS } from '@/lib/inletColors';
 
 interface SimpleVesselMarkersProps {
   map: mapboxgl.Map | null;
-  selectedInlet: string;
+  selectedInlet?: string;
+  showUser?: boolean;
+  showFleet?: boolean;
+  showCommercial?: boolean;
+  showTracks?: boolean;
 }
 
 // Mock vessel data for MVP
@@ -32,7 +36,14 @@ const mockVessels = {
   ]
 };
 
-export default function SimpleVesselMarkers({ map, selectedInlet }: SimpleVesselMarkersProps) {
+export default function SimpleVesselMarkers({ 
+  map, 
+  selectedInlet = 'nc-hatteras',
+  showUser = true,
+  showFleet = true,
+  showCommercial = true,
+  showTracks = false
+}: SimpleVesselMarkersProps) {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
 
   useEffect(() => {
