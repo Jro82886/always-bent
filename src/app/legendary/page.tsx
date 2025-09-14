@@ -406,7 +406,7 @@ export default function LegendaryOceanPlatform() {
       )}
       
       {/* TRACKING MODE UI - Vessel Tracking */}
-      {activeTab === 'tracking' && <TrackingWidget />}
+      {activeTab === 'tracking' && <TrackingWidget map={map.current} />}
       
       {/* TRENDS MODE UI - Dashboard (No map interaction) */}
       {activeTab === 'trends' && (

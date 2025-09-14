@@ -7,10 +7,11 @@ import {
   Play, Pause, Square, TrendingUp, 
   Compass, MapPin, Clock, Waves
 } from 'lucide-react';
-import { useMapbox } from '@/lib/MapCtx';
+interface IndividualTrackingWidgetProps {
+  map: mapboxgl.Map | null;
+}
 
-export default function IndividualTrackingWidget() {
-  const map = useMapbox();
+export default function IndividualTrackingWidget({ map }: IndividualTrackingWidgetProps) {
   
   // Core tracking state
   const [isTracking, setIsTracking] = useState(false);

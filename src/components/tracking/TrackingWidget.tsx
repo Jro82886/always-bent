@@ -2,13 +2,18 @@
 
 import { useState } from 'react';
 import { Users, User, Building2, Navigation } from 'lucide-react';
+import type mapboxgl from 'mapbox-gl';
 import IndividualTrackingWidget from './IndividualTrackingWidget';
 import FleetTrackingWidget from './FleetTrackingWidget';
 import CommercialTrackingWidget from './CommercialTrackingWidget';
 
 type TrackingMode = 'individual' | 'fleet' | 'commercial';
 
-export default function TrackingWidget() {
+interface TrackingWidgetProps {
+  map: mapboxgl.Map | null;
+}
+
+export default function TrackingWidget({ map }: TrackingWidgetProps) {
   const [mode, setMode] = useState<TrackingMode>('individual');
 
   return (
@@ -75,7 +80,7 @@ export default function TrackingWidget() {
 
       {/* Mode-specific content */}
       <div className="space-y-2">
-        {mode === 'individual' && <IndividualTrackingWidget />}
+        {mode === 'individual' && <IndividualTrackingWidget map={map} />}
         {mode === 'fleet' && <FleetTrackingWidget />}
         {mode === 'commercial' && <CommercialTrackingWidget />}
       </div>
