@@ -11,6 +11,7 @@ import AnalyzeBar from '@/components/AnalyzeBar';
 export default function ImageryPage() {
   return (
     <RequireUsername>
+    <div className="w-full h-screen bg-gray-950">
     <MapShell>
       {/* Glass overlay */}
       <div className="pointer-events-none absolute inset-0">
@@ -24,6 +25,7 @@ export default function ImageryPage() {
       <LayersRuntime />
       <AnalyzeBar />
     </MapShell>
+    </div>
     </RequireUsername>
   );
 }

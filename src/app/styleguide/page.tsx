@@ -40,7 +40,7 @@ export default function StyleguidePage() {
   }), [panelOpacity]);
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 24, background: '#030712', minHeight: '100vh' }}>
       <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>Style Guide</h1>
       <p style={{ color: 'var(--abfi-muted)', marginBottom: 18 }}>Tokens and primitives for a sleek, modern, intuitive UI.</p>
 

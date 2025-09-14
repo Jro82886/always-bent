@@ -431,6 +431,7 @@ export default function TrackingPage() {
 
   return (
     <RequireUsername>
+    <div className="w-full h-screen bg-gray-950">
     <MapShell>
       <div className="pointer-events-none absolute inset-0">
         <NavTabs />
@@ -488,6 +489,7 @@ export default function TrackingPage() {
         </div>
       )}
     </MapShell>
+    </div>
     </RequireUsername>
   );
 }

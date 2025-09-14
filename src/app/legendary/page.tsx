@@ -320,7 +320,7 @@ export default function LegendaryOceanPlatform() {
   }, [selectedInletId]);
 
   return (
-    <div className={`w-full h-screen relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 ${sstActive ? 'sst-active' : ''}`}>
+    <div className={`w-full h-screen relative bg-gray-950 ${sstActive ? 'sst-active' : ''}`}>
       {/* Map Container with enhanced rendering - Hidden during tracking for clean separation */}
       <div 
         ref={mapContainer} 

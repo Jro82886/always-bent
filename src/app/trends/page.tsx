@@ -106,7 +106,7 @@ export default function TrendsPage() {
       <NavTabs />
       
       {/* Dashboard Container */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-black via-slate-900/50 to-black">
+      <div className="flex-1 overflow-y-auto bg-gray-950">
         <div className="max-w-7xl mx-auto p-6">
           {/* Header - Alternative Options:
             - FISHING INTELLIGENCE
