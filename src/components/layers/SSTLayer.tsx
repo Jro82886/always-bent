@@ -71,11 +71,13 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           source: srcId,
           layout: { visibility: 'visible' },
           paint: { 
-            'raster-opacity': 1, 
+            'raster-opacity': 0.85,  // Slightly transparent for depth
             'raster-resampling': 'linear',
-            'raster-fade-duration': 300,
-            'raster-contrast': -0.02,  // Subtle contrast reduction to smooth edges
-            'raster-saturation': 0.02   // Slight saturation boost for clarity
+            'raster-fade-duration': 200,  // Faster fade
+            'raster-contrast': -0.1,  // Muted contrast
+            'raster-saturation': -0.3,  // Desaturated for darker, muted colors
+            'raster-brightness-min': 0.2,  // Darker blacks
+            'raster-brightness-max': 0.9   // Muted highlights
           },
         } as any);
 

@@ -68,7 +68,7 @@ export default function LegendaryOceanPlatform() {
   
   // Ocean Basemap + Copernicus layers
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
-  const [sstActive, setSstActive] = useState(false); // Copernicus SST
+  const [sstActive, setSstActive] = useState(true); // START WITH SST ON for cinematic view!
   const [chlActive, setChlActive] = useState(false); // Copernicus Chlorophyll
   const [selectedDate, setSelectedDate] = useState('today');
   const [oceanOpacity, setOceanOpacity] = useState(60);
@@ -91,8 +91,8 @@ export default function LegendaryOceanPlatform() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',  // Dark base for contrast with layers
-      center: [-72, 37],  // Shifted east to show more ocean
-      zoom: 5.5,  // Slightly zoomed out to see more water
+      center: [-40, 35],  // Start with Atlantic Ocean view (like your image)
+      zoom: 3.5,  // Zoomed out to see whole North Atlantic with Gulf Stream
       pitch: 0,  // Ensure flat map (no 3D tilt)
       bearing: 0, // Ensure north is up (no rotation)
       cooperativeGestures: false  // Allow normal scroll zoom
@@ -105,12 +105,10 @@ export default function LegendaryOceanPlatform() {
 
     mapInstance.on('load', () => {
       console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
-      // Use ocean-focused bounds for better fishing view
-      mapInstance.fitBounds(OCEAN_FOCUSED_BOUNDS as any, { 
-        padding: { top: 20, bottom: 20, left: 100, right: 20 },  // More padding on left to push view east
-        duration: 0 
-      });
-      mapInstance.setMaxBounds(EAST_COAST_BOUNDS as any);  // Still constrain to full East Coast
+      // Start with Atlantic Ocean view, don't immediately zoom to East Coast
+      // We'll zoom in after tutorial completes
+      // No max bounds initially to allow full Atlantic view
+      // mapInstance.setMaxBounds(EAST_COAST_BOUNDS as any);  // Will set after zoom
       
       // Ensure map stays flat
       mapInstance.setPitch(0);
@@ -146,7 +144,10 @@ export default function LegendaryOceanPlatform() {
         source: 'ocean',
         layout: { visibility: 'none' },  // START HIDDEN
         paint: {
-          'raster-opacity': 0.6  // Moderate opacity for bathymetry
+          'raster-opacity': 0.6,  // Moderate opacity for bathymetry
+          'raster-brightness-min': 0.2,  // Darker for muted look
+          'raster-brightness-max': 0.8,  // Less bright
+          'raster-saturation': -0.3  // Desaturate for muted colors
         }
       });
 
@@ -180,11 +181,11 @@ export default function LegendaryOceanPlatform() {
           source: 'chl-src',
           layout: { visibility: 'none' },
           paint: { 
-            'raster-opacity': 0.8,  // Bumped up to see edges better
-            'raster-contrast': 0.8,  // MORE contrast to see green edges!
-            'raster-saturation': 0.8,  // MORE saturation for greens to pop!
-            'raster-brightness-min': 0,  // Min must be 0 or higher
-            'raster-brightness-max': 1  // Max must be 1 or lower
+            'raster-opacity': 0.7,  // Slightly muted
+            'raster-contrast': 0.6,  // Softer contrast for muted look
+            'raster-saturation': -0.2,  // Desaturate for muted greens/teals
+            'raster-brightness-min': 0.1,  // Darker minimum
+            'raster-brightness-max': 0.85  // Less bright maximum
           },
           minzoom: 0,
           maxzoom: 24

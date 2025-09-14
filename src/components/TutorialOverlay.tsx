@@ -99,9 +99,40 @@ export default function TutorialOverlay() {
   const handleComplete = () => {
     localStorage.setItem('abfi_tutorial_seen', 'true');
     setIsAnimating(false);
-    setTimeout(() => {
-      setIsVisible(false);
-    }, 150); // Faster exit
+    
+    // Quick, exciting zoom to East Coast hotspots
+    const map = (window as any).map || (globalThis as any).abfiMap;
+    if (map) {
+      setTimeout(() => {
+        setIsVisible(false);
+        
+        // Fast, dynamic zoom - like dropping into the action
+        console.log('🚀 Diving into the Gulf Stream!');
+        
+        // Quick punch zoom to East Coast
+        map.flyTo({
+          center: [-72, 37],  // East Coast center
+          zoom: 5.5,  // Optimal fishing view
+          duration: 1800,  // Fast 1.8 second zoom
+          essential: true,
+          easing: (t: number) => {
+            // Aggressive easing - fast start, smooth landing
+            return 1 - Math.pow(1 - t, 3);
+          }
+        });
+        
+        // Quick bounds set
+        setTimeout(() => {
+          const EAST_COAST_BOUNDS = [[-85, 24], [-65, 46]];
+          map.setMaxBounds(EAST_COAST_BOUNDS);
+          console.log('⚡ Ready to find fish!');
+        }, 2000);
+      }, 100); // Almost instant
+    } else {
+      setTimeout(() => {
+        setIsVisible(false);
+      }, 150);
+    }
   };
 
   const handleSkip = () => {
@@ -120,13 +151,18 @@ export default function TutorialOverlay() {
 
   return (
     <>
-      {/* Quick blur overlay */}
+      {/* Enhanced blur overlay with darker muted tones */}
       <div 
-        className={`fixed inset-0 z-50 transition-all duration-300 ease-out ${
+        className={`fixed inset-0 z-50 transition-all duration-500 ease-out ${
           isAnimating 
-            ? 'bg-black/60 backdrop-blur-sm' 
-            : 'bg-black/0 backdrop-blur-none'
+            ? 'bg-gray-950/70 backdrop-blur-md' 
+            : 'bg-gray-950/0 backdrop-blur-none'
         }`}
+        style={{
+          background: isAnimating 
+            ? 'linear-gradient(135deg, rgba(3, 7, 18, 0.85), rgba(15, 23, 42, 0.75), rgba(3, 7, 18, 0.85))'
+            : 'transparent'
+        }}
         onClick={handleSkip}
       />
       
