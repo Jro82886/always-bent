@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type mapboxgl from 'mapbox-gl';
 import SnipTool from './SnipTool';
 import HotspotMarker from './HotspotMarker';
@@ -10,15 +10,21 @@ import * as turf from '@turf/turf';
 
 interface SnipControllerProps {
   map: mapboxgl.Map | null;
+  onModalStateChange?: (isOpen: boolean) => void;
 }
 
-export default function SnipController({ map }: SnipControllerProps) {
+export default function SnipController({ map, onModalStateChange }: SnipControllerProps) {
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hotspotPosition, setHotspotPosition] = useState<[number, number] | null>(null);
   const [showHotspot, setShowHotspot] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [shouldClearTool, setShouldClearTool] = useState(false);
+
+  // Notify parent component when modal state changes
+  useEffect(() => {
+    onModalStateChange?.(showModal);
+  }, [showModal, onModalStateChange]);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
     console.log('🎯 handleAnalyze called with polygon:', polygon);
