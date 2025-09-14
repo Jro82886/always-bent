@@ -23,9 +23,18 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   }, []);
   
   const handleReportCatch = () => {
+    console.log('🎣 ABFI button clicked! Location enabled:', locationEnabled);
+    
     if (!locationEnabled) {
-      alert('Enable location services to report bites and contribute to community intelligence!');
-      return;
+      // Ask user to enable location services
+      const enable = confirm('Enable location services to report bites and contribute to community intelligence!\n\nClick OK to enable location tracking.');
+      if (enable) {
+        localStorage.setItem('abfi_location_enabled', 'true');
+        setLocationEnabled(true);
+        // Continue with the bite logging
+      } else {
+        return;
+      }
     }
     
     // ONE TAP = INSTANT LOG! No forms, no friction
@@ -101,7 +110,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       
       // Success feedback - modern styled confirmation
       const toast = document.createElement('div');
-      toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-slate-800/95 to-blue-900/95 backdrop-blur-xl text-white px-6 py-4 rounded-2xl shadow-2xl z-[9999] border border-cyan-500/30 animate-in fade-in-0 slide-in-from-top-4 duration-300';
+      toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-slate-800/95 to-blue-900/95 backdrop-blur-xl text-white px-6 py-4 rounded-2xl shadow-2xl z-[9999] border border-cyan-500/30';
       toast.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3), 0 0 60px rgba(6,182,212,0.2)';
       toast.innerHTML = `
         <div class="flex items-center gap-3">
@@ -218,8 +227,8 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
     }, 4000);
   };
   
-  // Don't show button if disabled or location is disabled
-  if (disabled || !locationEnabled) {
+  // Don't show button if explicitly disabled
+  if (disabled) {
     return null;
   }
   
@@ -229,13 +238,14 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
         <button
           onClick={handleReportCatch}
-          className="relative px-6 py-3 rounded-full transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-cyan-900/80 to-blue-900/80 backdrop-blur-md border border-cyan-400/50 text-cyan-100 hover:from-cyan-800/90 hover:to-blue-800/90 hover:border-cyan-300/70"
+          className="relative px-8 py-4 rounded-full transition-all hover:scale-110 active:scale-95 bg-gradient-to-r from-cyan-600 to-blue-600 backdrop-blur-md border-2 border-cyan-400 text-white hover:from-cyan-500 hover:to-blue-500 hover:border-cyan-300 hover:shadow-2xl"
           style={{
-            boxShadow: '0 0 25px rgba(0, 200, 255, 0.4), inset 0 0 20px rgba(0, 200, 255, 0.1)',
+            boxShadow: '0 0 40px rgba(0, 200, 255, 0.6), inset 0 0 20px rgba(0, 200, 255, 0.2)',
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-            fontWeight: 700,
-            fontSize: '16px',
-            letterSpacing: '0.12em'
+            fontWeight: 800,
+            fontSize: '20px',
+            letterSpacing: '0.15em',
+            animation: 'pulse 2s infinite'
           }}
         >
           <span className="relative flex items-center justify-center">
