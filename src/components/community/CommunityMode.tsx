@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { MessageCircle, Users, Fish, Wind, Waves, Thermometer, Navigation, Camera, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles, Mail, FileText } from 'lucide-react';
+import { MessageCircle, Users, Wind, Waves, Thermometer, Navigation, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles, Mail, FileText, Fish } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 import { INLETS, getInletById } from '@/lib/inlets';
 import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
@@ -21,18 +21,6 @@ interface WeatherData {
   buoyId?: string;
 }
 
-interface CatchReport {
-  id: string;
-  captain: string;
-  boatName?: string;
-  location: string;
-  species: string;
-  description: string;
-  timestamp: number;
-  hasPhoto: boolean;
-  inletId?: string;
-}
-
 interface OnlineCaptain {
   name: string;
   captainName?: string;
@@ -50,7 +38,6 @@ export default function CommunityMode() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState('');
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [recentCatches, setRecentCatches] = useState<CatchReport[]>([]);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
@@ -101,32 +88,6 @@ export default function CommunityMode() {
       location: 'inlet',
       buoyId: buoyMap[selectedInletId || 'overview'] || '44025'
     });
-    
-    // Mock recent catches
-    setRecentCatches([
-      {
-        id: '1',
-        captain: 'Captain Mike',
-        boatName: 'Reel Deal',
-        location: 'North Rip',
-        species: 'Striped Bass',
-        description: '32" keeper on the troll with umbrella rig',
-        timestamp: Date.now() - 1000 * 60 * 30,
-        hasPhoto: false,
-        inletId: selectedInletId
-      },
-      {
-        id: '2',
-        captain: 'Sarah',
-        boatName: 'Sea Dreams',
-        location: 'South Shoal',
-        species: 'Bluefish',
-        description: 'Blitz on bunker schools! Non-stop action',
-        timestamp: Date.now() - 1000 * 60 * 45,
-        hasPhoto: false,
-        inletId: selectedInletId
-      }
-    ]);
   }, [selectedInletId]);
 
   // Subscribe to chat based on active channel
@@ -443,69 +404,6 @@ export default function CommunityMode() {
             </div>
           </div>
 
-          {/* Recent Catches */}
-          <div className="flex-1 p-4 overflow-y-auto">
-            {/* Section Header */}
-            <div className="relative mb-4">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 via-transparent to-transparent blur-xl" />
-              <div className="relative bg-gradient-to-r from-slate-800/60 to-transparent rounded-xl p-3 border border-green-500/20">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-500/20 rounded-lg backdrop-blur-sm">
-                    <Fish size={16} className="text-green-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-green-300 tracking-wide">RECENT CATCHES</h3>
-                    <p className="text-xs text-green-400/60 mt-0.5">Latest reports from the fleet</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Catch Cards */}
-            <div className="space-y-3">
-              {recentCatches.map(catchReport => (
-                <div key={catchReport.id} className="group relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/0 to-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg blur" />
-                  <div className="relative bg-gradient-to-r from-slate-800/30 to-transparent rounded-lg p-3 border border-green-500/10 group-hover:border-green-500/30 transition-all">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-white">{catchReport.captain}</span>
-                          {catchReport.inletId && catchReport.inletId !== 'overview' && (
-                            <div 
-                              className="w-2 h-2 rounded-full shadow-lg"
-                              style={{ 
-                                backgroundColor: getInletColor(catchReport.inletId) || undefined,
-                                boxShadow: `0 0 8px ${getInletColor(catchReport.inletId)}40`
-                              }}
-                            />
-                          )}
-                        </div>
-                        {catchReport.boatName && (
-                          <div className="text-xs text-green-400/70 flex items-center gap-1 mt-0.5">
-                            <Anchor size={10} />
-                            {catchReport.boatName}
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-xs text-white/40">{formatTime(catchReport.timestamp)}</span>
-                    </div>
-                    <div className="text-xs text-white/60 mb-1.5 flex items-center gap-1">
-                      <MapPin size={10} className="text-green-400/60" />
-                      {catchReport.location}
-                    </div>
-                    <div className="text-sm text-white/90">{catchReport.description}</div>
-                    {!catchReport.hasPhoto && (
-                      <div className="mt-2 flex items-center gap-1 text-xs text-green-400/50">
-                        <Camera size={12} />
-                        <span>Photo coming soon</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
