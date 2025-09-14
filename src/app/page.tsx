@@ -19,7 +19,7 @@ export default function Root() {
   }, [router]);
   
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
       <div className="text-cyan-400 text-xl animate-pulse">Loading ABFI...</div>
     </div>
   );

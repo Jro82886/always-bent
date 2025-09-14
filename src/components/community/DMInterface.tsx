@@ -461,7 +461,7 @@ export default function DMInterface() {
       {selectedConversation && currentConversation ? (
         <div className="flex-1 flex flex-col">
           {/* Chat Header */}
-          <div className="p-4 border-b border-emerald-500/10 bg-slate-900/50">
+          <div className="p-4 border-b border-emerald-500/10 bg-gray-950/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
@@ -573,7 +573,7 @@ export default function DMInterface() {
           </div>
 
           {/* Message Input */}
-          <div className="p-4 border-t border-emerald-500/10 bg-slate-900/50 relative">
+          <div className="p-4 border-t border-emerald-500/10 bg-gray-950/50 relative">
             {/* Emoji Picker */}
             {showEmojiPicker && (
               <div className="absolute bottom-full mb-2 right-4 bg-slate-900/95 backdrop-blur-xl rounded-xl border border-emerald-500/30 p-3 shadow-2xl z-50">
@@ -667,7 +667,7 @@ export default function DMInterface() {
 
       {/* Right Sidebar - Conversation Info (optional) */}
       {showConversationInfo && currentConversation && (
-        <div className="w-80 border-l border-emerald-500/10 p-4 bg-slate-900/50">
+        <div className="w-80 border-l border-emerald-500/10 p-4 bg-gray-950/50">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-semibold text-emerald-300">Conversation Info</h3>
             <button 
@@ -928,7 +928,7 @@ export default function DMInterface() {
             </div>
             
             {/* Quick Actions Footer */}
-            <div className="p-3 border-t border-emerald-500/10 bg-slate-900/50 rounded-b-2xl">
+            <div className="p-3 border-t border-emerald-500/10 bg-gray-950/50 rounded-b-2xl">
               <div className="flex items-center justify-between text-xs text-emerald-400/40">
                 <span>Scroll to browse all captains • Click to start conversation</span>
                 <span className="text-emerald-400">

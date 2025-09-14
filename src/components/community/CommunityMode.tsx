@@ -317,7 +317,7 @@ export default function CommunityMode() {
       {/* Left Sidebar - Social Hub */}
       <div className="w-80 flex flex-col relative">
         {/* Smooth gradient background - more grey, less blue */}
-        <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-2xl" />
+        <div className="absolute inset-0 bg-gray-950/85 backdrop-blur-2xl" />
         
         {/* Subtle glow accent on the right edge */}
         <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-cyan-500/30 to-transparent" />

@@ -102,7 +102,7 @@ export default function TrendsPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-slate-900">
+    <div className="h-screen flex flex-col bg-gray-950">
       <NavTabs />
       
       {/* Dashboard Container */}
@@ -133,15 +133,15 @@ export default function TrendsPage() {
                 <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">KEY INSIGHTS RIGHT NOW</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-slate-900/40 rounded p-3 border border-cyan-500/20">
+                <div className="bg-gray-950/40 rounded p-3 border border-cyan-500/20">
                   <div className="text-green-400 font-bold text-sm mb-1">BEST TIME: 5:30-7:30 AM</div>
                   <div className="text-xs text-gray-400">Peak activity window today</div>
                 </div>
-                <div className="bg-slate-900/40 rounded p-3 border border-cyan-500/20">
+                <div className="bg-gray-950/40 rounded p-3 border border-cyan-500/20">
                   <div className="text-cyan-400 font-bold text-sm mb-1">WATER: 68°F ↓3°</div>
                   <div className="text-xs text-gray-400">Optimal range for tuna</div>
                 </div>
-                <div className="bg-slate-900/40 rounded p-3 border border-cyan-500/20">
+                <div className="bg-gray-950/40 rounded p-3 border border-cyan-500/20">
                   <div className="text-yellow-400 font-bold text-sm mb-1">MOON: {moonPhase.toUpperCase().replace('-', ' ')}</div>
                   <div className="text-xs text-gray-400">32% more catches expected</div>
                 </div>
@@ -151,7 +151,7 @@ export default function TrendsPage() {
 
           {/* Recent Catches Ticker */}
           <div className="mb-6">
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 overflow-hidden">
+            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-2 overflow-hidden">
               <div className="flex items-center gap-4 animate-scroll-left">
                 <span className="text-xs text-cyan-400 font-bold uppercase">Recent:</span>
                 {[...mockFishActivity, ...mockFishActivity].map((activity, idx) => (
@@ -166,14 +166,14 @@ export default function TrendsPage() {
 
           {/* Pattern Alerts - Always visible */}
           <div className="mb-6">
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
               <div className="flex items-center gap-2 mb-3">
                 <AlertTriangle className="w-5 h-5 text-cyan-400" />
                 <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Pattern Alerts</h3>
               </div>
               <div className="space-y-2">
                 {mockPatternAlerts.map((alert, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-2 bg-slate-900/40 rounded border border-cyan-500/10">
+                  <div key={idx} className="flex items-center gap-3 p-2 bg-gray-950/40 rounded border border-cyan-500/10">
                     <alert.icon className={`w-5 h-5 ${alert.color}`} />
                     <span className="text-sm text-white">{alert.message}</span>
                   </div>
@@ -186,13 +186,13 @@ export default function TrendsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             
             {/* Catch Trends */}
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Catch Trends</h3>
                 <TrendingUp className="w-5 h-5 text-cyan-400" />
               </div>
               <div className="space-y-2">
-                <select className="w-full bg-slate-900/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400">
+                <select className="w-full bg-gray-950/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400">
                   <option value="today">Today</option>
                   <option value="week">This Week</option>
                   <option value="month">This Month</option>
@@ -208,7 +208,7 @@ export default function TrendsPage() {
             </div>
 
             {/* Best Times */}
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Best Times Today</h3>
                 <Clock className="w-5 h-5 text-cyan-400" />
@@ -225,7 +225,7 @@ export default function TrendsPage() {
                       className={`flex-1 h-8 rounded-sm ${
                         bestTimes.includes(i) 
                           ? 'bg-gradient-to-t from-cyan-500/40 to-cyan-400/20 border border-cyan-400/30' 
-                          : 'bg-slate-900/40 border border-gray-700/30'
+                          : 'bg-gray-950/40 border border-gray-700/30'
                       }`}
                       title={`${i}:00`}
                     />
@@ -242,7 +242,7 @@ export default function TrendsPage() {
             </div>
 
             {/* Moon Phase */}
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Moon Phase</h3>
                 {getMoonIcon()}
@@ -263,7 +263,7 @@ export default function TrendsPage() {
             </div>
 
             {/* Tide Status */}
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Tide Intel</h3>
                 <Navigation className="w-5 h-5 text-cyan-400" />
@@ -284,7 +284,7 @@ export default function TrendsPage() {
             </div>
 
             {/* Activity Gauge */}
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Activity Level</h3>
                 <Activity className="w-5 h-5 text-cyan-400" />
@@ -325,7 +325,7 @@ export default function TrendsPage() {
             </div>
 
             {/* Temperature Trends */}
-            <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Water Temp</h3>
                 <Thermometer className="w-5 h-5 text-cyan-400" />
@@ -350,7 +350,7 @@ export default function TrendsPage() {
 
             {/* Species Movement - Unlockable */}
             {showSpeciesMovement ? (
-              <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+              <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Species Movement</h3>
                   <Target className="w-5 h-5 text-cyan-400" />
@@ -370,7 +370,7 @@ export default function TrendsPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-gray-700/20 p-4">
+              <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-gray-700/20 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Species Movement</h3>
                   <Target className="w-5 h-5 text-gray-600" />
@@ -396,7 +396,7 @@ export default function TrendsPage() {
 
             {/* Success Zones - Unlockable */}
             {showSuccessZones ? (
-              <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+              <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Success Zones</h3>
                   <Zap className="w-5 h-5 text-cyan-400" />
@@ -408,7 +408,7 @@ export default function TrendsPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-gray-700/20 p-4">
+              <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-gray-700/20 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Success Zones</h3>
                   <Zap className="w-5 h-5 text-gray-600" />
@@ -428,7 +428,7 @@ export default function TrendsPage() {
 
             {/* AI Insights - Unlockable */}
             {showAIInsights ? (
-              <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+              <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">AI Insights</h3>
                   <BarChart3 className="w-5 h-5 text-cyan-400" />
@@ -441,7 +441,7 @@ export default function TrendsPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-gray-700/20 p-4">
+              <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-gray-700/20 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">AI Insights</h3>
                   <BarChart3 className="w-5 h-5 text-gray-600" />
@@ -461,7 +461,7 @@ export default function TrendsPage() {
           </div>
 
           {/* Data Collection Progress */}
-          <div className="bg-slate-900/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+          <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">System Intelligence</h3>
               <span className="text-xs text-gray-400">{dataCount} data points collected</span>
