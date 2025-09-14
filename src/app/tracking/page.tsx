@@ -46,19 +46,14 @@ export default function TrackingPage() {
   }, [map, userLocation]);
 
   return (
-    <div className="w-full h-screen bg-red-500">
-      {/* TEST: Just show something visible */}
-      <div className="p-8">
-        <h1 className="text-4xl font-bold text-white">TRACKING PAGE TEST</h1>
-        <p className="text-white mt-4">If you see this red background, the page is updating!</p>
-        <div className="mt-6 bg-yellow-400 p-4 rounded">
-          <p className="text-black font-bold">Map should load here</p>
-          <p className="text-black">Your location: {userLocation ? `${userLocation.lat}, ${userLocation.lng}` : 'Not found'}</p>
-        </div>
-      </div>
-      
+    <MapShell>
       <NavTabs />
       <TopHUD includeAbfi={false} />
-    </div>
+      
+      {/* Tracking Widget - Positioned over map */}
+      <div className="absolute top-20 left-4 z-40 w-80 max-h-[calc(100vh-100px)] overflow-y-auto">
+        <TrackingWidget />
+      </div>
+    </MapShell>
   );
 }
