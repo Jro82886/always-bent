@@ -173,6 +173,58 @@ export default function TrendsMode({}: TrendsModeProps) {
             </div>
           </div>
           
+          {/* Real-Time Activity Feed - Moved up after stats */}
+          <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-medium text-cyan-400 flex items-center gap-2">
+                <Activity size={18} />
+                Real-Time Activity Feed
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">Live</span>
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              </div>
+            </div>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {/* Mock real-time activity items */}
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 animate-pulse" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Bluefin landed - 42lbs</div>
+                  <div className="text-xs text-gray-400">Barnegat Inlet • 2 min ago • SST: 68°F</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Temperature break detected</div>
+                  <div className="text-xs text-gray-400">60-80ft contour • 3°F gradient • High activity zone</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Fleet concentration building</div>
+                  <div className="text-xs text-gray-400">5 boats • Canyon edge • Morning bite starting</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Pattern alert: Tide change in 30 min</div>
+                  <div className="text-xs text-gray-400">Historical data shows 45% increase in activity</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2" />
+                <div className="flex-1">
+                  <div className="text-sm text-white">Striped bass on - multiple hookups</div>
+                  <div className="text-xs text-gray-400">Montauk Point • 8 min ago • Dawn patrol success</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Catch Trend Chart */}
@@ -256,74 +308,48 @@ export default function TrendsMode({}: TrendsModeProps) {
             </div>
           </div>
           
-          {/* Real-Time Activity Feed - NEW SECTION */}
+          {/* Predictive Insights - Replacing Historical Calendar */}
           <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-medium text-cyan-400 flex items-center gap-2">
-                <Activity size={18} />
-                Real-Time Activity Feed
+                <TrendingUp size={18} />
+                Predictive Insights
               </h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">Live</span>
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              </div>
+              <span className="text-xs text-gray-400">Next 48 hours</span>
             </div>
-            <div className="space-y-3 max-h-64 overflow-y-auto">
-              {/* Mock real-time activity items */}
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 animate-pulse" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Bluefin landed - 42lbs</div>
-                  <div className="text-xs text-gray-400">Barnegat Inlet • 2 min ago • SST: 68°F</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-950/30 rounded-lg p-3 border border-cyan-500/5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400">Tomorrow Morning</span>
+                  <span className="text-xs text-green-400">HIGH</span>
                 </div>
+                <div className="text-sm text-white mb-1">Optimal conditions expected</div>
+                <div className="text-xs text-gray-400">SST: 69°F • Wind: NE 8kts • Tide: Rising</div>
               </div>
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Temperature break detected</div>
-                  <div className="text-xs text-gray-400">60-80ft contour • 3°F gradient • High activity zone</div>
+              <div className="bg-gray-950/30 rounded-lg p-3 border border-cyan-500/5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400">Tomorrow Afternoon</span>
+                  <span className="text-xs text-yellow-400">MODERATE</span>
                 </div>
+                <div className="text-sm text-white mb-1">Wind picking up</div>
+                <div className="text-xs text-gray-400">SST: 70°F • Wind: E 15kts • Tide: Slack</div>
               </div>
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Fleet concentration building</div>
-                  <div className="text-xs text-gray-400">5 boats • Canyon edge • Morning bite starting</div>
+              <div className="bg-gray-950/30 rounded-lg p-3 border border-cyan-500/5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400">Wednesday Dawn</span>
+                  <span className="text-xs text-green-400">EXCELLENT</span>
                 </div>
+                <div className="text-sm text-white mb-1">Prime bluefin window</div>
+                <div className="text-xs text-gray-400">Cold front passing • 3°F temp drop</div>
               </div>
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Pattern alert: Tide change in 30 min</div>
-                  <div className="text-xs text-gray-400">Historical data shows 45% increase in activity</div>
+              <div className="bg-gray-950/30 rounded-lg p-3 border border-cyan-500/5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400">Best Strategy</span>
+                  <span className="text-xs text-cyan-400">AI TIP</span>
                 </div>
+                <div className="text-sm text-white mb-1">Target 60-80ft contours</div>
+                <div className="text-xs text-gray-400">Temperature breaks forming offshore</div>
               </div>
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Striped bass on - multiple hookups</div>
-                  <div className="text-xs text-gray-400">Montauk Point • 8 min ago • Dawn patrol success</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Historical Calendar */}
-          <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5 mt-6">
-            <h3 className="text-base font-medium text-cyan-400 mb-4 flex items-center gap-2">
-              <Calendar size={18} />
-              Historical Performance
-            </h3>
-            <div className="grid grid-cols-7 gap-2">
-              {/* Calendar grid placeholder */}
-              {Array.from({ length: 28 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="aspect-square rounded bg-gray-950/30 border border-cyan-500/10 flex items-center justify-center text-xs text-white/40 hover:border-cyan-500/30 transition-all cursor-pointer"
-                >
-                  {i + 1}
-                </div>
-              ))}
             </div>
           </div>
         </div>
