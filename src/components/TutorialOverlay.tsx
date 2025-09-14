@@ -140,8 +140,7 @@ export default function TutorialOverlay() {
         style={{
           top: step.position?.top || '50%',
           left: step.position?.left || '50%',
-          transform: 'translate(-50%, -50%)',
-          animation: isAnimating && currentStep === 0 ? 'subtle-pulse 2s ease-in-out infinite' : 'none'
+          transform: 'translate(-50%, -50%)'
         }}
       >
         <div className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 rounded-2xl shadow-2xl border border-cyan-500/30 max-w-md w-full">
