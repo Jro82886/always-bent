@@ -60,7 +60,7 @@ export default function LegendaryOceanPlatform() {
   
   // Ocean Basemap + Copernicus layers
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
-  const [sstActive, setSstActive] = useState(true); // START WITH SST ON for cinematic view!
+  const [sstActive, setSstActive] = useState(false); // START WITH SST OFF for clean grey view
   const [chlActive, setChlActive] = useState(false); // Copernicus Chlorophyll
   const [selectedDate, setSelectedDate] = useState('today');
   const [oceanOpacity, setOceanOpacity] = useState(60);
@@ -116,7 +116,7 @@ export default function LegendaryOceanPlatform() {
         }, 1600);
       } else {
         // First time - start with Atlantic view for tutorial
-        console.log('🌌 First visit - showing Atlantic Ocean view');
+        console.log('[VIEW] First visit - showing clean Atlantic Ocean view (no SST)');
         // Tutorial will handle the zoom to East Coast
       }
       
