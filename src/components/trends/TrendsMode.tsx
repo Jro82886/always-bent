@@ -31,7 +31,7 @@ export default function TrendsMode({}: TrendsModeProps) {
   }, []);
   
   useEffect(() => {
-    console.log('📊 Trends dashboard activated');
+    console.log('📊 Fishing Intelligence activated');
     
     // Load data, filtering out test data unless explicitly shown
     const loadTrendsData = () => {
@@ -61,7 +61,7 @@ export default function TrendsMode({}: TrendsModeProps) {
     loadTrendsData();
     
     return () => {
-      console.log('📊 Trends dashboard deactivated');
+      console.log('📊 Fishing Intelligence deactivated');
     };
   }, [showTestData]);
   
@@ -72,7 +72,7 @@ export default function TrendsMode({}: TrendsModeProps) {
         <div className="max-w-7xl mx-auto p-6">
           {/* Dashboard Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-cyan-400 mb-2">Fishing Trends & Analytics</h1>
+            <h1 className="text-3xl font-bold text-cyan-400 mb-2">Fishing Intelligence</h1>
             <p className="text-white/60">Historical patterns and performance insights</p>
           </div>
           
