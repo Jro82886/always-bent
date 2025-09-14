@@ -52,6 +52,28 @@ export default function DMInterface() {
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showConversationInfo, setShowConversationInfo] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Settings state - load from localStorage if available
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('dm_settings');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        // Fallback to defaults if parse fails
+      }
+    }
+    return {
+      notifications: true,
+      soundEnabled: true,
+      showOnlineStatus: true,
+      messageHistory: '30', // days
+      autoDeleteOld: true,
+      readReceipts: true,
+      typingIndicators: true
+    };
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -308,8 +330,14 @@ export default function DMInterface() {
               >
                 <UserPlus size={18} className="text-cyan-400" />
               </button>
-              <button className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors">
-                <Settings size={18} className="text-cyan-400" />
+              <button 
+                onClick={() => setShowSettings(!showSettings)}
+                className={`p-2 rounded-lg transition-colors ${
+                  showSettings ? 'bg-cyan-500/20 text-cyan-300' : 'hover:bg-cyan-500/10 text-cyan-400'
+                }`}
+                title="Settings"
+              >
+                <Settings size={18} />
               </button>
             </div>
           </div>
@@ -782,6 +810,160 @@ export default function DMInterface() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl w-full max-w-md border border-cyan-500/20 shadow-2xl">
+            <div className="p-6 border-b border-cyan-500/10">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-cyan-300">Message Settings</h3>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="p-1 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                >
+                  <X size={20} className="text-cyan-400" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Notifications Section */}
+              <div>
+                <h4 className="text-sm font-medium text-cyan-400 mb-3">Notifications</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-white/80">Enable notifications</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications}
+                      onChange={(e) => setSettings({...settings, notifications: e.target.checked})}
+                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-white/80">Sound alerts</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.soundEnabled}
+                      onChange={(e) => setSettings({...settings, soundEnabled: e.target.checked})}
+                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Privacy Section */}
+              <div>
+                <h4 className="text-sm font-medium text-cyan-400 mb-3">Privacy</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-white/80">Show online status</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.showOnlineStatus}
+                      onChange={(e) => setSettings({...settings, showOnlineStatus: e.target.checked})}
+                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-white/80">Read receipts</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.readReceipts}
+                      onChange={(e) => setSettings({...settings, readReceipts: e.target.checked})}
+                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
+                    />
+                  </label>
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-white/80">Typing indicators</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.typingIndicators}
+                      onChange={(e) => setSettings({...settings, typingIndicators: e.target.checked})}
+                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Message History Section */}
+              <div>
+                <h4 className="text-sm font-medium text-cyan-400 mb-3">Message History</h4>
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-white/80">Keep messages for</span>
+                    <select
+                      value={settings.messageHistory}
+                      onChange={(e) => setSettings({...settings, messageHistory: e.target.value})}
+                      className="bg-slate-800 border border-cyan-500/30 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-cyan-400/50"
+                    >
+                      <option value="7">7 days</option>
+                      <option value="30">30 days</option>
+                      <option value="90">90 days</option>
+                      <option value="forever">Forever</option>
+                    </select>
+                  </label>
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-white/80">Auto-delete old messages</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.autoDeleteOld}
+                      onChange={(e) => setSettings({...settings, autoDeleteOld: e.target.checked})}
+                      className="w-4 h-4 rounded border-cyan-500/30 bg-slate-800 text-cyan-500 focus:ring-cyan-500/50"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Clear Data Section */}
+              <div className="pt-4 border-t border-cyan-500/10">
+                <button
+                  onClick={() => {
+                    if (confirm('Clear all message history? This cannot be undone.')) {
+                      setMessages([]);
+                      setConversations([]);
+                      localStorage.removeItem('dm_messages');
+                      localStorage.removeItem('dm_conversations');
+                      alert('Message history cleared');
+                    }
+                  }}
+                  className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors text-sm font-medium border border-red-500/30"
+                >
+                  Clear All Messages
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-cyan-500/10">
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="px-4 py-2 text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Save settings to localStorage
+                    localStorage.setItem('dm_settings', JSON.stringify(settings));
+                    setShowSettings(false);
+                    // Show success feedback
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-lg border border-emerald-500/30 z-[60]';
+                    toast.textContent = 'Settings saved';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 2000);
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white rounded-lg transition-all text-sm font-medium"
+                >
+                  Save Settings
+                </button>
+              </div>
             </div>
           </div>
         </div>
