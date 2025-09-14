@@ -66,11 +66,14 @@ export default function TutorialOverlay() {
     const skipTutorial = localStorage.getItem('abfi_skip_tutorial');
     
     if (!seen && skipTutorial !== 'true') {
-      // Show tutorial after a brief delay for new users
+      // Show tutorial with smooth entrance after welcome screen
       setTimeout(() => {
         setIsVisible(true);
-        setIsAnimating(true);
-      }, 2000);
+        // Smooth fade-in animation with requestAnimationFrame for better performance
+        requestAnimationFrame(() => {
+          setTimeout(() => setIsAnimating(true), 50);
+        });
+      }, 2500); // Slightly longer delay for smoother transition from welcome
     }
   }, []);
 
@@ -120,21 +123,28 @@ export default function TutorialOverlay() {
 
   return (
     <>
-      {/* Dark overlay */}
+      {/* Enhanced blur overlay with smooth transition */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+        className={`fixed inset-0 z-50 transition-all duration-700 ${
+          isAnimating 
+            ? 'bg-black/70 backdrop-blur-md' 
+            : 'bg-black/0 backdrop-blur-none'
+        }`}
         onClick={handleSkip}
       />
       
-      {/* Tutorial Card */}
+      {/* Tutorial Card with subtle entrance animation */}
       <div
-        className={`fixed z-50 transition-all duration-300 ${
-          isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        className={`fixed z-50 transition-all duration-500 ${
+          isAnimating 
+            ? 'scale-100 opacity-100 translate-y-0' 
+            : 'scale-95 opacity-0 translate-y-4'
         }`}
         style={{
           top: step.position?.top || '50%',
           left: step.position?.left || '50%',
-          transform: 'translate(-50%, -50%)'
+          transform: 'translate(-50%, -50%)',
+          animation: isAnimating && currentStep === 0 ? 'subtle-pulse 2s ease-in-out infinite' : 'none'
         }}
       >
         <div className="bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 rounded-2xl shadow-2xl border border-cyan-500/30 max-w-md w-full">
