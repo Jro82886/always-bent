@@ -406,11 +406,7 @@ export default function LegendaryOceanPlatform() {
       )}
       
       {/* TRACKING MODE UI - Vessel Tracking */}
-      {activeTab === 'tracking' && (
-        <div className="absolute top-20 left-4 z-40 w-80 max-h-[calc(100vh-100px)] overflow-y-auto pointer-events-auto">
-          <TrackingWidget />
-        </div>
-      )}
+      {activeTab === 'tracking' && <TrackingWidget />}
       
       {/* TRENDS MODE UI - Dashboard (No map interaction) */}
       {activeTab === 'trends' && (

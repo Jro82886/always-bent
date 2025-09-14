@@ -1,8 +1,19 @@
-export function WidgetShell({ title, children }: { title: string; children: React.ReactNode }) {
+export function WidgetShell({ 
+  title, 
+  children, 
+  className = '' 
+}: { 
+  title: string; 
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid #222', borderRadius: 12, padding: 12 }}>
-      <div style={{ opacity: 0.8, fontSize: 12, marginBottom: 8 }}>{title}</div>
-      {children ?? <div style={{ opacity: 0.6, fontSize: 12 }}>Coming soon</div>}
+    <div 
+      className={`bg-slate-900/85 backdrop-blur-md border border-slate-700/50 rounded-xl p-3 ${className}`}
+      style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+    >
+      <div className="text-white/80 text-xs font-semibold mb-2">{title}</div>
+      {children ?? <div className="text-white/60 text-xs">Coming soon</div>}
     </div>
   );
 }

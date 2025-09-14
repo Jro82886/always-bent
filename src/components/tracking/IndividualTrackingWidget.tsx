@@ -40,18 +40,154 @@ export default function IndividualTrackingWidget() {
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
   const userMarker = useRef<any>(null);
 
-  // Initialize user position marker
+  // Initialize user position marker with custom boat icon
   useEffect(() => {
     if (map && !userMarker.current) {
+      // Create custom boat marker element
+      const el = document.createElement('div');
+      el.className = 'user-vessel-marker';
+      el.innerHTML = `
+        <div class="vessel-container">
+          <div class="vessel-pulse"></div>
+          <div class="vessel-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g filter="url(#boat-shadow)">
+                <path d="M16 4L8 20H24L16 4Z" fill="#3b82f6" stroke="#1e40af" stroke-width="1"/>
+                <path d="M16 20V24" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="16" cy="12" r="2" fill="#ffffff"/>
+              </g>
+              <defs>
+                <filter id="boat-shadow">
+                  <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+                </filter>
+              </defs>
+            </svg>
+          </div>
+          <div class="vessel-heading"></div>
+        </div>
+      `;
+
+      // Add styles for the custom marker
+      if (!document.querySelector('#vessel-marker-styles')) {
+        const style = document.createElement('style');
+        style.id = 'vessel-marker-styles';
+        style.textContent = `
+          .user-vessel-marker {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+          }
+          
+          .vessel-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .vessel-icon {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
+            animation: vessel-bob 3s ease-in-out infinite;
+          }
+          
+          .vessel-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent);
+            animation: vessel-pulse 2s ease-out infinite;
+          }
+          
+          .vessel-heading {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(to top, #3b82f6, transparent);
+            opacity: 0.6;
+          }
+          
+          @keyframes vessel-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+          }
+          
+          @keyframes vessel-pulse {
+            0% {
+              width: 40px;
+              height: 40px;
+              opacity: 0.6;
+            }
+            100% {
+              width: 80px;
+              height: 80px;
+              opacity: 0;
+            }
+          }
+          
+          .user-vessel-marker:hover .vessel-icon {
+            filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.8));
+            transform: scale(1.1);
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
       userMarker.current = new (window as any).mapboxgl.Marker({
-        color: '#3b82f6',
-        scale: 1.2
+        element: el,
+        anchor: 'center',
+        rotationAlignment: 'map',
+        pitchAlignment: 'map'
       })
         .setLngLat([mockData.position.lng, mockData.position.lat])
-        .setPopup(new (window as any).mapboxgl.Popup().setText('Your Vessel'))
+        .setPopup(
+          new (window as any).mapboxgl.Popup({ offset: 25 })
+            .setHTML(`
+              <div style="padding: 8px;">
+                <div style="font-weight: bold; color: #3b82f6; margin-bottom: 4px;">Your Vessel</div>
+                <div style="font-size: 11px; color: #666;">
+                  <div>Speed: ${mockData.speed.toFixed(1)} kts</div>
+                  <div>Heading: ${Math.round(mockData.heading)}° ${getCompassDirection(mockData.heading)}</div>
+                  <div>Position: ${mockData.position.lat.toFixed(4)}°, ${mockData.position.lng.toFixed(4)}°</div>
+                </div>
+              </div>
+            `)
+        )
         .addTo(map);
     }
-  }, [map, mockData.position]);
+    
+    // Update marker rotation based on heading
+    if (userMarker.current && map) {
+      userMarker.current.setRotation(mockData.heading);
+      userMarker.current.setLngLat([mockData.position.lng, mockData.position.lat]);
+      
+      // Update popup if it's open
+      const popup = userMarker.current.getPopup();
+      if (popup && popup.isOpen()) {
+        popup.setHTML(`
+          <div style="padding: 8px;">
+            <div style="font-weight: bold; color: #3b82f6; margin-bottom: 4px;">Your Vessel</div>
+            <div style="font-size: 11px; color: #666;">
+              <div>Speed: ${mockData.speed.toFixed(1)} kts</div>
+              <div>Heading: ${Math.round(mockData.heading)}° ${getCompassDirection(mockData.heading)}</div>
+              <div>Position: ${mockData.position.lat.toFixed(4)}°, ${mockData.position.lng.toFixed(4)}°</div>
+            </div>
+          </div>
+        `);
+      }
+    }
+  }, [map, mockData]);
 
   // Timer for tracking duration
   useEffect(() => {
