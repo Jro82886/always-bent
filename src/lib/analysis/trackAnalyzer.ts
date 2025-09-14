@@ -1,12 +1,21 @@
 import * as turf from '@turf/turf';
+import mapboxgl from 'mapbox-gl';
+import { getGFWVesselsInArea, transformGFWToTracks } from '@/lib/services/gfw';
 
 export interface VesselTrack {
   id: string;
   type: 'individual' | 'gfw'; // Individual user or Global Fishing Watch
   vesselName: string;
+  vesselType?: string;
+  flag?: string;
+  mmsi?: string;
   points: [number, number][];
   color: string;
   timestamp: string;
+  metadata?: {
+    length?: number;
+    tonnage?: number;
+  };
 }
 
 /**
@@ -22,11 +31,47 @@ export async function getVesselTracksInArea(
   const bounds = turf.bbox(polygon);
   const [minLng, minLat, maxLng, maxLat] = bounds;
   
-  // Generate mock tracks for MVP
-  // In production, this would query Supabase for real user tracks
-  // and GFW API for commercial vessel tracks
-  
   const tracks: VesselTrack[] = [];
+  
+  // Calculate date range for GFW query
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - daysLimit);
+  
+  // Fetch real GFW commercial vessel data
+  try {
+    const gfwVessels = await getGFWVesselsInArea(
+      [minLng, minLat, maxLng, maxLat],
+      startDate.toISOString(),
+      endDate.toISOString()
+    );
+    
+    // Transform and add GFW tracks
+    const gfwTracks = transformGFWToTracks(gfwVessels);
+    gfwTracks.forEach(track => {
+      // Filter to only include tracks that intersect the polygon
+      const lineString = turf.lineString(track.coordinates);
+      if (turf.booleanIntersects(lineString, polygon)) {
+        tracks.push({
+          id: track.id,
+          type: 'gfw',
+          vesselName: track.vesselName,
+          vesselType: track.vesselType,
+          flag: track.flag,
+          mmsi: track.mmsi,
+          points: track.coordinates,
+          color: track.color,
+          timestamp: track.timestamps[track.timestamps.length - 1],
+          metadata: track.metadata
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Failed to fetch GFW data, using mock data:', error);
+  }
+  
+  // Continue with mock individual tracks for now
+  // In production, query Supabase for real user tracks
   
   // Add some individual user tracks (recreational boats)
   tracks.push({
