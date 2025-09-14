@@ -64,12 +64,7 @@ export default function WelcomePage() {
   };
   
   return (
-    <div className="min-h-screen bg-gray-700 flex items-center justify-center p-4">
-      {/* DEPLOYMENT TEST BANNER */}
-      <div className="absolute top-0 left-0 right-0 bg-red-600 text-white text-center py-4 z-50 font-bold text-xl">
-        🚀 DEPLOYMENT TEST - DARK GREY BACKGROUND - {new Date().toLocaleTimeString()}
-      </div>
-      
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
       {/* Layered grey anchoring with muted ocean glow */}
       <div className="absolute inset-0">
         {/* Base grey gradient for anchoring */}
