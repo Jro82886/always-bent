@@ -12,7 +12,7 @@ import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
 import CommunityMode from '@/components/community/CommunityMode';
-import TrackingMode from '@/components/tracking/TrackingMode';
+// TrackingMode removed - tracking has its own page at /tracking
 import TrendsMode from '@/components/trends/TrendsMode';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
@@ -400,10 +400,7 @@ export default function LegendaryOceanPlatform() {
         </div>
       )}
       
-      {/* TRACKING MODE UI - Uses its own fresh map, no analysis carryover! */}
-      {activeTab === 'tracking' && (
-        <TrackingMode />
-      )}
+      {/* Tracking has its own dedicated page at /tracking */}
       
       {/* TRENDS MODE UI - Dashboard (No map interaction) */}
       {activeTab === 'trends' && (
