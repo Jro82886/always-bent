@@ -45,17 +45,6 @@ export default function TrackingPage() {
   const { coords, status, message } = useGeo();
   const pos: Pos = coords ? { lat: coords.lat, lng: coords.lon } : null;
   
-  // Debug logging
-  useEffect(() => {
-    console.log('[TrackingPage] Component mounted', {
-      map: !!map,
-      username,
-      selectedInletId,
-      hasCoords: !!coords,
-      mapboxToken: !!mapboxgl.accessToken
-    });
-  }, [map, username, selectedInletId, coords]);
-  
   // Get boat name from localStorage
   const [boatName, setBoatName] = useState<string>('');
   useEffect(() => {
@@ -443,11 +432,6 @@ export default function TrackingPage() {
   return (
     <RequireUsername>
       <div className="w-full h-screen bg-gray-950 relative">
-        {/* Debug indicator */}
-        <div className="absolute top-0 left-0 z-[200] bg-red-500 text-white p-2 text-xs">
-          Tracking Page Loaded - Username: {username || 'none'}
-        </div>
-        
         <MapShell>
           {/* Navigation and controls layer */}
           <div className="absolute inset-0 pointer-events-none z-10">

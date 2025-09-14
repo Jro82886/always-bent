@@ -56,11 +56,6 @@ export default function FleetCommand({
   const [isMinimized, setIsMinimized] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [activityLevel, setActivityLevel] = useState<'HIGH' | 'MODERATE' | 'LOW'>('LOW');
-  
-  // Debug log to ensure component is mounting
-  useEffect(() => {
-    console.log('FleetCommand mounted', { isTracking, fleetCount, fishingCount });
-  }, []);
 
   // Calculate activity level based on fleet concentration
   useEffect(() => {
