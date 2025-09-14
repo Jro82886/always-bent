@@ -71,9 +71,9 @@ export default function TrendsMode({}: TrendsModeProps) {
       <div className="min-h-full bg-gradient-to-br from-black/90 via-slate-900/90 to-black/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto p-6">
           {/* Dashboard Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-cyan-400 mb-2">Fishing Intelligence</h1>
-            <p className="text-white/60">Historical patterns and performance insights</p>
+          <div className="mb-6">
+            <h1 className="text-xl font-light text-cyan-400 tracking-wider">Fishing Intelligence</h1>
+            <p className="text-gray-500 text-xs mt-1 font-light">Historical patterns and performance insights</p>
           </div>
           
           {/* Time Range Selector */}
@@ -82,7 +82,7 @@ export default function TrendsMode({}: TrendsModeProps) {
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-light transition-all ${
                   timeRange === range
                     ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/50'
                     : 'bg-black/40 text-white/60 hover:text-white hover:bg-black/60 border border-white/10'
@@ -96,55 +96,55 @@ export default function TrendsMode({}: TrendsModeProps) {
           {/* Main Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {/* Total Catches */}
-            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5 hover:border-cyan-500/20 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <Fish className="text-cyan-400" size={24} />
+                <Fish className="text-cyan-400/70" size={20} />
                 {stats.catches > 0 && (
                   <span className="text-xs text-green-400">Production</span>
                 )}
               </div>
-              <div className="text-2xl font-bold text-white mb-1">{stats.catches}</div>
-              <div className="text-xs text-white/60">Total Catches</div>
+              <div className="text-xl font-light text-white/90 mb-1">{stats.catches}</div>
+              <div className="text-xs text-gray-500 font-light">Total Catches</div>
             </div>
             
             {/* Average SST */}
-            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5 hover:border-cyan-500/20 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <Thermometer className="text-orange-400" size={24} />
+                <Thermometer className="text-orange-400/70" size={20} />
                 <span className="text-xs text-white/60">±2°F</span>
               </div>
-              <div className="text-2xl font-bold text-white mb-1">68°F</div>
-              <div className="text-xs text-white/60">Avg Water Temp</div>
+              <div className="text-xl font-light text-white/90 mb-1">68°F</div>
+              <div className="text-xs text-gray-500 font-light">Avg Water Temp</div>
             </div>
             
             {/* Best Conditions */}
-            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5 hover:border-cyan-500/20 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <Wind className="text-blue-400" size={24} />
+                <Wind className="text-blue-400/70" size={20} />
                 <span className="text-xs text-white/60">NE</span>
               </div>
-              <div className="text-2xl font-bold text-white mb-1">8-12</div>
-              <div className="text-xs text-white/60">Best Wind (kts)</div>
+              <div className="text-xl font-light text-white/90 mb-1">8-12</div>
+              <div className="text-xs text-gray-500 font-light">Best Wind (kts)</div>
             </div>
             
             {/* Peak Activity */}
-            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5 hover:border-cyan-500/20 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <Activity className="text-purple-400" size={24} />
+                <Activity className="text-purple-400/70" size={20} />
                 <span className="text-xs text-white/60">Dawn</span>
               </div>
-              <div className="text-2xl font-bold text-white mb-1">5-7am</div>
-              <div className="text-xs text-white/60">Peak Hours</div>
+              <div className="text-xl font-light text-white/90 mb-1">5-7am</div>
+              <div className="text-xs text-gray-500 font-light">Peak Hours</div>
             </div>
           </div>
           
           {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Catch Trend Chart */}
-            <div className="bg-gray-950/90 backdrop-blur-md rounded-xl border border-cyan-500/30 p-6">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-cyan-400 flex items-center gap-2">
-                  <BarChart3 size={20} />
+                <h3 className="text-sm font-light text-cyan-400/80 flex items-center gap-2">
+                  <BarChart3 size={16} className="opacity-70" />
                   Catch Trends
                 </h3>
                 {/* Custom Stylized Dropdown */}

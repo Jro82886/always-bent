@@ -108,42 +108,31 @@ export default function TrendsPage() {
       {/* Dashboard Container */}
       <div className="flex-1 overflow-y-auto bg-gray-950">
         <div className="max-w-7xl mx-auto p-6">
-          {/* Header - Alternative Options:
-            - FISHING INTELLIGENCE
-            - OCEAN PATTERNS
-            - BITE FORECAST
-            - FLEET INTELLIGENCE
-            - CATCH ANALYTICS
-            - PATTERN DECODER
-            - FISHING METRICS
-            - OCEAN INSIGHTS
-            - TREND ANALYSIS
-            - BITE PATTERNS
-          */}
+          {/* Header */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-cyan-400 tracking-wide">FISHING INTELLIGENCE</h1>
-            <p className="text-gray-400 text-sm mt-1">What's working? What's changing? What's next?</p>
+            <h1 className="text-xl font-light text-cyan-400 tracking-wider">Fishing Intelligence</h1>
+            <p className="text-gray-500 text-xs mt-1 font-light">Pattern analysis and performance insights</p>
           </div>
 
           {/* KEY INSIGHTS - Top Priority */}
           <div className="mb-6">
             <div className="bg-gradient-to-r from-cyan-500/10 to-teal-500/10 backdrop-blur-md rounded-lg border border-cyan-400/30 p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Zap className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">KEY INSIGHTS RIGHT NOW</h3>
+                <Zap className="w-4 h-4 text-cyan-400/70" />
+                <h3 className="text-xs font-medium text-cyan-400/80 tracking-wide">Key Insights</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-950/40 rounded p-3 border border-cyan-500/20">
-                  <div className="text-green-400 font-bold text-sm mb-1">BEST TIME: 5:30-7:30 AM</div>
-                  <div className="text-xs text-gray-400">Peak activity window today</div>
+                <div className="bg-gray-900/50 rounded-lg p-3 border border-cyan-500/10">
+                  <div className="text-green-400/90 font-light text-sm mb-1">Best Time: 5:30-7:30 AM</div>
+                  <div className="text-xs text-gray-500 font-light">Peak activity window</div>
                 </div>
-                <div className="bg-gray-950/40 rounded p-3 border border-cyan-500/20">
-                  <div className="text-cyan-400 font-bold text-sm mb-1">WATER: 68°F ↓3°</div>
-                  <div className="text-xs text-gray-400">Optimal range for tuna</div>
+                <div className="bg-gray-900/50 rounded-lg p-3 border border-cyan-500/10">
+                  <div className="text-cyan-400/90 font-light text-sm mb-1">Water: 68°F <span className="text-cyan-300/60">↓3°</span></div>
+                  <div className="text-xs text-gray-500 font-light">Optimal tuna range</div>
                 </div>
-                <div className="bg-gray-950/40 rounded p-3 border border-cyan-500/20">
-                  <div className="text-yellow-400 font-bold text-sm mb-1">MOON: {moonPhase.toUpperCase().replace('-', ' ')}</div>
-                  <div className="text-xs text-gray-400">32% more catches expected</div>
+                <div className="bg-gray-900/50 rounded-lg p-3 border border-cyan-500/10">
+                  <div className="text-yellow-400/90 font-light text-sm mb-1">Moon: {moonPhase.replace('-', ' ')}</div>
+                  <div className="text-xs text-gray-500 font-light">32% higher activity</div>
                 </div>
               </div>
             </div>
@@ -166,16 +155,16 @@ export default function TrendsPage() {
 
           {/* Pattern Alerts - Always visible */}
           <div className="mb-6">
-            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-4">
               <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-5 h-5 text-cyan-400" />
-                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Pattern Alerts</h3>
+                <AlertTriangle className="w-4 h-4 text-cyan-400/70" />
+                <h3 className="text-xs font-medium text-cyan-400/80 tracking-wide">Pattern Alerts</h3>
               </div>
               <div className="space-y-2">
                 {mockPatternAlerts.map((alert, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-2 bg-gray-950/40 rounded border border-cyan-500/10">
-                    <alert.icon className={`w-5 h-5 ${alert.color}`} />
-                    <span className="text-sm text-white">{alert.message}</span>
+                  <div key={idx} className="flex items-center gap-3 p-2.5 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                    <alert.icon className={`w-4 h-4 ${alert.color} opacity-80`} />
+                    <span className="text-xs text-gray-300 font-light">{alert.message}</span>
                   </div>
                 ))}
               </div>
@@ -186,13 +175,13 @@ export default function TrendsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             
             {/* Catch Trends */}
-            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-4 hover:border-cyan-500/20 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Catch Trends</h3>
-                <TrendingUp className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-xs font-medium text-cyan-400/80 tracking-wide">Catch Trends</h3>
+                <TrendingUp className="w-4 h-4 text-cyan-400/60" />
               </div>
               <div className="space-y-2">
-                <select className="w-full bg-gray-950/50 border border-cyan-500/30 rounded-lg px-3 py-2 text-sm text-cyan-100 focus:outline-none focus:border-cyan-400">
+                <select className="w-full bg-gray-950/50 border border-cyan-500/20 rounded-lg px-3 py-1.5 text-xs text-gray-300 font-light focus:outline-none focus:border-cyan-400/40 transition-all">
                   <option value="today">Today</option>
                   <option value="week">This Week</option>
                   <option value="month">This Month</option>
@@ -208,10 +197,10 @@ export default function TrendsPage() {
             </div>
 
             {/* Best Times */}
-            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-4 hover:border-cyan-500/20 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Best Times Today</h3>
-                <Clock className="w-5 h-5 text-cyan-400" />
+                <h3 className="text-xs font-medium text-cyan-400/80 tracking-wide">Best Times Today</h3>
+                <Clock className="w-4 h-4 text-cyan-400/60" />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -242,10 +231,10 @@ export default function TrendsPage() {
             </div>
 
             {/* Moon Phase */}
-            <div className="bg-gray-950/60 backdrop-blur-md rounded-lg border border-cyan-500/20 p-4">
+            <div className="bg-gray-900/40 backdrop-blur-sm rounded-xl border border-cyan-500/10 p-4 hover:border-cyan-500/20 transition-all">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Moon Phase</h3>
-                {getMoonIcon()}
+                <h3 className="text-xs font-medium text-cyan-400/80 tracking-wide">Moon Phase</h3>
+                <div className="opacity-60">{getMoonIcon()}</div>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
