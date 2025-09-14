@@ -34,8 +34,27 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     setIsDrawing(true);
     startPoint.current = null;
     
-    // Change cursor
-    map.getCanvas().style.cursor = 'crosshair';
+    // Change cursor with enhanced visibility
+    const canvas = map.getCanvas();
+    canvas.style.cursor = 'crosshair';
+    
+    // Add visual feedback class to canvas
+    canvas.classList.add('snipping-active');
+    
+    // Add CSS for enhanced cursor if not already present
+    if (!document.getElementById('snip-cursor-styles')) {
+      const style = document.createElement('style');
+      style.id = 'snip-cursor-styles';
+      style.textContent = `
+        .snipping-active {
+          position: relative;
+          outline: 2px solid rgba(0, 212, 255, 0.3);
+          outline-offset: -2px;
+          box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+      `;
+      document.head.appendChild(style);
+    }
     
     // Disable map interactions
     map.dragPan.disable();
@@ -80,7 +99,9 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     currentPolygon.current = null;
     
     // Reset cursor
-    map.getCanvas().style.cursor = '';
+    const canvas = map.getCanvas();
+    canvas.style.cursor = '';
+    canvas.classList.remove('snipping-active');
     
     // Re-enable map interactions
     map.dragPan.enable();
@@ -132,10 +153,20 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     };
     
+    // Create corner points for enhanced visibility
+    const cornerPoints = coords.slice(0, 4).map(coord => ({
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'Point' as const,
+        coordinates: coord
+      }
+    }));
+    
     const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
     source.setData({
       type: 'FeatureCollection',
-      features: [polygon]
+      features: [polygon, ...cornerPoints]
     });
     
     // Calculate area
@@ -211,6 +242,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Remove existing
       if (map.getLayer('snip-rectangle-fill')) map.removeLayer('snip-rectangle-fill');
       if (map.getLayer('snip-rectangle-outline')) map.removeLayer('snip-rectangle-outline');
+      if (map.getLayer('snip-rectangle-corners')) map.removeLayer('snip-rectangle-corners');
       if (map.getSource('snip-rectangle')) map.removeSource('snip-rectangle');
       
       // Add source
@@ -222,40 +254,72 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         }
       });
       
-      // Add layers with prominent colors
+      // Add layers with clear but non-intrusive styling
+      // Fill layer - subtle
       map.addLayer({
         id: 'snip-rectangle-fill',
         type: 'fill',
         source: 'snip-rectangle',
         paint: {
-          'fill-color': '#475569',
-          'fill-opacity': 0.4
+          'fill-color': '#00d4ff',
+          'fill-opacity': 0.15
         }
       });
       
+      // Outline - clear but not overwhelming
       map.addLayer({
         id: 'snip-rectangle-outline',
         type: 'line',
         source: 'snip-rectangle',
         paint: {
-          'line-color': '#1e293b',
-          'line-width': 4,
-          'line-opacity': 1.0
+          'line-color': '#00d4ff',
+          'line-width': 3,
+          'line-opacity': 0.9,
+          'line-dasharray': [2, 1]
         }
       });
       
-      // Keep on top
+      // Corner markers - subtle
+      map.addLayer({
+        id: 'snip-rectangle-corners',
+        type: 'circle',
+        source: 'snip-rectangle',
+        paint: {
+          'circle-radius': 5,
+          'circle-color': '#00d4ff',
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1.5,
+          'circle-opacity': 0.8
+        },
+        filter: ['==', '$type', 'Point']
+      });
+      
+      // Keep snip layers on top without interfering with other layers
       const moveToTop = () => {
         try {
-          if (map.getLayer('snip-rectangle-fill')) map.moveLayer('snip-rectangle-fill');
-          if (map.getLayer('snip-rectangle-outline')) map.moveLayer('snip-rectangle-outline');
+          // Only move our snip layers to top, don't touch other layers
+          const snipLayers = ['snip-rectangle-fill', 'snip-rectangle-outline', 'snip-rectangle-corners'];
+          
+          snipLayers.forEach(layerId => {
+            if (map.getLayer(layerId)) {
+              // Move each snip layer to the top
+              map.moveLayer(layerId);
+            }
+          });
         } catch (e) {
-          // Ignore
+          // Silently handle any layer reordering issues
         }
       };
       
-      map.on('data', moveToTop);
-      return () => map.off('data', moveToTop);
+      // Only listen to style changes, not all data events
+      map.on('style.load', moveToTop);
+      
+      // Initial move to top after a short delay
+      setTimeout(moveToTop, 100);
+      
+      return () => {
+        map.off('style.load', moveToTop);
+      };
     };
 
     if (map.isStyleLoaded()) {
@@ -352,27 +416,44 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         Start Snipping
       </button>
       
-      {/* Status display */}
+      {/* Enhanced Status display with better visibility */}
       {(isDrawing || isAnalyzing) && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 pointer-events-none z-50">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 pointer-events-none z-[9999]">
           {isDrawing && !isAnalyzing && (
-            <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center gap-2">
-              <Maximize2 size={16} className="text-slate-400" />
-              <span className="text-sm text-slate-300">
-                Click and drag to select area
-              </span>
-              {currentArea > 0 && (
-                <span className="text-xs text-slate-400 ml-2">
-                  ({currentArea.toFixed(1)} km²)
+            <div className="bg-black/95 backdrop-blur-md rounded-xl px-6 py-3 flex items-center gap-3 border-2 border-cyan-400/50 shadow-[0_0_30px_rgba(0,212,255,0.5)]">
+              <div className="relative">
+                <Maximize2 size={18} className="text-cyan-400" />
+                <div className="absolute inset-0 animate-ping">
+                  <Maximize2 size={18} className="text-cyan-400 opacity-75" />
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-cyan-300">
+                  Click and drag to select area
                 </span>
-              )}
+                {currentArea > 0 && (
+                  <span className="text-xs text-cyan-400/80">
+                    Area: {currentArea.toFixed(1)} km² • {(currentArea * 0.386).toFixed(1)} mi²
+                  </span>
+                )}
+              </div>
+              <div className="ml-2 text-xs text-cyan-500/60">
+                ESC to cancel
+              </div>
             </div>
           )}
           
           {isAnalyzing && (
-            <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg px-4 py-2 flex items-center gap-2">
-              <Loader2 size={16} className="text-cyan-400 animate-spin" />
-              <span className="text-sm text-cyan-300">Analyzing ocean data...</span>
+            <div className="bg-black/95 backdrop-blur-md rounded-xl px-6 py-3 flex items-center gap-3 border-2 border-cyan-400/50 shadow-[0_0_30px_rgba(0,212,255,0.5)]">
+              <Loader2 size={18} className="text-cyan-400 animate-spin" />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-cyan-300">
+                  Analyzing ocean intelligence...
+                </span>
+                <span className="text-xs text-cyan-400/80">
+                  Detecting edges, hotspots, and vessel tracks
+                </span>
+              </div>
             </div>
           )}
         </div>
