@@ -2,8 +2,7 @@
 import { useEffect, useState } from 'react';
 import { X, Target, Waves, Thermometer, Activity, Save } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
-// Temporarily remove philosophy import to fix crash
-// import { getAnalysisQuote } from '@/lib/philosophy';
+import { getAnalysisQuote } from '@/lib/philosophy';
 
 interface AnalysisModalProps {
   analysis: (AnalysisResult & { vesselTracks?: any }) | null;
@@ -31,7 +30,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   if (!isVisible || !analysis) return null;
 
-  const { hotspot, stats, features, layerAnalysis, boatActivity, vesselTracks } = analysis as any;
+  const { hotspot, stats, features, layerAnalysis, boatActivity, vesselTracks, edgeAnalysis } = analysis as any;
   
   // Find the strongest feature
   const strongestFeature = features.length > 0 ? 
@@ -218,10 +217,112 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                 {vesselTracks.total > 5 && (
                   <div className="bg-cyan-500/10 rounded-lg p-2 mt-2">
                     <p className="text-cyan-300 text-xs">
-                      ⚡ High vessel convergence indicates productive fishing area
+                      High vessel convergence indicates productive fishing area
                     </p>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+          
+          {/* Comprehensive Tracking Analysis */}
+          {(vesselTracks?.total > 0 || boatActivity?.unique_boats > 0) && (
+            <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-xl p-4 border border-indigo-500/20">
+              <h4 className="text-indigo-300 font-semibold mb-3 flex items-center gap-2">
+                <Activity size={18} className="text-indigo-400" />
+                Complete Tracking Intelligence
+              </h4>
+              <div className="prose prose-sm text-gray-300 leading-relaxed">
+                <p className="mb-3">
+                  <span className="text-indigo-400 font-semibold">Vessel Analysis:</span> This area shows{' '}
+                  {vesselTracks?.total > 10 ? 'heavy' : vesselTracks?.total > 5 ? 'moderate' : 'light'} vessel traffic 
+                  with <span className="text-white font-bold">{vesselTracks?.total || 0} total tracks</span> recorded over the past 4 days.
+                  {vesselTracks?.recreational > 0 && (
+                    <> The presence of <span className="text-cyan-400">{vesselTracks.recreational} recreational vessels</span> suggests 
+                    local knowledge of productive waters.</>
+                  )}
+                  {vesselTracks?.commercial > 0 && (
+                    <> Commercial activity from <span className="text-orange-400">{vesselTracks.commercial} GFW-tracked vessels</span> confirms 
+                    this as an established fishing ground.</>
+                  )}
+                </p>
+                
+                {boatActivity && boatActivity.unique_boats > 0 && (
+                  <p className="mb-3">
+                    <span className="text-indigo-400 font-semibold">Recent Activity:</span> In the last 48 hours,{' '}
+                    <span className="text-white font-bold">{boatActivity.unique_boats} unique vessels</span> have worked this area
+                    {boatActivity.fishing_activity?.loitering_events > 0 && (
+                      <> with <span className="text-green-400">{boatActivity.fishing_activity.loitering_events} confirmed fishing events</span> 
+                      (vessels holding position or drifting, indicating active fishing)</>
+                    )}.
+                    {boatActivity.peak_activity && (
+                      <> Peak activity occurs around <span className="text-cyan-300">{boatActivity.peak_activity.hour}</span>, 
+                      suggesting optimal bite windows.</>
+                    )}
+                  </p>
+                )}
+                
+                <p className="text-xs text-indigo-300 italic mt-3">
+                  Fleet convergence patterns are the ocean's report card - where boats gather, fish prosper.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Polygon Features Analysis (Edges, Fronts, Eddies) */}
+          {(edgeAnalysis || features?.length > 0) && (
+            <div className="bg-gradient-to-r from-purple-500/10 to-teal-500/10 rounded-xl p-4 border border-teal-500/20">
+              <h4 className="text-teal-300 font-semibold mb-3 flex items-center gap-2">
+                <Waves size={18} className="text-teal-400" />
+                Ocean Feature Detection
+              </h4>
+              <div className="prose prose-sm text-gray-300 leading-relaxed">
+                {edgeAnalysis && (
+                  <p className="mb-3">
+                    <span className="text-teal-400 font-semibold">Temperature Edges:</span> {edgeAnalysis}
+                    These thermal boundaries act as walls in the water column, concentrating baitfish and creating 
+                    ambush points for predators.
+                  </p>
+                )}
+                
+                {features && features.length > 0 && (
+                  <>
+                    <p className="mb-3">
+                      <span className="text-teal-400 font-semibold">Detected Features:</span> Analysis identified{' '}
+                      <span className="text-white font-bold">{features.length} oceanographic features</span> including:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      {features.filter((f: any) => f.type === 'eddy').length > 0 && (
+                        <li className="text-cyan-300">
+                          <span className="font-semibold">Eddies ({features.filter((f: any) => f.type === 'eddy').length})</span>: 
+                          Circular currents that trap nutrients and baitfish
+                        </li>
+                      )}
+                      {features.filter((f: any) => f.type === 'front').length > 0 && (
+                        <li className="text-blue-300">
+                          <span className="font-semibold">Fronts ({features.filter((f: any) => f.type === 'front').length})</span>: 
+                          Sharp temperature/salinity boundaries where water masses collide
+                        </li>
+                      )}
+                      {features.filter((f: any) => f.type === 'filament').length > 0 && (
+                        <li className="text-purple-300">
+                          <span className="font-semibold">Filaments ({features.filter((f: any) => f.type === 'filament').length})</span>: 
+                          Nutrient-rich fingers extending from upwelling zones
+                        </li>
+                      )}
+                      {features.filter((f: any) => f.type === 'upwelling').length > 0 && (
+                        <li className="text-green-300">
+                          <span className="font-semibold">Upwelling ({features.filter((f: any) => f.type === 'upwelling').length})</span>: 
+                          Deep, nutrient-rich water rising to the surface
+                        </li>
+                      )}
+                    </ul>
+                  </>
+                )}
+                
+                <p className="text-xs text-teal-300 italic mt-3">
+                  Toggle polygon filters to visualize these features directly on the map
+                </p>
               </div>
             </div>
           )}
@@ -310,7 +411,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           {/* Life Insight - Contextual Philosophy */}
           <div className="text-center py-4 px-6 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-cyan-500/5 rounded-xl">
             <p className="text-cyan-300 italic">
-              "The ocean reveals her secrets to those who look deeply."
+              "{getAnalysisQuote({
+                hotspot,
+                tempRange: { min: stats.min_temp_f, max: stats.max_temp_f },
+                layerAnalysis
+              })}"
             </p>
           </div>
         </div>
