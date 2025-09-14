@@ -318,23 +318,23 @@ export default function DMInterface() {
   return (
     <div className="flex h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       {/* Left Sidebar - Conversations List */}
-      <div className="w-80 border-r border-cyan-500/10 flex flex-col bg-black/20">
+      <div className="w-80 border-r border-emerald-500/20 flex flex-col bg-gradient-to-br from-emerald-950/30 to-green-950/30">
         {/* Header */}
-        <div className="p-4 border-b border-cyan-500/10">
+        <div className="p-4 border-b border-emerald-500/20 bg-gradient-to-r from-emerald-900/40 to-green-900/40">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-cyan-300">Direct Messages</h2>
+            <h2 className="text-lg font-bold text-emerald-300">Direct Messages</h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowUserSearch(true)}
-                className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-emerald-500/10 rounded-lg transition-colors"
                 title="New conversation"
               >
-                <UserPlus size={18} className="text-cyan-400" />
+                <UserPlus size={18} className="text-emerald-400" />
               </button>
               <button 
                 onClick={() => setShowSettings(!showSettings)}
                 className={`p-2 rounded-lg transition-colors ${
-                  showSettings ? 'bg-cyan-500/20 text-cyan-300' : 'hover:bg-cyan-500/10 text-cyan-400'
+                  showSettings ? 'bg-emerald-500/20 text-emerald-300' : 'hover:bg-emerald-500/10 text-emerald-400'
                 }`}
                 title="Settings"
               >
@@ -345,13 +345,13 @@ export default function DMInterface() {
           
           {/* Search bar */}
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/50" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400/50" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-cyan-400/40 focus:outline-none focus:border-cyan-400/40"
+              className="w-full bg-emerald-950/30 border border-emerald-500/20 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-emerald-400/40 focus:outline-none focus:border-emerald-400/40"
             />
           </div>
         </div>
@@ -360,17 +360,17 @@ export default function DMInterface() {
         <div className="flex-1 overflow-y-auto">
           {filteredConversations.length === 0 ? (
             <div className="p-8 text-center">
-              <MessageCircle size={48} className="mx-auto text-cyan-500/20 mb-3" />
-              <p className="text-cyan-400/60 text-sm">No conversations yet</p>
+              <MessageCircle size={48} className="mx-auto text-emerald-500/20 mb-3" />
+              <p className="text-emerald-400/60 text-sm">No conversations yet</p>
               <button
                 onClick={() => setShowUserSearch(true)}
-                className="mt-3 text-cyan-400 hover:text-cyan-300 text-sm font-medium"
+                className="mt-3 text-emerald-400 hover:text-emerald-300 text-sm font-medium"
               >
                 Start a conversation →
               </button>
             </div>
           ) : (
-            <div className="divide-y divide-cyan-500/5">
+            <div className="divide-y divide-emerald-500/5">
               {filteredConversations.map(conv => {
                 const otherUser = conv.participants[0];
                 const isSelected = selectedConversation === conv.id;
@@ -379,20 +379,20 @@ export default function DMInterface() {
                   <button
                     key={conv.id}
                     onClick={() => setSelectedConversation(conv.id)}
-                    className={`w-full p-4 hover:bg-cyan-500/5 transition-all text-left relative ${
-                      isSelected ? 'bg-cyan-500/10 border-l-2 border-cyan-400' : ''
+                    className={`w-full p-4 hover:bg-emerald-500/5 transition-all text-left relative ${
+                      isSelected ? 'bg-emerald-500/10 border-l-2 border-emerald-400' : ''
                     }`}
                   >
                     {/* Pin indicator */}
                     {conv.isPinned && (
-                      <Pin size={12} className="absolute top-2 right-2 text-cyan-400/50" />
+                      <Pin size={12} className="absolute top-2 right-2 text-emerald-400/50" />
                     )}
                     
                     <div className="flex items-start gap-3">
                       {/* Avatar/Status */}
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500/20 to-teal-500/20 flex items-center justify-center">
-                          <span className="text-cyan-300 font-semibold">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-green-500/20 flex items-center justify-center">
+                          <span className="text-emerald-300 font-semibold">
                             {otherUser.username[0].toUpperCase()}
                           </span>
                         </div>
@@ -407,13 +407,13 @@ export default function DMInterface() {
                           <span className="font-medium text-white truncate">
                             {otherUser.captainName || otherUser.username}
                           </span>
-                          <span className="text-xs text-cyan-400/50 ml-2">
+                          <span className="text-xs text-emerald-300/50 ml-2">
                             {conv.lastMessage && formatMessageTime(conv.lastMessage.timestamp)}
                           </span>
                         </div>
                         
                         {otherUser.boatName && (
-                          <div className="text-xs text-cyan-400/60 mb-1">
+                          <div className="text-xs text-emerald-300/60 mb-1">
                             🚤 {otherUser.boatName}
                           </div>
                         )}
@@ -421,14 +421,14 @@ export default function DMInterface() {
                         {conv.lastMessage && (
                           <div className="flex items-center gap-1">
                             {conv.lastMessage.senderId === 'self' && (
-                              <span className="text-cyan-400/50">
+                              <span className="text-emerald-400/50">
                                 {conv.lastMessage.delivered ? 
                                   (conv.lastMessage.read ? <CheckCheck size={14} /> : <Check size={14} />) 
                                   : <Clock size={14} />
                                 }
                               </span>
                             )}
-                            <p className="text-sm text-cyan-100/60 truncate">
+                            <p className="text-sm text-emerald-200/60 truncate">
                               {conv.lastMessage.content}
                             </p>
                           </div>
@@ -436,7 +436,7 @@ export default function DMInterface() {
                         
                         {/* Typing indicator */}
                         {conv.typing?.some(t => t.isTyping) && (
-                          <div className="text-xs text-cyan-400 italic mt-1">
+                          <div className="text-xs text-emerald-400 italic mt-1">
                             typing...
                           </div>
                         )}
@@ -444,7 +444,7 @@ export default function DMInterface() {
                       
                       {/* Unread badge */}
                       {conv.unreadCount > 0 && (
-                        <div className="bg-cyan-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">
+                        <div className="bg-emerald-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">
                           {conv.unreadCount}
                         </div>
                       )}
@@ -461,12 +461,12 @@ export default function DMInterface() {
       {selectedConversation && currentConversation ? (
         <div className="flex-1 flex flex-col">
           {/* Chat Header */}
-          <div className="p-4 border-b border-cyan-500/10 bg-black/20">
+          <div className="p-4 border-b border-emerald-500/10 bg-black/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500/20 to-teal-500/20 flex items-center justify-center">
-                    <span className="text-cyan-300 font-semibold">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+                    <span className="text-emerald-300 font-semibold">
                       {currentConversation.participants[0].username[0].toUpperCase()}
                     </span>
                   </div>
@@ -479,7 +479,7 @@ export default function DMInterface() {
                   <h3 className="font-semibold text-white">
                     {currentConversation.participants[0].captainName || currentConversation.participants[0].username}
                   </h3>
-                  <p className="text-xs text-cyan-400/60">
+                  <p className="text-xs text-emerald-400/60">
                     {formatLastSeen(
                       currentConversation.participants[0].lastSeen,
                       currentConversation.participants[0].isOnline
@@ -489,20 +489,20 @@ export default function DMInterface() {
               </div>
               
               <div className="flex items-center gap-2">
-                <button className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors">
-                  <Phone size={18} className="text-cyan-400" />
+                <button className="p-2 hover:bg-emerald-500/10 rounded-lg transition-colors">
+                  <Phone size={18} className="text-emerald-400" />
                 </button>
-                <button className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors">
-                  <Video size={18} className="text-cyan-400" />
+                <button className="p-2 hover:bg-emerald-500/10 rounded-lg transition-colors">
+                  <Video size={18} className="text-emerald-400" />
                 </button>
                 <button 
                   onClick={() => setShowConversationInfo(!showConversationInfo)}
-                  className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                  className="p-2 hover:bg-emerald-500/10 rounded-lg transition-colors"
                 >
-                  <Info size={18} className="text-cyan-400" />
+                  <Info size={18} className="text-emerald-400" />
                 </button>
-                <button className="p-2 hover:bg-cyan-500/10 rounded-lg transition-colors">
-                  <MoreVertical size={18} className="text-cyan-400" />
+                <button className="p-2 hover:bg-emerald-500/10 rounded-lg transition-colors">
+                  <MoreVertical size={18} className="text-emerald-400" />
                 </button>
               </div>
             </div>
@@ -512,9 +512,9 @@ export default function DMInterface() {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Date separator */}
             <div className="flex items-center gap-4 my-4">
-              <div className="flex-1 h-px bg-cyan-500/10" />
-              <span className="text-xs text-cyan-400/50">Today</span>
-              <div className="flex-1 h-px bg-cyan-500/10" />
+              <div className="flex-1 h-px bg-emerald-500/10" />
+              <span className="text-xs text-emerald-400/50">Today</span>
+              <div className="flex-1 h-px bg-emerald-500/10" />
             </div>
             
             {/* Messages */}
@@ -529,21 +529,21 @@ export default function DMInterface() {
                 >
                   <div className={`max-w-[70%] ${
                     isSelf 
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 border border-cyan-500/30' 
+                      ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30' 
                       : 'bg-slate-800/50 border border-slate-700/30'
                   } rounded-2xl px-4 py-2.5`}>
                     {!isSelf && sender && (
-                      <div className="text-cyan-400 text-xs font-semibold mb-1">
+                      <div className="text-emerald-400 text-xs font-semibold mb-1">
                         {sender.captainName || sender.username}
                       </div>
                     )}
                     <p className="text-sm text-white">{msg.content}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-cyan-400/40">
+                      <span className="text-xs text-emerald-400/40">
                         {format(msg.timestamp, 'h:mm a')}
                       </span>
                       {isSelf && (
-                        <span className="text-cyan-400/50">
+                        <span className="text-emerald-400/50">
                           {msg.delivered ? 
                             (msg.read ? <CheckCheck size={12} /> : <Check size={12} />) 
                             : <Clock size={12} />
@@ -561,9 +561,9 @@ export default function DMInterface() {
               <div className="flex justify-start">
                 <div className="bg-slate-800/50 rounded-2xl px-4 py-2.5">
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -573,10 +573,10 @@ export default function DMInterface() {
           </div>
 
           {/* Message Input */}
-          <div className="p-4 border-t border-cyan-500/10 bg-black/20 relative">
+          <div className="p-4 border-t border-emerald-500/10 bg-black/20 relative">
             {/* Emoji Picker */}
             {showEmojiPicker && (
-              <div className="absolute bottom-full mb-2 right-4 bg-slate-900/95 backdrop-blur-xl rounded-xl border border-cyan-500/30 p-3 shadow-2xl z-50">
+              <div className="absolute bottom-full mb-2 right-4 bg-slate-900/95 backdrop-blur-xl rounded-xl border border-emerald-500/30 p-3 shadow-2xl z-50">
                 <div className="grid grid-cols-8 gap-1 max-w-sm">
                   {['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', 
                     '😇', '🙂', '😉', '😌', '😍', '🥰', '😘', '😗',
@@ -598,16 +598,16 @@ export default function DMInterface() {
                         setMessageInput(prev => prev + emoji);
                         setShowEmojiPicker(false);
                       }}
-                      className="text-2xl hover:bg-cyan-500/20 rounded p-1 transition-colors"
+                      className="text-2xl hover:bg-emerald-500/20 rounded p-1 transition-colors"
                     >
                       {emoji}
                     </button>
                   ))}
                 </div>
-                <div className="mt-2 pt-2 border-t border-cyan-500/20">
+                <div className="mt-2 pt-2 border-t border-emerald-500/20">
                   <button
                     onClick={() => setShowEmojiPicker(false)}
-                    className="text-xs text-cyan-400/60 hover:text-cyan-400"
+                    className="text-xs text-emerald-400/60 hover:text-emerald-400"
                   >
                     Close
                   </button>
@@ -631,7 +631,7 @@ export default function DMInterface() {
                   }}
                   placeholder="Type a message..."
                   rows={1}
-                  className="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg px-4 py-2.5 text-white placeholder-cyan-400/40 focus:outline-none focus:border-cyan-400/40 resize-none"
+                  className="w-full bg-slate-800/50 border border-emerald-500/20 rounded-lg px-4 py-2.5 text-white placeholder-emerald-400/40 focus:outline-none focus:border-emerald-400/40 resize-none"
                   style={{ minHeight: '44px', maxHeight: '120px' }}
                 />
               </div>
@@ -639,7 +639,7 @@ export default function DMInterface() {
               <button 
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 className={`p-2 rounded-lg transition-colors ${
-                  showEmojiPicker ? 'bg-cyan-500/20 text-cyan-300' : 'hover:bg-cyan-500/10 text-cyan-400'
+                  showEmojiPicker ? 'bg-emerald-500/20 text-emerald-300' : 'hover:bg-emerald-500/10 text-emerald-400'
                 }`}
               >
                 <Smile size={20} />
@@ -648,7 +648,7 @@ export default function DMInterface() {
               <button
                 onClick={sendMessage}
                 disabled={!messageInput.trim()}
-                className="p-2.5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all shadow-lg shadow-cyan-500/20"
+                className="p-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all shadow-lg shadow-emerald-500/20"
               >
                 <Send size={18} className="text-white" />
               </button>
@@ -658,69 +658,69 @@ export default function DMInterface() {
       ) : (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <MessageCircle size={64} className="mx-auto text-cyan-500/20 mb-4" />
-            <h3 className="text-lg font-semibold text-cyan-300 mb-2">Select a conversation</h3>
-            <p className="text-cyan-400/60 text-sm">Choose a conversation from the list or start a new one</p>
+            <MessageCircle size={64} className="mx-auto text-emerald-500/20 mb-4" />
+            <h3 className="text-lg font-semibold text-emerald-300 mb-2">Select a conversation</h3>
+            <p className="text-emerald-400/60 text-sm">Choose a conversation from the list or start a new one</p>
           </div>
         </div>
       )}
 
       {/* Right Sidebar - Conversation Info (optional) */}
       {showConversationInfo && currentConversation && (
-        <div className="w-80 border-l border-cyan-500/10 p-4 bg-black/20">
+        <div className="w-80 border-l border-emerald-500/10 p-4 bg-black/20">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-cyan-300">Conversation Info</h3>
+            <h3 className="font-semibold text-emerald-300">Conversation Info</h3>
             <button 
               onClick={() => setShowConversationInfo(false)}
-              className="p-1 hover:bg-cyan-500/10 rounded transition-colors"
+              className="p-1 hover:bg-emerald-500/10 rounded transition-colors"
             >
-              <X size={18} className="text-cyan-400" />
+              <X size={18} className="text-emerald-400" />
             </button>
           </div>
           
           {/* User info */}
           <div className="space-y-4">
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-teal-500/20 flex items-center justify-center mx-auto mb-3">
-                <span className="text-2xl text-cyan-300 font-bold">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl text-emerald-300 font-bold">
                   {currentConversation.participants[0].username[0].toUpperCase()}
                 </span>
               </div>
               <h4 className="font-semibold text-white">
                 {currentConversation.participants[0].captainName || currentConversation.participants[0].username}
               </h4>
-              <p className="text-sm text-cyan-400/60">@{currentConversation.participants[0].username}</p>
+              <p className="text-sm text-emerald-400/60">@{currentConversation.participants[0].username}</p>
               {currentConversation.participants[0].boatName && (
-                <p className="text-sm text-cyan-400/60 mt-1">🚤 {currentConversation.participants[0].boatName}</p>
+                <p className="text-sm text-emerald-400/60 mt-1">🚤 {currentConversation.participants[0].boatName}</p>
               )}
               {currentConversation.participants[0].status && (
-                <p className="text-sm text-cyan-100/80 mt-2 italic">
+                <p className="text-sm text-emerald-100/80 mt-2 italic">
                   "{currentConversation.participants[0].status}"
                 </p>
               )}
             </div>
             
             {/* Actions */}
-            <div className="space-y-2 pt-4 border-t border-cyan-500/10">
-              <button className="w-full flex items-center gap-3 p-2 hover:bg-cyan-500/10 rounded-lg transition-colors text-left">
-                <Star size={18} className="text-cyan-400" />
+            <div className="space-y-2 pt-4 border-t border-emerald-500/10">
+              <button className="w-full flex items-center gap-3 p-2 hover:bg-emerald-500/10 rounded-lg transition-colors text-left">
+                <Star size={18} className="text-emerald-400" />
                 <span className="text-sm text-white">Add to favorites</span>
               </button>
-              <button className="w-full flex items-center gap-3 p-2 hover:bg-cyan-500/10 rounded-lg transition-colors text-left">
+              <button className="w-full flex items-center gap-3 p-2 hover:bg-emerald-500/10 rounded-lg transition-colors text-left">
                 {currentConversation.isMuted ? (
                   <>
-                    <Bell size={18} className="text-cyan-400" />
+                    <Bell size={18} className="text-emerald-400" />
                     <span className="text-sm text-white">Unmute notifications</span>
                   </>
                 ) : (
                   <>
-                    <BellOff size={18} className="text-cyan-400" />
+                    <BellOff size={18} className="text-emerald-400" />
                     <span className="text-sm text-white">Mute notifications</span>
                   </>
                 )}
               </button>
-              <button className="w-full flex items-center gap-3 p-2 hover:bg-cyan-500/10 rounded-lg transition-colors text-left">
-                <Archive size={18} className="text-cyan-400" />
+              <button className="w-full flex items-center gap-3 p-2 hover:bg-emerald-500/10 rounded-lg transition-colors text-left">
+                <Archive size={18} className="text-emerald-400" />
                 <span className="text-sm text-white">Archive conversation</span>
               </button>
               <button className="w-full flex items-center gap-3 p-2 hover:bg-red-500/10 rounded-lg transition-colors text-left">
@@ -735,12 +735,12 @@ export default function DMInterface() {
       {/* Enhanced User Search Modal with Better Scrolling */}
       {showUserSearch && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl w-full max-w-2xl border border-cyan-500/20 shadow-2xl" style={{ maxHeight: '85vh' }}>
-            <div className="p-4 border-b border-cyan-500/10 sticky top-0 bg-slate-900/95 backdrop-blur-sm rounded-t-2xl z-10">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl w-full max-w-2xl border border-emerald-500/20 shadow-2xl" style={{ maxHeight: '85vh' }}>
+            <div className="p-4 border-b border-emerald-500/10 sticky top-0 bg-slate-900/95 backdrop-blur-sm rounded-t-2xl z-10">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-cyan-300">Find Captains</h3>
-                  <p className="text-xs text-cyan-400/60 mt-1">
+                  <h3 className="text-lg font-semibold text-emerald-300">Find Captains</h3>
+                  <p className="text-xs text-emerald-400/60 mt-1">
                     {filteredUsers.length} captains {userSearchQuery && 'found'} • {users.filter(u => u.isOnline).length} online
                   </p>
                 </div>
@@ -749,21 +749,21 @@ export default function DMInterface() {
                     setShowUserSearch(false);
                     setUserSearchQuery('');
                   }}
-                  className="p-1 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                  className="p-1 hover:bg-emerald-500/10 rounded-lg transition-colors"
                 >
-                  <X size={20} className="text-cyan-400" />
+                  <X size={20} className="text-emerald-400" />
                 </button>
               </div>
               
               {/* Enhanced Search with keyboard hint */}
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/50" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400/50" />
                 <input
                   type="text"
                   value={userSearchQuery}
                   onChange={(e) => setUserSearchQuery(e.target.value)}
                   placeholder="Search by name, boat, or inlet..."
-                  className="w-full bg-slate-800/50 border border-cyan-500/20 rounded-lg pl-9 pr-24 py-2.5 text-sm text-white placeholder-cyan-400/40 focus:outline-none focus:border-cyan-400/40"
+                  className="w-full bg-slate-800/50 border border-emerald-500/20 rounded-lg pl-9 pr-24 py-2.5 text-sm text-white placeholder-emerald-400/40 focus:outline-none focus:border-emerald-400/40"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') {
@@ -772,8 +772,8 @@ export default function DMInterface() {
                     }
                   }}
                 />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-cyan-400/40">
-                  <kbd className="px-1.5 py-0.5 bg-slate-700/50 text-cyan-400/60 rounded">Esc</kbd>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-emerald-400/40">
+                  <kbd className="px-1.5 py-0.5 bg-slate-700/50 text-emerald-400/60 rounded">Esc</kbd>
                   <span>to close</span>
                 </div>
               </div>
@@ -783,12 +783,12 @@ export default function DMInterface() {
             <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 140px)' }}>
               {filteredUsers.length === 0 ? (
                 <div className="p-12 text-center">
-                  <Users size={48} className="mx-auto text-cyan-500/20 mb-3" />
-                  <p className="text-cyan-400/60 text-sm">No captains found</p>
+                  <Users size={48} className="mx-auto text-emerald-500/20 mb-3" />
+                  <p className="text-emerald-400/60 text-sm">No captains found</p>
                   {userSearchQuery && (
                     <button
                       onClick={() => setUserSearchQuery('')}
-                      className="mt-3 text-cyan-400 hover:text-cyan-300 text-sm"
+                      className="mt-3 text-emerald-400 hover:text-emerald-300 text-sm"
                     >
                       Clear search
                     </button>
@@ -799,8 +799,8 @@ export default function DMInterface() {
                   {/* Online Captains Section */}
                   {filteredUsers.filter(u => u.isOnline).length > 0 && (
                     <div>
-                      <div className="px-4 py-2 bg-cyan-500/5 border-b border-cyan-500/10 sticky top-0 z-5">
-                        <h4 className="text-xs font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                      <div className="px-4 py-2 bg-emerald-500/5 border-b border-emerald-500/10 sticky top-0 z-5">
+                        <h4 className="text-xs font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
                           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                           Online Captains ({filteredUsers.filter(u => u.isOnline).length})
                         </h4>
@@ -814,13 +814,13 @@ export default function DMInterface() {
                               setShowUserSearch(false);
                               setUserSearchQuery('');
                             }}
-                            className="w-full p-3 hover:bg-cyan-500/10 rounded-lg transition-all text-left group focus:bg-cyan-500/20 focus:outline-none"
+                            className="w-full p-3 hover:bg-emerald-500/10 rounded-lg transition-all text-left group focus:bg-emerald-500/20 focus:outline-none"
                             tabIndex={index + 1}
                           >
                             <div className="flex items-center gap-3">
                               <div className="relative">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500/30 to-teal-500/30 flex items-center justify-center group-hover:from-cyan-500/40 group-hover:to-teal-500/40 transition-colors">
-                                  <span className="text-cyan-300 font-bold text-lg">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-500/30 flex items-center justify-center group-hover:from-emerald-500/40 group-hover:to-teal-500/40 transition-colors">
+                                  <span className="text-emerald-300 font-bold text-lg">
                                     {user.username[0].toUpperCase()}
                                   </span>
                                 </div>
@@ -829,22 +829,22 @@ export default function DMInterface() {
                               
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-white group-hover:text-cyan-300 transition-colors">
+                                  <span className="font-semibold text-white group-hover:text-emerald-300 transition-colors">
                                     {user.captainName || user.username}
                                   </span>
-                                  <span className="text-cyan-400/60 text-sm">
+                                  <span className="text-emerald-400/60 text-sm">
                                     @{user.username}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-3 mt-0.5">
                                   {user.boatName && (
-                                    <span className="text-xs text-cyan-400/60 flex items-center gap-1">
+                                    <span className="text-xs text-emerald-400/60 flex items-center gap-1">
                                       <Anchor size={10} />
                                       {user.boatName}
                                     </span>
                                   )}
                                   {user.inletId && (
-                                    <span className="text-xs text-cyan-400/60 flex items-center gap-1">
+                                    <span className="text-xs text-emerald-400/60 flex items-center gap-1">
                                       <MapPin size={10} />
                                       {user.inletId}
                                     </span>
@@ -857,7 +857,7 @@ export default function DMInterface() {
                                 </div>
                               </div>
                               
-                              <ChevronRight size={16} className="text-cyan-400/30 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+                              <ChevronRight size={16} className="text-emerald-400/30 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
                             </div>
                           </button>
                         ))}
@@ -868,8 +868,8 @@ export default function DMInterface() {
                   {/* Offline Captains Section */}
                   {filteredUsers.filter(u => !u.isOnline).length > 0 && (
                     <div>
-                      <div className="px-4 py-2 bg-slate-800/30 border-b border-cyan-500/10 sticky top-0 z-5">
-                        <h4 className="text-xs font-semibold text-cyan-400/60 uppercase tracking-wider">
+                      <div className="px-4 py-2 bg-slate-800/30 border-b border-emerald-500/10 sticky top-0 z-5">
+                        <h4 className="text-xs font-semibold text-emerald-400/60 uppercase tracking-wider">
                           Offline Captains ({filteredUsers.filter(u => !u.isOnline).length})
                         </h4>
                       </div>
@@ -882,13 +882,13 @@ export default function DMInterface() {
                               setShowUserSearch(false);
                               setUserSearchQuery('');
                             }}
-                            className="w-full p-3 hover:bg-cyan-500/5 rounded-lg transition-all text-left group focus:bg-cyan-500/10 focus:outline-none opacity-75 hover:opacity-100"
+                            className="w-full p-3 hover:bg-emerald-500/5 rounded-lg transition-all text-left group focus:bg-emerald-500/10 focus:outline-none opacity-75 hover:opacity-100"
                             tabIndex={filteredUsers.filter(u => u.isOnline).length + index + 1}
                           >
                             <div className="flex items-center gap-3">
                               <div className="relative">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700/30 to-slate-600/30 flex items-center justify-center group-hover:from-cyan-500/20 group-hover:to-teal-500/20 transition-colors">
-                                  <span className="text-slate-400 group-hover:text-cyan-300 font-bold text-lg transition-colors">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700/30 to-slate-600/30 flex items-center justify-center group-hover:from-emerald-500/20 group-hover:to-teal-500/20 transition-colors">
+                                  <span className="text-slate-400 group-hover:text-emerald-300 font-bold text-lg transition-colors">
                                     {user.username[0].toUpperCase()}
                                   </span>
                                 </div>
@@ -899,7 +899,7 @@ export default function DMInterface() {
                                   <span className="font-semibold text-white/70 group-hover:text-white transition-colors">
                                     {user.captainName || user.username}
                                   </span>
-                                  <span className="text-cyan-400/40 text-sm">
+                                  <span className="text-emerald-400/40 text-sm">
                                     @{user.username}
                                   </span>
                                 </div>
@@ -916,7 +916,7 @@ export default function DMInterface() {
                                 </div>
                               </div>
                               
-                              <ChevronRight size={16} className="text-slate-600 group-hover:text-cyan-400/50 group-hover:translate-x-1 transition-all" />
+                              <ChevronRight size={16} className="text-slate-600 group-hover:text-emerald-400/50 group-hover:translate-x-1 transition-all" />
                             </div>
                           </button>
                         ))}
@@ -928,10 +928,10 @@ export default function DMInterface() {
             </div>
             
             {/* Quick Actions Footer */}
-            <div className="p-3 border-t border-cyan-500/10 bg-slate-900/50 rounded-b-2xl">
-              <div className="flex items-center justify-between text-xs text-cyan-400/40">
+            <div className="p-3 border-t border-emerald-500/10 bg-slate-900/50 rounded-b-2xl">
+              <div className="flex items-center justify-between text-xs text-emerald-400/40">
                 <span>Scroll to browse all captains • Click to start conversation</span>
-                <span className="text-cyan-400">
+                <span className="text-emerald-400">
                   Total: {users.length} captains
                 </span>
               </div>
@@ -943,23 +943,23 @@ export default function DMInterface() {
       {/* Enhanced Stylized Settings Modal */}
       {showSettings && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-gradient-to-br from-slate-900/95 via-cyan-950/20 to-slate-900/95 rounded-2xl w-full max-w-md border border-cyan-400/30 shadow-2xl overflow-hidden"
+          <div className="bg-gradient-to-br from-slate-900/95 via-emerald-950/20 to-slate-900/95 rounded-2xl w-full max-w-md border border-emerald-400/30 shadow-2xl overflow-hidden"
                style={{
                  boxShadow: '0 0 60px rgba(6, 182, 212, 0.15), inset 0 0 30px rgba(6, 182, 212, 0.05)'
                }}>
             {/* Header with ocean wave effect */}
-            <div className="relative p-6 border-b border-cyan-400/20 bg-gradient-to-r from-cyan-900/30 via-teal-900/30 to-cyan-900/30">
-              <div className="absolute inset-0 bg-gradient-to-b from-cyan-400/5 to-transparent" />
+            <div className="relative p-6 border-b border-emerald-400/20 bg-gradient-to-r from-emerald-900/30 via-teal-900/30 to-emerald-900/30">
+              <div className="absolute inset-0 bg-gradient-to-b from-emerald-400/5 to-transparent" />
               <div className="relative flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-cyan-300 tracking-wide">Message Settings</h3>
-                  <p className="text-xs text-cyan-400/60 mt-1">Configure your ABFI communication preferences</p>
+                  <h3 className="text-xl font-bold text-emerald-300 tracking-wide">Message Settings</h3>
+                  <p className="text-xs text-emerald-400/60 mt-1">Configure your ABFI communication preferences</p>
                 </div>
                 <button
                   onClick={() => setShowSettings(false)}
-                  className="p-2 hover:bg-cyan-400/10 rounded-xl transition-all hover:rotate-90 duration-300"
+                  className="p-2 hover:bg-emerald-400/10 rounded-xl transition-all hover:rotate-90 duration-300"
                 >
-                  <X size={20} className="text-cyan-400" />
+                  <X size={20} className="text-emerald-400" />
                 </button>
               </div>
             </div>
@@ -968,11 +968,11 @@ export default function DMInterface() {
               {/* Notifications Section with icon */}
               <div className="group">
                 <div className="flex items-center gap-2 mb-4">
-                  <Bell size={16} className="text-cyan-400" />
-                  <h4 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Notifications</h4>
+                  <Bell size={16} className="text-emerald-400" />
+                  <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">Notifications</h4>
                 </div>
                 <div className="space-y-3 pl-6">
-                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-emerald-400/5 transition-colors cursor-pointer">
                     <span className="text-sm text-white/90">Enable notifications</span>
                     <div className="relative">
                       <input
@@ -981,10 +981,10 @@ export default function DMInterface() {
                         onChange={(e) => setSettings({...settings, notifications: e.target.checked})}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-teal-500"></div>
                     </div>
                   </label>
-                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-emerald-400/5 transition-colors cursor-pointer">
                     <span className="text-sm text-white/90">Sound alerts</span>
                     <div className="relative">
                       <input
@@ -993,7 +993,7 @@ export default function DMInterface() {
                         onChange={(e) => setSettings({...settings, soundEnabled: e.target.checked})}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-teal-500"></div>
                     </div>
                   </label>
                 </div>
@@ -1002,11 +1002,11 @@ export default function DMInterface() {
               {/* Privacy Section with icon */}
               <div className="group">
                 <div className="flex items-center gap-2 mb-4">
-                  <Shield size={16} className="text-cyan-400" />
-                  <h4 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Privacy</h4>
+                  <Shield size={16} className="text-emerald-400" />
+                  <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">Privacy</h4>
                 </div>
                 <div className="space-y-3 pl-6">
-                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-emerald-400/5 transition-colors cursor-pointer">
                     <span className="text-sm text-white/90">Show online status</span>
                     <div className="relative">
                       <input
@@ -1015,10 +1015,10 @@ export default function DMInterface() {
                         onChange={(e) => setSettings({...settings, showOnlineStatus: e.target.checked})}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-teal-500"></div>
                     </div>
                   </label>
-                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-emerald-400/5 transition-colors cursor-pointer">
                     <span className="text-sm text-white/90">Read receipts</span>
                     <div className="relative">
                       <input
@@ -1027,10 +1027,10 @@ export default function DMInterface() {
                         onChange={(e) => setSettings({...settings, readReceipts: e.target.checked})}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-teal-500"></div>
                     </div>
                   </label>
-                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-emerald-400/5 transition-colors cursor-pointer">
                     <span className="text-sm text-white/90">Typing indicators</span>
                     <div className="relative">
                       <input
@@ -1039,7 +1039,7 @@ export default function DMInterface() {
                         onChange={(e) => setSettings({...settings, typingIndicators: e.target.checked})}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-teal-500"></div>
                     </div>
                   </label>
                 </div>
@@ -1048,16 +1048,16 @@ export default function DMInterface() {
               {/* Message History Section with icon */}
               <div className="group">
                 <div className="flex items-center gap-2 mb-4">
-                  <Clock size={16} className="text-cyan-400" />
-                  <h4 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">Message History</h4>
+                  <Clock size={16} className="text-emerald-400" />
+                  <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wider">Message History</h4>
                 </div>
                 <div className="space-y-3 pl-6">
-                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-emerald-400/5 transition-colors">
                     <span className="text-sm text-white/90">Keep messages for</span>
                     <select
                       value={settings.messageHistory}
                       onChange={(e) => setSettings({...settings, messageHistory: e.target.value})}
-                      className="bg-slate-800/80 border border-cyan-400/30 rounded-lg px-3 py-1.5 text-sm text-cyan-300 focus:outline-none focus:border-cyan-400 hover:bg-slate-800 transition-colors"
+                      className="bg-slate-800/80 border border-emerald-400/30 rounded-lg px-3 py-1.5 text-sm text-emerald-300 focus:outline-none focus:border-emerald-400 hover:bg-slate-800 transition-colors"
                       style={{
                         boxShadow: 'inset 0 0 10px rgba(6, 182, 212, 0.1)'
                       }}
@@ -1068,7 +1068,7 @@ export default function DMInterface() {
                       <option value="forever">Forever</option>
                     </select>
                   </label>
-                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-cyan-400/5 transition-colors cursor-pointer">
+                  <label className="flex items-center justify-between p-3 rounded-lg hover:bg-emerald-400/5 transition-colors cursor-pointer">
                     <span className="text-sm text-white/90">Auto-delete old messages</span>
                     <div className="relative">
                       <input
@@ -1077,14 +1077,14 @@ export default function DMInterface() {
                         onChange={(e) => setSettings({...settings, autoDeleteOld: e.target.checked})}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-cyan-500 peer-checked:to-teal-500"></div>
+                      <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-teal-500"></div>
                     </div>
                   </label>
                 </div>
               </div>
 
               {/* Clear Data Section */}
-              <div className="pt-4 border-t border-cyan-400/10">
+              <div className="pt-4 border-t border-emerald-400/10">
                 <button
                   onClick={() => {
                     if (confirm('Clear all message history? This cannot be undone.')) {
@@ -1112,11 +1112,11 @@ export default function DMInterface() {
             </div>
 
             {/* Footer with branded buttons */}
-            <div className="p-6 border-t border-cyan-400/20 bg-gradient-to-r from-cyan-950/20 via-slate-900/30 to-cyan-950/20">
+            <div className="p-6 border-t border-emerald-400/20 bg-gradient-to-r from-emerald-950/20 via-slate-900/30 to-emerald-950/20">
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowSettings(false)}
-                  className="px-6 py-2.5 text-cyan-400 hover:text-cyan-300 transition-all text-sm font-bold uppercase tracking-wider hover:bg-cyan-400/5 rounded-lg"
+                  className="px-6 py-2.5 text-emerald-400 hover:text-emerald-300 transition-all text-sm font-bold uppercase tracking-wider hover:bg-emerald-400/5 rounded-lg"
                 >
                   Cancel
                 </button>
@@ -1132,7 +1132,7 @@ export default function DMInterface() {
                     document.body.appendChild(toast);
                     setTimeout(() => toast.remove(), 2000);
                   }}
-                  className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white rounded-lg transition-all text-sm font-bold uppercase tracking-wider shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-lg transition-all text-sm font-bold uppercase tracking-wider shadow-lg hover:shadow-xl transform hover:scale-105"
                   style={{
                     boxShadow: '0 4px 20px rgba(6, 182, 212, 0.3)'
                   }}
