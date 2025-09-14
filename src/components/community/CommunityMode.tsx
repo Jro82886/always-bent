@@ -328,20 +328,20 @@ export default function CommunityMode() {
             <div className="p-4">
               {/* Section Header */}
               <div className="relative mb-4">
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-500/15 via-transparent to-transparent blur-xl" />
-                <div className="relative bg-gradient-to-r from-slate-700/60 to-transparent rounded-xl p-3 border border-slate-500/20">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-transparent to-transparent blur-xl" />
+                <div className="relative bg-gradient-to-r from-slate-800/60 to-transparent rounded-xl p-3 border border-blue-500/20">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-600/30 rounded-lg backdrop-blur-sm">
-                      <Wind size={16} className="text-slate-400" />
+                    <div className="p-2 bg-blue-500/20 rounded-lg backdrop-blur-sm">
+                      <Wind size={16} className="text-blue-400" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-bold text-slate-300 tracking-wide">
+                      <h3 className="text-sm font-bold text-blue-300 tracking-wide">
                         {inlet.name.toUpperCase()} CONDITIONS
                       </h3>
                       <p className="text-xs text-blue-400/60 mt-0.5">Closest NOAA buoy to inlet</p>
                     </div>
                     {weather.buoyId && (
-                      <span className="text-xs bg-slate-600/20 text-slate-400 px-2 py-0.5 rounded-full border border-slate-500/30">
+                      <span className="text-xs bg-blue-500/15 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
                         Buoy {weather.buoyId}
                       </span>
                     )}
@@ -540,7 +540,7 @@ export default function CommunityMode() {
                   onClick={() => setActiveChannel('tuna')}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                     activeChannel === 'tuna'
-                      ? 'bg-gradient-to-r from-slate-600/30 to-slate-500/30 text-slate-300 border border-slate-500/30'
+                      ? 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 border border-blue-500/30'
                       : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                   }`}
                   title="Bluefin, Yellowfin, Bigeye"
