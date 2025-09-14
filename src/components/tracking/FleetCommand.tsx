@@ -11,7 +11,12 @@ import {
   TrendingUp,
   Clock,
   Zap,
-  Anchor
+  Anchor,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 
@@ -47,9 +52,15 @@ export default function FleetCommand({
   boatName = 'My Vessel'
 }: FleetCommandProps) {
   const { username } = useAppState();
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [radarSweep, setRadarSweep] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [activityLevel, setActivityLevel] = useState<'HIGH' | 'MODERATE' | 'LOW'>('LOW');
+  
+  // Debug log to ensure component is mounting
+  useEffect(() => {
+    console.log('FleetCommand mounted', { isTracking, fleetCount, fishingCount });
+  }, []);
 
   // Calculate activity level based on fleet concentration
   useEffect(() => {
@@ -58,255 +69,222 @@ export default function FleetCommand({
     else setActivityLevel('LOW');
   }, [fishingCount]);
 
-  // Trigger radar sweep on fleet update
-  useEffect(() => {
-    setRadarSweep(true);
-    const timer = setTimeout(() => setRadarSweep(false), 1000);
-    return () => clearTimeout(timer);
-  }, [fleetCount]);
-
   const getHeadingLabel = (heading: number) => {
     const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     const index = Math.round(heading / 45) % 8;
     return directions[index];
   };
 
-  const getSpeedColor = (speed: number) => {
-    if (speed < 3) return 'text-yellow-400'; // Loitering/Fishing
-    if (speed < 10) return 'text-cyan-400';  // Cruising
-    return 'text-green-400';  // Running
+  const getSpeedStatus = (speed: number) => {
+    if (speed < 1) return { label: 'Anchored', color: 'text-gray-400' };
+    if (speed < 3) return { label: 'Drifting', color: 'text-yellow-400' };
+    if (speed < 10) return { label: 'Cruising', color: 'text-cyan-400' };
+    return { label: 'Running', color: 'text-green-400' };
   };
 
-  // Debug log
-  console.log('[FLEET COMMAND] Rendering with props:', { isTracking, fleetCount, showFleet });
-  
-  return (
-    <div className="absolute top-20 left-4 z-50 w-80 pointer-events-auto">
-      <div className="bg-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-lg overflow-hidden shadow-2xl">
-        {/* Header */}
+  const speedStatus = getSpeedStatus(userSpeed);
+
+  // Minimized view - just a small indicator
+  if (isMinimized) {
+    return (
+      <div className="fixed top-20 left-4 z-[100] pointer-events-auto">
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-b border-cyan-500/20 flex items-center justify-between hover:from-cyan-500/20 hover:to-blue-500/20 transition-all"
+          onClick={() => setIsMinimized(false)}
+          className="bg-gray-950/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg px-3 py-2 flex items-center gap-2 hover:border-cyan-500/40 transition-all group shadow-lg"
         >
-          <div className="flex items-center gap-2">
-            <Radio className={`w-5 h-5 ${isTracking ? 'text-cyan-400 animate-pulse' : 'text-gray-500'}`} />
-            <span className="text-cyan-300 font-bold tracking-wide">FLEET COMMAND</span>
+          <Radio className={`w-4 h-4 ${isTracking ? 'text-cyan-400' : 'text-gray-500'}`} />
+          <span className="text-xs text-cyan-400/80 font-light">Fleet</span>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="text-white/60">{fleetCount}</span>
+            <Users className="w-3 h-3 text-cyan-400/60" />
           </div>
-          <div className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-            <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
+          <Maximize2 className="w-3 h-3 text-gray-500 group-hover:text-cyan-400 transition-colors" />
         </button>
+      </div>
+    );
+  }
 
-        {isExpanded && (
-          <div className="p-4 space-y-4">
-            {/* Your Vessel Section */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs text-cyan-400/60 uppercase tracking-wider">
-                <Anchor className="w-3 h-3" />
-                Your Vessel
-              </div>
+  return (
+    <div className="fixed top-20 left-4 z-[100] pointer-events-auto">
+      <div className={`bg-gray-950/95 backdrop-blur-md border border-cyan-500/30 rounded-xl shadow-2xl transition-all duration-300 ${
+        isExpanded ? 'w-80' : 'w-64'
+      }`}>
+        {/* Sleek Header */}
+        <div className="px-4 py-3 border-b border-cyan-500/10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Radio className={`w-4 h-4 ${isTracking ? 'text-cyan-400' : 'text-gray-500'}`} />
+              {isTracking && (
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              )}
+            </div>
+            <span className="text-sm font-light text-cyan-400/90 tracking-wide">Fleet Tracking</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-gray-500 hover:text-cyan-400 transition-colors"
+            >
+              {isExpanded ? <ChevronRight className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => setIsMinimized(true)}
+              className="text-gray-500 hover:text-cyan-400 transition-colors"
+            >
+              <Minimize2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="p-3">
+          {/* Quick Status Bar */}
+          <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-800/50">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onToggleTracking}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                  isTracking 
+                    ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
+                    : 'bg-gray-800/50 text-gray-400 border border-gray-700/50 hover:bg-gray-700/50'
+                }`}
+              >
+                {isTracking ? (
+                  <span className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    Live
+                  </span>
+                ) : (
+                  'Start Tracking'
+                )}
+              </button>
               
-              <div className="bg-gradient-to-r from-cyan-500/5 to-blue-500/5 rounded-lg p-3 border border-cyan-500/20">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${isTracking ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
-                    <span className="text-white font-medium">{boatName}</span>
-                  </div>
-                  <button
-                    onClick={onToggleTracking}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                      isTracking 
-                        ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
-                        : 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30'
-                    }`}
-                  >
-                    {isTracking ? 'STOP SHARING' : 'START SHARING'}
-                  </button>
+              {isTracking && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className={speedStatus.color}>{speedStatus.label}</span>
+                  <span className="text-gray-600">|</span>
+                  <span className="text-cyan-400/70">{userSpeed.toFixed(1)}kt</span>
+                  <span className="text-gray-600">|</span>
+                  <span className="text-cyan-400/70">{getHeadingLabel(userHeading)}</span>
                 </div>
-                
-                {isTracking && (
-                  <div className="flex items-center gap-4 text-sm">
-                    <div className="flex items-center gap-1">
-                      <TrendingUp className={`w-4 h-4 ${getSpeedColor(userSpeed)}`} />
-                      <span className={getSpeedColor(userSpeed)}>{userSpeed.toFixed(1)} kts</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Navigation className="w-4 h-4 text-cyan-400" />
-                      <span className="text-cyan-400">{getHeadingLabel(userHeading)}</span>
-                    </div>
-                  </div>
-                )}
-                
-                {!isTracking && (
-                  <div className="text-xs text-yellow-400/60 mt-2 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    Share position to see fleet
-                  </div>
-                )}
-              </div>
+              )}
             </div>
+          </div>
 
-            {/* Fleet Status Section */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs text-cyan-400/60 uppercase tracking-wider">
-                <Users className="w-3 h-3" />
-                Fleet Status
-              </div>
-              
-              <div className="bg-slate-800/50 rounded-lg p-3 border border-cyan-500/10 relative overflow-hidden">
-                {/* Radar Sweep Effect */}
-                {radarSweep && (
-                  <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent animate-sweep" />
-                  </div>
-                )}
-                
-                <div className="space-y-2 relative">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Active Vessels</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-cyan-300 font-bold">{fleetCount}</span>
-                      {fleetCount > 0 && (
-                        <div className="flex gap-0.5">
-                          {[...Array(Math.min(fleetCount, 5))].map((_, i) => (
-                            <div key={i} className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" 
-                                 style={{ animationDelay: `${i * 100}ms` }} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Fishing Now</span>
-                    <div className="flex items-center gap-2">
-                      <span className={`font-bold ${fishingCount > 0 ? 'text-yellow-400' : 'text-gray-500'}`}>
-                        {fishingCount}
-                      </span>
-                      {fishingCount > 0 && (
-                        <Activity className="w-4 h-4 text-yellow-400 animate-pulse" />
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Activity Level</span>
-                    <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
-                      activityLevel === 'HIGH' ? 'bg-red-500/20 text-red-400' :
-                      activityLevel === 'MODERATE' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-green-500/20 text-green-400'
-                    }`}>
-                      {activityLevel}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Peak Time</span>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-cyan-400" />
-                      <span className="text-cyan-400 text-sm">6:00-8:00</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* Fleet Overview - Clean Grid */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="bg-gray-900/40 rounded-lg p-2 border border-gray-800/50">
+              <div className="text-xs text-gray-500 mb-0.5">Active</div>
+              <div className="text-lg font-light text-white">{fleetCount}</div>
             </div>
-
-            {/* Layer Controls */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs text-cyan-400/60 uppercase tracking-wider">
-                <Layers className="w-3 h-3" />
-                Layers
-              </div>
-              
-              <div className="space-y-2">
-                {/* Community Fleet */}
-                <label className="flex items-center justify-between p-2 rounded-lg hover:bg-cyan-500/5 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={showFleet}
-                      onChange={onToggleFleet}
-                      disabled={!isTracking}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-black/50 text-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
-                    />
-                    <span className={`text-sm ${!isTracking ? 'text-gray-500' : 'text-white'}`}>
-                      Community Fleet
-                    </span>
-                  </div>
-                  {showFleet && (
-                    <div className="flex gap-0.5">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
-                    </div>
-                  )}
-                </label>
-
-                {/* Vessel Trails */}
-                <label className="flex items-center justify-between p-2 rounded-lg hover:bg-cyan-500/5 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={showTrails}
-                      onChange={onToggleTrails}
-                      disabled={!isTracking || !showFleet}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-black/50 text-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
-                    />
-                    <span className={`text-sm ${!isTracking || !showFleet ? 'text-gray-500' : 'text-white'}`}>
-                      Vessel Trails (4hr)
-                    </span>
-                  </div>
-                  {showTrails && (
-                    <span className="text-xs text-cyan-400/60">Fade</span>
-                  )}
-                </label>
-
-                {/* Commercial (GFW) */}
-                <label className="flex items-center justify-between p-2 rounded-lg hover:bg-cyan-500/5 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={showGFW}
-                      onChange={onToggleGFW}
-                      className="w-4 h-4 rounded border-cyan-500/30 bg-black/50 text-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
-                    />
-                    <span className="text-sm text-white">Commercial (GFW)</span>
-                  </div>
-                  {showGFW && (
-                    <Zap className="w-4 h-4 text-cyan-400" />
-                  )}
-                </label>
-
-                {/* Fishing Hotspots - Coming Soon */}
-                <label className="flex items-center justify-between p-2 rounded-lg opacity-50 cursor-not-allowed">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      disabled
-                      className="w-4 h-4 rounded border-gray-600 bg-black/50"
-                    />
-                    <span className="text-sm text-gray-500">Fishing Hotspots</span>
-                  </div>
-                  <span className="text-xs text-gray-600">Soon</span>
-                </label>
-              </div>
+            <div className="bg-gray-900/40 rounded-lg p-2 border border-gray-800/50">
+              <div className="text-xs text-gray-500 mb-0.5">Fishing</div>
+              <div className="text-lg font-light text-yellow-400">{fishingCount}</div>
             </div>
-
-            {/* Member Badge */}
-            <div className="pt-2 border-t border-cyan-500/10">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-cyan-400/60">VESSEL</span>
-                <span className="text-cyan-400 font-medium">{boatName}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs mt-1">
-                <span className="text-cyan-400/60">TRUSTED NETWORK</span>
-                <span className="text-green-400 font-medium">MEMBERS ONLY</span>
+            <div className="bg-gray-900/40 rounded-lg p-2 border border-gray-800/50">
+              <div className="text-xs text-gray-500 mb-0.5">Activity</div>
+              <div className={`text-sm font-light mt-1 ${
+                activityLevel === 'HIGH' ? 'text-red-400' :
+                activityLevel === 'MODERATE' ? 'text-yellow-400' :
+                'text-green-400'
+              }`}>
+                {activityLevel}
               </div>
             </div>
           </div>
-        )}
+
+          {/* Layer Controls - Sleek Toggles */}
+          <div className="space-y-1.5">
+            <button
+              onClick={onToggleFleet}
+              disabled={!isTracking}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 ${
+                showFleet 
+                  ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400'
+                  : 'bg-gray-900/30 border border-gray-800/50 text-gray-500 hover:border-gray-700/50'
+              } ${!isTracking ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <span className="flex items-center gap-2 text-xs">
+                <Users className="w-3.5 h-3.5" />
+                Community Fleet
+              </span>
+              {showFleet ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
+              onClick={onToggleTrails}
+              disabled={!isTracking}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 ${
+                showTrails 
+                  ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400'
+                  : 'bg-gray-900/30 border border-gray-800/50 text-gray-500 hover:border-gray-700/50'
+              } ${!isTracking ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <span className="flex items-center gap-2 text-xs">
+                <Activity className="w-3.5 h-3.5" />
+                Vessel Trails
+              </span>
+              {showTrails ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
+              onClick={onToggleGFW}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 ${
+                showGFW 
+                  ? 'bg-purple-500/10 border border-purple-500/20 text-purple-400'
+                  : 'bg-gray-900/30 border border-gray-800/50 text-gray-500 hover:border-gray-700/50'
+              }`}
+            >
+              <span className="flex items-center gap-2 text-xs">
+                <Anchor className="w-3.5 h-3.5" />
+                Commercial (GFW)
+              </span>
+              {showGFW ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+
+          {/* Expanded Details */}
+          {isExpanded && (
+            <div className="mt-3 pt-3 border-t border-gray-800/50">
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="w-full flex items-center justify-between text-xs text-gray-500 hover:text-cyan-400 transition-colors"
+              >
+                <span>Fleet Details</span>
+                <ChevronRight className={`w-3 h-3 transition-transform ${showDetails ? 'rotate-90' : ''}`} />
+              </button>
+              
+              {showDetails && (
+                <div className="mt-2 space-y-1 text-xs">
+                  <div className="flex justify-between text-gray-400">
+                    <span>Peak Activity</span>
+                    <span className="text-cyan-400">6:00-8:00 AM</span>
+                  </div>
+                  <div className="flex justify-between text-gray-400">
+                    <span>Avg Distance</span>
+                    <span className="text-white">12.5 nm</span>
+                  </div>
+                  <div className="flex justify-between text-gray-400">
+                    <span>Hot Zone</span>
+                    <span className="text-yellow-400">60-80ft depth</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Fair Exchange Notice */}
+          {!isTracking && showFleet && (
+            <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-3 h-3 text-yellow-400 mt-0.5" />
+                <p className="text-xs text-yellow-400/80">
+                  Share your position to see other vessels
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

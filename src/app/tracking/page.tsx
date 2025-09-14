@@ -440,30 +440,30 @@ export default function TrackingPage() {
             <GeoControls />
           </div>
         } />
+        
+        {/* Fleet Command Center - Modern Tracking UI */}
+        <FleetCommand 
+          isTracking={isTracking}
+          onToggleTracking={() => setIsTracking(!isTracking)}
+          fleetCount={fleetData?.total_active || 0}
+          fishingCount={fleetData?.fishing_now || 0}
+          showFleet={showVessels}
+          onToggleFleet={() => {
+            if (!isTracking) {
+              setShowVessels(true); // Trigger the fair sharing notice
+            } else {
+              setShowVessels(!showVessels);
+            }
+          }}
+          showTrails={showTrails}
+          onToggleTrails={() => setShowTrails(!showTrails)}
+          showGFW={showGFW}
+          onToggleGFW={() => setShowGFW(!showGFW)}
+          userSpeed={pos && lastPosition ? calculateSpeed(lastPosition, pos) : 0}
+          userHeading={pos && lastPosition ? calculateHeading(lastPosition, pos) : 0}
+          boatName={boatName || 'My Vessel'}
+        />
       </div>
-      
-      {/* Fleet Command Center - Modern Tracking UI */}
-      <FleetCommand 
-        isTracking={isTracking}
-        onToggleTracking={() => setIsTracking(!isTracking)}
-        fleetCount={fleetData?.total_active || 0}
-        fishingCount={fleetData?.fishing_now || 0}
-        showFleet={showVessels}
-        onToggleFleet={() => {
-          if (!isTracking) {
-            setShowVessels(true); // Trigger the fair sharing notice
-          } else {
-            setShowVessels(!showVessels);
-          }
-        }}
-        showTrails={showTrails}
-        onToggleTrails={() => setShowTrails(!showTrails)}
-        showGFW={showGFW}
-        onToggleGFW={() => setShowGFW(!showGFW)}
-        userSpeed={pos && lastPosition ? calculateSpeed(lastPosition, pos) : 0}
-        userHeading={pos && lastPosition ? calculateHeading(lastPosition, pos) : 0}
-        boatName={boatName || 'My Vessel'}
-      />
       
       {/* Keep essential vessel tracking */}
       <VesselTracker 
