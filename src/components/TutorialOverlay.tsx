@@ -66,14 +66,11 @@ export default function TutorialOverlay() {
     const skipTutorial = localStorage.getItem('abfi_skip_tutorial');
     
     if (!seen && skipTutorial !== 'true') {
-      // Show tutorial with smooth entrance after welcome screen
+      // Quick, smooth entrance after welcome screen
       setTimeout(() => {
         setIsVisible(true);
-        // Smooth fade-in animation with requestAnimationFrame for better performance
-        requestAnimationFrame(() => {
-          setTimeout(() => setIsAnimating(true), 50);
-        });
-      }, 2500); // Slightly longer delay for smoother transition from welcome
+        setIsAnimating(true); // Immediate animation, no extra delay
+      }, 800); // Much quicker transition from welcome
     }
   }, []);
 
@@ -104,7 +101,7 @@ export default function TutorialOverlay() {
     setIsAnimating(false);
     setTimeout(() => {
       setIsVisible(false);
-    }, 300);
+    }, 150); // Faster exit
   };
 
   const handleSkip = () => {
@@ -123,22 +120,22 @@ export default function TutorialOverlay() {
 
   return (
     <>
-      {/* Enhanced blur overlay with smooth transition */}
+      {/* Quick blur overlay */}
       <div 
-        className={`fixed inset-0 z-50 transition-all duration-700 ${
+        className={`fixed inset-0 z-50 transition-all duration-300 ease-out ${
           isAnimating 
-            ? 'bg-black/70 backdrop-blur-md' 
+            ? 'bg-black/60 backdrop-blur-sm' 
             : 'bg-black/0 backdrop-blur-none'
         }`}
         onClick={handleSkip}
       />
       
-      {/* Tutorial Card with subtle entrance animation */}
+      {/* Tutorial Card with fast, smooth entrance */}
       <div
-        className={`fixed z-50 transition-all duration-500 ${
+        className={`fixed z-50 transition-all duration-300 ease-out ${
           isAnimating 
-            ? 'scale-100 opacity-100 translate-y-0' 
-            : 'scale-95 opacity-0 translate-y-4'
+            ? 'scale-100 opacity-100' 
+            : 'scale-95 opacity-0'
         }`}
         style={{
           top: step.position?.top || '50%',

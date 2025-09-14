@@ -104,10 +104,10 @@ export default function WelcomePage() {
       }
     }
     
-    // Navigate to main app
+    // Quick navigation to main app
     setTimeout(() => {
       router.push('/legendary');
-    }, 1000);
+    }, 300); // Much faster transition
   };
   
   return (
