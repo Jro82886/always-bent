@@ -443,16 +443,16 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   
   return (
     <>
-      {/* ABFI INTELLIGENCE BUTTON - Ocean Analysis Aesthetic */}
+      {/* ABFI INTELLIGENCE BUTTON - Refined Ocean Analysis Aesthetic */}
       <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
         <button
           onClick={handleReportCatch}
-          className="relative px-10 py-2.5 rounded-2xl transition-all hover:scale-105 active:scale-95"
+          className="relative px-8 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
           style={{
-            background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.85) 0%, rgba(20, 184, 166, 0.85) 50%, rgba(59, 130, 246, 0.85) 100%)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(6, 182, 212, 0.3)',
-            boxShadow: '0 8px 32px rgba(6, 182, 212, 0.25), 0 0 40px rgba(20, 184, 166, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(6, 182, 212, 0.25)',
+            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), 0 0 32px rgba(6, 182, 212, 0.1), inset 0 1px 1px rgba(6, 182, 212, 0.1)',
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
             fontWeight: 600,
             fontSize: '14px',
@@ -461,33 +461,27 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
             color: 'white',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.95) 0%, rgba(20, 184, 166, 0.95) 50%, rgba(59, 130, 246, 0.95) 100%)';
-            e.currentTarget.style.boxShadow = '0 12px 40px rgba(6, 182, 212, 0.35), 0 0 60px rgba(20, 184, 166, 0.25), inset 0 1px 3px rgba(255, 255, 255, 0.2)';
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(51, 65, 85, 0.98) 100%)';
+            e.currentTarget.style.boxShadow = '0 6px 32px rgba(0, 0, 0, 0.5), 0 0 40px rgba(6, 182, 212, 0.15), inset 0 1px 2px rgba(6, 182, 212, 0.2)';
+            e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.4)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.85) 0%, rgba(20, 184, 166, 0.85) 50%, rgba(59, 130, 246, 0.85) 100%)';
-            e.currentTarget.style.boxShadow = '0 8px 32px rgba(6, 182, 212, 0.25), 0 0 40px rgba(20, 184, 166, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.1)';
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)';
+            e.currentTarget.style.boxShadow = '0 4px 24px rgba(0, 0, 0, 0.4), 0 0 32px rgba(6, 182, 212, 0.1), inset 0 1px 1px rgba(6, 182, 212, 0.1)';
+            e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.25)';
           }}
         >
           <span className="relative flex items-center justify-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.5))' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span className="font-semibold" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)' }}>ABFI</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
+            <span className="text-cyan-100 font-medium tracking-wider text-sm">BITE</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
           </span>
         </button>
         
-        {/* Tooltip on hover */}
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-72">
-          <div className="bg-gradient-to-br from-cyan-950/95 to-blue-950/95 text-white text-sm rounded-lg px-4 py-3 border border-cyan-500/20">
-            <div className="font-bold mb-2 text-cyan-300 text-base flex items-center gap-2"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg> ABFI Intelligence Hub</div>
-            <div className="text-xs leading-relaxed mb-2 text-cyan-100/90">
-              This is your "BITE" button - tap to instantly log any fish activity at your location. Every bite, nibble, or fish-on contributes to our collective ocean intelligence.
-            </div>
-            <div className="text-xs text-cyan-400/80 italic">
-              Your data trains ABFI to predict future hotspots. The more captains contribute, the smarter we all fish.
-            </div>
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-cyan-950/95 border-r border-b border-cyan-500/20"></div>
+        {/* Subtle tooltip on hover */}
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <div className="bg-slate-900/95 backdrop-blur-md text-cyan-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap border border-cyan-500/20">
+            Log fish activity • Train the AI
           </div>
         </div>
       </div>
