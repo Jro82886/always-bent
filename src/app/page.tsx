@@ -14,7 +14,7 @@ export default function Root() {
       router.push('/legendary');
     } else {
       // New user - show welcome screen
-      router.push('/welcome');
+      router.push('/legendary?mode=welcome');
     }
   }, [router]);
   
