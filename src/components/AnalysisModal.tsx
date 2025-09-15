@@ -48,14 +48,16 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   return (
     <div 
-      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-500 ${
-        isAnimating ? 'opacity-100' : 'opacity-0'
-      }`}
-      style={{ pointerEvents: isAnimating ? 'auto' : 'none' }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ 
+        opacity: isAnimating ? 1 : 0,
+        transition: 'opacity 500ms',
+        pointerEvents: 'auto',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)'
+      }}
       onClick={onClose}
     >
-      {/* Backdrop with blur */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      {/* Backdrop is now part of the main div */}
       
       {/* Modal Content */}
       <div 
