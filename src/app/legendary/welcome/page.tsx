@@ -138,22 +138,22 @@ export default function WelcomePage() {
               {/* Access Info */}
               <div className="bg-slate-800/20 rounded-lg p-4 space-y-2 text-sm">
                 <div className="text-cyan-300 font-medium mb-2">Your Access:</div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full" />
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-4 bg-gradient-to-b from-cyan-400 to-cyan-600 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
                   <span className="text-slate-300">Analysis Mode - Ocean intelligence & SST/CHL layers</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 ${locationEnabled ? 'bg-green-400' : 'bg-red-400'} rounded-full`} />
+                <div className="flex items-center gap-3">
+                  <div className={`w-1 h-4 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)] ${locationEnabled ? 'bg-gradient-to-b from-cyan-400 to-cyan-600' : 'bg-gradient-to-b from-slate-500 to-slate-700'}`} />
                   <span className="text-slate-300">
                     Tracking Mode - {locationEnabled ? 'Full access with location sharing' : 'Disabled without location services'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full" />
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-4 bg-gradient-to-b from-cyan-400 to-cyan-600 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
                   <span className="text-slate-300">Community - Connect with other captains</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full" />
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-4 bg-gradient-to-b from-cyan-400 to-cyan-600 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
                   <span className="text-slate-300">Trends - Fishing patterns & insights</span>
                 </div>
               </div>
