@@ -118,13 +118,37 @@ function visualizeVesselsOnMap(map: mapboxgl.Map, vessels: any[], selectedInlet?
     return;
   }
   
-  // Create vessel markers matching the tracking page style
+  // Clean up existing vessel layers/markers
+  // Remove old vessel tracks if they exist
+  if (map.getLayer('vessel-tracks')) map.removeLayer('vessel-tracks');
+  if (map.getSource('vessel-tracks')) map.removeSource('vessel-tracks');
+  
+  // Prepare track data for all vessels
+  const trackFeatures: any[] = [];
+  
+  // Create vessel markers and tracks matching the tracking page style
   vessels.forEach(vessel => {
-    console.log('[SNIP-VIZ] Adding vessel marker:', vessel.name, 'at', vessel.position);
+    console.log('[SNIP-VIZ] Adding vessel:', vessel.name, 'at', vessel.position);
     const style = getVesselStyle(vessel, selectedInlet);
     
+    // Add vessel track if available
+    if (vessel.track && vessel.track.length > 1) {
+      trackFeatures.push({
+        type: 'Feature',
+        properties: {
+          vesselType: vessel.type,
+          vesselName: vessel.name
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: vessel.track
+        }
+      });
+    }
+    
+    // Create vessel marker
     const el = document.createElement('div');
-    el.className = `vessel-marker vessel-${vessel.type}`;
+    el.className = `vessel-marker vessel-${vessel.type} snip-vessel-marker`;
     
     // Style based on vessel type matching tracking page
     if (vessel.type === 'user') {
@@ -169,6 +193,36 @@ function visualizeVesselsOnMap(map: mapboxgl.Map, vessels: any[], selectedInlet?
       .setLngLat(vessel.position)
       .addTo(map);
   });
+  
+  // Add vessel tracks as lines on the map
+  if (trackFeatures.length > 0) {
+    map.addSource('vessel-tracks', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: trackFeatures
+      }
+    });
+    
+    map.addLayer({
+      id: 'vessel-tracks',
+      type: 'line',
+      source: 'vessel-tracks',
+      paint: {
+        'line-color': [
+          'match',
+          ['get', 'vesselType'],
+          'user', '#ffffff',
+          'fleet', '#60a5fa',
+          'commercial', '#f39c12',
+          '#888888'
+        ],
+        'line-width': 1.5,
+        'line-opacity': 0.6,
+        'line-dasharray': [2, 2]
+      }
+    });
+  }
 }
 
 // Edge visualization removed - handled by polygon filter

@@ -330,7 +330,24 @@ export async function analyzeSSTPolygon(
 
 /**
  * Generate mock SST data for testing
- * Creates a gradient pattern with some variation
+ * 
+ * REAL DATA INTEGRATION POINT:
+ * Replace with actual SST data extraction:
+ * 
+ * 1. COPERNICUS WMTS TILES:
+ *    - Extract pixel values from canvas after tile loads
+ *    - Convert pixel RGB to temperature using color scale
+ *    - API: /api/tiles/sst/{z}/{x}/{y}
+ * 
+ * 2. NASA GIBS:
+ *    - Direct temperature values from tiles
+ *    - Higher resolution (1km vs 4km)
+ *    - More frequent updates (hourly)
+ * 
+ * 3. PIXEL EXTRACTION METHOD:
+ *    - map.getCanvas().getContext('2d').getImageData()
+ *    - Sample points within snipped bounds
+ *    - Convert colors to temperature values
  */
 export function generateMockSSTData(bounds: number[][]): SSTDataPoint[] {
   const [[west, south], [east, north]] = bounds;
