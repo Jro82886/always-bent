@@ -379,44 +379,57 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     }
   }, [map]);
 
-  // Update rectangle
+  // Throttle timer for rectangle updates
+  const updateTimer = useRef<NodeJS.Timeout | null>(null);
+  
+  // Update rectangle with throttling to reduce excessive updates
   const updateRectangle = useCallback((corner1: [number, number], corner2: [number, number]) => {
     if (!map || !map.getSource('snip-rectangle')) return;
     
-    const minX = Math.min(corner1[0], corner2[0]);
-    const maxX = Math.max(corner1[0], corner2[0]);
-    const minY = Math.min(corner1[1], corner2[1]);
-    const maxY = Math.max(corner1[1], corner2[1]);
+    // Clear any pending update
+    if (updateTimer.current) {
+      clearTimeout(updateTimer.current);
+    }
     
-    const coords: [number, number][] = [
-      [minX, minY],
-      [maxX, minY],
-      [maxX, maxY],
-      [minX, maxY],
-      [minX, minY]
-    ];
-    
-    const polygon = {
-      type: 'Feature' as const,
-      properties: {},
-      geometry: {
-        type: 'Polygon' as const,
-        coordinates: [coords]
+    // Throttle updates to every 16ms (60fps max)
+    updateTimer.current = setTimeout(() => {
+      const minX = Math.min(corner1[0], corner2[0]);
+      const maxX = Math.max(corner1[0], corner2[0]);
+      const minY = Math.min(corner1[1], corner2[1]);
+      const maxY = Math.max(corner1[1], corner2[1]);
+      
+      const coords: [number, number][] = [
+        [minX, minY],
+        [maxX, minY],
+        [maxX, maxY],
+        [minX, maxY],
+        [minX, minY]
+      ];
+      
+      const polygon = {
+        type: 'Feature' as const,
+        properties: {},
+        geometry: {
+          type: 'Polygon' as const,
+          coordinates: [coords]
+        }
+      };
+      
+      // Only set the polygon, no corner points (modern seamless look)
+      const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
+      if (source) {
+        source.setData({
+          type: 'FeatureCollection',
+          features: [polygon]
+        });
       }
-    };
-    
-    // Only set the polygon, no corner points (modern seamless look)
-    const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
-    source.setData({
-      type: 'FeatureCollection',
-      features: [polygon]
-    });
-    
-    // Calculate area
-    const polygonFeature = turf.polygon([coords]);
-    const areaM2 = turf.area(polygonFeature);
-    setCurrentArea(areaM2 / 1000000);
-    currentPolygon.current = polygon;
+      
+      // Calculate area
+      const polygonFeature = turf.polygon([coords]);
+      const areaM2 = turf.area(polygonFeature);
+      setCurrentArea(areaM2 / 1000000);
+      currentPolygon.current = polygon;
+    }, 16);
   }, [map]);
 
   // Complete drawing and analyze
