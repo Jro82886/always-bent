@@ -115,10 +115,15 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                 <>
                   This area shows <span className="text-yellow-400 font-semibold">uniform water 
                   temperatures ({stats.min_temp_f.toFixed(1)}°F - {stats.max_temp_f.toFixed(1)}°F)</span> with 
-                  minimal gradients. Fish prefer edges and structure - areas where different water masses meet. 
-                  <span className="text-yellow-300"> Try snipping an area where you see color changes 
-                  or temperature variations on the layers.</span> Look for where blue meets green (chlorophyll) 
-                  or where SST shows color transitions.
+                  only a {stats.temp_range_f.toFixed(1)}°F range. <span className="text-gray-400">No significant temperature breaks detected.</span>
+                  <br/><br/>
+                  <span className="text-cyan-300 font-semibold">What to look for:</span>
+                  <br/>• Color transitions on SST layer (red/orange meeting blue/green)
+                  <br/>• Chlorophyll concentration edges (dark blue meeting light green)
+                  <br/>• Areas where vessel tracks converge
+                  <br/>• Near structure like ledges, canyons, or current edges
+                  <br/><br/>
+                  <span className="text-yellow-300">Try snipping where you see these features for better results.</span>
                 </>
               )}
             </p>

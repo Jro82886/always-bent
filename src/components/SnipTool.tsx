@@ -351,20 +351,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     };
     
-    // Create corner points for enhanced visibility
-    const cornerPoints = coords.slice(0, 4).map(coord => ({
-      type: 'Feature' as const,
-      properties: {},
-      geometry: {
-        type: 'Point' as const,
-        coordinates: coord
-      }
-    }));
-    
+    // Only set the polygon, no corner points (modern seamless look)
     const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
     source.setData({
       type: 'FeatureCollection',
-      features: [polygon, ...cornerPoints]
+      features: [polygon]
     });
     
     // Calculate area
@@ -439,41 +430,25 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           chlData
         );
         
-        // For demo: Always ensure we have a hotspot
+        // Check if conditions support hotspots
         if (!analysis.hotspot || !analysis.hotspot.location) {
-          console.log('[SNIP] No hotspot from analysis, adding demo hotspot');
-          analysis.hotspot = {
-            location: [
-              (bounds[0][0] + bounds[1][0]) / 2,
-              (bounds[0][1] + bounds[1][1]) / 2
-            ] as [number, number],
-            confidence: 0.75,
-            gradient_strength: 3.2,
-            optimal_approach: 'Approach from the northwest',
-            type: 'temperature_break'
-          };
+          console.log('[SNIP] No hotspot conditions detected - will provide educational guidance');
+          // Don't fake a hotspot - let the analysis explain why
+          analysis.noHotspotReason = 'uniform_conditions';
         }
       } catch (analysisError) {
         console.warn('[SNIP] Analysis function error, using basic analysis:', analysisError);
-        // Provide basic analysis if the main function fails
+        // Provide basic analysis without fake hotspot
         analysis = {
           polygon: polygon as GeoJSON.Feature<GeoJSON.Polygon>,
           features: [],
-          hotspot: {
-            location: [
-              (bounds[0][0] + bounds[1][0]) / 2,
-              (bounds[0][1] + bounds[1][1]) / 2
-            ] as [number, number],
-            confidence: 0.65,
-            gradient_strength: 2.5,
-            optimal_approach: 'Approach from the north',
-            type: 'convergence_zone'
-          },
+          hotspot: null, // Be honest - no hotspot detected
+          noHotspotReason: 'uniform_conditions',
           stats: {
             min_temp_f: 68,
             max_temp_f: 72,
             avg_temp_f: 70,
-            temp_range_f: 4,
+            temp_range_f: 4, // Low range indicates uniform conditions
             area_km2: currentArea || 100
           }
         };
@@ -606,28 +581,28 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         }
       });
       
-      // Modern seamless rectangle with semi-transparent fill
-      // Fill layer - modern dark semi-transparent to see content beneath
+      // Rectangle matching Ocean Analysis box styling (slate-900 with cyan accents)
+      // Fill layer - matching ocean analysis box color
       map.addLayer({
         id: 'snip-rectangle-fill',
         type: 'fill',
         source: 'snip-rectangle',
         paint: {
-          'fill-color': '#1e293b', // Modern dark slate
-          'fill-opacity': 0.25 // Semi-transparent to clearly see hotspots, edges, and tracks beneath
+          'fill-color': '#0f172a', // slate-900 to match ocean analysis box
+          'fill-opacity': 0.4 // Semi-transparent to see content beneath
         }
       });
       
-      // Sleek glowing outline - no old-school dots
+      // Cyan border matching ocean analysis theme
       map.addLayer({
         id: 'snip-rectangle-outline',
         type: 'line',
         source: 'snip-rectangle',
         paint: {
-          'line-color': '#60a5fa', // Modern soft blue glow
-          'line-width': 2.5,
-          'line-opacity': 0.8,
-          'line-blur': 1.5 // Subtle glow effect for modern appearance
+          'line-color': '#06b6d4', // cyan-500 to match ocean analysis
+          'line-width': 2,
+          'line-opacity': 0.6,
+          'line-blur': 0 // Clean edge, no blur
         }
       });
       
