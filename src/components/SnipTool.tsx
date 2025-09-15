@@ -551,7 +551,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Remove existing
       if (map.getLayer('snip-rectangle-fill')) map.removeLayer('snip-rectangle-fill');
       if (map.getLayer('snip-rectangle-outline')) map.removeLayer('snip-rectangle-outline');
-      if (map.getLayer('snip-rectangle-corners')) map.removeLayer('snip-rectangle-corners');
       if (map.getSource('snip-rectangle')) map.removeSource('snip-rectangle');
       
       // Add source
@@ -563,50 +562,36 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         }
       });
       
-      // Add layers with muted slate blue styling
-      // Fill layer - semi-transparent slate blue so you can see through
+      // Modern seamless rectangle with semi-transparent fill
+      // Fill layer - modern dark semi-transparent to see content beneath
       map.addLayer({
         id: 'snip-rectangle-fill',
         type: 'fill',
         source: 'snip-rectangle',
         paint: {
-          'fill-color': '#64748b', // Slate blue color
-          'fill-opacity': 0.3 // Semi-transparent to see tracks/hotspots through it
+          'fill-color': '#1e293b', // Modern dark slate
+          'fill-opacity': 0.25 // Semi-transparent to clearly see hotspots, edges, and tracks beneath
         }
       });
       
-      // Outline - heavy slate blue marking all edges
+      // Sleek glowing outline - no old-school dots
       map.addLayer({
         id: 'snip-rectangle-outline',
         type: 'line',
         source: 'snip-rectangle',
         paint: {
-          'line-color': '#475569', // Darker slate blue for heavy edge marking
-          'line-width': 4, // Thick line for heavy marking
-          'line-opacity': 1.0 // Fully opaque for strong edge definition
+          'line-color': '#60a5fa', // Modern soft blue glow
+          'line-width': 2.5,
+          'line-opacity': 0.8,
+          'line-blur': 1.5 // Subtle glow effect for modern appearance
         }
-      });
-      
-      // Corner markers - matching slate blue theme
-      map.addLayer({
-        id: 'snip-rectangle-corners',
-        type: 'circle',
-        source: 'snip-rectangle',
-        paint: {
-          'circle-radius': 6,
-          'circle-color': '#64748b', // Slate blue
-          'circle-stroke-color': '#475569', // Darker slate blue border
-          'circle-stroke-width': 2,
-          'circle-opacity': 1.0
-        },
-        filter: ['==', '$type', 'Point']
       });
       
       // Keep snip layers on top without interfering with other layers
       const moveToTop = () => {
         try {
           // Only move our snip layers to top, don't touch other layers
-          const snipLayers = ['snip-rectangle-fill', 'snip-rectangle-outline', 'snip-rectangle-corners'];
+          const snipLayers = ['snip-rectangle-fill', 'snip-rectangle-outline'];
           
           snipLayers.forEach(layerId => {
             if (map.getLayer(layerId)) {
