@@ -265,6 +265,53 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
 
     console.log('[SNIP] Starting drawing mode');
     
+    // Ensure source and layers exist before starting
+    if (!map.getSource('snip-rectangle')) {
+      console.log('[SNIP] Creating snip-rectangle source');
+      map.addSource('snip-rectangle', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+    }
+    
+    if (!map.getLayer('snip-rectangle-fill')) {
+      console.log('[SNIP] Creating snip-rectangle layers');
+      map.addLayer({
+        id: 'snip-rectangle-fill',
+        type: 'fill',
+        source: 'snip-rectangle',
+        filter: ['==', '$type', 'Polygon'],
+        paint: {
+          'fill-color': '#0f172a',
+          'fill-opacity': 0.45
+        }
+      });
+      
+      map.addLayer({
+        id: 'snip-rectangle-outline',
+        type: 'line',
+        source: 'snip-rectangle',
+        filter: ['==', '$type', 'Polygon'],
+        paint: {
+          'line-color': '#334155',
+          'line-width': 2,
+          'line-opacity': 0.8,
+          'line-blur': 0
+        }
+      });
+      
+      // Move layers to top
+      try {
+        map.moveLayer('snip-rectangle-fill');
+        map.moveLayer('snip-rectangle-outline');
+      } catch (e) {
+        console.log('[SNIP] Could not move layers to top');
+      }
+    }
+    
     // Clear any previous analysis before starting new one
     clearDrawing();
     setHasAnalysisResults(false);
@@ -401,7 +448,19 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   
   // Update rectangle with throttling to reduce excessive updates
   const updateRectangle = useCallback((corner1: [number, number], corner2: [number, number]) => {
-    if (!map || !map.getSource('snip-rectangle')) return;
+    if (!map) return;
+    
+    // Ensure source exists
+    if (!map.getSource('snip-rectangle')) {
+      console.log('[SNIP] Source missing, recreating...');
+      map.addSource('snip-rectangle', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+    }
     
     // Clear any pending update
     if (updateTimer.current) {
@@ -440,6 +499,23 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           type: 'FeatureCollection',
           features: polygon ? [polygon] : []
         });
+      }
+      
+      // Force layers to stay on top of SST
+      try {
+        // Check if SST layers exist and move snip layers above them
+        const sstLayers = ['sst-lyr', 'sst-layer', 'raster-sst', 'sst-wmts'];
+        const hasSST = sstLayers.some(layer => map.getLayer(layer));
+        
+        if (hasSST) {
+          ['snip-rectangle-fill', 'snip-rectangle-outline'].forEach(layerId => {
+            if (map.getLayer(layerId)) {
+              map.moveLayer(layerId);
+            }
+          });
+        }
+      } catch (e) {
+        // Silently handle layer reordering issues
       }
       
       // Calculate area
@@ -717,16 +793,32 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         }
       };
       
-      // Listen to style load events
-      map.on('style.load', moveToTop);
+      // Listen to multiple events to ensure layers stay on top
+      const handleLayerChange = () => {
+        // Delay to ensure other layers have been added first
+        setTimeout(moveToTop, 50);
+      };
+      
+      map.on('style.load', handleLayerChange);
+      map.on('styledata', handleLayerChange);
+      
+      // Also listen for SST layer changes (actual layer ID is sst-lyr)
+      const checkSST = setInterval(() => {
+        if (map.getLayer('sst-lyr') || map.getLayer('sst-layer') || map.getLayer('raster-sst')) {
+          moveToTop();
+        }
+      }, 1000);
       
       // Initial move to top after layers are ready
       setTimeout(moveToTop, 100);
       setTimeout(moveToTop, 500);
-      setTimeout(moveToTop, 1000); // Extra delay for safety
+      setTimeout(moveToTop, 1000);
+      setTimeout(moveToTop, 2000); // Extra delay for SST layer
       
       return () => {
-        map.off('style.load', moveToTop);
+        map.off('style.load', handleLayerChange);
+        map.off('styledata', handleLayerChange);
+        clearInterval(checkSST);
       };
     };
 
