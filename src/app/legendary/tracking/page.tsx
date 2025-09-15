@@ -11,6 +11,7 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 export default function TrackingPage() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [activeTab, setActiveTab] = useState('tracking');
 
   // Initialize map
   useEffect(() => {
@@ -33,7 +34,11 @@ export default function TrackingPage() {
   return (
     <div className="w-full h-screen relative">
       {/* Command Bridge (Navigation) */}
-      <UnifiedCommandBar />
+      <UnifiedCommandBar 
+        map={map.current}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
       
       {/* Map Container */}
       <div ref={mapContainer} className="w-full h-full" />
