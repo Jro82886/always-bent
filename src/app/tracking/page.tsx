@@ -1,22 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { MapShell } from '@/lib/MapRef';
 import { useMapbox } from '@/lib/MapCtx';
-import NavTabs from '@/components/NavTabs';
-import TopHUD from '@/components/TopHUD';
-import SimpleVesselMarkers from '@/components/tracking/SimpleVesselMarkers';
-import { useAppState } from '@/store/appState';
-import { getInletById } from '@/lib/inlets';
-import { flyToInlet60nm } from '@/lib/inletBounds';
-import { 
-  Ship, Users, Activity, Navigation, Anchor, MapPin, 
-  Clock, TrendingUp, AlertCircle, Eye, EyeOff, 
-  Maximize2, Filter, Settings, Radio, Waves,
-  ChevronDown, ChevronUp, Info, Target, Fish,
-  Zap, Compass, Wind, ThermometerSun
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import TrackingUI from '@/components/tracking/TrackingUI';
+import { useEffect } from 'react';
 
 interface VesselStats {
   total: number;
