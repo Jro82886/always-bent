@@ -11,9 +11,6 @@ import TutorialOverlay from '@/components/TutorialOverlay';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
-import CommunityMode from '@/components/community/CommunityMode';
-import VesselTrackingSystem from '@/components/tracking/VesselTrackingSystem';
-import TrendsMode from '@/components/trends/TrendsMode';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
 import { useAppState } from '@/store/appState';
@@ -33,8 +30,6 @@ export default function LegendaryOceanPlatform() {
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
   
-  // Tab state - 'analysis' | 'tracking' | 'community' | 'trends'
-  const [activeTab, setActiveTab] = useState<string>('analysis');
   
   // Track if analysis modal is open to hide BITE button
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
@@ -335,11 +330,7 @@ export default function LegendaryOceanPlatform() {
         className={`w-full h-full transition-all duration-700 ${
           showingTutorial
             ? 'blur-md opacity-60' // Start blurred if tutorial will show
-            : activeTab === 'community' 
-            ? 'scale-105 blur-md opacity-30' 
-            : activeTab === 'trends'
-            ? 'blur-lg opacity-20'
-            : '' // Keep map visible for tracking and analysis
+            : '' // Keep map visible for analysis
         }`} 
         style={{ 
           imageRendering: 'pixelated',
@@ -356,13 +347,12 @@ export default function LegendaryOceanPlatform() {
       {/* Unified Command Bar - Navigation + Boat Info */}
       <UnifiedCommandBar 
         map={map.current} 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        activeTab="analysis"
+        onTabChange={() => {}}
       />
       
       {/* ANALYSIS MODE UI */}
-      {activeTab === 'analysis' && (
-        <>
+      <>
           {/* LEFT ZONE - Intelligence & Planning (Over Land) */}
           <LeftZone
             oceanActive={oceanActive}
@@ -408,7 +398,7 @@ export default function LegendaryOceanPlatform() {
           
           
           {/* Interactive Tutorial - Second tutorial, only after first is complete */}
-          {tutorialCompleted && activeTab === 'analysis' && (
+          {tutorialCompleted && (
             <InteractiveTutorial triggerRef={tutorialTriggerRef} />
           )}
           
@@ -417,29 +407,8 @@ export default function LegendaryOceanPlatform() {
             <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
           )}
           
-        </>
-      )}
+      </>
       
-      {/* COMMUNITY MODE UI - Overlays on blurred map */}
-      {activeTab === 'community' && (
-        <div className="absolute inset-0 z-20 top-16 md:top-20 pointer-events-auto">
-          <CommunityMode />
-        </div>
-      )}
-      
-      {/* TRACKING MODE UI - Vessel Tracking */}
-      {activeTab === 'tracking' && (
-        <>
-          <VesselTrackingSystem map={map.current} />
-          
-          
-        </>
-      )}
-      
-      {/* TRENDS MODE UI - Dashboard (No map interaction) */}
-      {activeTab === 'trends' && (
-        <TrendsMode />
-      )}
       
       {/* Test Data Admin - Only in development */}
 
