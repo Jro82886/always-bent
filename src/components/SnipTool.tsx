@@ -367,6 +367,23 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       });
     }
     
+    // Clear vessel tracks layer
+    if (map.getLayer('vessel-tracks')) {
+      map.removeLayer('vessel-tracks');
+    }
+    if (map.getSource('vessel-tracks')) {
+      map.removeSource('vessel-tracks');
+    }
+    
+    // Remove any vessel markers
+    const markers = document.querySelectorAll('.snip-vessel-marker');
+    markers.forEach(marker => {
+      const parent = marker.parentElement?.parentElement;
+      if (parent && parent.classList.contains('mapboxgl-marker')) {
+        parent.remove();
+      }
+    });
+    
     // Clear analysis state
     setHasAnalysisResults(false);
     setLastAnalysis(null);
@@ -657,19 +674,19 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         source: 'snip-rectangle',
         paint: {
           'fill-color': '#0f172a', // slate-900 uniform color
-          'fill-opacity': 0.35 // Semi-transparent to see content beneath
+          'fill-opacity': 0.45 // Increased opacity for better visibility
         }
       });
       
-      // Subtle slate border - same color family, barely visible
+      // More visible slate border
       map.addLayer({
         id: 'snip-rectangle-outline',
         type: 'line',
         source: 'snip-rectangle',
         paint: {
-          'line-color': '#1e293b', // slate-800 - slightly lighter than fill for subtle definition
-          'line-width': 1.5,
-          'line-opacity': 0.5,
+          'line-color': '#334155', // slate-700 - more visible
+          'line-width': 2,
+          'line-opacity': 0.8, // Higher opacity for visibility
           'line-blur': 0 // Clean edge
         }
       });
@@ -697,19 +714,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         }
       };
       
-      // Listen to multiple events to ensure layers stay on top
+      // Listen to style load events
       map.on('style.load', moveToTop);
-      map.on('data', (e: any) => {
-        // Only move to top when other layers are added/changed
-        if (e.sourceId && !e.sourceId.includes('snip')) {
-          moveToTop();
-        }
-      });
       
-      // Initial move to top after a short delay
+      // Initial move to top after layers are ready
       setTimeout(moveToTop, 100);
-      // And again after a bit longer to catch any late-loading layers
       setTimeout(moveToTop, 500);
+      setTimeout(moveToTop, 1000); // Extra delay for safety
       
       return () => {
         map.off('style.load', moveToTop);
