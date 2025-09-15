@@ -10,6 +10,10 @@ export default function NavTabs() {
   const { username, hydrateOnce, communityBadge, setCommunityBadge } = useAppState();
   const [locationEnabled, setLocationEnabled] = useState(false);
   
+  // Get the current mode from URL
+  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const currentMode = searchParams.get('mode') || '';
+  
   useEffect(() => { 
     hydrateOnce(); 
     // Check if location services are enabled
@@ -39,7 +43,9 @@ export default function NavTabs() {
       <div className="flex items-center gap-2">
         <nav className="flex flex-wrap items-center gap-2 rounded-xl bg-black/35 backdrop-blur-md px-2 py-2 shadow-lg ring-1 ring-white/10">
           {TABS.map((t) => {
-            const active = pathname.startsWith(t.href);
+            // Check if this tab is active based on the mode parameter
+            const tabMode = t.href.includes('mode=') ? t.href.split('mode=')[1] : '';
+            const active = tabMode === currentMode;
             return (
               <Link
                 key={t.href}
