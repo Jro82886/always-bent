@@ -997,7 +997,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
     // Add animation styles
     const style = document.createElement('style');
-    style.textContent = \`
+    style.textContent = `
       @keyframes popIn {
         0% { transform: scale(0) rotate(-10deg); opacity: 0; }
         50% { transform: scale(1.05) rotate(2deg); }
@@ -1007,7 +1007,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         0% { opacity: 1; transform: scale(1); }
         100% { opacity: 0; transform: scale(0.9); }
       }
-    \`;
+    `;
     document.head.appendChild(style);
     document.body.appendChild(hint);
     
