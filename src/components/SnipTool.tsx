@@ -699,7 +699,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Listen to multiple events to ensure layers stay on top
       map.on('style.load', moveToTop);
-      map.on('data', (e) => {
+      map.on('data', (e: any) => {
         // Only move to top when other layers are added/changed
         if (e.sourceId && !e.sourceId.includes('snip')) {
           moveToTop();
