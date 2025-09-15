@@ -17,9 +17,9 @@ export default function NavTabs() {
     setLocationEnabled(enabled);
   }, [hydrateOnce]);
   
-  // Build tabs based on permissions
+  // Build tabs based on permissions - ALL modes use ?mode= parameter
   const TABS = [
-    { href: '/legendary', label: 'Analysis' },
+    { href: '/legendary?mode=analysis', label: 'Analysis' },
     ...(locationEnabled ? [{ href: '/legendary?mode=tracking', label: 'Tracking' }] : []),
     { href: '/legendary?mode=trends', label: 'Trends' },
     { href: '/legendary?mode=community', label: 'Community' },

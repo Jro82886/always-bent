@@ -13,9 +13,17 @@ const WelcomeMode = dynamic(() => import('./welcome/page'), { ssr: false });
 
 function ABFICore() {
   const searchParams = useSearchParams();
-  const mode = searchParams.get('mode') || 'analysis';
+  const mode = searchParams.get('mode');
   
+  // No mode = show welcome (the trunk entry point)
+  if (!mode) {
+    return <WelcomeMode />;
+  }
+  
+  // Each branch accessed equally via ?mode=
   switch(mode) {
+    case 'analysis':
+      return <AnalysisMode />;
     case 'tracking':
       return <TrackingMode />;
     case 'community':
@@ -24,9 +32,8 @@ function ABFICore() {
       return <TrendsMode />;
     case 'welcome':
       return <WelcomeMode />;
-    case 'analysis':
     default:
-      return <AnalysisMode />;
+      return <WelcomeMode />; // Unknown mode = welcome
   }
 }
 

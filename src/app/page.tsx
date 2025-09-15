@@ -10,11 +10,11 @@ export default function Root() {
     const boatName = localStorage.getItem('abfi_boat_name');
     
     if (boatName) {
-      // Existing user - go to main app
-      router.push('/legendary');
+      // Existing user - go to analysis (main app)
+      router.push('/legendary?mode=analysis');
     } else {
-      // New user - show welcome screen
-      router.push('/legendary?mode=welcome');
+      // New user - show welcome screen (trunk entry)
+      router.push('/legendary');
     }
   }, [router]);
   
