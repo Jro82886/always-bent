@@ -10,6 +10,7 @@ import { SPECIES, getSpeciesById, getSpeciesColor } from '@/lib/species';
 import DMPanel from './DMPanel';
 import DMInterface from './DMInterface';
 import ReportsPanel from './ReportsPanel';
+import ReportsFeed from './ReportsFeed';
 
 interface WeatherData {
   wind: { speed: number; direction: string };
@@ -764,7 +765,7 @@ export default function CommunityMode() {
           {/* Reports Tab Content */}
           {activeTab === 'reports' && (
             <div className="flex-1">
-              <ReportsPanel />
+              <ReportsFeed />
             </div>
           )}
           

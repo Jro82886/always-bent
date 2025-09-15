@@ -22,6 +22,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "fast-xml-parser": "^5.2.5",
+    "idb": "^8.0.3",
     "lucide-react": "^0.544.0",
     "mapbox-gl": "^3.14.0",
     "nanoid": "^5.1.5",
@@ -30,6 +31,7 @@
     "react-dom": "^19.1.0",
     "react-hot-toast": "^2.6.0",
     "react-use": "^17.6.0",
+    "uuid": "^13.0.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

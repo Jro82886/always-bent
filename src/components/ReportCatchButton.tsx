@@ -1,10 +1,14 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, WifiOff, Upload } from 'lucide-react';
 import type mapboxgl from 'mapbox-gl';
 import CatchReportForm from './CatchReportForm';
 import { useAppState } from '@/store/appState';
 import { reportCatch, type CatchDraft } from '@/lib/reportCatch';
+import { recordBite, getPendingCount } from '@/lib/offline/biteDB';
+import { syncBites, onSyncEvent } from '@/lib/offline/biteSync';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 
 interface ReportCatchButtonProps {
   map?: mapboxgl.Map | null;
@@ -17,15 +21,44 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   const [showForm, setShowForm] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const [pendingBites, setPendingBites] = useState(0);
+  const [isSyncing, setIsSyncing] = useState(false);
   const { selectedInletId } = useAppState();
   
   useEffect(() => {
     // Check if location services are enabled
     const enabled = localStorage.getItem('abfi_location_enabled') === 'true';
     setLocationEnabled(enabled);
+    
+    // Check for pending offline bites
+    updatePendingCount();
+    
+    // Listen for sync events
+    const unsubscribe = onSyncEvent((event) => {
+      if (event.type === 'sync-start') {
+        setIsSyncing(true);
+      } else if (event.type === 'sync-complete' || event.type === 'sync-error') {
+        setIsSyncing(false);
+        updatePendingCount();
+      }
+      
+      // Show toast notifications
+      if (event.type === 'sync-complete' && event.data?.synced > 0) {
+        toast.success(`Uploaded ${event.data.synced} bite${event.data.synced > 1 ? 's' : ''}`);
+      } else if (event.type === 'bite-expired' && event.data?.count > 0) {
+        toast.warning(`${event.data.count} bite${event.data.count > 1 ? 's' : ''} expired (>24 hours old)`);
+      }
+    });
+    
+    return () => unsubscribe();
   }, []);
   
-  const handleReportCatch = () => {
+  const updatePendingCount = async () => {
+    const count = await getPendingCount();
+    setPendingBites(count);
+  };
+  
+  const handleReportCatch = async () => {
     console.log('[ABFI] Button clicked! Location enabled:', locationEnabled);
     
     if (!locationEnabled) {
@@ -42,7 +75,59 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
     
     // ONE TAP = INSTANT LOG! No forms, no friction
     const logBite = async (location: { lat: number; lng: number }) => {
-      console.log('[ABFI] Capturing comprehensive ocean data at:', location);
+      console.log('[ABFI] Logging bite at:', location);
+      
+      try {
+        // Get current user
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          toast.error('Please sign in to log bites');
+          return;
+        }
+        
+        // Get active layers
+        const layersOn = [];
+        if (document.querySelector('.sst-toggle.active')) layersOn.push('sst');
+        if (document.querySelector('.chl-toggle.active')) layersOn.push('chl');
+        if (document.querySelector('.polygons-toggle.active')) layersOn.push('polygons');
+        
+        // Record the bite (works offline!)
+        const bite = await recordBite({
+          user_id: user.id,
+          user_name: user.user_metadata?.username || user.email?.split('@')[0],
+          inlet_id: selectedInletId || undefined,
+          layers_on: layersOn,
+        });
+        
+        // Update pending count
+        await updatePendingCount();
+        
+        // Show appropriate toast
+        if (navigator.onLine) {
+          toast.success('Bite logged! Generating ocean report...', {
+            description: 'Analysis will appear in Community > Reports',
+            duration: 4000,
+          });
+          // Attempt immediate sync
+          syncBites();
+        } else {
+          toast.info('Bite saved offline', {
+            description: 'Will upload when connection restored',
+            icon: <WifiOff size={16} />,
+            duration: 4000,
+          });
+        }
+        
+        // Log success
+        console.log('[ABFI] Bite recorded:', bite.bite_id);
+        
+      } catch (error) {
+        console.error('[ABFI] Error logging bite:', error);
+        toast.error('Failed to log bite');
+        return;
+      }
       
       // Capture ALL available ocean conditions at this exact moment
       const captureOceanData = async () => {
@@ -476,6 +561,20 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
             <span className="text-white font-bold tracking-wider text-sm">ABFI</span>
             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
           </span>
+          
+          {/* Pending bites badge */}
+          {pendingBites > 0 && (
+            <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+              {pendingBites}
+            </div>
+          )}
+          
+          {/* Syncing indicator */}
+          {isSyncing && (
+            <div className="absolute -top-2 -left-2">
+              <Upload size={12} className="text-cyan-400 animate-bounce" />
+            </div>
+          )}
         </button>
         
         {/* ABFI Intelligence Tooltip */}
