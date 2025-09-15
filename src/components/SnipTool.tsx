@@ -969,28 +969,20 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     };
   }, [startDrawing]);
 
-  // Quick hint popup function
+  // Quick success notification
   const showQuickHint = () => {
     const hint = document.createElement('div');
-    hint.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[99999] pointer-events-none';
+    hint.className = 'fixed top-20 right-4 z-[99999] pointer-events-none';
     hint.innerHTML = `
-      <div class="bg-gradient-to-r from-cyan-900/98 to-blue-900/98 backdrop-blur-xl rounded-2xl px-8 py-4 
-                  border-2 border-cyan-400 shadow-[0_0_40px_rgba(0,212,255,0.8)] 
-                  transform scale-0 animate-[popIn_0.4s_ease-out_forwards]">
-        <div class="flex items-center gap-4">
-          <div class="relative">
-            <div class="w-12 h-12 rounded-full bg-cyan-400/20 flex items-center justify-center">
-              <svg class="w-6 h-6 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M15 15l-2 5L9 9l11 4-5 2z"/>
-              </svg>
-            </div>
-            <div class="absolute inset-0 w-12 h-12 rounded-full bg-cyan-400/40 animate-ping"></div>
-          </div>
-          <div>
-            <p class="text-cyan-100 font-bold text-lg">Analysis Ready!</p>
-            <p class="text-cyan-200/80 text-sm">Click the rectangle to view ocean intelligence</p>
-          </div>
+      <div class="bg-gradient-to-r from-green-600/95 to-cyan-600/95 backdrop-blur-xl rounded-lg px-4 py-2 
+                  border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.5)] 
+                  transform translate-x-full animate-[slideIn_0.3s_ease-out_forwards]">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p class="text-white font-semibold text-sm">Analysis complete!</p>
         </div>
       </div>
     `;
@@ -998,26 +990,25 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     // Add animation styles
     const style = document.createElement('style');
     style.textContent = `
-      @keyframes popIn {
-        0% { transform: scale(0) rotate(-10deg); opacity: 0; }
-        50% { transform: scale(1.05) rotate(2deg); }
-        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      @keyframes slideIn {
+        0% { transform: translateX(100%); opacity: 0; }
+        100% { transform: translateX(0); opacity: 1; }
       }
-      @keyframes fadeOut {
-        0% { opacity: 1; transform: scale(1); }
-        100% { opacity: 0; transform: scale(0.9); }
+      @keyframes slideOut {
+        0% { transform: translateX(0); opacity: 1; }
+        100% { transform: translateX(100%); opacity: 0; }
       }
     `;
     document.head.appendChild(style);
     document.body.appendChild(hint);
     
-    // Auto remove after 3 seconds with fade out
+    // Auto remove after 2 seconds with slide out
     setTimeout(() => {
-      hint.firstElementChild?.classList.add('animate-[fadeOut_0.3s_ease-out_forwards]');
+      hint.firstElementChild?.classList.add('animate-[slideOut_0.3s_ease-out_forwards]');
       setTimeout(() => {
         hint.remove();
       }, 300);
-    }, 3000);
+    }, 2000);
   };
 
   return (
@@ -1030,19 +1021,44 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         Start Snipping
       </button>
       
-      {/* Click hint for analysis results - more prominent */}
+      {/* Enhanced persistent guide for analysis results */}
       {hasAnalysisResults && !isAnalyzing && !isDrawing && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 pointer-events-none z-[9999]">
-          <div className="bg-gradient-to-r from-cyan-900/95 to-blue-900/95 backdrop-blur-md rounded-xl px-6 py-3 flex items-center gap-3 border-2 border-cyan-400/50 shadow-[0_0_30px_rgba(0,212,255,0.5)] animate-pulse">
-            <div className="relative">
-              <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping" />
-              <div className="absolute inset-0 w-3 h-3 rounded-full bg-cyan-300" />
+        <>
+          {/* Arrow pointing to rectangle */}
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[9998]">
+            <div className="relative animate-bounce">
+              <svg className="w-16 h-16 text-cyan-400 drop-shadow-[0_0_20px_rgba(0,212,255,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2z"/>
+              </svg>
             </div>
-            <span className="text-base font-semibold text-cyan-100">
-              Data visualized! Click the rectangle to see written analysis
-            </span>
           </div>
-        </div>
+          
+          {/* Instructional tooltip */}
+          <div className="fixed bottom-32 left-1/2 -translate-x-1/2 pointer-events-none z-[9999]">
+            <div className="bg-gradient-to-r from-cyan-900/98 to-blue-900/98 backdrop-blur-xl rounded-2xl px-8 py-4 border-2 border-cyan-400 shadow-[0_0_40px_rgba(0,212,255,0.8)]">
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
+                  <span className="text-cyan-100 font-bold text-lg">Analysis Complete!</span>
+                  <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-cyan-200 text-sm">
+                    🔍 Explore the visualized data on your map
+                  </p>
+                  <p className="text-cyan-300 font-semibold">
+                    👆 Click the highlighted rectangle for detailed ocean intelligence
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 mt-2 text-xs text-cyan-400/80">
+                  <span>• Hotspots marked</span>
+                  <span>• Edges detected</span>
+                  <span>• Vessels tracked</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
       
       {/* Enhanced Status display with better visibility */}
