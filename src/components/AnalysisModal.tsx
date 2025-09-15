@@ -65,9 +65,9 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       onClick={onClose}
       style={{ pointerEvents: 'auto', display: 'flex' }}
     >
-      {/* Modal Content - Compact size for no scrolling */}
+      {/* Modal Content - Wide layout to fit everything */}
       <div 
-        className="relative max-w-2xl w-full max-h-[85vh] overflow-y-auto bg-gradient-to-br from-gray-900 via-black to-cyan-950 rounded-2xl shadow-2xl border border-cyan-500/30"
+        className="relative max-w-5xl w-full max-h-[90vh] bg-gradient-to-br from-gray-900 via-black to-cyan-950 rounded-2xl shadow-2xl border border-cyan-500/30"
         onClick={(e) => e.stopPropagation()}
         style={{ pointerEvents: 'auto' }}
       >
@@ -88,11 +88,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           <p className="text-cyan-300/70 text-xs mt-1">Analysis complete • Patterns detected</p>
         </div>
 
-        {/* Compact Main Content */}
-        <div className="p-4 space-y-4">
-          {/* Convergence Alert if detected */}
+        {/* Grid Layout Main Content */}
+        <div className="p-4 grid grid-cols-2 gap-4 max-h-[calc(90vh-8rem)] overflow-y-auto">
+          {/* Convergence Alert if detected - full width */}
           {layerAnalysis?.convergence?.detected && (
-            <div className="bg-gradient-to-r from-cyan-500/20 via-green-500/20 to-cyan-500/20 rounded-xl p-4 border-2 border-cyan-400/50 animate-pulse">
+            <div className="col-span-2 bg-gradient-to-r from-cyan-500/20 via-green-500/20 to-cyan-500/20 rounded-xl p-4 border-2 border-cyan-400/50 animate-pulse">
               <h3 className="text-cyan-300 font-bold mb-2 flex items-center gap-2">
                 <Target size={20} className="text-cyan-300 drop-shadow-[0_0_10px_rgba(103,232,249,0.9)]" />
                 CONVERGENCE ZONE DETECTED!
@@ -103,8 +103,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             </div>
           )}
           
-          {/* Analysis Result - Educational */}
-          <div className={`rounded-xl p-4 border ${
+          {/* Analysis Result - Educational - full width */}
+          <div className={`col-span-2 rounded-xl p-4 border ${
             hotspot ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-yellow-500/5 border-yellow-500/20'
           }`}>
             <h3 className={`font-semibold mb-2 flex items-center gap-2 ${
@@ -429,8 +429,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             </p>
           </div>
 
-          {/* Life Insight - Contextual Philosophy */}
-          <div className="text-center py-4 px-6 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-cyan-500/5 rounded-xl">
+          {/* Life Insight - Contextual Philosophy - full width */}
+          <div className="col-span-2 text-center py-4 px-6 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-cyan-500/5 rounded-xl">
             <p className="text-cyan-300 italic">
               "{getAnalysisQuote({
                 hotspot,

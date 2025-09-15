@@ -689,6 +689,9 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       setIsAnalyzing(false);
       setAnalysisStep('');
       // Don't clear the rectangle or area - keep them visible
+      
+      // Show a quick popup hint that auto-dismisses
+      showQuickHint();
       // The rectangle will only clear when user starts a new selection
     } catch (error) {
       console.error('[SNIP] Analysis error:', error);
@@ -965,6 +968,57 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       delete (window as any).startSnipping;
     };
   }, [startDrawing]);
+
+  // Quick hint popup function
+  const showQuickHint = () => {
+    const hint = document.createElement('div');
+    hint.className = 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[99999] pointer-events-none';
+    hint.innerHTML = `
+      <div class="bg-gradient-to-r from-cyan-900/98 to-blue-900/98 backdrop-blur-xl rounded-2xl px-8 py-4 
+                  border-2 border-cyan-400 shadow-[0_0_40px_rgba(0,212,255,0.8)] 
+                  transform scale-0 animate-[popIn_0.4s_ease-out_forwards]">
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <div class="w-12 h-12 rounded-full bg-cyan-400/20 flex items-center justify-center">
+              <svg class="w-6 h-6 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 15l-2 5L9 9l11 4-5 2z"/>
+              </svg>
+            </div>
+            <div class="absolute inset-0 w-12 h-12 rounded-full bg-cyan-400/40 animate-ping"></div>
+          </div>
+          <div>
+            <p class="text-cyan-100 font-bold text-lg">Analysis Ready!</p>
+            <p class="text-cyan-200/80 text-sm">Click the rectangle to view ocean intelligence</p>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = \`
+      @keyframes popIn {
+        0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+        50% { transform: scale(1.05) rotate(2deg); }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+      }
+      @keyframes fadeOut {
+        0% { opacity: 1; transform: scale(1); }
+        100% { opacity: 0; transform: scale(0.9); }
+      }
+    \`;
+    document.head.appendChild(style);
+    document.body.appendChild(hint);
+    
+    // Auto remove after 3 seconds with fade out
+    setTimeout(() => {
+      hint.firstElementChild?.classList.add('animate-[fadeOut_0.3s_ease-out_forwards]');
+      setTimeout(() => {
+        hint.remove();
+      }, 300);
+    }, 3000);
+  };
 
   return (
     <div className="hidden">
