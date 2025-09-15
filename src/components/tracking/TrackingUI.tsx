@@ -9,7 +9,7 @@ import {
   Ship, Users, Activity, Navigation, Anchor, MapPin, 
   Clock, TrendingUp, AlertCircle, Eye, EyeOff, 
   Maximize2, Filter, Settings, Radio, Waves,
-  ChevronDown, ChevronUp, Info, Target
+  ChevronDown, ChevronUp, Info, Target, Fish
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
