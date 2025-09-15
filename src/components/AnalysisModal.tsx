@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Target, Waves, Thermometer, Activity, Save } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { getAnalysisQuote } from '@/lib/philosophy';
@@ -14,6 +15,12 @@ interface AnalysisModalProps {
 export default function AnalysisModal({ analysis, visible, onClose, onSave }: AnalysisModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure we're mounted on the client before using portal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     console.log('[AnalysisModal] Props changed - visible:', visible, 'analysis:', !!analysis);
@@ -29,6 +36,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       setTimeout(() => setIsVisible(false), 300);
     }
   }, [visible, analysis]);
+
+  // Don't render on server or if not mounted
+  if (!mounted) {
+    return null;
+  }
 
   // Show the modal if we have both visibility and analysis
   if (!visible || !analysis) {
@@ -47,11 +59,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       (current.properties.score > (best?.properties.score || 0)) ? current : best
     , features[0]) : null;
 
-  return (
+  const modalContent = (
     <div 
       className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60"
       onClick={onClose}
-      style={{ pointerEvents: 'auto' }}
+      style={{ pointerEvents: 'auto', display: 'flex' }}
     >
       {/* Modal Content - Always visible when component renders */}
       <div 
@@ -460,4 +472,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       </div>
     </div>
   );
+  
+  // Use portal to render at document body level
+  return createPortal(modalContent, document.body);
 }
