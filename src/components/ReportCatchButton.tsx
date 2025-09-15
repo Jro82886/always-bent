@@ -536,8 +536,8 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
           style={{
             background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
             backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(6, 182, 212, 0.25)',
-            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4), 0 0 32px rgba(6, 182, 212, 0.1), inset 0 1px 1px rgba(6, 182, 212, 0.1)',
+            border: '1px solid rgba(6, 182, 212, 0.3)',
+            boxShadow: '0 0 20px rgba(6, 182, 212, 0.4), 0 0 40px rgba(6, 182, 212, 0.2), 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(6, 182, 212, 0.2)',
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
             fontWeight: 600,
             fontSize: '14px',
@@ -547,13 +547,13 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(51, 65, 85, 0.98) 100%)';
-            e.currentTarget.style.boxShadow = '0 6px 32px rgba(0, 0, 0, 0.5), 0 0 40px rgba(6, 182, 212, 0.15), inset 0 1px 2px rgba(6, 182, 212, 0.2)';
-            e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.4)';
+            e.currentTarget.style.boxShadow = '0 0 30px rgba(6, 182, 212, 0.6), 0 0 60px rgba(6, 182, 212, 0.3), 0 6px 20px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(6, 182, 212, 0.3)';
+            e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.5)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)';
-            e.currentTarget.style.boxShadow = '0 4px 24px rgba(0, 0, 0, 0.4), 0 0 32px rgba(6, 182, 212, 0.1), inset 0 1px 1px rgba(6, 182, 212, 0.1)';
-            e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.25)';
+            e.currentTarget.style.boxShadow = '0 0 20px rgba(6, 182, 212, 0.4), 0 0 40px rgba(6, 182, 212, 0.2), 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(6, 182, 212, 0.2)';
+            e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.3)';
           }}
         >
           <span className="relative flex items-center justify-center gap-2">
@@ -577,11 +577,12 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
           )}
         </button>
         
-        {/* ABFI Intelligence Tooltip */}
+        {/* ABFI Intelligence Tooltip - Horizontal Layout */}
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-          <div className="bg-slate-900/95 backdrop-blur-md text-cyan-300 text-xs px-4 py-2 rounded-lg border border-cyan-500/20 text-center max-w-[220px]">
-            <div className="font-semibold text-cyan-400 mb-1">Your Bites Matter!</div>
-            <div className="text-cyan-100/90 leading-relaxed">Every bite contributes to ABFI intelligence - helping all anglers fish smarter</div>
+          <div className="bg-slate-900/95 backdrop-blur-md text-cyan-300 text-xs px-4 py-2 rounded-lg border border-cyan-500/20 whitespace-nowrap">
+            <span className="font-semibold text-cyan-400">Your Bites Matter!</span>
+            <span className="mx-2 text-cyan-500/50">•</span>
+            <span className="text-cyan-100/90">Every bite helps ABFI learn</span>
           </div>
         </div>
       </div>
