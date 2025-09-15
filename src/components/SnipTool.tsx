@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
 import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
@@ -13,6 +14,75 @@ interface SnipToolProps {
   map: mapboxgl.Map | null;
   onAnalysisComplete: (analysis: AnalysisResult) => void;
   isActive?: boolean;
+}
+
+// Tooltip component that positions itself near the rectangle
+function RectangleTooltip({ map, polygon }: { map: mapboxgl.Map | null; polygon: any }) {
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!map || !polygon || !mounted) return;
+
+    // Get the bounds of the polygon
+    const bounds = turf.bbox(polygon);
+    const centerLng = (bounds[0] + bounds[2]) / 2;
+    const topLat = bounds[3]; // Top of the rectangle
+    
+    // Convert to screen coordinates
+    const point = map.project([centerLng, topLat]);
+    setTooltipPosition({ x: point.x, y: point.y - 20 }); // Position above the rectangle
+
+    // Update position if map moves
+    const updatePosition = () => {
+      const newPoint = map.project([centerLng, topLat]);
+      setTooltipPosition({ x: newPoint.x, y: newPoint.y - 20 });
+    };
+
+    map.on('move', updatePosition);
+    return () => {
+      map.off('move', updatePosition);
+    };
+  }, [map, polygon, mounted]);
+
+  if (!mounted) return null;
+
+  const tooltip = (
+    <div 
+      className="absolute pointer-events-none z-[99999]"
+      style={{ 
+        left: `${tooltipPosition.x}px`, 
+        top: `${tooltipPosition.y}px`,
+        transform: 'translate(-50%, -100%)'
+      }}
+    >
+      {/* Arrow pointing down to rectangle */}
+      <div className="relative">
+        <div className="bg-gradient-to-r from-cyan-900/98 to-blue-900/98 backdrop-blur-xl rounded-xl px-6 py-3 border-2 border-cyan-400 shadow-[0_0_30px_rgba(0,212,255,0.8)] animate-pulse">
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-ping" />
+              <span className="text-cyan-100 font-bold">Analysis Complete!</span>
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-ping" />
+            </div>
+            <p className="text-cyan-300 font-semibold text-sm">
+              👇 Click rectangle for ocean intelligence
+            </p>
+          </div>
+        </div>
+        {/* Arrow pointing down */}
+        <div className="absolute left-1/2 -bottom-2 -translate-x-1/2">
+          <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-cyan-400"></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return createPortal(tooltip, document.body);
 }
 
 // Helper functions for map visualizations
@@ -1021,44 +1091,12 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         Start Snipping
       </button>
       
-      {/* Enhanced persistent guide for analysis results */}
-      {hasAnalysisResults && !isAnalyzing && !isDrawing && (
-        <>
-          {/* Arrow pointing to rectangle */}
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[9998]">
-            <div className="relative animate-bounce">
-              <svg className="w-16 h-16 text-cyan-400 drop-shadow-[0_0_20px_rgba(0,212,255,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2z"/>
-              </svg>
-            </div>
-          </div>
-          
-          {/* Instructional tooltip */}
-          <div className="fixed bottom-32 left-1/2 -translate-x-1/2 pointer-events-none z-[9999]">
-            <div className="bg-gradient-to-r from-cyan-900/98 to-blue-900/98 backdrop-blur-xl rounded-2xl px-8 py-4 border-2 border-cyan-400 shadow-[0_0_40px_rgba(0,212,255,0.8)]">
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-                  <span className="text-cyan-100 font-bold text-lg">Analysis Complete!</span>
-                  <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-                </div>
-                <div className="text-center space-y-1">
-                  <p className="text-cyan-200 text-sm">
-                    🔍 Explore the visualized data on your map
-                  </p>
-                  <p className="text-cyan-300 font-semibold">
-                    👆 Click the highlighted rectangle for detailed ocean intelligence
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 mt-2 text-xs text-cyan-400/80">
-                  <span>• Hotspots marked</span>
-                  <span>• Edges detected</span>
-                  <span>• Vessels tracked</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
+      {/* Enhanced guide positioned near the rectangle */}
+      {hasAnalysisResults && !isAnalyzing && !isDrawing && currentPolygon.current && (
+        <RectangleTooltip 
+          map={map} 
+          polygon={currentPolygon.current}
+        />
       )}
       
       {/* Enhanced Status display with better visibility */}
