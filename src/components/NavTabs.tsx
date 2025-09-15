@@ -7,9 +7,9 @@ import { useAppState } from '@/store/appState';
 
 const TABS = [
   { href: '/legendary', label: 'Analysis' },
-  { href: '/tracking', label: 'Tracking' },
-  { href: '/trends', label: 'Trends' },
-  { href: '/community', label: 'Community' },
+  { href: '/legendary?mode=tracking', label: 'Tracking' },
+  { href: '/legendary?mode=trends', label: 'Trends' },
+  { href: '/legendary?mode=community', label: 'Community' },
 ];
 
 export default function NavTabs() {

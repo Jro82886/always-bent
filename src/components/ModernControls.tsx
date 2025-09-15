@@ -107,9 +107,9 @@ export default function ModernControls({
   const handleViewChange = (view: string) => {
     setCurrentView(view);
     if (view === 'tracking') {
-      router.push('/tracking');
+      router.push('/legendary?mode=tracking');
     } else if (view === 'community') {
-      router.push('/community');
+      router.push('/legendary?mode=community');
     } else {
       router.push('/legendary');
     }

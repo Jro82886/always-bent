@@ -12,7 +12,7 @@ export default function LeftRail() {
             </Link>
           </li>
           <li>
-            <Link href="/analysis" prefetch={false}>
+            <Link href="/legendary" prefetch={false}>
               Analysis
             </Link>
           </li>
