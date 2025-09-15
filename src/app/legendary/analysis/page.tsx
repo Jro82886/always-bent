@@ -16,7 +16,6 @@ import VesselTrackingSystem from '@/components/tracking/VesselTrackingSystem';
 import TrendsMode from '@/components/trends/TrendsMode';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
-import UnifiedRightPanel from '@/components/UnifiedRightPanel';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -433,11 +432,6 @@ export default function LegendaryOceanPlatform() {
         <>
           <VesselTrackingSystem map={map.current} />
           
-          {/* Unified Right Panel for Tracking */}
-          <UnifiedRightPanel 
-            currentMode="tracking"
-            onAnalyze={() => {}}
-          />
           
         </>
       )}
