@@ -18,21 +18,21 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   useEffect(() => {
     console.log('[AnalysisModal] Props changed - visible:', visible, 'analysis:', !!analysis);
     if (visible && analysis) {
-      // Show immediately when visible prop is true (user clicked)
+      // Show immediately when visible prop is true
       console.log('[AnalysisModal] Showing modal');
       setIsVisible(true);
-      setTimeout(() => {
-        setIsAnimating(true);
-      }, 50); // Small delay for animation
-    } else {
-      console.log('[AnalysisModal] Hiding modal - visible:', visible, 'analysis:', !!analysis);
+      // Force animation to start immediately
+      setIsAnimating(true);
+    } else if (!visible) {
+      console.log('[AnalysisModal] Hiding modal');
       setIsAnimating(false);
       setTimeout(() => setIsVisible(false), 300);
     }
   }, [visible, analysis]);
 
-  if (!isVisible || !analysis) {
-    console.log('[AnalysisModal] Not rendering - isVisible:', isVisible, 'analysis:', !!analysis);
+  // Show the modal if we have both visibility and analysis
+  if (!visible || !analysis) {
+    console.log('[AnalysisModal] Not rendering - visible:', visible, 'analysis:', !!analysis);
     return null;
   }
   
@@ -48,22 +48,12 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      style={{ 
-        opacity: isAnimating ? 1 : 0,
-        transition: 'opacity 500ms',
-        pointerEvents: 'auto',
-        backgroundColor: 'rgba(0, 0, 0, 0.6)'
-      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60"
       onClick={onClose}
     >
-      {/* Backdrop is now part of the main div */}
-      
-      {/* Modal Content */}
+      {/* Modal Content - Always visible when component renders */}
       <div 
-        className={`relative max-w-2xl w-full bg-gradient-to-br from-gray-900 via-black to-cyan-950 rounded-2xl shadow-2xl border border-cyan-500/30 transform transition-all duration-700 ${
-          isAnimating ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'
-        }`}
+        className="relative max-w-2xl w-full bg-gradient-to-br from-gray-900 via-black to-cyan-950 rounded-2xl shadow-2xl border border-cyan-500/30"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Glowing border effect */}
