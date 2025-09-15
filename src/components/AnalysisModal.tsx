@@ -37,6 +37,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   }
   
   console.log('[AnalysisModal] Rendering modal with analysis:', analysis);
+  console.log('[AnalysisModal] Modal should be visible now!');
 
   const { hotspot, stats, features, layerAnalysis, boatActivity, vesselTracks, edgeAnalysis } = analysis as any;
   
@@ -48,13 +49,15 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60"
       onClick={onClose}
+      style={{ pointerEvents: 'auto' }}
     >
       {/* Modal Content - Always visible when component renders */}
       <div 
         className="relative max-w-2xl w-full bg-gradient-to-br from-gray-900 via-black to-cyan-950 rounded-2xl shadow-2xl border border-cyan-500/30"
         onClick={(e) => e.stopPropagation()}
+        style={{ pointerEvents: 'auto' }}
       >
         {/* Glowing border effect */}
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 blur-xl -z-10" />
