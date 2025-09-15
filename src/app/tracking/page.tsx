@@ -4,6 +4,9 @@ import { useMapbox } from '@/lib/MapCtx';
 import { useAppState } from '@/store/appState';
 import TrackingUI from '@/components/tracking/TrackingUI';
 import { useEffect, useState, useRef } from 'react';
+import { getInletById } from '@/lib/inlets';
+import { flyToInlet60nm } from '@/lib/inletBounds';
+import { MapShell } from '@/lib/MapRef';
 
 interface VesselStats {
   total: number;
