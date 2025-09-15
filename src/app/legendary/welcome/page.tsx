@@ -52,8 +52,8 @@ export default function WelcomePage() {
       }
     }
     
-    // Navigate to main app
-    router.push('/legendary');
+    // Navigate to analysis mode (main app)
+    router.push('/legendary?mode=analysis');
   };
 
   return (
