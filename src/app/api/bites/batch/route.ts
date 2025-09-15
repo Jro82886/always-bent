@@ -11,7 +11,7 @@ import { analyzeOceanConditions } from '@/lib/ocean/analysis';
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
  * This runs async to generate the full report with historical data
  */
 async function queueBiteAnalysis(bite: any) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   try {
     // Convert timestamp to date for ocean data query

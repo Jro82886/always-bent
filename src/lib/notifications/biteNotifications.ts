@@ -5,7 +5,6 @@
  */
 
 import { createClient } from '@/lib/supabase/client';
-import { toast } from 'sonner';
 
 interface NotificationPreferences {
   enableHighlights: boolean;
@@ -88,57 +87,36 @@ export function showHighlightNotification(report: any) {
   }
   localStorage.setItem('abfi_last_notification', Date.now().toString());
   
-  // Show toast notification
-  toast.custom((t) => (
-    <div className="bg-gradient-to-r from-cyan-900/95 to-blue-900/95 backdrop-blur-md rounded-lg p-3 border border-cyan-500/30 shadow-xl">
-      <div className="flex items-start gap-3">
-        <div className="p-2 bg-cyan-500/20 rounded-lg">
-          <svg className="w-5 h-5 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+  // Show custom notification
+  const notification = document.createElement('div');
+  notification.className = 'fixed top-4 right-4 z-[9999] animate-slide-in';
+  notification.innerHTML = `
+    <div class="bg-gradient-to-r from-cyan-900/95 to-blue-900/95 backdrop-blur-md rounded-lg p-3 border border-cyan-500/30 shadow-xl max-w-sm">
+      <div class="flex items-start gap-3">
+        <div class="p-2 bg-cyan-500/20 rounded-lg">
+          <svg class="w-5 h-5 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
-        <div className="flex-1">
-          <div className="font-semibold text-white text-sm flex items-center gap-2">
-            ABFI Highlight
-            <span className="text-xs bg-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded-full">
-              {report.inlet_name || report.inlet_id}
-            </span>
+        <div class="flex-1">
+          <div class="font-semibold text-white text-sm">
+            ABFI Highlight - ${report.inlet_name || report.inlet_id || 'Nearby'}
           </div>
-          <div className="text-xs text-cyan-100/80 mt-1">
-            {report.user_name} is on fire! {report.hotspot_count} bites in the last hour
+          <div class="text-xs text-cyan-100/80 mt-1">
+            ${report.user_name} is on fire! ${report.hotspot_count} bites in the last hour
           </div>
-          {report.analysis?.ocean_conditions && (
-            <div className="flex gap-3 mt-2 text-xs text-cyan-200/60">
-              {report.analysis.ocean_conditions.sst && (
-                <span>{report.analysis.ocean_conditions.sst.toFixed(1)}°F</span>
-              )}
-              {report.analysis.ocean_conditions.distance_to_edge && (
-                <span>Edge: {(report.analysis.ocean_conditions.distance_to_edge / 1000).toFixed(1)}km</span>
-              )}
-            </div>
-          )}
         </div>
-        <button
-          onClick={() => {
-            // Navigate to reports tab
-            const event = new CustomEvent('abfi:navigate', { 
-              detail: { tab: 'community', subtab: 'reports' } 
-            });
-            window.dispatchEvent(event);
-            toast.dismiss(t);
-          }}
-          className="text-cyan-300 hover:text-cyan-200 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
     </div>
-  ), {
-    duration: 8000,
-    position: 'top-right',
-  });
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 8 seconds
+  setTimeout(() => {
+    notification.classList.add('animate-fade-out');
+    setTimeout(() => notification.remove(), 300);
+  }, 8000);
 }
 
 /**

@@ -8,7 +8,6 @@ import { reportCatch, type CatchDraft } from '@/lib/reportCatch';
 import { recordBite, getPendingCount } from '@/lib/offline/biteDB';
 import { syncBites, onSyncEvent } from '@/lib/offline/biteSync';
 import { createClient } from '@/lib/supabase/client';
-import { toast } from 'sonner';
 
 interface ReportCatchButtonProps {
   map?: mapboxgl.Map | null;
@@ -42,11 +41,11 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         updatePendingCount();
       }
       
-      // Show toast notifications
+      // Show console notifications (replace with toast later)
       if (event.type === 'sync-complete' && event.data?.synced > 0) {
-        toast.success(`Uploaded ${event.data.synced} bite${event.data.synced > 1 ? 's' : ''}`);
+        console.log(`✅ Uploaded ${event.data.synced} bite${event.data.synced > 1 ? 's' : ''}`);
       } else if (event.type === 'bite-expired' && event.data?.count > 0) {
-        toast.warning(`${event.data.count} bite${event.data.count > 1 ? 's' : ''} expired (>24 hours old)`);
+        console.warn(`⚠️ ${event.data.count} bite${event.data.count > 1 ? 's' : ''} expired (>24 hours old)`);
       }
     });
     
@@ -83,7 +82,8 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
-          toast.error('Please sign in to log bites');
+          console.error('Please sign in to log bites');
+          alert('Please sign in to log bites');
           return;
         }
         
@@ -104,20 +104,35 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         // Update pending count
         await updatePendingCount();
         
-        // Show appropriate toast
+        // Show appropriate feedback
         if (navigator.onLine) {
-          toast.success('Bite logged! Generating ocean report...', {
-            description: 'Analysis will appear in Community > Reports',
-            duration: 4000,
-          });
+          // Create success toast element
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-4 right-4 bg-green-500/90 text-white px-4 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in';
+          toast.innerHTML = `
+            <div class="font-semibold">Bite logged!</div>
+            <div class="text-sm opacity-90">Generating ocean report...</div>
+          `;
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 4000);
+          
           // Attempt immediate sync
           syncBites();
         } else {
-          toast.info('Bite saved offline', {
-            description: 'Will upload when connection restored',
-            icon: <WifiOff size={16} />,
-            duration: 4000,
-          });
+          // Create offline toast element
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-4 right-4 bg-orange-500/90 text-white px-4 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in flex items-center gap-2';
+          toast.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"></path>
+            </svg>
+            <div>
+              <div class="font-semibold">Bite saved offline</div>
+              <div class="text-sm opacity-90">Will upload when online</div>
+            </div>
+          `;
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 4000);
         }
         
         // Log success
@@ -125,7 +140,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         
       } catch (error) {
         console.error('[ABFI] Error logging bite:', error);
-        toast.error('Failed to log bite');
+        alert('Failed to log bite. Please try again.');
         return;
       }
       
@@ -531,7 +546,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       {/* ABFI INTELLIGENCE BUTTON - Refined Ocean Analysis Aesthetic */}
       <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
         {/* NEW Feature Badge - Shows for first 7 days */}
-        {!localStorage.getItem('abfi_first_click') && (
+        {typeof window !== 'undefined' && !localStorage.getItem('abfi_first_click') && (
           <div className="absolute -top-3 -left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-bounce">
             NEW
           </div>

@@ -4,7 +4,7 @@
  * 24-hour expiry for accurate ocean data analysis
  */
 
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { openDB, IDBPDatabase } from 'idb';
 import { v7 as uuidv7 } from 'uuid';
 
 export interface QueuedBite {
@@ -40,25 +40,12 @@ export interface QueuedBite {
   last_error?: string;      // Last sync error message
 }
 
-interface ABFIOfflineSchema extends DBSchema {
-  biteQueue: {
-    key: string;
-    value: QueuedBite;
-    indexes: { 
-      'by-uploaded': number | undefined;
-      'by-created': number;
-      'by-expires': number;
-      'by-inlet': string | undefined;
-    };
-  };
-}
+let dbInstance: IDBPDatabase | null = null;
 
-let dbInstance: IDBPDatabase<ABFIOfflineSchema> | null = null;
-
-export async function getDB(): Promise<IDBPDatabase<ABFIOfflineSchema>> {
+export async function getDB(): Promise<IDBPDatabase> {
   if (dbInstance) return dbInstance;
   
-  dbInstance = await openDB<ABFIOfflineSchema>('abfi_offline', 1, {
+  dbInstance = await openDB('abfi_offline', 1, {
     upgrade(db) {
       const store = db.createObjectStore('biteQueue', { 
         keyPath: 'bite_id' 
@@ -173,7 +160,7 @@ function getMapCenter(): [number, number] | null {
   // Try various ways to get the map instance
   const map = (window as any).abfiMap || 
              (window as any).map || 
-             document.querySelector('.mapboxgl-map')?.__mapboxgl;
+             (document.querySelector('.mapboxgl-map') as any)?.__mapboxgl;
   
   if (map && map.getCenter) {
     const center = map.getCenter();
