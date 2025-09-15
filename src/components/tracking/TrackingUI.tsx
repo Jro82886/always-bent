@@ -370,20 +370,64 @@ export default function TrackingUI({
                 <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Fleet Colors by Inlet</div>
                 <div className="flex items-center gap-4">
                   <LegendItem 
-                    icon={<div className={`w-3 h-3 rounded-full ${selectedInlet === 'jupiter' ? 'bg-blue-400 shadow-lg shadow-blue-400/50' : 'bg-blue-400/40'}`} />}
+                    icon={
+                      <div 
+                        className={`w-3 h-3 rounded-full ${selectedInlet === 'fl-jupiter' ? 'shadow-lg' : ''}`}
+                        style={{ 
+                          backgroundColor: selectedInlet === 'fl-jupiter' ? '#b45309' : '#b45309aa',
+                          boxShadow: selectedInlet === 'fl-jupiter' ? '0 0 10px rgba(180, 83, 9, 0.6)' : 'none'
+                        }}
+                      />
+                    }
                     label="Jupiter"
                   />
                   <LegendItem 
-                    icon={<div className={`w-3 h-3 rounded-full ${selectedInlet === 'palm-beach' ? 'bg-green-400 shadow-lg shadow-green-400/50' : 'bg-green-400/40'}`} />}
-                    label="Palm Beach"
+                    icon={
+                      <div 
+                        className={`w-3 h-3 rounded-full ${selectedInlet === 'fl-lake-worth' ? 'shadow-lg' : ''}`}
+                        style={{ 
+                          backgroundColor: selectedInlet === 'fl-lake-worth' ? '#a16207' : '#a16207aa',
+                          boxShadow: selectedInlet === 'fl-lake-worth' ? '0 0 10px rgba(161, 98, 7, 0.6)' : 'none'
+                        }}
+                      />
+                    }
+                    label="Lake Worth"
                   />
                   <LegendItem 
-                    icon={<div className={`w-3 h-3 rounded-full ${selectedInlet === 'stuart' ? 'bg-purple-400 shadow-lg shadow-purple-400/50' : 'bg-purple-400/40'}`} />}
-                    label="Stuart"
+                    icon={
+                      <div 
+                        className={`w-3 h-3 rounded-full ${selectedInlet === 'fl-st-lucie' ? 'shadow-lg' : ''}`}
+                        style={{ 
+                          backgroundColor: selectedInlet === 'fl-st-lucie' ? '#7c2d12' : '#7c2d12aa',
+                          boxShadow: selectedInlet === 'fl-st-lucie' ? '0 0 10px rgba(124, 45, 18, 0.6)' : 'none'
+                        }}
+                      />
+                    }
+                    label="St. Lucie"
                   />
                   <LegendItem 
-                    icon={<div className={`w-3 h-3 rounded-full ${selectedInlet === 'fort-pierce' ? 'bg-orange-400 shadow-lg shadow-orange-400/50' : 'bg-orange-400/40'}`} />}
-                    label="Ft Pierce"
+                    icon={
+                      <div 
+                        className={`w-3 h-3 rounded-full ${selectedInlet === 'fl-sebastian' ? 'shadow-lg' : ''}`}
+                        style={{ 
+                          backgroundColor: selectedInlet === 'fl-sebastian' ? '#0369a1' : '#0369a1aa',
+                          boxShadow: selectedInlet === 'fl-sebastian' ? '0 0 10px rgba(3, 105, 161, 0.6)' : 'none'
+                        }}
+                      />
+                    }
+                    label="Sebastian"
+                  />
+                  <LegendItem 
+                    icon={
+                      <div 
+                        className={`w-3 h-3 rounded-full ${selectedInlet === 'fl-port-everglades' ? 'shadow-lg' : ''}`}
+                        style={{ 
+                          backgroundColor: selectedInlet === 'fl-port-everglades' ? '#166534' : '#166534aa',
+                          boxShadow: selectedInlet === 'fl-port-everglades' ? '0 0 10px rgba(22, 101, 52, 0.6)' : 'none'
+                        }}
+                      />
+                    }
+                    label="Pt Everglades"
                   />
                 </div>
               </div>
