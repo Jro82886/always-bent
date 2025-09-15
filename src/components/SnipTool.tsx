@@ -434,7 +434,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         if (!analysis.hotspot || !analysis.hotspot.location) {
           console.log('[SNIP] No hotspot conditions detected - will provide educational guidance');
           // Don't fake a hotspot - let the analysis explain why
-          analysis.noHotspotReason = 'uniform_conditions';
+          // The modal will handle this case based on missing hotspot
         }
       } catch (analysisError) {
         console.warn('[SNIP] Analysis function error, using basic analysis:', analysisError);
@@ -443,7 +443,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           polygon: polygon as GeoJSON.Feature<GeoJSON.Polygon>,
           features: [],
           hotspot: null, // Be honest - no hotspot detected
-          noHotspotReason: 'uniform_conditions',
           stats: {
             min_temp_f: 68,
             max_temp_f: 72,
