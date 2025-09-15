@@ -4,7 +4,6 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Geist, Geist_Mono } from 'next/font/google';
 import GuardsClient from '@/components/GuardsClient';
 import BiteSyncInitializer from '@/components/BiteSyncInitializer';
-import FeatureSpotlight from '@/components/FeatureSpotlight';
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
@@ -19,7 +18,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <GuardsClient />
         <BiteSyncInitializer />
-        <FeatureSpotlight />
         {children}
       </body>
     </html>

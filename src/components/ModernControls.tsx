@@ -309,9 +309,9 @@ export default function ModernControls({
                 style={oceanActive ? {
                   boxShadow: '0 0 20px rgba(59, 130, 246, 0.5), inset 0 0 10px rgba(59, 130, 246, 0.3)'
                 } : {}}
-                title="Ocean Basemap (Bathymetry)"
+                title="Ocean Floor Basemap (Bathymetry)"
               >
-                🌊 Ocean
+                🌊 Ocean Floor
                 {oceanActive && (
                   <button
                     onClick={(e) => {
