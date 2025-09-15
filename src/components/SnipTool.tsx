@@ -734,16 +734,26 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
 
   // Handle clicks on analysis results
   useEffect(() => {
-    if (!map || !hasAnalysisResults || !lastAnalysis) return;
+    console.log('[SNIP] Setting up click handlers - hasResults:', hasAnalysisResults, 'hasAnalysis:', !!lastAnalysis);
+    if (!map) return;
     
     const handleResultClick = (e: mapboxgl.MapMouseEvent) => {
-      // Check if click is on the rectangle (hotspots are within it)
+      // Check if we have analysis results
+      if (!hasAnalysisResults || !lastAnalysis) {
+        console.log('[SNIP] No analysis results to show yet');
+        return;
+      }
+      
+      // Check if click is on the rectangle
       const features = map.queryRenderedFeatures(e.point, {
         layers: ['snip-rectangle-fill']
       });
       
+      console.log('[SNIP] Click detected, features found:', features.length);
+      
       if (features.length > 0) {
         console.log('[SNIP] Clicked on analysis rectangle, showing report');
+        console.log('[SNIP] Analysis data:', lastAnalysis);
         // Re-show the analysis modal
         onAnalysisComplete(lastAnalysis);
       }
@@ -751,6 +761,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
     // Add cursor change on hover over rectangle
     const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      if (!hasAnalysisResults) return;
+      
       const features = map.queryRenderedFeatures(e.point, {
         layers: ['snip-rectangle-fill']
       });

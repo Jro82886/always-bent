@@ -35,6 +35,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     console.log('[AnalysisModal] Not rendering - isVisible:', isVisible, 'analysis:', !!analysis);
     return null;
   }
+  
+  console.log('[AnalysisModal] Rendering modal with analysis:', analysis);
 
   const { hotspot, stats, features, layerAnalysis, boatActivity, vesselTracks, edgeAnalysis } = analysis as any;
   
