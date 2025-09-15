@@ -17,7 +17,7 @@ interface SnipToolProps {
 }
 
 // Tooltip component that positions itself near the rectangle
-function RectangleTooltip({ map, polygon }: { map: mapboxgl.Map | null; polygon: any }) {
+function RectangleTooltip({ map, polygon, onDismiss }: { map: mapboxgl.Map | null; polygon: any; onDismiss?: () => void }) {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [mounted, setMounted] = useState(false);
 
@@ -53,11 +53,15 @@ function RectangleTooltip({ map, polygon }: { map: mapboxgl.Map | null; polygon:
 
   const tooltip = (
     <div 
-      className="absolute pointer-events-none z-[99999]"
+      className="absolute cursor-pointer z-[99999]"
       style={{ 
         left: `${tooltipPosition.x}px`, 
         top: `${tooltipPosition.y}px`,
         transform: 'translate(-50%, -100%)'
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (onDismiss) onDismiss();
       }}
     >
       {/* Arrow pointing down to rectangle */}
@@ -321,6 +325,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [analysisStep, setAnalysisStep] = useState<string>('');
   const [lastAnalysis, setLastAnalysis] = useState<AnalysisResult | null>(null);
   const [hasAnalysisResults, setHasAnalysisResults] = useState(false);
+  const [showCompleteBanner, setShowCompleteBanner] = useState(false);
   
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
@@ -386,6 +391,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     clearDrawing();
     setHasAnalysisResults(false);
     setLastAnalysis(null);
+    setShowCompleteBanner(false);
     
     setIsDrawing(true);
     startPoint.current = null;
@@ -504,6 +510,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     // Clear analysis state
     setHasAnalysisResults(false);
     setLastAnalysis(null);
+    setShowCompleteBanner(false);
     
     // Restore button text
     const button = document.querySelector('button[onclick*="Analyze"]');
@@ -748,6 +755,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Store the analysis for later access when clicking
       setLastAnalysis(finalAnalysis);
       setHasAnalysisResults(true);
+      setShowCompleteBanner(true);
       
       // DON'T show modal immediately - let user explore visualizations first
       // Modal will show when they click the rectangle
@@ -790,6 +798,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       console.log('[SNIP] Using fallback analysis due to error');
       setLastAnalysis(fallbackAnalysis as any);
       setHasAnalysisResults(true);
+      setShowCompleteBanner(true);
       onAnalysisComplete(fallbackAnalysis as any);
       setIsAnalyzing(false);
       setIsDrawing(false);
@@ -934,6 +943,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       if (features.length > 0) {
         console.log('[SNIP] Clicked on analysis rectangle, showing report');
         console.log('[SNIP] Analysis data:', lastAnalysis);
+        // Hide the complete banner when showing analysis
+        setShowCompleteBanner(false);
         // Re-show the analysis modal
         onAnalysisComplete(lastAnalysis);
       }
@@ -1092,10 +1103,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       </button>
       
       {/* Enhanced guide positioned near the rectangle */}
-      {hasAnalysisResults && !isAnalyzing && !isDrawing && currentPolygon.current && (
+      {showCompleteBanner && hasAnalysisResults && !isAnalyzing && !isDrawing && currentPolygon.current && (
         <RectangleTooltip 
           map={map} 
           polygon={currentPolygon.current}
+          onDismiss={() => setShowCompleteBanner(false)}
         />
       )}
       
