@@ -671,16 +671,17 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           : undefined
       };
       
-      // Step 6: Store analysis and trigger completion callback
-      console.log('[SNIP] Step 6: Analysis complete, showing results...');
+      // Step 6: Store analysis but DON'T show modal yet
+      console.log('[SNIP] Step 6: Analysis complete, visualizing results...');
       console.log('[SNIP] Full analysis:', finalAnalysis);
       
       // Store the analysis for later access when clicking
       setLastAnalysis(finalAnalysis);
       setHasAnalysisResults(true);
       
-      // Show the analysis modal immediately
-      onAnalysisComplete(finalAnalysis);
+      // DON'T show modal immediately - let user explore visualizations first
+      // Modal will show when they click the rectangle
+      console.log('[SNIP] Click the highlighted area to view the written analysis');
       
       // Keep rectangle AND visualizations visible
       // Rectangle stays to show the analyzed area
@@ -975,13 +976,16 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         Start Snipping
       </button>
       
-      {/* Click hint for analysis results */}
+      {/* Click hint for analysis results - more prominent */}
       {hasAnalysisResults && !isAnalyzing && !isDrawing && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 pointer-events-none z-[9999]">
-          <div className="bg-slate-900/90 backdrop-blur-md rounded-lg px-4 py-2 flex items-center gap-2 border border-slate-600/50">
-            <div className="w-2 h-2 rounded-full bg-teal-600 animate-pulse" />
-            <span className="text-sm text-slate-300">
-              Click the highlighted area to view ocean intelligence report
+          <div className="bg-gradient-to-r from-cyan-900/95 to-blue-900/95 backdrop-blur-md rounded-xl px-6 py-3 flex items-center gap-3 border-2 border-cyan-400/50 shadow-[0_0_30px_rgba(0,212,255,0.5)] animate-pulse">
+            <div className="relative">
+              <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping" />
+              <div className="absolute inset-0 w-3 h-3 rounded-full bg-cyan-300" />
+            </div>
+            <span className="text-base font-semibold text-cyan-100">
+              Data visualized! Click the rectangle to see written analysis
             </span>
           </div>
         </div>

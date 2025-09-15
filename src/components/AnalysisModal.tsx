@@ -65,31 +65,31 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       onClick={onClose}
       style={{ pointerEvents: 'auto', display: 'flex' }}
     >
-      {/* Modal Content - Always visible when component renders */}
+      {/* Modal Content - Compact size for no scrolling */}
       <div 
-        className="relative max-w-2xl w-full bg-gradient-to-br from-gray-900 via-black to-cyan-950 rounded-2xl shadow-2xl border border-cyan-500/30"
+        className="relative max-w-2xl w-full max-h-[85vh] overflow-y-auto bg-gradient-to-br from-gray-900 via-black to-cyan-950 rounded-2xl shadow-2xl border border-cyan-500/30"
         onClick={(e) => e.stopPropagation()}
         style={{ pointerEvents: 'auto' }}
       >
         {/* Glowing border effect */}
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-cyan-500/20 blur-xl -z-10" />
         
-        {/* Header with pulse indicator */}
-        <div className="relative p-6 border-b border-cyan-500/20">
-          <div className="flex items-center gap-3">
+        {/* Compact Header */}
+        <div className="relative p-4 border-b border-cyan-500/20">
+          <div className="flex items-center gap-2">
             <div className="relative">
-              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse" />
-              <div className="absolute inset-0 w-3 h-3 bg-cyan-400 rounded-full animate-ping" />
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+              <div className="absolute inset-0 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
             </div>
-            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+            <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
               Ocean Intelligence Report
             </h2>
           </div>
-          <p className="text-cyan-300/70 text-sm mt-2">Analysis complete • Patterns detected</p>
+          <p className="text-cyan-300/70 text-xs mt-1">Analysis complete • Patterns detected</p>
         </div>
 
-        {/* Main Content */}
-        <div className="p-6 space-y-6">
+        {/* Compact Main Content */}
+        <div className="p-4 space-y-4">
           {/* Convergence Alert if detected */}
           {layerAnalysis?.convergence?.detected && (
             <div className="bg-gradient-to-r from-cyan-500/20 via-green-500/20 to-cyan-500/20 rounded-xl p-4 border-2 border-cyan-400/50 animate-pulse">
@@ -441,31 +441,31 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-6 border-t border-cyan-500/20 flex justify-between items-center">
+        {/* Compact Footer Actions */}
+        <div className="p-3 border-t border-cyan-500/20 flex justify-between items-center">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+            className="px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
           >
             <span>✂️</span>
             <span>Back to Snipping</span>
           </button>
           
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             {onSave && (
               <button
                 onClick={onSave}
-                className="px-6 py-2 bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-2"
+                className="px-4 py-1.5 text-sm bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-1"
               >
-                <Save size={18} className="text-white drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]" />
-                <span>Save to Community</span>
+                <Save size={14} className="text-white drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]" />
+                <span>Save</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg font-semibold transition-all border border-cyan-500/30"
+              className="px-4 py-1.5 text-sm bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg font-semibold transition-all border border-cyan-500/30"
             >
-              Done Reading
+              Done
             </button>
           </div>
         </div>
