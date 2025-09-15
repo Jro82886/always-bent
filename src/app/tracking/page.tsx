@@ -1,8 +1,9 @@
 'use client';
 
 import { useMapbox } from '@/lib/MapCtx';
+import { useAppState } from '@/store/appState';
 import TrackingUI from '@/components/tracking/TrackingUI';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface VesselStats {
   total: number;

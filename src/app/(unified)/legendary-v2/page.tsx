@@ -103,10 +103,6 @@ export default function LegendaryV2Page() {
       {showingTutorial && (
         <InteractiveTutorial 
           onComplete={handleTutorialComplete}
-          onSkip={() => {
-            localStorage.setItem('abfi_skip_tutorial', 'true');
-            setShowingTutorial(false);
-          }}
         />
       )}
       
@@ -115,14 +111,13 @@ export default function LegendaryV2Page() {
         <>
           <SSTLayer 
             map={map}
-            active={sstActive}
-            opacity={sstOpacity}
+            on={sstActive}
             selectedDate={selectedDate}
           />
           
           <CoastlineSmoother 
             map={map}
-            active={true}
+            enabled={true}
           />
         </>
       )}
@@ -131,35 +126,14 @@ export default function LegendaryV2Page() {
       <div className="pointer-events-none absolute inset-0">
         {/* Command Bar (top) */}
         <UnifiedCommandBar
-          oceanActive={oceanActive}
-          setOceanActive={setOceanActive}
-          sstActive={sstActive}
-          setSstActive={setSstActive}
-          chlActive={chlActive}
-          setChlActive={setChlActive}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          oceanOpacity={oceanOpacity}
-          setOceanOpacity={setOceanOpacity}
-          sstOpacity={sstOpacity}
-          setSstOpacity={setSstOpacity}
-          chlOpacity={chlOpacity}
-          setChlOpacity={setChlOpacity}
-          edgeMode={edgeMode}
-          setEdgeMode={setEdgeMode}
-        />
-        
-        {/* Left Zone */}
-        <LeftZone />
-        
-        {/* Right Zone with Snip Tool */}
-        <RightZone 
           map={map}
-          onAnalysisModalChange={setIsAnalysisModalOpen}
+          activeTab="analysis"
+          onTabChange={(tab) => console.log('Tab changed to:', tab)}
         />
         
-        {/* Unified Right Panel */}
-        <UnifiedRightPanel />
+        {/* TODO: Add LeftZone and RightZone with proper props */}
+        
+        {/* TODO: Add UnifiedRightPanel with proper props */}
         
         {/* ABFI Button */}
         {!isAnalysisModalOpen && (
