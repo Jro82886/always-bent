@@ -85,6 +85,7 @@ export default function TrackingPage() {
       {/* Top Bar */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-slate-900/90 backdrop-blur-md rounded-lg px-6 py-3 border border-cyan-500/20">
         <h1 className="text-cyan-400 font-bold">TRACKING MODE - CLEAN MAP</h1>
+        <p className="text-white text-sm">Hi Amanda! 🎯 {new Date().toLocaleTimeString()}</p>
       </div>
 
       {/* Left Panel */}
