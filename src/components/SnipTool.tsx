@@ -581,28 +581,28 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         }
       });
       
-      // Rectangle matching Ocean Analysis box styling (slate-900 with cyan accents)
-      // Fill layer - matching ocean analysis box color
+      // Uniform slate-900 rectangle - clean and minimal
+      // Fill layer - slate-900 with good transparency
       map.addLayer({
         id: 'snip-rectangle-fill',
         type: 'fill',
         source: 'snip-rectangle',
         paint: {
-          'fill-color': '#0f172a', // slate-900 to match ocean analysis box
-          'fill-opacity': 0.4 // Semi-transparent to see content beneath
+          'fill-color': '#0f172a', // slate-900 uniform color
+          'fill-opacity': 0.35 // Semi-transparent to see content beneath
         }
       });
       
-      // Cyan border matching ocean analysis theme
+      // Subtle slate border - same color family, barely visible
       map.addLayer({
         id: 'snip-rectangle-outline',
         type: 'line',
         source: 'snip-rectangle',
         paint: {
-          'line-color': '#06b6d4', // cyan-500 to match ocean analysis
-          'line-width': 2,
-          'line-opacity': 0.6,
-          'line-blur': 0 // Clean edge, no blur
+          'line-color': '#1e293b', // slate-800 - slightly lighter than fill for subtle definition
+          'line-width': 1.5,
+          'line-opacity': 0.5,
+          'line-blur': 0 // Clean edge
         }
       });
       
