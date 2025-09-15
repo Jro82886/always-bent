@@ -5,6 +5,7 @@ import { useMapbox } from '@/lib/MapCtx';
 import { modeManager } from '@/lib/modeManager';
 import TrackingUI from '@/components/tracking/TrackingUI';
 import { useAppState } from '@/store/appState';
+import { getInletById } from '@/lib/inlets';
 
 export default function TrackingV2Page() {
   const map = useMapbox(); // Same map as Analysis!
@@ -64,6 +65,8 @@ export default function TrackingV2Page() {
     );
   }
   
+  const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+  
   return (
     <>
       {/* Modern Tracking UI */}
@@ -78,6 +81,7 @@ export default function TrackingV2Page() {
         setShowCommercial={setShowCommercial}
         setShowTracks={setShowTracks}
         selectedInlet={selectedInletId}
+        selectedInletName={inlet?.name || 'No Inlet Selected'}
       />
     </>
   );

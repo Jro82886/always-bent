@@ -24,6 +24,7 @@ interface TrackingUIProps {
   setShowCommercial: (show: boolean) => void;
   setShowTracks: (show: boolean) => void;
   selectedInlet?: string;
+  selectedInletName?: string;
 }
 
 interface VesselStats {
@@ -53,7 +54,8 @@ export default function TrackingUI({
   setShowFleet,
   setShowCommercial,
   setShowTracks,
-  selectedInlet
+  selectedInlet,
+  selectedInletName = 'No Inlet Selected'
 }: TrackingUIProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [activeTab, setActiveTab] = useState<'vessels' | 'activity' | 'intel'>('vessels');
@@ -324,27 +326,120 @@ export default function TrackingUI({
         </div>
       </div>
 
-      {/* Legend - Bottom Right */}
-      <div className="absolute bottom-8 right-4 z-40">
-        <div className="bg-slate-900/95 backdrop-blur-md rounded-lg px-4 py-3 border border-cyan-500/20">
-          <h3 className="text-xs font-bold text-white mb-2 uppercase tracking-wider">Legend</h3>
-          <div className="space-y-2">
-            <LegendItem
-              icon={<div className="w-3 h-3 bg-white rounded-full shadow-lg shadow-white/50" />}
-              label="You"
-            />
-            <LegendItem
-              icon={<div className="w-3 h-3 bg-cyan-400 rounded-full shadow-lg shadow-cyan-400/50" />}
-              label="Fleet"
-            />
-            <LegendItem
-              icon={<div className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[10px] border-transparent border-b-orange-500" />}
-              label="Commercial"
-            />
-            <LegendItem
-              icon={<div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />}
-              label="Track"
-            />
+      {/* Enhanced Legend - Bottom Center Centerpiece */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+        <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.4)]">
+          {/* Active Inlet Display */}
+          <div className="px-6 py-3 border-b border-cyan-500/20">
+            <div className="flex items-center justify-center gap-3">
+              <MapPin className="text-cyan-400" size={16} />
+              <div className="text-center">
+                <div className="text-xs text-slate-400 uppercase tracking-wider">Active Inlet</div>
+                <div className="text-lg font-bold text-white mt-0.5">
+                  {selectedInletName}
+                </div>
+              </div>
+              {selectedInlet && (
+                <div className="ml-2 px-2 py-1 bg-cyan-500/20 rounded-lg">
+                  <span className="text-xs text-cyan-300 font-medium">
+                    {vesselStats.total} vessels in area
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Fleet Color Legend */}
+          <div className="px-6 py-3">
+            <div className="flex items-center gap-8">
+              {/* Your Position */}
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="w-4 h-4 rounded-full bg-white shadow-lg shadow-white/50 animate-pulse" />
+                  <div className="absolute inset-0 rounded-full bg-white/40 animate-ping" />
+                </div>
+                <span className="text-xs text-white font-medium mt-2">YOU</span>
+                <span className="text-[10px] text-cyan-400">GPS Active</span>
+              </div>
+              
+              {/* Divider */}
+              <div className="h-12 w-px bg-slate-700" />
+              
+              {/* Fleet by Inlet Colors */}
+              <div className="flex flex-col">
+                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Fleet Colors by Inlet</div>
+                <div className="flex items-center gap-4">
+                  <LegendItem 
+                    icon={<div className={`w-3 h-3 rounded-full ${selectedInlet === 'jupiter' ? 'bg-blue-400 shadow-lg shadow-blue-400/50' : 'bg-blue-400/40'}`} />}
+                    label="Jupiter"
+                  />
+                  <LegendItem 
+                    icon={<div className={`w-3 h-3 rounded-full ${selectedInlet === 'palm-beach' ? 'bg-green-400 shadow-lg shadow-green-400/50' : 'bg-green-400/40'}`} />}
+                    label="Palm Beach"
+                  />
+                  <LegendItem 
+                    icon={<div className={`w-3 h-3 rounded-full ${selectedInlet === 'stuart' ? 'bg-purple-400 shadow-lg shadow-purple-400/50' : 'bg-purple-400/40'}`} />}
+                    label="Stuart"
+                  />
+                  <LegendItem 
+                    icon={<div className={`w-3 h-3 rounded-full ${selectedInlet === 'fort-pierce' ? 'bg-orange-400 shadow-lg shadow-orange-400/50' : 'bg-orange-400/40'}`} />}
+                    label="Ft Pierce"
+                  />
+                </div>
+              </div>
+              
+              {/* Divider */}
+              <div className="h-12 w-px bg-slate-700" />
+              
+              {/* Vessel Status */}
+              <div className="flex flex-col">
+                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Activity Status</div>
+                <div className="flex items-center gap-3">
+                  <LegendItem 
+                    icon={<Fish className="text-green-400" size={12} />}
+                    label="Fishing"
+                  />
+                  <LegendItem 
+                    icon={<Navigation className="text-yellow-400" size={12} />}
+                    label="Moving"
+                  />
+                  <LegendItem 
+                    icon={<Anchor className="text-red-400" size={12} />}
+                    label="Anchored"
+                  />
+                </div>
+              </div>
+              
+              {/* Divider */}
+              <div className="h-12 w-px bg-slate-700" />
+              
+              {/* Commercial */}
+              <div className="flex flex-col items-center">
+                <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[10px] border-transparent border-b-gray-400" />
+                <span className="text-xs text-white font-medium mt-2">Commercial</span>
+                <span className="text-[10px] text-gray-400">Non-Fleet</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Track Length Control */}
+          <div className="px-6 py-2 border-t border-cyan-500/20 flex items-center justify-center gap-2">
+            <span className="text-xs text-slate-400">Track History:</span>
+            <div className="flex gap-1">
+              {(['1h', '3h', '6h', '12h'] as const).map(length => (
+                <button
+                  key={length}
+                  onClick={() => setTrackLength(length)}
+                  className={`px-2 py-1 text-xs rounded transition-all ${
+                    trackLength === length 
+                      ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50' 
+                      : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
+                  }`}
+                >
+                  {length}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
