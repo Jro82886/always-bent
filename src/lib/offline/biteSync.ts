@@ -9,9 +9,13 @@ import {
   markUploaded, 
   markError,
   cleanExpiredBites,
+  getPendingCount,
   type QueuedBite 
 } from './biteDB';
 import { createClient } from '@/lib/supabase/client';
+
+// Re-export for convenience
+export { getPendingCount } from './biteDB';
 
 // Sync state
 let isSyncing = false;

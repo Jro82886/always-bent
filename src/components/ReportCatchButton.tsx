@@ -68,23 +68,32 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   };
   
   const handleReportCatch = async () => {
-    console.log('[ABFI] Button clicked! Location enabled:', locationEnabled);
+    console.log('[ABFI] Button clicked!');
     
     // Mark as used and hide callout
     localStorage.setItem('abfi_first_click', 'true');
     setShowCallout(false);
     
-    if (!locationEnabled) {
-      // Ask user to enable location services
-      const enable = confirm('Enable location services to report bites and contribute to community intelligence!\n\nClick OK to enable location tracking.');
-      if (enable) {
-        localStorage.setItem('abfi_location_enabled', 'true');
-        setLocationEnabled(true);
-        // Continue with the bite logging
-      } else {
-        return;
-      }
+    // Check location permission from welcome screen
+    const locationPermission = typeof window !== 'undefined' ? 
+      localStorage.getItem('abfi_location_enabled') : null;
+    
+    if (locationPermission === 'false') {
+      // User explicitly chose NO location in welcome screen
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-red-500/90 text-white px-4 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in';
+      toast.innerHTML = `
+        <div class="font-semibold">Location Required</div>
+        <div class="text-sm opacity-90">ABFI needs location to log bites</div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+      return;
     }
+    
+    // Check network connectivity
+    const isOnline = navigator.onLine;
+    console.log('[ABFI] Network status:', isOnline ? 'ONLINE' : 'OFFLINE');
     
     // ONE TAP = INSTANT LOG! No forms, no friction
     const logBite = async (location: { lat: number; lng: number }) => {
@@ -108,50 +117,63 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         if (document.querySelector('.chl-toggle.active')) layersOn.push('chl');
         if (document.querySelector('.polygons-toggle.active')) layersOn.push('polygons');
         
-        // Record the bite (works offline!)
-        const bite = await recordBite({
-          user_id: userId,
-          user_name: userName,
-          inlet_id: selectedInletId || undefined,
-          layers_on: layersOn,
-        });
-        
-        // Update pending count
-        await updatePendingCount();
-        
-        // Show appropriate feedback
-        if (navigator.onLine) {
-          // Create success toast element
+        if (isOnline) {
+          // ONLINE MODE: Instant report generation
+          console.log('[ABFI] ONLINE - Creating instant report');
+          
+          // Record bite and immediately sync
+          const bite = await recordBite({
+            user_id: userId,
+            user_name: userName,
+            inlet_id: selectedInletId || undefined,
+            layers_on: layersOn,
+          });
+          
+          // Create success toast
           const toast = document.createElement('div');
           toast.className = 'fixed top-4 right-4 bg-green-500/90 text-white px-4 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in';
           toast.innerHTML = `
-            <div class="font-semibold">Bite logged!</div>
-            <div class="text-sm opacity-90">Generating ocean report...</div>
+            <div class="font-semibold">Bite Reported!</div>
+            <div class="text-sm opacity-90">View in Community → Reports</div>
           `;
           document.body.appendChild(toast);
           setTimeout(() => toast.remove(), 4000);
           
-          // Attempt immediate sync
-          syncBites();
+          // Sync immediately to generate server report
+          await syncBites();
+          
+          // Don't show badge when online
+          setPendingBites(0);
+          
         } else {
-          // Create offline toast element
+          // OFFLINE MODE: Queue for later
+          console.log('[ABFI] OFFLINE - Queuing bite for later upload');
+          
+          // Record the bite locally
+          const bite = await recordBite({
+            user_id: userId,
+            user_name: userName,
+            inlet_id: selectedInletId || undefined,
+            layers_on: layersOn,
+          });
+          
+          // Update pending count to show badge
+          await updatePendingCount();
+          
+          // Create offline toast with upload reminder
           const toast = document.createElement('div');
-          toast.className = 'fixed top-4 right-4 bg-orange-500/90 text-white px-4 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in flex items-center gap-2';
+          toast.className = 'fixed top-4 right-4 bg-orange-500/90 text-white px-4 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in';
           toast.innerHTML = `
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"></path>
-            </svg>
-            <div>
-              <div class="font-semibold">Bite saved offline</div>
-              <div class="text-sm opacity-90">Will upload when online</div>
-            </div>
+            <div class="font-semibold">Bite Saved Offline</div>
+            <div class="text-sm opacity-90">Will upload when back online</div>
+            <div class="text-xs opacity-75 mt-1">Check Ocean Analysis for upload</div>
           `;
           document.body.appendChild(toast);
-          setTimeout(() => toast.remove(), 4000);
+          setTimeout(() => toast.remove(), 5000);
         }
         
         // Log success
-        console.log('[ABFI] Bite recorded:', bite.bite_id);
+        console.log('[ABFI] Bite recorded successfully');
         
       } catch (error) {
         console.error('[ABFI] Error logging bite:', error);

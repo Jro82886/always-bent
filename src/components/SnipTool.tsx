@@ -7,13 +7,115 @@ import * as turf from '@turf/turf';
 import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData } from '@/lib/analysis/sst-analyzer';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
-import { Maximize2, Loader2, Target, TrendingUp } from 'lucide-react';
+import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
 import { getVesselsInBounds, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
+import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
 
 interface SnipToolProps {
   map: mapboxgl.Map | null;
   onAnalysisComplete: (analysis: AnalysisResult) => void;
   isActive?: boolean;
+}
+
+// Offline Bites Uploader Component
+function OfflineBitesUploader() {
+  const [pendingCount, setPendingCount] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  
+  useEffect(() => {
+    // Check initial state
+    setIsOnline(navigator.onLine);
+    checkPending();
+    
+    // Listen for online/offline changes
+    const handleOnline = () => {
+      setIsOnline(true);
+      checkPending();
+    };
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    // Check periodically
+    const interval = setInterval(checkPending, 30000);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(interval);
+    };
+  }, []);
+  
+  const checkPending = async () => {
+    const count = await getPendingCount();
+    setPendingCount(count);
+  };
+  
+  const handleUpload = async () => {
+    if (!isOnline || pendingCount === 0) return;
+    
+    setIsUploading(true);
+    try {
+      await syncBites();
+      await checkPending();
+      
+      // Show success toast
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-green-500/90 text-white px-4 py-3 rounded-lg shadow-lg z-[9999] animate-slide-in';
+      toast.innerHTML = `
+        <div class="font-semibold">Bites Uploaded!</div>
+        <div class="text-sm opacity-90">Reports generated in Community</div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Only show if there are pending bites
+  if (pendingCount === 0) return null;
+  
+  return (
+    <div className="fixed bottom-4 left-4 z-[1000]">
+      <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl p-4 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+        <div className="flex items-center gap-3">
+          {!isOnline ? (
+            <WifiOff className="text-orange-400" size={20} />
+          ) : (
+            <Upload className="text-cyan-400" size={20} />
+          )}
+          
+          <div className="flex-1">
+            <div className="text-sm font-semibold text-white">
+              {pendingCount} Offline Bite{pendingCount > 1 ? 's' : ''}
+            </div>
+            <div className="text-xs text-gray-400">
+              {isOnline ? 'Ready to upload' : 'Waiting for connection'}
+            </div>
+          </div>
+          
+          {isOnline && (
+            <button
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+            >
+              {isUploading ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : (
+                'Upload'
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Tooltip component that positions itself near the rectangle
@@ -1093,23 +1195,27 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   };
 
   return (
-    <div className="hidden">
-      <button
-        data-snip-button
-        onClick={startDrawing}
-        className="hidden"
-      >
-        Start Snipping
-      </button>
+    <>
+      {/* Offline Bites Upload Section */}
+      <OfflineBitesUploader />
       
-      {/* Enhanced guide positioned near the rectangle */}
-      {showCompleteBanner && hasAnalysisResults && !isAnalyzing && !isDrawing && currentPolygon.current && (
-        <RectangleTooltip 
-          map={map} 
-          polygon={currentPolygon.current}
-          onDismiss={() => setShowCompleteBanner(false)}
-        />
-      )}
+      <div className="hidden">
+        <button
+          data-snip-button
+          onClick={startDrawing}
+          className="hidden"
+        >
+          Start Snipping
+        </button>
+        
+        {/* Enhanced guide positioned near the rectangle */}
+        {showCompleteBanner && hasAnalysisResults && !isAnalyzing && !isDrawing && currentPolygon.current && (
+          <RectangleTooltip 
+            map={map} 
+            polygon={currentPolygon.current}
+            onDismiss={() => setShowCompleteBanner(false)}
+          />
+        )}
       
       {/* Enhanced Status display with better visibility */}
       {(isDrawing || isAnalyzing) && (
@@ -1158,6 +1264,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
