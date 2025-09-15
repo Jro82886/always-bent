@@ -435,9 +435,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Only set the polygon, no corner points (modern seamless look)
       const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
       if (source) {
+        // Ensure we only add the polygon, no point features
         source.setData({
           type: 'FeatureCollection',
-          features: [polygon]
+          features: polygon ? [polygon] : []
         });
       }
       
@@ -672,6 +673,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         id: 'snip-rectangle-fill',
         type: 'fill',
         source: 'snip-rectangle',
+        filter: ['==', '$type', 'Polygon'], // Only render polygons
         paint: {
           'fill-color': '#0f172a', // slate-900 uniform color
           'fill-opacity': 0.45 // Increased opacity for better visibility
@@ -683,6 +685,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         id: 'snip-rectangle-outline',
         type: 'line',
         source: 'snip-rectangle',
+        filter: ['==', '$type', 'Polygon'], // Only render polygon outlines
         paint: {
           'line-color': '#334155', // slate-700 - more visible
           'line-width': 2,
