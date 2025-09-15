@@ -340,38 +340,57 @@ export function generateMockSSTData(bounds: number[][]): SSTDataPoint[] {
   const latStep = (north - south) / 30;  // More points for better gradients
   const lngStep = (east - west) / 30;
   
-  // Create a strong temperature break in the middle (simulating Gulf Stream edge)
-  const edgeLng = west + (east - west) * 0.4;  // Edge at 40% across
+  // JEFF'S LOGIC: Randomly decide if this area has a temperature break
+  // 60% chance of having a significant edge (to demonstrate both scenarios)
+  const hasSignificantEdge = Math.random() < 0.6;
   
-  for (let lat = south; lat <= north; lat += latStep) {
-    for (let lng = west; lng <= east; lng += lngStep) {
-      let temp_f;
-      
-      // Create a REALISTIC temperature break at the edge (1-3°F is typical)
-      if (lng < edgeLng) {
-        // Cold side (shelf water)
-        temp_f = 72 + Math.random() * 0.5;  // 72-72.5°F
-      } else {
-        // Warm side (Gulf Stream edge)
-        temp_f = 74.5 + Math.random() * 0.5;  // 74.5-75°F
+  if (hasSignificantEdge) {
+    // Create a REALISTIC temperature break (following Jeff's thresholds)
+    const edgeLng = west + (east - west) * (0.3 + Math.random() * 0.4);  // Random position
+    
+    for (let lat = south; lat <= north; lat += latStep) {
+      for (let lng = west; lng <= east; lng += lngStep) {
+        let temp_f;
+        
+        // Create a temperature break that meets Jeff's minimum (0.5°F/mile = 0.31°F/km)
+        if (lng < edgeLng - (east - west) * 0.01) {
+          // Cold side (shelf water)
+          temp_f = 71 + Math.random() * 0.5;  // 71-71.5°F
+        } else if (lng > edgeLng + (east - west) * 0.01) {
+          // Warm side (Gulf Stream edge)
+          temp_f = 74 + Math.random() * 0.5;  // 74-74.5°F (3°F difference)
+        } else {
+          // Narrow transition zone - creates the gradient
+          const position = (lng - (edgeLng - (east - west) * 0.01)) / ((east - west) * 0.02);
+          temp_f = 71.25 + (position * 3);  // 3°F change over narrow zone
+        }
+        
+        // Add some north-south variation
+        temp_f += ((lat - south) / (north - south)) * 0.5;
+        
+        data.push({
+          lat,
+          lng,
+          temp_f
+        });
       }
-      
-      // Add some north-south variation
-      temp_f += ((lat - south) / (north - south)) * 1;
-      
-      // Add a narrow transition zone right at the edge
-      const distFromEdge = Math.abs(lng - edgeLng);
-      if (distFromEdge < (east - west) * 0.02) {  // Within 2% of edge (narrow break)
-        // Smooth transition across the break
-        const transitionFactor = (lng - (edgeLng - (east - west) * 0.02)) / ((east - west) * 0.04);
-        temp_f = 72.25 + (transitionFactor * 2.5);  // 2.5°F total change
+    }
+  } else {
+    // Create UNIFORM water conditions (no significant gradients)
+    // This represents areas where Jeff's logic says NO HOTSPOT
+    const baseTemp = 70 + Math.random() * 4;  // Random base between 70-74°F
+    
+    for (let lat = south; lat <= north; lat += latStep) {
+      for (let lng = west; lng <= east; lng += lngStep) {
+        // Very minimal variation (< 0.5°F/mile threshold)
+        const temp_f = baseTemp + (Math.random() * 0.8 - 0.4);  // ±0.4°F variation
+        
+        data.push({
+          lat,
+          lng,
+          temp_f
+        });
       }
-      
-      data.push({
-        lat,
-        lng,
-        temp_f
-      });
     }
   }
   

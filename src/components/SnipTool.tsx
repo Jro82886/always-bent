@@ -430,11 +430,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           chlData
         );
         
-        // Check if conditions support hotspots
+        // JEFF'S LOGIC: Only show hotspot if gradient meets threshold (>= 0.5°F/mile)
         if (!analysis.hotspot || !analysis.hotspot.location) {
-          console.log('[SNIP] No hotspot conditions detected - will provide educational guidance');
-          // Don't fake a hotspot - let the analysis explain why
-          // The modal will handle this case based on missing hotspot
+          console.log('[SNIP] No hotspot - water conditions do not meet Jeff\'s criteria');
+          console.log('[SNIP] Temperature range:', analysis.stats.temp_range_f.toFixed(2) + '°F');
+          // Educational guidance will be shown in modal
+        } else {
+          console.log('[SNIP] HOTSPOT DETECTED! Gradient:', analysis.hotspot.gradient_strength.toFixed(2) + '°F/km');
         }
       } catch (analysisError) {
         console.warn('[SNIP] Analysis function error, using basic analysis:', analysisError);
