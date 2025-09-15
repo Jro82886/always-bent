@@ -46,9 +46,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   return (
     <div 
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-500 ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-500 ${
         isAnimating ? 'opacity-100' : 'opacity-0'
       }`}
+      style={{ pointerEvents: isAnimating ? 'auto' : 'none' }}
       onClick={onClose}
     >
       {/* Backdrop with blur */}

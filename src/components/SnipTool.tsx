@@ -682,7 +682,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             'snip-rectangle-fill', 
             'snip-rectangle-outline',
             'snip-hotspots-pulse',
-            'snip-hotspots-layer'
+            'snip-hotspots-layer',
+            'vessel-tracks'
           ];
           
           snipLayers.forEach(layerId => {
@@ -696,11 +697,19 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         }
       };
       
-      // Only listen to style changes, not all data events
+      // Listen to multiple events to ensure layers stay on top
       map.on('style.load', moveToTop);
+      map.on('data', (e) => {
+        // Only move to top when other layers are added/changed
+        if (e.sourceId && !e.sourceId.includes('snip')) {
+          moveToTop();
+        }
+      });
       
       // Initial move to top after a short delay
       setTimeout(moveToTop, 100);
+      // And again after a bit longer to catch any late-loading layers
+      setTimeout(moveToTop, 500);
       
       return () => {
         map.off('style.load', moveToTop);
