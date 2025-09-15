@@ -1,18 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAppState } from '@/store/appState';
 
 export default function NavTabs() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { username, hydrateOnce, communityBadge, setCommunityBadge } = useAppState();
   const [locationEnabled, setLocationEnabled] = useState(false);
   
   // Get the current mode from URL
-  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-  const currentMode = searchParams.get('mode') || '';
+  const currentMode = searchParams.get('mode') || 'analysis';
   
   useEffect(() => { 
     hydrateOnce(); 
