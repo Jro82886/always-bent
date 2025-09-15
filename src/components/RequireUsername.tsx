@@ -14,7 +14,7 @@ export default function RequireUsername({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (username === null) return; // wait for hydrate
-    if (!username) router.replace('/welcome');
+    if (!username) router.replace('/legendary?mode=welcome');
   }, [username, router]);
 
   if (username === null) return null;
