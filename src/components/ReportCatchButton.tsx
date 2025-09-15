@@ -473,15 +473,16 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         >
           <span className="relative flex items-center justify-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
-            <span className="text-cyan-100 font-medium tracking-wider text-sm">BITE</span>
+            <span className="text-white font-bold tracking-wider text-sm">ABFI</span>
             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
           </span>
         </button>
         
-        {/* Subtle tooltip on hover */}
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-          <div className="bg-slate-900/95 backdrop-blur-md text-cyan-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap border border-cyan-500/20">
-            Log fish activity • Train the AI
+        {/* ABFI Intelligence Tooltip */}
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <div className="bg-slate-900/95 backdrop-blur-md text-cyan-300 text-xs px-4 py-2 rounded-lg border border-cyan-500/20 text-center">
+            <div className="font-semibold text-cyan-400 mb-1">Log Your Bite</div>
+            <div className="text-cyan-100/90">Every bite helps ABFI learn ocean patterns</div>
           </div>
         </div>
       </div>
