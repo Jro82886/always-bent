@@ -2,20 +2,28 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppState } from '@/store/appState';
-
-const TABS = [
-  { href: '/legendary', label: 'Analysis' },
-  { href: '/legendary?mode=tracking', label: 'Tracking' },
-  { href: '/legendary?mode=trends', label: 'Trends' },
-  { href: '/legendary?mode=community', label: 'Community' },
-];
 
 export default function NavTabs() {
   const pathname = usePathname();
   const { username, hydrateOnce, communityBadge, setCommunityBadge } = useAppState();
-  useEffect(() => { hydrateOnce(); }, [hydrateOnce]);
+  const [locationEnabled, setLocationEnabled] = useState(false);
+  
+  useEffect(() => { 
+    hydrateOnce(); 
+    // Check if location services are enabled
+    const enabled = localStorage.getItem('abfi_location_enabled') === 'true';
+    setLocationEnabled(enabled);
+  }, [hydrateOnce]);
+  
+  // Build tabs based on permissions
+  const TABS = [
+    { href: '/legendary', label: 'Analysis' },
+    ...(locationEnabled ? [{ href: '/legendary?mode=tracking', label: 'Tracking' }] : []),
+    { href: '/legendary?mode=trends', label: 'Trends' },
+    { href: '/legendary?mode=community', label: 'Community' },
+  ];
   return (
     <div
       className={[

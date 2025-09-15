@@ -33,15 +33,13 @@ export default function TrackingPage() {
 
   return (
     <div className="w-full h-screen relative">
-      {/* Command Bridge (Navigation) */}
-      <UnifiedCommandBar 
-        map={map.current}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-      
-      {/* Map Container */}
+      {/* Map Container - No toolbar, just the map */}
       <div ref={mapContainer} className="w-full h-full" />
+      
+      {/* Simple test message to verify updates */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-black/80 px-4 py-2 rounded">
+        <p className="text-cyan-400">Tracking Page - Updated {new Date().toLocaleTimeString()}</p>
+      </div>
     </div>
   );
 }
