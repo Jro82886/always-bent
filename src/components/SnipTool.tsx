@@ -566,6 +566,12 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     startPoint.current = null;
     currentPolygon.current = null;
     
+    // Remove persistent tooltip if exists
+    if ((window as any).__snippingTooltip) {
+      (window as any).__snippingTooltip.remove();
+      delete (window as any).__snippingTooltip;
+    }
+    
     // Reset cursor
     const canvas = map.getCanvas();
     canvas.style.cursor = '';
@@ -874,8 +880,25 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       setAnalysisStep('');
       // Don't clear the rectangle or area - keep them visible
       
-      // Show a quick popup hint that auto-dismisses
+      // Show persistent tooltip and quick hint
       showQuickHint();
+      
+      // Make the rectangle clickable to show the analysis
+      map.on('click', 'snip-rectangle-fill', () => {
+        if (lastAnalysis && onAnalysisComplete) {
+          onAnalysisComplete(lastAnalysis);
+        }
+      });
+      
+      // Change cursor on hover
+      map.on('mouseenter', 'snip-rectangle-fill', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      
+      map.on('mouseleave', 'snip-rectangle-fill', () => {
+        map.getCanvas().style.cursor = '';
+      });
+      
       // The rectangle will only clear when user starts a new selection
     } catch (error) {
       console.error('[SNIP] Analysis error:', error);
@@ -1156,8 +1179,74 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     };
   }, [startDrawing]);
 
-  // Quick success notification
+  // Quick success notification with persistent tooltip
   const showQuickHint = () => {
+    // Show the persistent tooltip on the rectangle
+    if (currentPolygon.current && map) {
+      const bounds = turf.bbox(currentPolygon.current);
+      const center = [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2];
+      
+      // Create a persistent tooltip that stays visible
+      const tooltipEl = document.createElement('div');
+      tooltipEl.className = 'snip-tooltip';
+      tooltipEl.style.cssText = `
+        position: absolute;
+        background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        pointer-events: auto;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 1000;
+        transition: all 0.2s ease;
+      `;
+      tooltipEl.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>🔵 Analysis Complete! 🔵</span>
+        </div>
+        <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">
+          Click rectangle for ocean intelligence
+        </div>
+      `;
+      
+      // Add hover effect
+      tooltipEl.addEventListener('mouseenter', () => {
+        tooltipEl.style.transform = 'scale(1.05)';
+        tooltipEl.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+      });
+      
+      tooltipEl.addEventListener('mouseleave', () => {
+        tooltipEl.style.transform = 'scale(1)';
+        tooltipEl.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+      });
+      
+      // Click to open analysis
+      tooltipEl.addEventListener('click', () => {
+        if (lastAnalysis && onAnalysisComplete) {
+          onAnalysisComplete(lastAnalysis);
+        }
+      });
+      
+      // Create a marker at the center of the rectangle
+      const tooltipMarker = new mapboxgl.Marker({
+        element: tooltipEl,
+        anchor: 'bottom'
+      })
+        .setLngLat(center as [number, number])
+        .addTo(map);
+      
+      // Store marker reference for cleanup
+      (window as any).__snippingTooltip = tooltipMarker;
+    }
+    
+    // Also show the temporary success banner
     const hint = document.createElement('div');
     hint.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 z-[99999] pointer-events-none';
     hint.innerHTML = `
@@ -1170,8 +1259,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <div>
-            <p class="text-white font-semibold text-sm">Analysis complete!</p>
-            <p class="text-green-100/80 text-xs">Check your report panel</p>
+            <p class="text-white font-semibold text-sm">Analysis Complete!</p>
+            <p class="text-green-100/80 text-xs">Click rectangle for ocean intelligence</p>
           </div>
         </div>
       </div>
