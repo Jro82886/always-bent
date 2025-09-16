@@ -148,9 +148,19 @@ export default function VesselLayer({
       userMarkerRef.current.remove();
     }
 
+    // TESTING MODE: Show location always for testing
+    // TODO: Before production, re-enable inlet bounds checking
+    const TESTING_MODE = true; // Set to false for production
+    
     // PRIVACY CHECK: Only show location if user is within inlet bounds
     // This prevents showing home/land locations to other users
     const isWithinInletBounds = () => {
+      // TESTING: Always show location for development testing
+      if (TESTING_MODE) {
+        console.log('[TESTING] Location visibility checks disabled - showing all positions');
+        return true;
+      }
+      
       const lat = userPosition.coords.latitude;
       const lng = userPosition.coords.longitude;
       
