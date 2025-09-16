@@ -174,7 +174,7 @@ export default function UnifiedRightPanel({
                 if (!document.getElementById('slide-down-animation')) {
                   const style = document.createElement('style');
                   style.id = 'slide-down-animation';
-                  style.textContent = \`
+                  style.textContent = `
                     @keyframes slide-down {
                       from { transform: translate(-50%, -100%); opacity: 0; }
                       to { transform: translate(-50%, 0); opacity: 1; }
@@ -182,7 +182,7 @@ export default function UnifiedRightPanel({
                     .animate-slide-down {
                       animation: slide-down 0.3s ease-out;
                     }
-                  \`;
+                  `;
                   document.head.appendChild(style);
                 }
                 

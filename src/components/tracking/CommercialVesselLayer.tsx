@@ -33,13 +33,24 @@ export default function CommercialVesselLayer({
       lastFetchRef.current = now;
 
       // Get map bounds or use default East Coast area
-      const mapBounds = bounds || map.getBounds();
-      const boundsArray: [number, number, number, number] = bounds || [
-        mapBounds.getWest(),
-        mapBounds.getSouth(),
-        mapBounds.getEast(),
-        mapBounds.getNorth()
-      ];
+      let boundsArray: [number, number, number, number];
+      
+      if (bounds) {
+        boundsArray = bounds;
+      } else {
+        const mapBounds = map.getBounds();
+        if (!mapBounds) {
+          // Default to East Coast area if map bounds not available
+          boundsArray = [-80, 25, -65, 45];
+        } else {
+          boundsArray = [
+            mapBounds.getWest(),
+            mapBounds.getSouth(),
+            mapBounds.getEast(),
+            mapBounds.getNorth()
+          ];
+        }
+      }
 
       // Get vessels from last 24 hours
       const endDate = new Date().toISOString();
@@ -56,8 +67,9 @@ export default function CommercialVesselLayer({
         vessels.forEach(vessel => {
           if (vessel.positions.length === 0) return;
           
-          // Skip factory ships
-          if (vessel.type?.toLowerCase().includes('factory')) return;
+          // Skip factory ships and seiners - only show trawlers and longliners
+          const vesselType = vessel.type?.toLowerCase() || '';
+          if (vesselType.includes('factory') || vesselType.includes('seiner')) return;
           
           // Use most recent position
           const latestPosition = vessel.positions[vessel.positions.length - 1];
@@ -72,11 +84,9 @@ export default function CommercialVesselLayer({
             cursor: pointer;
           `;
           
-          // Vessel type determines shape and color - more differentiated colors
-          const vesselColor = vessel.type?.toLowerCase().includes('trawler') ? '#FF6B35' :     // Orange for trawlers
-                            vessel.type?.toLowerCase().includes('longliner') ? '#9B59B6' :    // Purple for longliners  
-                            vessel.type?.toLowerCase().includes('seiner') ? '#3498DB' :       // Blue for seiners
-                            '#FF6B35'; // Default orange for unknown types
+          // Only trawlers and longliners - distinct colors, same triangle shape
+          const vesselColor = vesselType.includes('longliner') ? '#9B59B6' :    // Purple for longliners  
+                            '#FF6B35'; // Orange for trawlers and any other types
           
           el.innerHTML = `
             <!-- Commercial Vessel Icon -->
