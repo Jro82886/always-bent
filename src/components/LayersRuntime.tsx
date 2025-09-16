@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMapbox } from "@/lib/MapCtx";
 import { useAppState } from "@/store/appState";
 import { showOnly, refreshOnDate, wireMoveRefresh, needsBbox, RASTER_LAYERS, setRasterVisible } from "@/lib/layers";
@@ -15,6 +15,9 @@ export default function LayersRuntime() {
   const selectedInletId = useAppState(s => s.selectedInletId);
   const unwireRef = useRef<null | (() => void)>(null);
   const pathname = usePathname();
+  
+  // Track if we're using demo data
+  const [usingDemoData, setUsingDemoData] = useState(true); // Will be true until Jeff's backend is connected
 
   // --- Overview: BIG INTEREST AREAS (placeholder polygons) ---
   function ensureOverviewAreas(show: boolean) {
@@ -27,7 +30,15 @@ export default function LayersRuntime() {
       const demoId = 'overview-edges-demo';
       if (!m.getSource(demoId)) {
         const v = new Date().toISOString().slice(0,10); // cache-bust daily
+        
+        // 🔴 JEFF: SWITCH TO LIVE DATA HERE
+        // Demo data (current):
         m.addSource(demoId, { type: 'geojson', data: `/abfi_sst_edges_latest.geojson?v=${v}` });
+        
+        // Live data (when ready):
+        // const liveUrl = `${process.env.NEXT_PUBLIC_POLYGONS_URL}/api/ocean-features/edges?date=${isoDate}`;
+        // m.addSource(demoId, { type: 'geojson', data: liveUrl });
+        // setUsingDemoData(false); // Remove demo badge
       }
 
       const beforeId = m.getStyle()?.layers?.find((l: any) => l.type === 'symbol')?.id;
@@ -187,6 +198,23 @@ export default function LayersRuntime() {
         </div>
       )}
       {selectedInletId === 'overview' && pathname && (pathname.startsWith('/analysis') || pathname.startsWith('/v2/analysis')) && <OverviewPanel />}
+      
+      {/* Demo Data Badge - Shows when using demo ocean features */}
+      {usingDemoData && selectedInletId === 'overview' && pathname && (pathname.startsWith('/analysis') || pathname.startsWith('/v2/analysis') || pathname.startsWith('/legendary/analysis')) && (
+        <div className="fixed top-32 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-orange-500/10 backdrop-blur-xl border border-orange-400/30 rounded-lg px-4 py-2 shadow-2xl">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+              <span className="text-xs font-medium text-orange-300">
+                DEMO DATA - Ocean features are simulated
+              </span>
+              <span className="text-[10px] text-orange-300/70 ml-1">
+                (Live data coming soon)
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
