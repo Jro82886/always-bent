@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   Map, 
   Activity, 
@@ -20,10 +21,15 @@ interface UnifiedCommandBarProps {
 }
 
 export default function UnifiedCommandBar({ map, activeTab, onTabChange }: UnifiedCommandBarProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [boatName, setBoatName] = useState<string>('');
   const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { selectedInletId, setSelectedInletId } = useAppState();
+  
+  // Get current mode from URL
+  const currentMode = searchParams.get('mode') || 'analysis';
   
   useEffect(() => {
     // Get boat name from localStorage
@@ -45,7 +51,8 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   }, []);
   
   const handleTabClick = (tab: string) => {
-    onTabChange(tab);
+    // Navigate to the new mode-based URL
+    router.push(`/legendary?mode=${tab}`);
   };
   
   const handleInletSelect = (inletId: string) => {
@@ -173,11 +180,11 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             <button
               onClick={() => handleTabClick('analysis')}
               className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-                activeTab === 'analysis'
+                currentMode === 'analysis'
                   ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
                   : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
               }`}
-              style={activeTab === 'analysis' ? {
+              style={currentMode === 'analysis' ? {
                 boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
               } : {}}
             >
@@ -198,11 +205,11 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             <button
               onClick={() => handleTabClick('tracking')}
               className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-                activeTab === 'tracking'
+                currentMode === 'tracking'
                   ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
                   : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
               }`}
-              style={activeTab === 'tracking' ? {
+              style={currentMode === 'tracking' ? {
                 boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
               } : {}}
             >
@@ -222,11 +229,11 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
           <button
             onClick={() => handleTabClick('community')}
             className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-              activeTab === 'community'
+              currentMode === 'community'
                 ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
                 : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
             }`}
-            style={activeTab === 'community' ? {
+            style={currentMode === 'community' ? {
               boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
             } : {}}
           >
@@ -238,11 +245,11 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
           <button
             onClick={() => handleTabClick('trends')}
             className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-              activeTab === 'trends'
+              currentMode === 'trends'
                 ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
                 : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
             }`}
-            style={activeTab === 'trends' ? {
+            style={currentMode === 'trends' ? {
               boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
             } : {}}
           >
