@@ -14,6 +14,7 @@ import InletRegions from '@/components/InletRegions';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
+import { autoSelectInlet } from '@/lib/findClosestInlet';
 
 // Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
@@ -45,6 +46,64 @@ function TrackingModeContent() {
     setUserPosition({ lat: position.lat, lng: position.lng });
     setUserSpeed(position.speed * 1.94384); // Convert m/s to knots
     setTrackingActive(true);
+    
+    // Auto-select closest inlet if none selected
+    const autoSelect = autoSelectInlet(
+      { lat: position.lat, lng: position.lng },
+      selectedInletId
+    );
+    
+    if (autoSelect.shouldAutoSelect && autoSelect.inlet) {
+      console.log(`[AUTO-SELECT] Selecting closest inlet: ${autoSelect.inlet.name} (${autoSelect.distance?.toFixed(1)}mi away)`);
+      
+      // Update global state
+      const { setSelectedInletId } = useAppState.getState();
+      setSelectedInletId(autoSelect.inlet.id);
+      
+      // Show notification
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
+      toast.innerHTML = `
+        <div class="bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg px-6 py-4 shadow-2xl">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="text-white font-semibold">Auto-Selected Inlet</div>
+              <div class="text-gray-400 text-sm mt-1">Using ${autoSelect.inlet.name} as your home waters (closest to you)</div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      
+      // Add animation style if needed
+      if (!document.getElementById('slide-down-animation')) {
+        const style = document.createElement('style');
+        style.id = 'slide-down-animation';
+        style.textContent = `
+          @keyframes slide-down {
+            from { transform: translate(-50%, -100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+          }
+          .animate-slide-down {
+            animation: slide-down 0.3s ease-out;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      setTimeout(() => toast.remove(), 5000);
+      
+      // Fly to the auto-selected inlet
+      if (map.current && autoSelect.inlet) {
+        flyToInlet60nm(map.current, autoSelect.inlet);
+      }
+    }
   };
 
   // Get boat name and check location permission
