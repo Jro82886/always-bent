@@ -99,7 +99,7 @@ export default function UnifiedTrackingPanelLeft({
           
           {expandedSection === 'vessel' && (
             <div className="px-5 pb-4 space-y-3">
-              <div className="bg-slate-800/50 rounded-lg p-3">
+                <div className="bg-slate-800/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-white shadow-lg shadow-white/50" />
@@ -109,6 +109,11 @@ export default function UnifiedTrackingPanelLeft({
                         <div className="flex items-center gap-2 mt-1">
                           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                           <span className="text-xs text-green-400">GPS Active</span>
+                        </div>
+                      )}
+                      {trackingActive && (
+                        <div className="text-xs text-orange-400/60 mt-1">
+                          Location hidden until at inlet
                         </div>
                       )}
                     </div>

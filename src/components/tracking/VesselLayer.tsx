@@ -58,6 +58,7 @@ export default function VesselLayer({
   onPositionUpdate 
 }: VesselLayerProps) {
   const [userPosition, setUserPosition] = useState<GeolocationPosition | null>(null);
+  const [wasVisibleLastCheck, setWasVisibleLastCheck] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const fleetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
@@ -147,7 +148,93 @@ export default function VesselLayer({
       userMarkerRef.current.remove();
     }
 
-    if (showYou) {
+    // PRIVACY CHECK: Only show location if user is within inlet bounds
+    // This prevents showing home/land locations to other users
+    const isWithinInletBounds = () => {
+      const lat = userPosition.coords.latitude;
+      const lng = userPosition.coords.longitude;
+      
+      // Check if user is near water (basic check - east of -76 longitude on East Coast)
+      // This is a rough check - in production we'd use actual inlet polygons
+      if (lng > -76) {
+        console.log('[PRIVACY] User position on land, hiding from map');
+        return false;
+      }
+      
+      // Additional check: Must be within reasonable distance of selected inlet
+      if (selectedInletId && selectedInletId !== 'overview') {
+        const inlet = getInletById(selectedInletId);
+        if (inlet) {
+          const [inletLng, inletLat] = inlet.center;
+          // Calculate rough distance (simplified)
+          const latDiff = Math.abs(lat - inletLat);
+          const lngDiff = Math.abs(lng - inletLng);
+          // Must be within ~50 miles of inlet center (roughly 0.7 degrees)
+          if (latDiff > 0.7 || lngDiff > 0.7) {
+            console.log('[PRIVACY] User too far from selected inlet, hiding from map');
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    };
+
+    const isVisible = showYou && isWithinInletBounds();
+    
+    // Show notification when entering/leaving inlet bounds
+    if (isVisible && !wasVisibleLastCheck) {
+      // Just became visible - entered inlet bounds
+      setWasVisibleLastCheck(true);
+      
+      const inlet = getInletById(selectedInletId);
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
+      toast.innerHTML = `
+        <div class="bg-slate-900/95 backdrop-blur-xl border border-green-500/30 rounded-lg px-6 py-4 shadow-2xl">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="text-white font-semibold">Location Now Visible</div>
+              <div class="text-gray-400 text-sm mt-1">You're at ${inlet?.name || 'the inlet'} - fleet can see you</div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+      
+    } else if (!isVisible && wasVisibleLastCheck && showYou) {
+      // Just became invisible - left inlet bounds
+      setWasVisibleLastCheck(false);
+      
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
+      toast.innerHTML = `
+        <div class="bg-slate-900/95 backdrop-blur-xl border border-orange-500/30 rounded-lg px-6 py-4 shadow-2xl">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="text-white font-semibold">Location Hidden</div>
+              <div class="text-gray-400 text-sm mt-1">You're on land - position private</div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+    
+    if (isVisible) {
       // Create custom marker element with enhanced glow
       const el = document.createElement('div');
       el.className = 'user-vessel-marker';
@@ -239,7 +326,7 @@ export default function VesselLayer({
         userMarkerRef.current = null;
       }
     };
-  }, [map, userPosition, showYou]);
+  }, [map, userPosition, showYou, selectedInletId, wasVisibleLastCheck]);
 
   // Render fleet markers
   useEffect(() => {
