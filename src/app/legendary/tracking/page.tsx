@@ -74,8 +74,8 @@ function TrackingModeContent() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: [-74, 35],  // Start with East Coast view
-      zoom: 5,  // Zoomed out to see Gulf Stream
+      center: [-71.4, 41.15],  // Start with default inlet (Block Island)
+      zoom: 7.5,  // Good zoom for inlet to Gulf Stream view
       pitch: 0,
       bearing: 0,
       cooperativeGestures: false  // Allow normal scroll zoom
@@ -87,7 +87,7 @@ function TrackingModeContent() {
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     
     mapInstance.on('load', () => {
-      console.log('[TRACKING] Map initialized with East Coast view');
+      console.log('[TRACKING] Map initialized');
       
       // Set East Coast bounds to prevent getting lost
       const EAST_COAST_BOUNDS = [[-85, 23], [-64, 47]];
@@ -100,12 +100,21 @@ function TrackingModeContent() {
       // Disable pitch/rotation controls
       mapInstance.dragRotate.disable();
       mapInstance.touchPitch.disable();
+      
+      // Fly to selected inlet with Gulf Stream view after map loads
+      if (selectedInletId) {
+        const inlet = getInletById(selectedInletId);
+        if (inlet) {
+          flyToInlet60nm(mapInstance, inlet);
+          console.log(`[TRACKING] Initial fly to inlet: ${inlet.name}`);
+        }
+      }
     });
 
     return () => {
       map.current?.remove();
     };
-  }, []);
+  }, [selectedInletId]);
   
   // Watch for inlet changes and fly to selected inlet with Gulf Stream view
   useEffect(() => {

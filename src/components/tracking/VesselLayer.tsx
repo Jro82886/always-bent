@@ -148,43 +148,82 @@ export default function VesselLayer({
     }
 
     if (showYou) {
-      // Create custom marker element
+      // Create custom marker element with enhanced glow
       const el = document.createElement('div');
       el.className = 'user-vessel-marker';
-      el.style.width = '20px';
-      el.style.height = '20px';
+      el.style.width = '30px';
+      el.style.height = '30px';
+      el.style.position = 'relative';
       el.innerHTML = `
         <div style="
-          width: 20px;
-          height: 20px;
+          width: 16px;
+          height: 16px;
           background: white;
           border-radius: 50%;
-          box-shadow: 0 0 20px rgba(0, 221, 235, 0.8), 0 0 40px rgba(0, 221, 235, 0.4);
-          position: relative;
+          box-shadow: 
+            0 0 30px rgba(0, 255, 255, 1),
+            0 0 60px rgba(0, 221, 235, 0.8),
+            0 0 90px rgba(0, 221, 235, 0.6),
+            inset 0 0 15px rgba(0, 255, 255, 0.5);
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 2;
         ">
-          <div style="
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            border: 2px solid rgba(0, 221, 235, 0.5);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-          "></div>
         </div>
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 40px;
+          height: 40px;
+          transform: translate(-50%, -50%);
+          border: 2px solid rgba(0, 255, 255, 0.6);
+          border-radius: 50%;
+          animation: pulse-ring 2s infinite;
+        "></div>
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 60px;
+          height: 60px;
+          transform: translate(-50%, -50%);
+          background: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, transparent 70%);
+          animation: glow-pulse 2s infinite;
+        "></div>
       `;
 
-      // Add pulse animation
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.5); opacity: 0.5; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-      `;
-      document.head.appendChild(style);
+      // Add enhanced animations
+      if (!document.getElementById('user-vessel-animations')) {
+        const style = document.createElement('style');
+        style.id = 'user-vessel-animations';
+        style.textContent = `
+          @keyframes pulse-ring {
+            0% { 
+              transform: translate(-50%, -50%) scale(1); 
+              opacity: 1;
+              border-color: rgba(0, 255, 255, 0.6);
+            }
+            50% { 
+              transform: translate(-50%, -50%) scale(1.3); 
+              opacity: 0.3;
+              border-color: rgba(0, 255, 255, 0.8);
+            }
+            100% { 
+              transform: translate(-50%, -50%) scale(1); 
+              opacity: 1;
+              border-color: rgba(0, 255, 255, 0.6);
+            }
+          }
+          @keyframes glow-pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
 
       // Create marker
       const marker = new mapboxgl.Marker(el)
@@ -266,8 +305,15 @@ export default function VesselLayer({
 
     // Remove existing tracks
     if (map.getSource('vessel-tracks')) {
+      // Remove all track layers
       if (map.getLayer('vessel-tracks-layer')) {
         map.removeLayer('vessel-tracks-layer');
+      }
+      if (map.getLayer('vessel-tracks-glow-mid')) {
+        map.removeLayer('vessel-tracks-glow-mid');
+      }
+      if (map.getLayer('vessel-tracks-glow-outer')) {
+        map.removeLayer('vessel-tracks-glow-outer');
       }
       map.removeSource('vessel-tracks');
       trackSourceRef.current = false;
@@ -324,6 +370,34 @@ export default function VesselLayer({
         }
       });
 
+      // Add multiple layers for glowing effect
+      // Outer glow
+      map.addLayer({
+        id: 'vessel-tracks-glow-outer',
+        type: 'line',
+        source: 'vessel-tracks',
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 8,
+          'line-opacity': 0.15,
+          'line-blur': 4
+        }
+      });
+
+      // Mid glow
+      map.addLayer({
+        id: 'vessel-tracks-glow-mid',
+        type: 'line',
+        source: 'vessel-tracks',
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 4,
+          'line-opacity': 0.3,
+          'line-blur': 2
+        }
+      });
+
+      // Core track
       map.addLayer({
         id: 'vessel-tracks-layer',
         type: 'line',
@@ -331,8 +405,11 @@ export default function VesselLayer({
         paint: {
           'line-color': ['get', 'color'],
           'line-width': 2,
-          'line-opacity': 0.4,
-          'line-dasharray': [2, 2]
+          'line-opacity': 0.8
+        },
+        layout: {
+          'line-cap': 'round',
+          'line-join': 'round'
         }
       });
 
@@ -343,6 +420,12 @@ export default function VesselLayer({
       if (map && map.getSource('vessel-tracks')) {
         if (map.getLayer('vessel-tracks-layer')) {
           map.removeLayer('vessel-tracks-layer');
+        }
+        if (map.getLayer('vessel-tracks-glow-mid')) {
+          map.removeLayer('vessel-tracks-glow-mid');
+        }
+        if (map.getLayer('vessel-tracks-glow-outer')) {
+          map.removeLayer('vessel-tracks-glow-outer');
         }
         map.removeSource('vessel-tracks');
         trackSourceRef.current = false;
