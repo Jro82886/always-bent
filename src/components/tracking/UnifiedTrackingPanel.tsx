@@ -14,6 +14,8 @@ interface UnifiedTrackingPanelProps {
   setShowYou: (show: boolean) => void;
   showFleet: boolean;
   setShowFleet: (show: boolean) => void;
+  showCommercial: boolean;
+  setShowCommercial: (show: boolean) => void;
   showABFINetwork: boolean;
   setShowABFINetwork: (show: boolean) => void;
   showTracks: boolean;
@@ -32,6 +34,8 @@ export default function UnifiedTrackingPanel({
   setShowYou,
   showFleet,
   setShowFleet,
+  showCommercial,
+  setShowCommercial,
   showABFINetwork,
   setShowABFINetwork,
   showTracks,
@@ -114,6 +118,15 @@ export default function UnifiedTrackingPanel({
         
         {/* Scrollable Controls Section */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Location Sharing Notice */}
+          {!trackingActive && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+              <div className="text-xs text-red-400 font-medium mb-1">Location Sharing Required</div>
+              <div className="text-xs text-red-300/80">
+                Enable location services to see other vessels. ABFI operates on reciprocal sharing - share your location to see the fleet.
+              </div>
+            </div>
+          )}
           {/* Your Vessel Section */}
           <div className="space-y-3">
             <div className="text-xs font-medium text-cyan-400/70 uppercase tracking-wider">Your Vessel</div>
@@ -211,6 +224,34 @@ export default function UnifiedTrackingPanel({
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+          
+          {/* Public Data Section - Always Available */}
+          <div className="space-y-3">
+            <div className="text-xs font-medium text-green-400/70 uppercase tracking-wider">Public Data</div>
+            
+            <div className="bg-slate-800/30 rounded-lg p-3">
+              {/* Commercial Vessels Toggle */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-orange-500" />
+                  <span className="text-sm text-cyan-100">GFW Commercial</span>
+                </div>
+                <button 
+                  onClick={() => setShowCommercial(!showCommercial)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${
+                    showCommercial ? 'bg-cyan-600' : 'bg-slate-700'
+                  }`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    showCommercial ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+              <div className="text-xs text-cyan-400/60 mt-2 pl-5">
+                Global Fishing Watch data (always available)
+              </div>
             </div>
           </div>
           
