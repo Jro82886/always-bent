@@ -8,6 +8,7 @@ import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData, type Analy
 import { saveSnipAnalysis } from '@/lib/supabase/ml-queries';
 import * as turf from '@turf/turf';
 import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
+import { saveAnalysisAsReport } from '@/lib/reports/analysis-to-report';
 
 interface SnipControllerProps {
   map: mapboxgl.Map | null;
@@ -222,6 +223,21 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       }
       
       if (saved) {
+        // ALSO save as community report for ABFI network
+        try {
+          // Add inlet_id to the analysis data
+          const inletId = localStorage.getItem('abfi_selected_inlet') || undefined;
+          const reportData = {
+            ...analysisData,
+            inlet_id: inletId
+          };
+          
+          await saveAnalysisAsReport(reportData as any);
+          console.log('[REPORT] Analysis saved to community reports');
+        } catch (reportError) {
+          console.warn('[WARNING] Failed to save as community report:', reportError);
+        }
+        
         // Show success feedback
         showSaveSuccessToast();
         

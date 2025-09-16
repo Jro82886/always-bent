@@ -27,6 +27,7 @@ interface BiteReport {
   analysis?: {
     ocean_conditions?: {
       sst?: number;
+      sst_gradient?: number;
       chl?: number;
       current_speed?: number;
       distance_to_edge?: number;
@@ -40,6 +41,8 @@ interface BiteReport {
   };
   is_hotspot?: boolean;
   hotspot_count?: number;
+  is_abfi_highlight?: boolean;
+  highlight_reason?: string;
 }
 
 type ViewMode = 'my' | 'inlet' | 'network';
@@ -76,33 +79,73 @@ export default function ReportsFeed() {
     setLoading(true);
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      // Try to load from Supabase first
+      let supabaseReports: BiteReport[] = [];
+      let hasSupabase = false;
       
-      let query = supabase
-        .from('bite_reports')
-        .select('*')
-        .gte('created_at', threeDaysAgo.toISOString())
-        .eq('status', 'analyzed')
-        .order('created_at', { ascending: false });
-      
-      // Apply filters based on view mode
-      if (viewMode === 'my' && user) {
-        query = query.eq('user_id', user.id);
-      } else if (viewMode === 'inlet' && selectedInletId) {
-        query = query.eq('inlet_id', selectedInletId);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+        
+        let query = supabase
+          .from('bite_reports')
+          .select('*')
+          .gte('created_at', threeDaysAgo.toISOString())
+          .eq('status', 'analyzed')
+          .order('created_at', { ascending: false });
+        
+        // Apply filters based on view mode
+        if (viewMode === 'my' && user) {
+          query = query.eq('user_id', user.id);
+        } else if (viewMode === 'inlet' && selectedInletId) {
+          query = query.eq('inlet_id', selectedInletId);
+        }
+        
+        const { data, error } = await query.limit(50);
+        
+        if (!error && data) {
+          supabaseReports = data;
+          hasSupabase = true;
+        }
+      } catch (e) {
+        console.log('[REPORTS] Supabase not available, using local storage');
       }
       
-      const { data, error } = await query.limit(50);
+      // Also load from localStorage for testing
+      const localReports = JSON.parse(localStorage.getItem('abfi_community_reports') || '[]');
       
-      if (error) {
-        console.error('[REPORTS] Error loading reports:', error);
-        return;
+      // Combine and deduplicate reports
+      const allReports = [...supabaseReports];
+      const seenIds = new Set(supabaseReports.map(r => r.bite_id));
+      
+      // Add local reports that aren't already in Supabase
+      localReports.forEach((report: BiteReport) => {
+        if (!seenIds.has(report.bite_id)) {
+          allReports.push(report);
+        }
+      });
+      
+      // Filter by view mode for local reports
+      let filteredReports = allReports;
+      const currentUser = localStorage.getItem('abfi_username');
+      
+      if (viewMode === 'my' && currentUser) {
+        filteredReports = allReports.filter(r => 
+          r.user_id === currentUser || r.user_name === currentUser
+        );
+      } else if (viewMode === 'inlet' && selectedInletId) {
+        filteredReports = allReports.filter(r => r.inlet_id === selectedInletId);
+      } else if (viewMode === 'network') {
+        // Show ABFI highlights for network view
+        filteredReports = allReports.filter(r => 
+          r.is_hotspot || r.is_abfi_highlight || 
+          (r.analysis?.confidence_score && r.analysis.confidence_score > 70)
+        );
       }
       
       // Process and group nearby bites into hotspots
-      const processed = processReportsForHotspots(data || []);
+      const processed = processReportsForHotspots(filteredReports);
       setReports(processed);
       
     } catch (error) {
@@ -273,7 +316,7 @@ export default function ReportsFeed() {
  * Individual Report Card Component
  */
 function ReportCard({ report }: { report: BiteReport }) {
-  const isHotspot = report.is_hotspot;
+  const isHotspot = report.is_hotspot || report.is_abfi_highlight;
   const confidence = report.analysis?.confidence_score || 0;
   
   return (
@@ -288,7 +331,9 @@ function ReportCard({ report }: { report: BiteReport }) {
       {isHotspot && (
         <div className="absolute -top-2 -right-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg shadow-cyan-500/30">
           <Zap size={12} className="text-yellow-300" />
-          ABFI Highlight • {report.hotspot_count} bites/hr
+          ABFI Highlight
+          {report.hotspot_count && ` • ${report.hotspot_count} bites/hr`}
+          {report.highlight_reason && !report.hotspot_count && ` • ${report.highlight_reason.split(' • ')[0]}`}
         </div>
       )}
       
