@@ -19,7 +19,9 @@ export default function CommercialVesselLayer({
   const lastFetchRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!map || !showCommercial) {
+    if (!map) return;
+    
+    if (!showCommercial) {
       // Clear all commercial markers when hidden
       commercialMarkersRef.current.forEach(marker => marker.remove());
       commercialMarkersRef.current.clear();
@@ -27,6 +29,11 @@ export default function CommercialVesselLayer({
     }
 
     const fetchAndDisplayCommercialVessels = async () => {
+      // Ensure map is loaded before proceeding
+      if (!map.loaded()) {
+        console.log('[GFW] Waiting for map to load...');
+        return;
+      }
       // Throttle API calls - max once per 30 seconds
       const now = Date.now();
       if (now - lastFetchRef.current < 30000) return;
@@ -38,17 +45,23 @@ export default function CommercialVesselLayer({
       if (bounds) {
         boundsArray = bounds;
       } else {
-        const mapBounds = map.getBounds();
-        if (!mapBounds) {
-          // Default to East Coast area if map bounds not available
+        try {
+          const mapBounds = map.getBounds();
+          if (!mapBounds) {
+            // Default to East Coast area if map bounds not available
+            boundsArray = [-80, 25, -65, 45];
+          } else {
+            boundsArray = [
+              mapBounds.getWest(),
+              mapBounds.getSouth(),
+              mapBounds.getEast(),
+              mapBounds.getNorth()
+            ];
+          }
+        } catch (error) {
+          // If getBounds fails, use default area
+          console.log('[GFW] Could not get map bounds, using default area');
           boundsArray = [-80, 25, -65, 45];
-        } else {
-          boundsArray = [
-            mapBounds.getWest(),
-            mapBounds.getSouth(),
-            mapBounds.getEast(),
-            mapBounds.getNorth()
-          ];
         }
       }
 

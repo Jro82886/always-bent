@@ -294,10 +294,12 @@ function TrackingModeContent() {
       />
       
       {/* Commercial Vessel Layer - GFW data with ABFI branding */}
-      <CommercialVesselLayer
-        map={map.current}
-        showCommercial={showCommercial}
-      />
+      {map.current && (
+        <CommercialVesselLayer
+          map={map.current}
+          showCommercial={showCommercial}
+        />
+      )}
     </div>
   );
 }
