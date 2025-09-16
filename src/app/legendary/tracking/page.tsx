@@ -300,7 +300,7 @@ function TrackingModeContent() {
       <NetworkStatusIndicator />
       
       {/* Inlet Regions - Glowing boundaries showing where location becomes visible */}
-      {map.current && (
+      {map.current && map.current.loaded() && (
         <InletRegions 
           map={map.current} 
           enabled={true} 
@@ -316,15 +316,17 @@ function TrackingModeContent() {
       />
       
       {/* Vessel Layer - Handles all vessel markers and tracks */}
-      <VesselLayer
-        map={map.current}
-        showYou={showYou}
-        showFleet={showFleet || showABFINetwork}
-        showCommercial={false} // Commercial vessels now handled separately
-        showTracks={showTracks}
-        selectedInletId={showABFINetwork ? '' : selectedInletId}
-        onPositionUpdate={handlePositionUpdate}
-      />
+      {map.current && (
+        <VesselLayer
+          map={map.current}
+          showYou={showYou}
+          showFleet={showFleet || showABFINetwork}
+          showCommercial={false} // Commercial vessels now handled separately
+          showTracks={showTracks}
+          selectedInletId={showABFINetwork ? '' : selectedInletId}
+          onPositionUpdate={handlePositionUpdate}
+        />
+      )}
       
       {/* Commercial Vessel Layer - GFW data with ABFI branding */}
       {map.current && (

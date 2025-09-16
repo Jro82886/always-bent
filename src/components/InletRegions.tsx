@@ -58,11 +58,11 @@ export default function InletRegions({ map, enabled = true, opacity = 0.25 }: In
 
         // Find a valid layer to insert before
         const layers = map.getStyle()?.layers || [];
-        let beforeId = 'settlement-subdivision-label';
+        let beforeId: string | undefined = 'settlement-subdivision-label';
         if (!map.getLayer(beforeId)) {
           // Find first symbol layer as fallback
           const symbolLayer = layers.find(layer => layer.type === 'symbol');
-          beforeId = symbolLayer?.id || undefined;
+          beforeId = symbolLayer?.id;
         }
 
         // Add large blurred circles for the gradient effect
