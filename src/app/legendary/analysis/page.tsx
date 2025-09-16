@@ -14,6 +14,7 @@ import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
+import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -407,6 +408,9 @@ function AnalysisModeContent() {
           {!showingTutorial && (
             <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
           )}
+          
+          {/* Network Status Indicator - Shows online/offline status */}
+          <NetworkStatusIndicator />
           
       </>
       

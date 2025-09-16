@@ -6,7 +6,9 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import VesselLayer from '@/components/tracking/VesselLayer';
-import TrackingLegend from '@/components/tracking/TrackingLegend';
+import UnifiedTrackingPanelLeft from '@/components/tracking/UnifiedTrackingPanelLeft';
+import CompactLegend from '@/components/tracking/CompactLegend';
+import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
@@ -149,118 +151,43 @@ function TrackingModeContent() {
         onTabChange={() => {}}
       />
       
-      {/* Tracking Mode UI */}
-      
-      {/* Modern Tracking Legend */}
-      <TrackingLegend
+      {/* Tracking Panel - Left Side */}
+      <UnifiedTrackingPanelLeft 
+        map={map.current}
         boatName={boatName}
         selectedInletId={selectedInletId}
+        setSelectedInletId={(id) => {
+          // Update global state through appState
+          const { setSelectedInletId } = useAppState.getState();
+          setSelectedInletId(id);
+        }}
         showYou={showYou}
+        setShowYou={setShowYou}
         showFleet={showFleet}
-        showABFINetwork={showABFINetwork}
+        setShowFleet={setShowFleet}
+        showCommercial={showCommercial}
+        setShowCommercial={setShowCommercial}
+        showABFINetwork={setShowABFINetwork}
+        setShowABFINetwork={setShowABFINetwork}
         showTracks={showTracks}
+        setShowTracks={setShowTracks}
         trackingActive={trackingActive}
+        userSpeed={userSpeed}
         fleetCount={12}
       />
       
-      {/* Right Side - Compact Control Panel */}
-      <div className="absolute right-4 bottom-20 z-10 w-56">
-        <div className="bg-slate-900/90 backdrop-blur-xl rounded-lg border border-cyan-500/20 p-3">
-          <h3 className="text-cyan-400 font-semibold text-xs mb-3 uppercase tracking-wider">Quick Controls</h3>
-          
-          {/* Toggle Controls */}
-          <div className="space-y-3">
-            {/* You Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_10px_rgba(0,221,235,0.8)]" />
-                <span className="text-cyan-100 text-sm">Your Position</span>
-              </div>
-              <button 
-                onClick={() => setShowYou(!showYou)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  showYou ? 'bg-cyan-600' : 'bg-slate-700'
-                } hover:bg-slate-600`}
-              >
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  showYou ? 'translate-x-7' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
-            
-            {/* Fleet Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-cyan-400" />
-                <span className="text-cyan-100 text-sm">ABFI Fleet</span>
-              </div>
-              <button 
-                onClick={() => setShowFleet(!showFleet)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  showFleet ? 'bg-cyan-600' : 'bg-slate-700'
-                } hover:bg-slate-600`}
-              >
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  showFleet ? 'translate-x-7' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
-            
-            {/* ABFI Network Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" />
-                <span className="text-cyan-100 text-sm">ABFI Network</span>
-              </div>
-              <button 
-                onClick={() => setShowABFINetwork(!showABFINetwork)}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  showABFINetwork ? 'bg-cyan-600' : 'bg-slate-700'
-                } hover:bg-slate-600`}
-              >
-                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  showABFINetwork ? 'translate-x-7' : 'translate-x-1'
-                }`} />
-              </button>
-            </div>
-          </div>
-          
-          {/* Divider */}
-          <div className="border-t border-cyan-500/20 my-4" />
-          
-          {/* Status Info */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-cyan-400/70">Tracking Status</span>
-              <span className={trackingActive ? 'text-green-400' : 'text-yellow-400'}>
-                {trackingActive ? 'ACTIVE' : 'WAITING FOR GPS'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-cyan-400/70">Fleet Visible</span>
-              <span className="text-cyan-300">12 vessels</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-cyan-400/70">Your Speed</span>
-              <span className="text-cyan-300">{userSpeed.toFixed(1)} kts</span>
-            </div>
-          </div>
-          
-          {/* Advanced Options */}
-          <div className="mt-4 pt-4 border-t border-cyan-500/20">
-            <button className="w-full py-2 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-lg border border-cyan-500/30 text-cyan-300 text-xs font-medium transition-colors">
-              Show Vessel Tracks (4hr)
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Compact Legend - Lower Left */}
+      <CompactLegend inletColor={inlet?.color || '#06B6D4'} />
       
+      {/* Network Status Indicator - Shows online/offline status */}
+      <NetworkStatusIndicator />
       
       {/* Vessel Layer - Handles all vessel markers and tracks */}
       <VesselLayer
         map={map.current}
         showYou={showYou}
         showFleet={showFleet || showABFINetwork}
+        showCommercial={showCommercial}
         showTracks={showTracks}
         selectedInletId={showABFINetwork ? '' : selectedInletId}
         onPositionUpdate={handlePositionUpdate}
