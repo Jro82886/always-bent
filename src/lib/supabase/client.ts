@@ -14,6 +14,14 @@ export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storageKey: 'abfi-auth-token',     // Custom storage key
+    flowType: 'pkce',                   // Most secure flow
+    debug: false,
+  },
+  global: {
+    headers: {
+      'x-abfi-version': '1.0.0'
+    }
   },
   realtime: {
     params: {

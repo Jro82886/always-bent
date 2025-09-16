@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/supabase/AuthProvider';
 import { Loader2, Anchor, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signUp } = useAuth();
   
   const [email, setEmail] = useState('');
@@ -18,6 +19,21 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isFromSquarespace, setIsFromSquarespace] = useState(false);
+  
+  // Check if coming from Squarespace and pre-fill
+  useEffect(() => {
+    const fromSquarespace = searchParams.get('from') === 'squarespace';
+    const prefilledEmail = searchParams.get('email');
+    const verified = searchParams.get('verified') === 'true';
+    
+    if (fromSquarespace) {
+      setIsFromSquarespace(true);
+      if (prefilledEmail) {
+        setEmail(prefilledEmail);
+      }
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,11 +97,23 @@ export default function SignupPage() {
               <Anchor className="w-12 h-12 text-cyan-400" />
             </div>
             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-              Join the Fleet
+              {isFromSquarespace ? 'Complete Your ABFI Setup' : 'Join the Fleet'}
             </h1>
-            <p className="text-slate-400 mt-2">Create your ABFI account</p>
+            <p className="text-slate-400 mt-2">
+              {isFromSquarespace 
+                ? 'Your Squarespace membership is verified - create your ABFI credentials'
+                : 'Create your ABFI account'}
+            </p>
           </div>
 
+          {/* Squarespace member badge */}
+          {isFromSquarespace && (
+            <div className="mb-6 p-3 bg-green-500/10 border border-green-500/30 rounded-lg flex items-center gap-2 text-green-400">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm">Squarespace Member Verified</span>
+            </div>
+          )}
+          
           {/* Error message */}
           {error && (
             <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400">

@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/supabase/AuthProvider';
-import { Loader2, Anchor, AlertCircle } from 'lucide-react';
+import { configureSessionPersistence } from '@/lib/supabase/session';
+import { Loader2, Anchor, AlertCircle, Check } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function LoginPage() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true); // Default to remember
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,6 +21,9 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    // Configure session persistence based on Remember Me
+    await configureSessionPersistence(rememberMe);
 
     const { error } = await signIn(email, password);
     
@@ -93,6 +98,35 @@ export default function LoginPage() {
                 required
                 disabled={loading}
               />
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="sr-only"
+                />
+                <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center ${
+                  rememberMe 
+                    ? 'bg-cyan-500 border-cyan-500' 
+                    : 'bg-slate-800/50 border-cyan-500/30'
+                }`}>
+                  {rememberMe && <Check className="w-3 h-3 text-black" />}
+                </div>
+                <span className="text-sm text-slate-300">
+                  Keep me logged in for 30 days
+                </span>
+              </label>
+              
+              <Link 
+                href="/auth/forgot-password" 
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+              >
+                Forgot password?
+              </Link>
             </div>
 
             <button

@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppState } from '@/store/appState';
+import { getCurrentUser, getProfile } from '@/lib/supabase/client';
+import { Anchor, MapPin, Users, Activity, TrendingUp, Compass } from 'lucide-react';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -12,6 +14,25 @@ export default function WelcomePage() {
   const [boatName, setBoatName] = useState('');
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const user = await getCurrentUser();
+      if (user) {
+        const profile = await getProfile(user.id);
+        if (profile) {
+          setCaptainName(profile.captain_name);
+          setBoatName(profile.boat_name);
+          setIsLoggedIn(true);
+        }
+      }
+      setLoading(false);
+    };
+    checkAuth();
+  }, []);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +77,115 @@ export default function WelcomePage() {
     router.push('/legendary?mode=analysis');
   };
 
+  // Show dashboard for logged-in users
+  if (isLoggedIn && !loading) {
+    return (
+      <div className="w-full min-h-screen overflow-y-auto overflow-x-hidden bg-black">
+        {/* Background effects */}
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+        </div>
+        
+        <div className="relative z-10 w-full px-4 py-8">
+          <div className="max-w-4xl mx-auto">
+            {/* Welcome Header */}
+            <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 mb-6 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                    Welcome Back, Captain {captainName}!
+                  </h1>
+                  <p className="text-cyan-300/80 mt-2 flex items-center gap-2">
+                    <Anchor className="w-4 h-4" />
+                    {boatName} • Command Bridge Active
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-green-400 text-sm flex items-center gap-2 justify-end">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    Online
+                  </div>
+                </div>
+              </div>
+              
+              {/* Quick Launch Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <button
+                  onClick={() => router.push('/legendary?mode=analysis')}
+                  className="p-4 bg-slate-800/50 hover:bg-slate-800/70 border border-cyan-500/20 hover:border-cyan-500/40 rounded-lg transition-all group"
+                >
+                  <Compass className="w-8 h-8 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
+                  <div className="text-white font-medium">Analysis Mode</div>
+                  <div className="text-xs text-slate-400">Ocean intelligence</div>
+                </button>
+                
+                <button
+                  onClick={() => router.push('/legendary?mode=tracking')}
+                  className="p-4 bg-slate-800/50 hover:bg-slate-800/70 border border-cyan-500/20 hover:border-cyan-500/40 rounded-lg transition-all group"
+                >
+                  <MapPin className="w-8 h-8 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
+                  <div className="text-white font-medium">Tracking</div>
+                  <div className="text-xs text-slate-400">Fleet positions</div>
+                </button>
+                
+                <button
+                  onClick={() => router.push('/legendary?mode=community')}
+                  className="p-4 bg-slate-800/50 hover:bg-slate-800/70 border border-cyan-500/20 hover:border-cyan-500/40 rounded-lg transition-all group"
+                >
+                  <Users className="w-8 h-8 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
+                  <div className="text-white font-medium">Community</div>
+                  <div className="text-xs text-slate-400">Live reports</div>
+                </button>
+                
+                <button
+                  onClick={() => router.push('/legendary?mode=trends')}
+                  className="p-4 bg-slate-800/50 hover:bg-slate-800/70 border border-cyan-500/20 hover:border-cyan-500/40 rounded-lg transition-all group"
+                >
+                  <TrendingUp className="w-8 h-8 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
+                  <div className="text-white font-medium">Trends</div>
+                  <div className="text-xs text-slate-400">Patterns & insights</div>
+                </button>
+                
+                <button
+                  onClick={() => router.push('/legendary?mode=analysis')}
+                  className="p-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-500/40 rounded-lg transition-all group col-span-2"
+                >
+                  <Activity className="w-8 h-8 text-cyan-300 mb-2 group-hover:scale-110 transition-transform inline-block" />
+                  <div className="text-white font-medium">Start Fishing Session</div>
+                  <div className="text-xs text-cyan-300/80">Begin with current conditions</div>
+                </button>
+              </div>
+            </div>
+            
+            {/* Live Activity Feed */}
+            <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-6">
+              <h2 className="text-xl font-bold text-white mb-4">Who's Fishing Now</h2>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-400 rounded-full" />
+                    <span className="text-white">Captain Mike</span>
+                    <span className="text-slate-400 text-sm">• Sea Hawk</span>
+                  </div>
+                  <span className="text-cyan-400 text-sm">Ocean City</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-400 rounded-full" />
+                    <span className="text-white">Captain Sarah</span>
+                    <span className="text-slate-400 text-sm">• Blue Runner</span>
+                  </div>
+                  <span className="text-cyan-400 text-sm">Montauk</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show signup form for non-logged-in users
   return (
     <div className="w-full min-h-screen overflow-y-auto overflow-x-hidden bg-black">
       {/* Glowing background effect - fixed position */}
