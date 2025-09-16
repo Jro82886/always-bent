@@ -254,10 +254,27 @@ function TrackingModeContent() {
     }
   }, [selectedInletId]);
 
+  // Check if tracking is ready (inlet selected)
+  const isTrackingReady = selectedInletId && selectedInletId !== 'overview';
+
   return (
     <div className="w-full h-screen relative">
       {/* Map Container */}
       <div ref={mapContainer} className="w-full h-full" />
+      
+      {/* Inlet Selection Prompt */}
+      {!isTrackingReady && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-yellow-500/10 backdrop-blur-xl border border-yellow-400/30 rounded-lg px-6 py-3 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+              <span className="text-sm font-medium text-yellow-300">
+                📍 Select an inlet in Command Bridge to begin tracking
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Unified Command Bar - Navigation + Boat Info + Inlet Selector */}
       <UnifiedCommandBar 

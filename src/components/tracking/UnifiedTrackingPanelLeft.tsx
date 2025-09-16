@@ -50,6 +50,9 @@ export default function UnifiedTrackingPanelLeft({
   );
   const [showPrivacyMessage, setShowPrivacyMessage] = useState(false);
   const inlet = getInletById(selectedInletId);
+  
+  // Check if a real inlet is selected (not overview or empty)
+  const isInletSelected = selectedInletId && selectedInletId !== 'overview';
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -144,7 +147,7 @@ export default function UnifiedTrackingPanelLeft({
                 </div>
                 
                 {/* Two-Step Display Control */}
-                {locationPermissionGranted ? (
+                {locationPermissionGranted && isInletSelected ? (
                   <div className="pt-2 border-t border-slate-700/50">
                     {!showYou ? (
                       <>
@@ -202,7 +205,9 @@ export default function UnifiedTrackingPanelLeft({
                   </div>
                 ) : (
                   <div className="pt-2 border-t border-slate-700/50">
-                    <div className="text-xs text-slate-500 text-center">Location not enabled</div>
+                    <div className="text-xs text-slate-500 text-center">
+                      {!isInletSelected ? 'Select an inlet first' : 'Location not enabled'}
+                    </div>
                   </div>
                 )}
               </div>
@@ -250,13 +255,15 @@ export default function UnifiedTrackingPanelLeft({
                 
                 {/* Toggle */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
-                  <span className="text-xs text-cyan-300/70">Show Fleet</span>
+                  <span className="text-xs text-cyan-300/70">
+                    {!isInletSelected ? 'Select inlet first' : 'Show Fleet'}
+                  </span>
                   <button 
                     onClick={() => setShowFleet(!showFleet)}
-                    disabled={!trackingActive}
+                    disabled={!trackingActive || !isInletSelected}
                     className={`relative w-11 h-6 rounded-full transition-colors ${
-                      showFleet && trackingActive ? 'bg-cyan-600' : 'bg-slate-700'
-                    } ${!trackingActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      showFleet && trackingActive && isInletSelected ? 'bg-cyan-600' : 'bg-slate-700'
+                    } ${(!trackingActive || !isInletSelected) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
                       showFleet && trackingActive ? 'translate-x-6' : 'translate-x-1'

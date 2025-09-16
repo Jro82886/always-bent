@@ -458,7 +458,7 @@ export default function VesselLayer({
     };
   }, [map, userPosition, showYou, selectedInletId, wasVisibleLastCheck]);
 
-  // Render fleet markers ONLY when explicitly enabled
+  // Render fleet markers ONLY when explicitly enabled AND inlet selected
   useEffect(() => {
     if (!map) return;
     
@@ -468,6 +468,12 @@ export default function VesselLayer({
     
     // Don't proceed unless fleet is explicitly shown
     if (!showFleet) return;
+    
+    // CRITICAL: Don't fetch fleet if overview mode or no inlet selected
+    if (!selectedInletId || selectedInletId === 'overview') {
+      console.warn('[FLEET] Cannot show fleet in overview mode - please select a specific inlet');
+      return;
+    }
     
     // Ensure map is fully loaded before creating markers
     if (!map.loaded()) {

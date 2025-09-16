@@ -33,6 +33,10 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   // Get current mode from URL
   const currentMode = searchParams.get('mode') || 'analysis';
   
+  // Determine if inlet selection is allowed based on current mode
+  const canChangeInlet = ['analysis', 'tracking'].includes(currentMode);
+  const forceEastCoastOverview = currentMode === 'trends';
+  
   useEffect(() => {
     // Get captain and boat names from localStorage
     const storedCaptainName = localStorage.getItem('abfi_captain_name');
@@ -186,13 +190,18 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             </div>
           )}
           
-          {/* Inlet Selector - ALWAYS VISIBLE */}
+          {/* Inlet Selector - Context Aware */}
           <div className="flex items-center gap-2 min-w-[200px] relative">
-            <MapPin size={14} className="text-cyan-400" />
+            <MapPin size={14} className={canChangeInlet ? "text-cyan-400" : "text-cyan-400/50"} />
             <div className="relative" ref={dropdownRef}>
               <button
-                onClick={() => setInletDropdownOpen(!inletDropdownOpen)}
-                className="flex items-center justify-between gap-2 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 border-cyan-400/60 rounded-xl px-4 py-2 text-sm text-cyan-100 focus:outline-none focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40 cursor-pointer hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all font-semibold tracking-wide"
+                onClick={() => canChangeInlet && setInletDropdownOpen(!inletDropdownOpen)}
+                disabled={!canChangeInlet}
+                className={`flex items-center justify-between gap-2 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-2 rounded-xl px-4 py-2 text-sm focus:outline-none transition-all font-semibold tracking-wide ${
+                  canChangeInlet 
+                    ? 'border-cyan-400/60 text-cyan-100 hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 cursor-pointer focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/40' 
+                    : 'border-cyan-400/20 text-cyan-100/50 cursor-not-allowed opacity-70'
+                } ${currentMode === 'tracking' && selectedInletId === 'overview' ? 'animate-pulse border-yellow-400/60' : ''}`}
                 style={{
                   minWidth: '280px',
                   backgroundImage: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(20, 184, 166, 0.1), rgba(59, 130, 246, 0.15))',
@@ -204,12 +213,12 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                   <div 
                     className="w-2 h-2 rounded-full"
                     style={{
-                      backgroundColor: selectedInlet?.color || '#26c281',
+                      backgroundColor: (forceEastCoastOverview ? '#26c281' : selectedInlet?.color) || '#26c281',
                       boxShadow: `0 0 12px ${selectedInlet?.color || '#26c281'}`,
                     }}
                   />
                   <span className="text-left truncate text-sm">
-                    {selectedInlet?.name || 'Select Inlet'}
+                    {forceEastCoastOverview ? 'East Coast Overview' : (selectedInlet?.name || 'Select Inlet')}
                   </span>
                 </div>
                 <ChevronDown size={14} className={`text-cyan-400 transition-transform ${inletDropdownOpen ? 'rotate-180' : ''}`} />
