@@ -27,6 +27,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { selectedInletId, setSelectedInletId } = useAppState();
+  const [locationEnabled, setLocationEnabled] = useState(true);
   
   // Get current mode from URL
   const currentMode = searchParams.get('mode') || 'analysis';
@@ -37,6 +38,32 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
     if (storedBoatName) {
       setBoatName(storedBoatName);
     }
+    
+    // Check location permission status from localStorage (set by welcome screen)
+    const checkLocationPermission = () => {
+      const permission = localStorage.getItem('abfi_location_permission');
+      setLocationEnabled(permission === 'granted');
+    };
+    
+    // Initial check
+    checkLocationPermission();
+    
+    // Listen for storage changes (in case permission changes in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'abfi_location_permission') {
+        checkLocationPermission();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically in case permission changes in same tab
+    const interval = setInterval(checkLocationPermission, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
   
   // Close dropdown when clicking outside
@@ -51,6 +78,53 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   }, []);
   
   const handleTabClick = (tab: string) => {
+    // Check if tracking tab is clicked without location permission
+    if (tab === 'tracking' && !locationEnabled) {
+      // Show location required message
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
+      toast.innerHTML = `
+        <div class="bg-slate-900/95 backdrop-blur-xl border border-red-500/30 rounded-lg px-6 py-4 shadow-2xl">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+              <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <div class="text-white font-semibold">Location Services Required</div>
+              <div class="text-gray-400 text-sm mt-1">Enable location in your browser to access vessel tracking</div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      
+      // Add slide-down animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slide-down {
+          from { transform: translate(-50%, -100%); opacity: 0; }
+          to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .animate-slide-down {
+          animation: slide-down 0.3s ease-out;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Remove after 4 seconds
+      setTimeout(() => {
+        toast.style.animation = 'slide-down 0.3s ease-out reverse';
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 4000);
+      
+      return; // Don't navigate
+    }
+    
     // Navigate to the new mode-based URL
     router.push(`/legendary?mode=${tab}`);
   };
@@ -205,22 +279,28 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             <button
               onClick={() => handleTabClick('tracking')}
               className={`px-5 py-2 mx-1 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
-                currentMode === 'tracking'
-                  ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
-                  : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
+                !locationEnabled 
+                  ? 'opacity-50 bg-gray-800/30 text-gray-400 border border-gray-700/30 cursor-pointer hover:bg-gray-800/40'
+                  : currentMode === 'tracking'
+                    ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-400/50'
+                    : 'text-cyan-400/70 hover:text-cyan-300 hover:bg-cyan-500/10 border border-transparent'
               }`}
-              style={currentMode === 'tracking' ? {
+              style={currentMode === 'tracking' && locationEnabled ? {
                 boxShadow: '0 0 20px rgba(0, 200, 255, 0.5), inset 0 0 10px rgba(0, 200, 255, 0.2)'
               } : {}}
             >
-              <Activity size={14} />
+              <Activity size={14} className={!locationEnabled ? 'text-gray-600' : ''} />
               <span>Tracking</span>
             </button>
             {/* Tooltip */}
             <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50">
               <div className="bg-slate-900/95 backdrop-blur-xl border border-cyan-400/30 rounded-lg px-3 py-2 whitespace-nowrap">
-                <div className="text-xs text-cyan-300 font-semibold">Live Positions</div>
-                <div className="text-[10px] text-cyan-100/70">Where is everyone RIGHT NOW?</div>
+                <div className="text-xs text-cyan-300 font-semibold">
+                  {locationEnabled ? 'Live Positions' : 'Location Required'}
+                </div>
+                <div className="text-[10px] text-cyan-100/70">
+                  {locationEnabled ? 'Where is everyone RIGHT NOW?' : 'Enable location services to use tracking'}
+                </div>
               </div>
             </div>
           </div>
