@@ -372,6 +372,11 @@ export default function VesselLayer({
         userMarkerRef.current.remove();
         userMarkerRef.current = null;
       }
+      // Clean up any pending toast timeouts
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = null;
+      }
     };
   }, [map, userPosition, showYou, selectedInletId, wasVisibleLastCheck]);
 
