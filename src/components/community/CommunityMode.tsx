@@ -535,7 +535,7 @@ export default function CommunityMode() {
                   onClick={() => setActiveChannel('all')}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                     activeChannel === 'all'
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/20 text-cyan-300 border border-cyan-500/30'
+                      ? 'bg-green-500/20 text-green-300 border border-green-500/30 shadow-[0_0_10px_rgba(34,197,94,0.3)]'
                       : 'bg-slate-800/50 text-white/60 hover:bg-slate-800/70 hover:text-white/80'
                   }`}
                   title="ABFI Network - All inlets, all species"
