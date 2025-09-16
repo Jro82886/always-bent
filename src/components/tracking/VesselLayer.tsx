@@ -240,7 +240,16 @@ export default function VesselLayer({
       setWasVisibleLastCheck(true);
       
       const inlet = getInletById(selectedInletId);
+      const toastId = 'vessel-visibility-toast';
+      
+      // Remove any existing toast first
+      const existingToast = document.getElementById(toastId);
+      if (existingToast) {
+        existingToast.remove();
+      }
+      
       const toast = document.createElement('div');
+      toast.id = toastId;
       toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
       toast.innerHTML = `
         <div class="bg-slate-900/95 backdrop-blur-xl border border-green-500/30 rounded-lg px-6 py-4 shadow-2xl">
@@ -259,14 +268,17 @@ export default function VesselLayer({
         </div>
       `;
       document.body.appendChild(toast);
+      
       // Clear any existing timeout
       if (toastTimeoutRef.current) {
         clearTimeout(toastTimeoutRef.current);
       }
+      
       toastTimeoutRef.current = setTimeout(() => {
         // Safely remove toast if it still exists
-        if (toast && toast.parentNode) {
-          toast.remove();
+        const toastElement = document.getElementById(toastId);
+        if (toastElement) {
+          toastElement.remove();
         }
         toastTimeoutRef.current = null;
       }, 4000);
@@ -275,7 +287,16 @@ export default function VesselLayer({
       // Just became invisible - left inlet bounds
       setWasVisibleLastCheck(false);
       
+      const toastId = 'vessel-visibility-toast';
+      
+      // Remove any existing toast first
+      const existingToast = document.getElementById(toastId);
+      if (existingToast) {
+        existingToast.remove();
+      }
+      
       const toast = document.createElement('div');
+      toast.id = toastId;
       toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
       toast.innerHTML = `
         <div class="bg-slate-900/95 backdrop-blur-xl border border-orange-500/30 rounded-lg px-6 py-4 shadow-2xl">
@@ -293,14 +314,17 @@ export default function VesselLayer({
         </div>
       `;
       document.body.appendChild(toast);
+      
       // Clear any existing timeout
       if (toastTimeoutRef.current) {
         clearTimeout(toastTimeoutRef.current);
       }
+      
       toastTimeoutRef.current = setTimeout(() => {
         // Safely remove toast if it still exists
-        if (toast && toast.parentNode) {
-          toast.remove();
+        const toastElement = document.getElementById(toastId);
+        if (toastElement) {
+          toastElement.remove();
         }
         toastTimeoutRef.current = null;
       }, 4000);
@@ -402,6 +426,11 @@ export default function VesselLayer({
         clearTimeout(toastTimeoutRef.current);
         toastTimeoutRef.current = null;
       }
+      // Remove any lingering toasts
+      const toast = document.getElementById('vessel-visibility-toast');
+      if (toast) {
+        toast.remove();
+      }
     };
   }, [map, userPosition, showYou, selectedInletId, wasVisibleLastCheck]);
 
@@ -419,9 +448,15 @@ export default function VesselLayer({
         try {
           const inletParam = selectedInletId || 'md-ocean-city';
           const response = await fetch(`/api/tracking/position?inlet_id=${inletParam}&hours=1`);
+          
+          // Check if response is ok before parsing
+          if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+          }
+          
           const data = await response.json();
           
-          if (data.success && data.vessels) {
+          if (data.success && data.vessels && Array.isArray(data.vessels)) {
             // Clear existing markers
             fleetMarkersRef.current.forEach(marker => marker.remove());
             fleetMarkersRef.current.clear();
@@ -433,86 +468,99 @@ export default function VesselLayer({
             
             // Render each vessel
             data.vessels.forEach((vessel: any) => {
+              // Skip if no vessel data
+              if (!vessel) return;
+              
               // Skip current user
               if (vessel.user_id === currentUserId) return;
               
               // Only show vessels with recent positions (last 5 minutes)
               if (!vessel.latest) return;
-              const lastSeen = new Date(vessel.latest.timestamp);
-              const minutesAgo = (Date.now() - lastSeen.getTime()) / 60000;
-              if (minutesAgo > 5) return;
               
-              const inlet = getInletById(vessel.inlet_id || 'md-ocean-city');
-              const color = inlet?.color || '#00DDEB';
-              
-              // Create marker element
-              const el = document.createElement('div');
-              el.className = 'fleet-vessel-marker';
-              el.style.cssText = `
-                width: 24px;
-                height: 24px;
-                position: relative;
-                cursor: pointer;
-              `;
-              
-              // Different style if vessel is moving vs stationary
-              const isMoving = vessel.latest.speed && vessel.latest.speed > 2;
-              
-              el.innerHTML = `
-                <div style="
-                  width: 12px;
-                  height: 12px;
-                  background: ${color};
-                  border-radius: 50%;
-                  box-shadow: 0 0 10px ${color}80;
-                  position: absolute;
-                  top: 50%;
-                  left: 50%;
-                  transform: translate(-50%, -50%);
-                  ${isMoving ? 'animation: pulse 2s infinite;' : ''}
-                "></div>
-                ${isMoving ? '' : `
+              try {
+                const lastSeen = new Date(vessel.latest.timestamp);
+                const minutesAgo = (Date.now() - lastSeen.getTime()) / 60000;
+                if (minutesAgo > 5) return;
+                
+                const inlet = getInletById(vessel.inlet_id || 'md-ocean-city');
+                const color = inlet?.color || '#00DDEB';
+                
+                // Validate coordinates
+                if (!vessel.latest.lng || !vessel.latest.lat) return;
+                
+                // Create marker element
+                const el = document.createElement('div');
+                el.className = 'fleet-vessel-marker';
+                el.style.cssText = `
+                  width: 24px;
+                  height: 24px;
+                  position: relative;
+                  cursor: pointer;
+                `;
+                
+                // Different style if vessel is moving vs stationary
+                const isMoving = vessel.latest.speed && vessel.latest.speed > 2;
+                
+                el.innerHTML = `
                   <div style="
+                    width: 12px;
+                    height: 12px;
+                    background: ${color};
+                    border-radius: 50%;
+                    box-shadow: 0 0 10px ${color}80;
                     position: absolute;
                     top: 50%;
                     left: 50%;
-                    width: 20px;
-                    height: 20px;
                     transform: translate(-50%, -50%);
-                    border: 2px solid ${color}40;
-                    border-radius: 50%;
-                    animation: pulse-ring 2s infinite;
+                    ${isMoving ? 'animation: pulse 2s infinite;' : ''}
                   "></div>
-                `}
-              `;
-              
-              const marker = new mapboxgl.Marker({ element: el })
-                .setLngLat([vessel.latest.lng, vessel.latest.lat])
-                .setPopup(
-                  new mapboxgl.Popup({ offset: 20 })
-                    .setHTML(`
-                      <div style="padding: 8px;">
-                        <div style="font-weight: bold; color: ${color};">
-                          ${vessel.username || 'Unknown Captain'}
+                  ${isMoving ? '' : `
+                    <div style="
+                      position: absolute;
+                      top: 50%;
+                      left: 50%;
+                      width: 20px;
+                      height: 20px;
+                      transform: translate(-50%, -50%);
+                      border: 2px solid ${color}40;
+                      border-radius: 50%;
+                      animation: pulse-ring 2s infinite;
+                    "></div>
+                  `}
+                `;
+                
+                const marker = new mapboxgl.Marker({ element: el })
+                  .setLngLat([vessel.latest.lng, vessel.latest.lat])
+                  .setPopup(
+                    new mapboxgl.Popup({ offset: 20 })
+                      .setHTML(`
+                        <div style="padding: 8px;">
+                          <div style="font-weight: bold; color: ${color};">
+                            ${vessel.username || 'Unknown Captain'}
+                          </div>
+                          <div style="font-size: 11px; color: #888; margin-top: 2px;">
+                            ${vessel.latest.speed ? `${vessel.latest.speed.toFixed(1)} knots` : 'Stationary'}
+                          </div>
+                          <div style="font-size: 10px; color: #666; margin-top: 4px;">
+                            ${inlet?.name || 'Unknown Inlet'}
+                          </div>
+                          <div style="font-size: 9px; color: #999; margin-top: 2px;">
+                            Last seen: ${minutesAgo < 1 ? 'Just now' : `${Math.round(minutesAgo)} min ago`}
+                          </div>
                         </div>
-                        <div style="font-size: 11px; color: #888; margin-top: 2px;">
-                          ${vessel.latest.speed ? `${vessel.latest.speed.toFixed(1)} knots` : 'Stationary'}
-                        </div>
-                        <div style="font-size: 10px; color: #666; margin-top: 4px;">
-                          ${inlet?.name || 'Unknown Inlet'}
-                        </div>
-                        <div style="font-size: 9px; color: #999; margin-top: 2px;">
-                          Last seen: ${minutesAgo < 1 ? 'Just now' : `${Math.round(minutesAgo)} min ago`}
-                        </div>
-                      </div>
-                    `)
-                )
-                .addTo(map);
-              
-              fleetMarkersRef.current.set(vessel.user_id, marker);
+                      `)
+                  )
+                  .addTo(map);
+                
+                fleetMarkersRef.current.set(vessel.user_id, marker);
+              } catch (vesselError) {
+                console.error('[FLEET] Error rendering vessel:', vesselError);
+                // Skip this vessel and continue with others
+              }
             });
             
             console.log(`[FLEET] Displayed ${fleetMarkersRef.current.size} vessels`);
+            return; // Successfully loaded real data, exit function
           }
         } catch (error) {
           console.error('[FLEET] Failed to fetch positions:', error);

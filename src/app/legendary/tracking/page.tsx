@@ -12,6 +12,7 @@ import CompactLegend from '@/components/tracking/CompactLegend';
 import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
 import DepartureMonitor from '@/components/tracking/DepartureMonitor';
 import InletRegions from '@/components/InletRegions';
+import TrackingErrorBoundary from '@/components/tracking/TrackingErrorBoundary';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
@@ -24,6 +25,7 @@ function TrackingModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [activeTab, setActiveTab] = useState('tracking');
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
@@ -63,7 +65,15 @@ function TrackingModeContent() {
       setSelectedInletId(autoSelect.inlet.id);
       
       // Show notification
+      const toastId = 'auto-select-toast';
+      // Remove any existing toast first
+      const existingToast = document.getElementById(toastId);
+      if (existingToast) {
+        existingToast.remove();
+      }
+      
       const toast = document.createElement('div');
+      toast.id = toastId;
       toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
       toast.innerHTML = `
         <div class="bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg px-6 py-4 shadow-2xl">
@@ -99,11 +109,18 @@ function TrackingModeContent() {
         document.head.appendChild(style);
       }
       
-      setTimeout(() => {
+      // Clear any existing timeout
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+      
+      toastTimeoutRef.current = setTimeout(() => {
         // Safely remove toast if it still exists
-        if (toast && toast.parentNode) {
-          toast.remove();
+        const toastElement = document.getElementById(toastId);
+        if (toastElement) {
+          toastElement.remove();
         }
+        toastTimeoutRef.current = null;
       }, 5000);
       
       // Fly to the auto-selected inlet
@@ -135,6 +152,22 @@ function TrackingModeContent() {
     }
   }, []);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear any pending toast timeouts
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = null;
+      }
+      // Remove any lingering toasts
+      const toast = document.getElementById('auto-select-toast');
+      if (toast) {
+        toast.remove();
+      }
+    };
+  }, []);
+  
   // Initialize map
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -307,7 +340,9 @@ function TrackingModeContent() {
 export default function TrackingPage() {
   return (
     <PageWithSuspense>
-      <TrackingModeContent />
+      <TrackingErrorBoundary>
+        <TrackingModeContent />
+      </TrackingErrorBoundary>
     </PageWithSuspense>
   );
 }

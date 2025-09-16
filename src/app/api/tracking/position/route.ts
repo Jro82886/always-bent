@@ -89,6 +89,18 @@ export async function GET(request: NextRequest) {
     const inlet_id = searchParams.get('inlet_id');
     const hours = parseInt(searchParams.get('hours') || '4');
 
+    // Check if Supabase is configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('[TRACKING API] Supabase not configured, returning empty vessel list');
+      return NextResponse.json({
+        success: true,
+        vessels: [],
+        total: 0,
+        time_window: `${hours} hours`,
+        message: 'Database not configured - using mock data'
+      });
+    }
+
     const supabase = getSupabaseClient();
     let query = supabase
       .from('vessel_positions')
