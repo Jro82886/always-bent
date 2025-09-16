@@ -3,8 +3,7 @@
 import mapboxgl from 'mapbox-gl';
 import { useState } from 'react';
 import { MapPin, Anchor, Users, Activity, Navigation, ChevronUp, ChevronDown, Ship, Globe } from 'lucide-react';
-import { getInletById, INLETS } from '@/lib/inlets';
-import { flyToInlet60nm } from '@/lib/inletBounds';
+import { getInletById } from '@/lib/inlets';
 
 interface UnifiedTrackingPanelLeftProps {
   map: mapboxgl.Map | null;
@@ -45,23 +44,11 @@ export default function UnifiedTrackingPanelLeft({
   userSpeed,
   fleetCount = 12
 }: UnifiedTrackingPanelLeftProps) {
-  const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
   // Multiple sections can be expanded - cupboard style
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['vessel']) // Start with vessel section open by default
   );
   const inlet = getInletById(selectedInletId);
-  
-  const handleInletSelect = (inletId: string) => {
-    setSelectedInletId(inletId);
-    setInletDropdownOpen(false);
-    if (map && inletId) {
-      const selectedInlet = getInletById(inletId);
-      if (selectedInlet) {
-        flyToInlet60nm(map, selectedInlet);
-      }
-    }
-  };
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -74,7 +61,7 @@ export default function UnifiedTrackingPanelLeft({
   };
 
   return (
-    <div className="absolute top-24 left-4 z-40 w-80">
+    <div className="absolute top-32 left-4 z-40 w-80">
       <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-cyan-500/20 shadow-2xl overflow-hidden">
         {/* Header with Navigation Icon */}
         <div className="bg-gradient-to-r from-cyan-600/20 to-blue-600/20 px-5 py-4 border-b border-cyan-500/20">
@@ -82,6 +69,27 @@ export default function UnifiedTrackingPanelLeft({
             <Navigation className="w-5 h-5 text-cyan-400" />
             <h2 className="text-lg font-bold text-cyan-100 tracking-wider">VESSEL TRACKING</h2>
           </div>
+        </div>
+        
+        {/* Current Inlet Display (Read-only - controlled by Command Bridge) */}
+        <div className="px-5 py-3 bg-slate-800/30 border-b border-cyan-500/10">
+          <div className="flex items-center justify-between">
+            <div className="text-xs text-cyan-400/60 uppercase tracking-wider mb-1">Selected Inlet</div>
+            <MapPin className="w-4 h-4 text-cyan-400/30" />
+          </div>
+          <div className="flex items-center gap-2">
+            {inlet && (
+              <div 
+                className="w-3 h-3 rounded-full shadow-lg" 
+                style={{ 
+                  backgroundColor: inlet.color || '#06B6D4',
+                  boxShadow: `0 0 8px ${inlet.color || '#06B6D4'}50`
+                }}
+              />
+            )}
+            <span className="text-sm font-medium text-cyan-100">{inlet?.name || 'No Inlet Selected'}</span>
+          </div>
+          <div className="text-xs text-cyan-400/40 mt-1">Change inlet in Command Bridge</div>
         </div>
         
         {/* Location Sharing Notice */}
@@ -169,47 +177,7 @@ export default function UnifiedTrackingPanelLeft({
           </button>
           
           {expandedSections.has('fleet') && (
-            <div className="px-5 pb-4 space-y-3">
-              {/* Inlet Selector */}
-              <div className="relative">
-                <button 
-                  onClick={() => setInletDropdownOpen(!inletDropdownOpen)}
-                  className="w-full bg-slate-800/50 rounded-lg px-3 py-2 flex items-center justify-between hover:bg-slate-800/70 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    {inlet && (
-                      <div 
-                        className="w-3 h-3 rounded-full shadow-lg" 
-                        style={{ 
-                          backgroundColor: inlet.color || '#06B6D4',
-                          boxShadow: `0 0 8px ${inlet.color || '#06B6D4'}50`
-                        }}
-                      />
-                    )}
-                    <span className="text-sm text-cyan-100">{inlet?.name || 'Select Inlet'}</span>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-cyan-400/50" />
-                </button>
-                
-                {inletDropdownOpen && (
-                  <div className="absolute top-full mt-1 w-full bg-slate-800/95 backdrop-blur-xl rounded-lg border border-cyan-500/20 shadow-xl z-50 max-h-60 overflow-y-auto">
-                    {INLETS.map(inletOption => (
-                      <button
-                        key={inletOption.id}
-                        onClick={() => handleInletSelect(inletOption.id)}
-                        className="w-full px-3 py-2 text-left hover:bg-cyan-500/20 transition-colors text-sm text-cyan-100 flex items-center gap-2"
-                      >
-                        <div 
-                          className="w-2 h-2 rounded-full" 
-                          style={{ backgroundColor: inletOption.color || '#06B6D4' }}
-                        />
-                        {inletOption.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
+            <div className="px-5 pb-4">
               {/* Fleet Status */}
               <div className="bg-slate-800/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-3">
