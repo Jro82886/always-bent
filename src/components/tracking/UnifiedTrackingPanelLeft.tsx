@@ -23,6 +23,7 @@ interface UnifiedTrackingPanelLeftProps {
   trackingActive: boolean;
   userSpeed: number;
   fleetCount?: number;
+  locationPermissionGranted?: boolean;
 }
 
 export default function UnifiedTrackingPanelLeft({
@@ -42,7 +43,8 @@ export default function UnifiedTrackingPanelLeft({
   setShowTracks,
   trackingActive,
   userSpeed,
-  fleetCount = 12
+  fleetCount = 12,
+  locationPermissionGranted = false
 }: UnifiedTrackingPanelLeftProps) {
   // Multiple sections can be expanded - cupboard style
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
@@ -93,11 +95,11 @@ export default function UnifiedTrackingPanelLeft({
         </div>
         
         {/* Location Sharing Notice */}
-        {!trackingActive && (
+        {!locationPermissionGranted && (
           <div className="mx-4 mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
             <div className="text-xs text-red-400 font-medium">Location Required</div>
             <div className="text-xs text-red-300/80 mt-1">
-              Share your location to see ABFI fleet vessels
+              Enable location in Welcome to access tracking features
             </div>
           </div>
         )}
@@ -141,21 +143,38 @@ export default function UnifiedTrackingPanelLeft({
                   <Anchor className="w-4 h-4 text-cyan-400/50" />
                 </div>
                 
-                {/* Toggle */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
-                  <span className="text-xs text-cyan-300/70">Show Position</span>
-                  <button 
-                    onClick={() => setShowYou(!showYou)}
-                    disabled={!trackingActive}
-                    className={`relative w-11 h-6 rounded-full transition-colors ${
-                      showYou && trackingActive ? 'bg-cyan-600' : 'bg-slate-700'
-                    } ${!trackingActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                      showYou && trackingActive ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
-                  </button>
-                </div>
+                {/* Two-Step Display Control */}
+                {locationPermissionGranted ? (
+                  <div className="pt-2 border-t border-slate-700/50">
+                    {!showYou ? (
+                      <button
+                        onClick={() => setShowYou(true)}
+                        className="w-full py-2 px-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 rounded-lg transition-all duration-300 group"
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                          <span className="text-xs font-medium text-cyan-300 group-hover:text-cyan-200">
+                            Display My Location on Map
+                          </span>
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-cyan-300/70">Location Visible</span>
+                        <button 
+                          onClick={() => setShowYou(false)}
+                          className="relative w-11 h-6 rounded-full bg-cyan-500 transition-colors"
+                        >
+                          <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full translate-x-5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="pt-2 border-t border-slate-700/50">
+                    <div className="text-xs text-slate-500 text-center">Location not enabled</div>
+                  </div>
+                )}
               </div>
             </div>
           )}

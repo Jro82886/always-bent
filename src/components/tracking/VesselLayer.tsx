@@ -65,9 +65,9 @@ export default function VesselLayer({
   const trackSourceRef = useRef<boolean>(false);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Start GPS tracking
+  // Start GPS tracking ONLY when user explicitly enables it
   useEffect(() => {
-    if (!map) return;
+    if (!map || !showYou) return; // Don't track unless explicitly shown
 
     const startTracking = () => {
       // Check if location permission is granted
@@ -163,7 +163,7 @@ export default function VesselLayer({
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [map, onPositionUpdate]);
+  }, [map, showYou, onPositionUpdate]); // Added showYou dependency
 
   // Render user marker
   useEffect(() => {
@@ -450,9 +450,16 @@ export default function VesselLayer({
     };
   }, [map, userPosition, showYou, selectedInletId, wasVisibleLastCheck]);
 
-  // Render fleet markers
+  // Render fleet markers ONLY when explicitly enabled
   useEffect(() => {
     if (!map) return;
+    
+    // Clear existing fleet markers first
+    fleetMarkersRef.current.forEach(marker => marker.remove());
+    fleetMarkersRef.current.clear();
+    
+    // Don't proceed unless fleet is explicitly shown
+    if (!showFleet) return;
     
     // Ensure map is fully loaded before creating markers
     if (!map.loaded()) {
@@ -462,12 +469,6 @@ export default function VesselLayer({
       map.once('load', handleLoad);
       return;
     }
-
-    // Clear existing fleet markers
-    fleetMarkersRef.current.forEach(marker => marker.remove());
-    fleetMarkersRef.current.clear();
-
-    if (showFleet) {
       // Fetch real fleet positions from database
       const fetchFleetPositions = async () => {
         try {

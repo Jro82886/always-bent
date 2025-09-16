@@ -34,12 +34,13 @@ function TrackingModeContent() {
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
   
   // Vessel visibility states
-  // Default: Show user (if location enabled) and fleet, hide tracks and network
-  const [showYou, setShowYou] = useState(true); // Auto-on if location granted
-  const [showFleet, setShowFleet] = useState(true); // Show if location enabled (share to see)
-  const [showCommercial, setShowCommercial] = useState(false); // GFW vessels - available to all
-  const [showABFINetwork, setShowABFINetwork] = useState(false); // User chooses
+  // CRITICAL: Everything starts OFF to prevent crashes - users control what loads
+  const [showYou, setShowYou] = useState(false); // User must explicitly enable
+  const [showFleet, setShowFleet] = useState(false); // User must explicitly enable
+  const [showCommercial, setShowCommercial] = useState(false); // User must explicitly enable
+  const [showABFINetwork, setShowABFINetwork] = useState(false); // User must explicitly enable
   const [showTracks, setShowTracks] = useState(false); // Off by default (performance)
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
   
   // User position state
   const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
@@ -53,8 +54,8 @@ function TrackingModeContent() {
     setUserSpeed(position.speed * 1.94384); // Convert m/s to knots
     setTrackingActive(true);
     
-    // Only auto-select inlet once, and only if map is ready
-    if (!hasAutoSelected && mapFullyReady && !selectedInletId) {
+    // Only auto-select inlet if user has explicitly shown their location
+    if (!hasAutoSelected && mapFullyReady && !selectedInletId && showYou) {
       const autoSelect = autoSelectInlet(
         { lat: position.lat, lng: position.lng },
         selectedInletId
@@ -141,19 +142,19 @@ function TrackingModeContent() {
       setBoatName(storedBoatName);
     }
     
-    // Check if location is enabled
+    // Check if location is enabled from welcome screen
     const locationPermission = localStorage.getItem('abfi_location_permission');
-    if (locationPermission !== 'granted') {
-      // No location = no sharing = limited features
-      setShowYou(false); // Can't track without permission
-      setShowFleet(false); // Can't see fleet without sharing
-      setShowABFINetwork(false); // Can't see network without sharing
-      setTrackingActive(false);
-      setShowCommercial(true); // CAN see commercial vessels (public GFW data)
+    if (locationPermission === 'granted') {
+      setLocationPermissionGranted(true);
+      // Location is granted but DON'T auto-show anything
+      // User must explicitly click to display their location
     } else {
-      // Location enabled = full features
-      setShowCommercial(false); // Default off when you have fleet access
+      setLocationPermissionGranted(false);
+      // No location = no tracking features available
     }
+    
+    // Everything stays OFF until user explicitly enables
+    // This prevents the map from being overwhelmed on load
   }, []);
 
   // Cleanup on unmount
@@ -291,6 +292,7 @@ function TrackingModeContent() {
         trackingActive={trackingActive}
         userSpeed={userSpeed}
         fleetCount={12}
+        locationPermissionGranted={locationPermissionGranted}
       />
       
       {/* Compact Legend - Lower Left */}
