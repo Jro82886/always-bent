@@ -470,8 +470,9 @@ export default function VesselLayer({
       map.once('load', handleLoad);
       return;
     }
-      // Fetch real fleet positions from database
-      const fetchFleetPositions = async () => {
+    
+    // Fetch real fleet positions from database
+    const fetchFleetPositions = async () => {
         try {
           const inletParam = selectedInletId || 'md-ocean-city';
           const response = await fetch(`/api/tracking/position?inlet_id=${inletParam}&hours=1`);
@@ -635,18 +636,12 @@ export default function VesselLayer({
         }
       };
       
-      // Fetch immediately and then every 30 seconds
-      fetchFleetPositions();
-      const interval = setInterval(fetchFleetPositions, 30000);
-      
-      return () => {
-        clearInterval(interval);
-        fleetMarkersRef.current.forEach(marker => marker.remove());
-        fleetMarkersRef.current.clear();
-      };
-    }
-
+    // Fetch immediately and then every 30 seconds
+    fetchFleetPositions();
+    const interval = setInterval(fetchFleetPositions, 30000);
+    
     return () => {
+      clearInterval(interval);
       fleetMarkersRef.current.forEach(marker => marker.remove());
       fleetMarkersRef.current.clear();
     };
