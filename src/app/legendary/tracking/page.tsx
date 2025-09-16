@@ -6,6 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import VesselLayer from '@/components/tracking/VesselLayer';
+import TrackingLegend from '@/components/tracking/TrackingLegend';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
@@ -31,6 +32,7 @@ function TrackingModeContent() {
   const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
   const [userSpeed, setUserSpeed] = useState(0);
   const [trackingActive, setTrackingActive] = useState(false);
+  const [boatName, setBoatName] = useState<string>('');
   
   // Handle position updates from VesselLayer
   const handlePositionUpdate = (position: { lat: number; lng: number; speed: number }) => {
@@ -38,6 +40,14 @@ function TrackingModeContent() {
     setUserSpeed(position.speed * 1.94384); // Convert m/s to knots
     setTrackingActive(true);
   };
+
+  // Get boat name from localStorage
+  useEffect(() => {
+    const storedBoatName = localStorage.getItem('abfi_boat_name');
+    if (storedBoatName) {
+      setBoatName(storedBoatName);
+    }
+  }, []);
 
   // Initialize map
   useEffect(() => {
@@ -125,30 +135,22 @@ function TrackingModeContent() {
       
       {/* Tracking Mode UI */}
       
-      {/* Top Center - Compact Legend */}
-      <div className="absolute top-24 left-1/2 -translate-x-1/2 z-10">
-        <div className="bg-slate-900/90 backdrop-blur-xl px-4 py-2 rounded-lg border border-cyan-500/20">
-          <div className="flex items-center gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_10px_rgba(0,221,235,0.8)]" />
-              <span className="text-cyan-300">You</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-cyan-400" />
-              <span className="text-cyan-300">Fleet</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" />
-              <span className="text-cyan-300">Network</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Modern Tracking Legend */}
+      <TrackingLegend
+        boatName={boatName}
+        selectedInletId={selectedInletId}
+        showYou={showYou}
+        showFleet={showFleet}
+        showABFINetwork={showABFINetwork}
+        showTracks={showTracks}
+        trackingActive={trackingActive}
+        fleetCount={12}
+      />
       
-      {/* Right Side - Control Panel */}
-      <div className="absolute right-4 top-24 z-10 w-64">
-        <div className="bg-slate-900/90 backdrop-blur-xl rounded-lg border border-cyan-500/20 p-4">
-          <h3 className="text-cyan-400 font-semibold text-sm mb-4">VESSEL TRACKING</h3>
+      {/* Right Side - Compact Control Panel */}
+      <div className="absolute right-4 bottom-20 z-10 w-56">
+        <div className="bg-slate-900/90 backdrop-blur-xl rounded-lg border border-cyan-500/20 p-3">
+          <h3 className="text-cyan-400 font-semibold text-xs mb-3 uppercase tracking-wider">Quick Controls</h3>
           
           {/* Toggle Controls */}
           <div className="space-y-3">
@@ -237,21 +239,6 @@ function TrackingModeContent() {
         </div>
       </div>
       
-      {/* Bottom Center - Status Bar */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
-        <div className="bg-slate-900/90 backdrop-blur-xl px-4 py-2 rounded-full border border-cyan-500/20">
-          <div className="flex items-center gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-cyan-300">GPS Active</span>
-            </div>
-            <div className="text-cyan-500/50">•</div>
-            <span className="text-cyan-100">Last Update: Just now</span>
-            <div className="text-cyan-500/50">•</div>
-            <span className="text-cyan-100">Privacy: Fleet Only</span>
-          </div>
-        </div>
-      </div>
       
       {/* Vessel Layer - Handles all vessel markers and tracks */}
       <VesselLayer
