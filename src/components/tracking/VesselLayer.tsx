@@ -154,24 +154,36 @@ export default function VesselLayer({
       const lat = userPosition.coords.latitude;
       const lng = userPosition.coords.longitude;
       
-      // Check if user is near water (basic check - east of -76 longitude on East Coast)
-      // This is a rough check - in production we'd use actual inlet polygons
-      if (lng > -76) {
-        console.log('[PRIVACY] User position on land, hiding from map');
+      // Primary check: Must be east of coastline (over water)
+      // On East Coast, this is roughly -76 to -75 longitude depending on latitude
+      const coastlineLng = lat > 40 ? -75.5 : // Northern states
+                          lat > 35 ? -76 :   // Mid-Atlantic
+                          -80.5;              // Southern states
+      
+      if (lng > coastlineLng) {
+        console.log('[PRIVACY] User position on land (west of coastline), hiding from map');
         return false;
       }
       
-      // Additional check: Must be within reasonable distance of selected inlet
+      // Secondary check: Must be within inlet glow radius (where the color shows)
+      // This matches the visual inlet regions - about 30-40 miles from inlet center
       if (selectedInletId && selectedInletId !== 'overview') {
         const inlet = getInletById(selectedInletId);
         if (inlet) {
           const [inletLng, inletLat] = inlet.center;
-          // Calculate rough distance (simplified)
-          const latDiff = Math.abs(lat - inletLat);
-          const lngDiff = Math.abs(lng - inletLng);
-          // Must be within ~50 miles of inlet center (roughly 0.7 degrees)
-          if (latDiff > 0.7 || lngDiff > 0.7) {
-            console.log('[PRIVACY] User too far from selected inlet, hiding from map');
+          // Calculate distance using haversine formula
+          const R = 3959; // Earth radius in miles
+          const dLat = (lat - inletLat) * Math.PI / 180;
+          const dLon = (lng - inletLng) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(inletLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distance = R * c;
+          
+          // Must be within 40 miles of inlet (matches the glow radius)
+          if (distance > 40) {
+            console.log(`[PRIVACY] User ${distance.toFixed(1)}mi from inlet, outside glow zone`);
             return false;
           }
         }

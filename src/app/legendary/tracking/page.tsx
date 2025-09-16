@@ -10,6 +10,7 @@ import UnifiedTrackingPanelLeft from '@/components/tracking/UnifiedTrackingPanel
 import CompactLegend from '@/components/tracking/CompactLegend';
 import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
 import DepartureMonitor from '@/components/tracking/DepartureMonitor';
+import InletRegions from '@/components/InletRegions';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
@@ -191,6 +192,15 @@ function TrackingModeContent() {
       
       {/* Network Status Indicator - Shows online/offline status */}
       <NetworkStatusIndicator />
+      
+      {/* Inlet Regions - Glowing boundaries showing where location becomes visible */}
+      {map.current && (
+        <InletRegions 
+          map={map.current} 
+          enabled={true} 
+          opacity={0.2}  // Subtle glow for tracking mode
+        />
+      )}
       
       {/* Departure Monitor - Detects when leaving inlet and asks about internet */}
       <DepartureMonitor 
