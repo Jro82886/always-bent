@@ -5,6 +5,7 @@ import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
+import VesselLayer from '@/components/tracking/VesselLayer';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
@@ -19,6 +20,24 @@ function TrackingModeContent() {
   
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
+  
+  // Vessel visibility states
+  const [showYou, setShowYou] = useState(true);
+  const [showFleet, setShowFleet] = useState(true);
+  const [showABFINetwork, setShowABFINetwork] = useState(false);
+  const [showTracks, setShowTracks] = useState(false);
+  
+  // User position state
+  const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
+  const [userSpeed, setUserSpeed] = useState(0);
+  const [trackingActive, setTrackingActive] = useState(false);
+  
+  // Handle position updates from VesselLayer
+  const handlePositionUpdate = (position: { lat: number; lng: number; speed: number }) => {
+    setUserPosition({ lat: position.lat, lng: position.lng });
+    setUserSpeed(position.speed * 1.94384); // Convert m/s to knots
+    setTrackingActive(true);
+  };
 
   // Initialize map
   useEffect(() => {
@@ -71,6 +90,26 @@ function TrackingModeContent() {
       console.log(`[TRACKING] Flying to inlet with Gulf Stream view: ${inlet.name}`);
     }
   }, [selectedInletId]);
+  
+  // Handle ABFI Network view toggle
+  useEffect(() => {
+    if (!map.current) return;
+    
+    if (showABFINetwork) {
+      // Zoom out to show entire East Coast
+      const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]];
+      map.current.fitBounds(EAST_COAST_BOUNDS as any, {
+        padding: { top: 50, bottom: 50, left: 50, right: 350 }, // Extra right padding for control panel
+        duration: 1500
+      });
+    } else if (selectedInletId) {
+      // Return to inlet view
+      const inlet = getInletById(selectedInletId);
+      if (inlet) {
+        flyToInlet60nm(map.current, inlet);
+      }
+    }
+  }, [showABFINetwork, selectedInletId]);
 
   return (
     <div className="w-full h-screen relative">
@@ -84,12 +123,145 @@ function TrackingModeContent() {
         onTabChange={() => {}}
       />
       
-      {/* Tracking Mode UI - Coming Soon */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
-        <div className="bg-black/80 backdrop-blur-xl px-6 py-3 rounded-full border border-cyan-500/30">
-          <p className="text-cyan-400 font-medium">🎣 Real-time vessel tracking coming soon...</p>
+      {/* Tracking Mode UI */}
+      
+      {/* Top Center - Compact Legend */}
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 z-10">
+        <div className="bg-slate-900/90 backdrop-blur-xl px-4 py-2 rounded-lg border border-cyan-500/20">
+          <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_10px_rgba(0,221,235,0.8)]" />
+              <span className="text-cyan-300">You</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-cyan-400" />
+              <span className="text-cyan-300">Fleet</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" />
+              <span className="text-cyan-300">Network</span>
+            </div>
+          </div>
         </div>
       </div>
+      
+      {/* Right Side - Control Panel */}
+      <div className="absolute right-4 top-24 z-10 w-64">
+        <div className="bg-slate-900/90 backdrop-blur-xl rounded-lg border border-cyan-500/20 p-4">
+          <h3 className="text-cyan-400 font-semibold text-sm mb-4">VESSEL TRACKING</h3>
+          
+          {/* Toggle Controls */}
+          <div className="space-y-3">
+            {/* You Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_10px_rgba(0,221,235,0.8)]" />
+                <span className="text-cyan-100 text-sm">Your Position</span>
+              </div>
+              <button 
+                onClick={() => setShowYou(!showYou)}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  showYou ? 'bg-cyan-600' : 'bg-slate-700'
+                } hover:bg-slate-600`}
+              >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  showYou ? 'translate-x-7' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+            
+            {/* Fleet Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-cyan-400" />
+                <span className="text-cyan-100 text-sm">ABFI Fleet</span>
+              </div>
+              <button 
+                onClick={() => setShowFleet(!showFleet)}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  showFleet ? 'bg-cyan-600' : 'bg-slate-700'
+                } hover:bg-slate-600`}
+              >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  showFleet ? 'translate-x-7' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+            
+            {/* ABFI Network Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" />
+                <span className="text-cyan-100 text-sm">ABFI Network</span>
+              </div>
+              <button 
+                onClick={() => setShowABFINetwork(!showABFINetwork)}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  showABFINetwork ? 'bg-cyan-600' : 'bg-slate-700'
+                } hover:bg-slate-600`}
+              >
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  showABFINetwork ? 'translate-x-7' : 'translate-x-1'
+                }`} />
+              </button>
+            </div>
+          </div>
+          
+          {/* Divider */}
+          <div className="border-t border-cyan-500/20 my-4" />
+          
+          {/* Status Info */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-cyan-400/70">Tracking Status</span>
+              <span className={trackingActive ? 'text-green-400' : 'text-yellow-400'}>
+                {trackingActive ? 'ACTIVE' : 'WAITING FOR GPS'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-cyan-400/70">Fleet Visible</span>
+              <span className="text-cyan-300">12 vessels</span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-cyan-400/70">Your Speed</span>
+              <span className="text-cyan-300">{userSpeed.toFixed(1)} kts</span>
+            </div>
+          </div>
+          
+          {/* Advanced Options */}
+          <div className="mt-4 pt-4 border-t border-cyan-500/20">
+            <button className="w-full py-2 bg-cyan-500/10 hover:bg-cyan-500/20 rounded-lg border border-cyan-500/30 text-cyan-300 text-xs font-medium transition-colors">
+              Show Vessel Tracks (4hr)
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Bottom Center - Status Bar */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+        <div className="bg-slate-900/90 backdrop-blur-xl px-4 py-2 rounded-full border border-cyan-500/20">
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-cyan-300">GPS Active</span>
+            </div>
+            <div className="text-cyan-500/50">•</div>
+            <span className="text-cyan-100">Last Update: Just now</span>
+            <div className="text-cyan-500/50">•</div>
+            <span className="text-cyan-100">Privacy: Fleet Only</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Vessel Layer - Handles all vessel markers and tracks */}
+      <VesselLayer
+        map={map.current}
+        showYou={showYou}
+        showFleet={showFleet || showABFINetwork}
+        showTracks={showTracks}
+        selectedInletId={showABFINetwork ? '' : selectedInletId}
+        onPositionUpdate={handlePositionUpdate}
+      />
     </div>
   );
 }
