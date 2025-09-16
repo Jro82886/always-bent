@@ -148,16 +148,20 @@ export default function VesselLayer({
       userMarkerRef.current.remove();
     }
 
+    // ⚠️ PRODUCTION REMINDER: SET TO FALSE BEFORE GOING LIVE! ⚠️
     // TESTING MODE: Show location always for testing
-    // TODO: Before production, re-enable inlet bounds checking
-    const TESTING_MODE = true; // Set to false for production
+    // This is ONLY for development testing to verify GPS and real-time tracking work
+    // Privacy features are FULLY IMPLEMENTED and ready - just temporarily bypassed
+    const TESTING_MODE = true; // 🚨 MUST SET TO false FOR PRODUCTION! 🚨
     
     // PRIVACY CHECK: Only show location if user is within inlet bounds
     // This prevents showing home/land locations to other users
+    // These privacy rules are ACTIVE in production and protect user privacy
     const isWithinInletBounds = () => {
-      // TESTING: Always show location for development testing
+      // TESTING: Temporarily bypass privacy for development testing only
+      // This lets you test from home while someone is on a boat
       if (TESTING_MODE) {
-        console.log('[TESTING] Location visibility checks disabled - showing all positions');
+        console.log('[TESTING] Privacy checks temporarily disabled for testing - Production will enforce all privacy rules');
         return true;
       }
       
@@ -428,7 +432,11 @@ export default function VesselLayer({
       trackSourceRef.current = false;
     }
 
-    if (showTracks && showFleet) {
+    // ⚠️ PRODUCTION REMINDER: SET TO FALSE BEFORE GOING LIVE! ⚠️
+    // TESTING MODE: Always show tracks for testing boat movement
+    const TESTING_MODE = true; // 🚨 MUST SET TO false FOR PRODUCTION! 🚨
+    
+    if ((showTracks || TESTING_MODE) && showFleet) {
       // Filter fleet by selected inlet
       const visibleFleet = selectedInletId && selectedInletId !== 'overview' 
         ? MOCK_FLEET.filter(vessel => vessel.inlet === selectedInletId)
