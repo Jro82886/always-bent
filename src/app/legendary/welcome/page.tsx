@@ -144,7 +144,7 @@ export default function WelcomePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className={`w-1 h-4 rounded-full shadow-[0_0_8px_rgba(6,182,212,0.5)] ${locationEnabled ? 'bg-gradient-to-b from-cyan-400 to-cyan-600' : 'bg-gradient-to-b from-slate-500 to-slate-700'}`} />
-                  <span className="text-slate-300">
+                  <span className={locationEnabled ? 'text-slate-300' : 'text-slate-500'}>
                     Tracking Mode - {locationEnabled ? 'Full access with location sharing' : 'Disabled without location services'}
                   </span>
                 </div>
