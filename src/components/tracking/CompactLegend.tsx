@@ -110,23 +110,23 @@ export default function CompactLegend({
               <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-4 flex justify-center">
-                    <div className="w-3 h-3 bg-orange-500/80 rounded-sm" />
+                    <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-[#FF6B35]" />
                   </div>
                   <span className="text-cyan-100/80 flex-1">Trawler</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
                   <div className="w-4 flex justify-center">
-                    <div className="w-3 h-2 bg-orange-600/80 rounded-sm" />
+                    <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-[#9B59B6]" />
                   </div>
                   <span className="text-cyan-100/80 flex-1">Longliner</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
                   <div className="w-4 flex justify-center">
-                    <div className="w-4 h-2 bg-red-600/80 rounded-sm" />
+                    <div className="w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-[#3498DB]" />
                   </div>
-                  <span className="text-cyan-100/80 flex-1">Factory Ship</span>
+                  <span className="text-cyan-100/80 flex-1">Seiner</span>
                 </div>
               </div>
             </div>

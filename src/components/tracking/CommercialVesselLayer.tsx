@@ -56,6 +56,9 @@ export default function CommercialVesselLayer({
         vessels.forEach(vessel => {
           if (vessel.positions.length === 0) return;
           
+          // Skip factory ships
+          if (vessel.type?.toLowerCase().includes('factory')) return;
+          
           // Use most recent position
           const latestPosition = vessel.positions[vessel.positions.length - 1];
           
@@ -69,11 +72,11 @@ export default function CommercialVesselLayer({
             cursor: pointer;
           `;
           
-          // Vessel type determines shape and color
-          const vesselColor = vessel.type?.includes('Trawler') ? '#FF6B35' :
-                            vessel.type?.includes('Longliner') ? '#FF8C42' :
-                            vessel.type?.includes('Factory') ? '#DC143C' :
-                            '#FFA500'; // Default orange
+          // Vessel type determines shape and color - more differentiated colors
+          const vesselColor = vessel.type?.toLowerCase().includes('trawler') ? '#FF6B35' :     // Orange for trawlers
+                            vessel.type?.toLowerCase().includes('longliner') ? '#9B59B6' :    // Purple for longliners  
+                            vessel.type?.toLowerCase().includes('seiner') ? '#3498DB' :       // Blue for seiners
+                            '#FF6B35'; // Default orange for unknown types
           
           el.innerHTML = `
             <!-- Commercial Vessel Icon -->
