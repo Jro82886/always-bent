@@ -46,7 +46,10 @@ export default function UnifiedTrackingPanelLeft({
   fleetCount = 12
 }: UnifiedTrackingPanelLeftProps) {
   const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
-  const [expandedSection, setExpandedSection] = useState<string | null>('vessel');
+  // Multiple sections can be expanded - cupboard style
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(['vessel']) // Start with vessel section open by default
+  );
   const inlet = getInletById(selectedInletId);
   
   const handleInletSelect = (inletId: string) => {
@@ -61,7 +64,13 @@ export default function UnifiedTrackingPanelLeft({
   };
 
   const toggleSection = (section: string) => {
-    setExpandedSection(expandedSection === section ? null : section);
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+    setExpandedSections(newExpanded);
   };
 
   return (
@@ -94,13 +103,13 @@ export default function UnifiedTrackingPanelLeft({
             <div className="flex items-center gap-2">
               <div className="text-xs font-medium text-cyan-400/70 uppercase tracking-wider">Your Vessel</div>
             </div>
-            {expandedSection === 'vessel' ? 
+            {expandedSections.has('vessel') ? 
               <ChevronUp className="w-4 h-4 text-cyan-400/50" /> : 
               <ChevronDown className="w-4 h-4 text-cyan-400/50" />
             }
           </button>
           
-          {expandedSection === 'vessel' && (
+          {expandedSections.has('vessel') && (
             <div className="px-5 pb-4 space-y-3">
                 <div className="bg-slate-800/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-3">
@@ -153,13 +162,13 @@ export default function UnifiedTrackingPanelLeft({
             <div className="flex items-center gap-2">
               <div className="text-xs font-medium text-cyan-400/70 uppercase tracking-wider">Inlet Fleet</div>
             </div>
-            {expandedSection === 'fleet' ? 
+            {expandedSections.has('fleet') ? 
               <ChevronUp className="w-4 h-4 text-cyan-400/50" /> : 
               <ChevronDown className="w-4 h-4 text-cyan-400/50" />
             }
           </button>
           
-          {expandedSection === 'fleet' && (
+          {expandedSections.has('fleet') && (
             <div className="px-5 pb-4 space-y-3">
               {/* Inlet Selector */}
               <div className="relative">
@@ -249,13 +258,13 @@ export default function UnifiedTrackingPanelLeft({
             <div className="flex items-center gap-2">
               <div className="text-xs font-medium text-green-400/70 uppercase tracking-wider">Public Data</div>
             </div>
-            {expandedSection === 'public' ? 
+            {expandedSections.has('public') ? 
               <ChevronUp className="w-4 h-4 text-green-400/50" /> : 
               <ChevronDown className="w-4 h-4 text-green-400/50" />
             }
           </button>
           
-          {expandedSection === 'public' && (
+          {expandedSections.has('public') && (
             <div className="px-5 pb-4">
               <div className="bg-slate-800/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-3">
@@ -297,13 +306,13 @@ export default function UnifiedTrackingPanelLeft({
             <div className="flex items-center gap-2">
               <div className="text-xs font-medium text-cyan-400/70 uppercase tracking-wider">Display Options</div>
             </div>
-            {expandedSection === 'display' ? 
+            {expandedSections.has('display') ? 
               <ChevronUp className="w-4 h-4 text-cyan-400/50" /> : 
               <ChevronDown className="w-4 h-4 text-cyan-400/50" />
             }
           </button>
           
-          {expandedSection === 'display' && (
+          {expandedSections.has('display') && (
             <div className="px-5 pb-4 space-y-3">
               {/* ABFI Network Toggle */}
               <div className="flex items-center justify-between bg-slate-800/30 rounded-lg px-3 py-2">
