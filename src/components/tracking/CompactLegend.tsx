@@ -64,125 +64,119 @@ export default function CompactLegend({
           </button>
         </div>
         
-        {/* Legend Content */}
+        {/* Legend Content - Always show all items */}
         <div className="p-3 space-y-2">
           {/* Your Vessel */}
-          {showYou && (
-            <div 
-              className="group relative py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors cursor-help"
-              onMouseEnter={() => setHoveredItem('you')}
-              onMouseLeave={() => setHoveredItem(null)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]" />
+          <div 
+            className={`group relative py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors cursor-help ${!showYou && 'opacity-40'}`}
+            onMouseEnter={() => setHoveredItem('you')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]" />
+                {showYou && (
                   <div className="absolute inset-0 w-3 h-3 rounded-full bg-white animate-ping opacity-75" />
-                </div>
-                <div className="text-xs font-medium text-cyan-100">Your Vessel</div>
+                )}
               </div>
-              
-              {/* Clean hover tooltip */}
-              {hoveredItem === 'you' && (
-                <div className="absolute left-0 top-full mt-1 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded shadow-lg z-50">
-                  <div className="text-[10px] text-cyan-300">
-                    GPS updates every 5 seconds
-                  </div>
-                </div>
-              )}
+              <div className="text-xs font-medium text-cyan-100">Your Vessel</div>
             </div>
-          )}
+            
+            {/* Clean hover tooltip */}
+            {hoveredItem === 'you' && (
+              <div className="absolute left-0 top-full mt-1 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded shadow-lg z-50">
+                <div className="text-[10px] text-cyan-300">
+                  GPS updates every 5 seconds
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Inlet Fleet */}
-          {showFleet && (
-            <div 
-              className="group relative py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors cursor-help"
-              onMouseEnter={() => setHoveredItem('fleet')}
-              onMouseLeave={() => setHoveredItem(null)}
-            >
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-3 h-3 rounded-full"
-                  style={{
-                    backgroundColor: inletColor,
-                    boxShadow: `0 0 8px ${inletColor}80`
-                  }}
-                />
-                <div className="text-xs font-medium text-cyan-100">{inletName} Fleet</div>
-              </div>
-              
-              {/* Clean hover tooltip */}
-              {hoveredItem === 'fleet' && (
-                <div className="absolute left-0 top-full mt-1 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded shadow-lg z-50">
-                  <div className="text-[10px] text-cyan-300">
-                    Other boats from {inletName}
-                  </div>
-                </div>
-              )}
+          <div 
+            className={`group relative py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors cursor-help ${!showFleet && 'opacity-40'}`}
+            onMouseEnter={() => setHoveredItem('fleet')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: inletColor,
+                  boxShadow: showFleet ? `0 0 8px ${inletColor}80` : 'none'
+                }}
+              />
+              <div className="text-xs font-medium text-cyan-100">{inletName} Fleet</div>
             </div>
-          )}
+            
+            {/* Clean hover tooltip */}
+            {hoveredItem === 'fleet' && (
+              <div className="absolute left-0 top-full mt-1 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded shadow-lg z-50">
+                <div className="text-[10px] text-cyan-300">
+                  Other boats from {inletName}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Commercial Vessels */}
-          {showCommercial && (
-            <div 
-              className="group relative py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors cursor-help"
-              onMouseEnter={() => setHoveredItem('commercial')}
-              onMouseLeave={() => setHoveredItem(null)}
-            >
-              <div className="space-y-1.5">
-                <div className="text-[10px] font-bold text-orange-400/70 uppercase tracking-wider">Commercial</div>
+          <div 
+            className={`group relative py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors cursor-help ${!showCommercial && 'opacity-40'}`}
+            onMouseEnter={() => setHoveredItem('commercial')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <div className="space-y-1.5">
+              <div className="text-[10px] font-bold text-orange-400/70 uppercase tracking-wider">Commercial</div>
+              
+              <div className="flex items-center gap-4 pl-1">
+                {/* Trawler */}
+                <div className="flex items-center gap-2">
+                  <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-orange-500" />
+                  <div className="text-[11px] text-cyan-100/80">Trawlers</div>
+                </div>
                 
-                <div className="flex items-center gap-4 pl-1">
-                  {/* Trawler */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-orange-500" />
-                    <div className="text-[11px] text-cyan-100/80">Trawlers</div>
-                  </div>
-                  
-                  {/* Longliner */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-purple-500" />
-                    <div className="text-[11px] text-cyan-100/80">Longliners</div>
-                  </div>
+                {/* Longliner */}
+                <div className="flex items-center gap-2">
+                  <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-purple-500" />
+                  <div className="text-[11px] text-cyan-100/80">Longliners</div>
                 </div>
               </div>
-              
-              {/* Clean hover tooltip */}
-              {hoveredItem === 'commercial' && (
-                <div className="absolute left-0 top-full mt-1 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded shadow-lg z-50">
-                  <div className="text-[10px] text-cyan-300">
-                    Global Fishing Watch commercial vessels
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+            
+            {/* Clean hover tooltip */}
+            {hoveredItem === 'commercial' && (
+              <div className="absolute left-0 top-full mt-1 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded shadow-lg z-50">
+                <div className="text-[10px] text-cyan-300">
+                  Global Fishing Watch commercial vessels
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Vessel Tracks */}
-          {showTracks && (
-            <div 
-              className="group relative py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors cursor-help"
-              onMouseEnter={() => setHoveredItem('tracks')}
-              onMouseLeave={() => setHoveredItem(null)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-0.5">
-                  <div className="w-1 h-1 bg-cyan-400/60 rounded-full" />
-                  <div className="w-3 h-[1px] bg-cyan-400/40" />
-                  <div className="w-1 h-1 bg-cyan-400/60 rounded-full" />
-                </div>
-                <div className="text-xs font-medium text-cyan-100">Vessel Tracks</div>
+          <div 
+            className={`group relative py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors cursor-help ${!showTracks && 'opacity-40'}`}
+            onMouseEnter={() => setHoveredItem('tracks')}
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-0.5">
+                <div className="w-1 h-1 bg-cyan-400/60 rounded-full" />
+                <div className="w-3 h-[1px] bg-cyan-400/40" />
+                <div className="w-1 h-1 bg-cyan-400/60 rounded-full" />
               </div>
-              
-              {/* Clean hover tooltip */}
-              {hoveredItem === 'tracks' && (
-                <div className="absolute left-0 top-full mt-1 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded shadow-lg z-50">
-                  <div className="text-[10px] text-cyan-300">
-                    4 hour movement history
-                  </div>
-                </div>
-              )}
+              <div className="text-xs font-medium text-cyan-100">Vessel Tracks</div>
             </div>
-          )}
+            
+            {/* Clean hover tooltip */}
+            {hoveredItem === 'tracks' && (
+              <div className="absolute left-0 top-full mt-1 w-48 p-2 bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded shadow-lg z-50">
+                <div className="text-[10px] text-cyan-300">
+                  4 hour movement history
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
