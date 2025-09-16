@@ -9,6 +9,7 @@ import VesselLayer from '@/components/tracking/VesselLayer';
 import UnifiedTrackingPanelLeft from '@/components/tracking/UnifiedTrackingPanelLeft';
 import CompactLegend from '@/components/tracking/CompactLegend';
 import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
+import DepartureMonitor from '@/components/tracking/DepartureMonitor';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
@@ -190,6 +191,13 @@ function TrackingModeContent() {
       
       {/* Network Status Indicator - Shows online/offline status */}
       <NetworkStatusIndicator />
+      
+      {/* Departure Monitor - Detects when leaving inlet and asks about internet */}
+      <DepartureMonitor 
+        userPosition={userPosition}
+        selectedInletId={selectedInletId}
+        trackingActive={trackingActive}
+      />
       
       {/* Vessel Layer - Handles all vessel markers and tracks */}
       <VesselLayer
