@@ -57,15 +57,15 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="w-full h-full overflow-y-auto bg-black">
+    <div className="w-full min-h-screen overflow-y-auto overflow-x-hidden bg-black">
       {/* Glowing background effect - fixed position */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-2xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-cyan-400/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[800px] h-[400px] sm:h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] bg-blue-500/5 rounded-full blur-2xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-cyan-400/5 rounded-full blur-3xl" />
       </div>
       
-      <div className="relative z-10 w-full px-4 py-8">
+      <div className="relative z-10 w-full px-4 py-6 sm:py-8">
         <div className="max-w-2xl mx-auto">
           <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-6 sm:p-8 md:p-12 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
             

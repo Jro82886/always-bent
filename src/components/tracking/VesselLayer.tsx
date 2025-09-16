@@ -111,7 +111,7 @@ export default function VesselLayer({
 
         // Watch position for updates
         watchIdRef.current = navigator.geolocation.watchPosition(
-          (position) => {
+          async (position) => {
             setUserPosition(position);
             if (onPositionUpdate) {
               onPositionUpdate({
@@ -119,6 +119,31 @@ export default function VesselLayer({
                 lng: position.coords.longitude,
                 speed: position.coords.speed || 0
               });
+            }
+            
+            // Save position to database
+            try {
+              const captainName = localStorage.getItem('abfi_captain_name') || 'Anonymous';
+              const boatName = localStorage.getItem('abfi_boat_name') || 'Unknown Vessel';
+              const userId = `${captainName}_${boatName}`.toLowerCase().replace(/\s+/g, '_');
+              
+              await fetch('/api/tracking/position', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  user_id: userId,
+                  username: `${captainName} (${boatName})`,
+                  inlet_id: selectedInletId || 'md-ocean-city',
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                  speed: position.coords.speed ? position.coords.speed * 1.94384 : 0, // Convert m/s to knots
+                  heading: position.coords.heading || null,
+                  session_id: `session_${Date.now()}`
+                })
+              });
+              console.log('[TRACKING] Position saved to database');
+            } catch (error) {
+              console.error('[TRACKING] Failed to save position:', error);
             }
           },
           (error) => console.error('Geolocation watch error:', error),
@@ -389,14 +414,116 @@ export default function VesselLayer({
     fleetMarkersRef.current.clear();
 
     if (showFleet) {
-      // Filter fleet by selected inlet (or show all if no inlet selected)
-      const visibleFleet = selectedInletId && selectedInletId !== 'overview' 
-        ? MOCK_FLEET.filter(vessel => vessel.inlet === selectedInletId)
-        : MOCK_FLEET;
+      // Fetch real fleet positions from database
+      const fetchFleetPositions = async () => {
+        try {
+          const inletParam = selectedInletId || 'md-ocean-city';
+          const response = await fetch(`/api/tracking/position?inlet_id=${inletParam}&hours=1`);
+          const data = await response.json();
+          
+          if (data.success && data.vessels) {
+            // Clear existing markers
+            fleetMarkersRef.current.forEach(marker => marker.remove());
+            fleetMarkersRef.current.clear();
+            
+            // Get current user ID to avoid showing self
+            const captainName = localStorage.getItem('abfi_captain_name') || 'Anonymous';
+            const boatName = localStorage.getItem('abfi_boat_name') || 'Unknown Vessel';
+            const currentUserId = `${captainName}_${boatName}`.toLowerCase().replace(/\s+/g, '_');
+            
+            // Render each vessel
+            data.vessels.forEach((vessel: any) => {
+              // Skip current user
+              if (vessel.user_id === currentUserId) return;
+              
+              // Only show vessels with recent positions (last 5 minutes)
+              if (!vessel.latest) return;
+              const lastSeen = new Date(vessel.latest.timestamp);
+              const minutesAgo = (Date.now() - lastSeen.getTime()) / 60000;
+              if (minutesAgo > 5) return;
+              
+              const inlet = getInletById(vessel.inlet_id || 'md-ocean-city');
+              const color = inlet?.color || '#00DDEB';
+              
+              // Create marker element
+              const el = document.createElement('div');
+              el.className = 'fleet-vessel-marker';
+              el.style.cssText = `
+                width: 24px;
+                height: 24px;
+                position: relative;
+                cursor: pointer;
+              `;
+              
+              // Different style if vessel is moving vs stationary
+              const isMoving = vessel.latest.speed && vessel.latest.speed > 2;
+              
+              el.innerHTML = `
+                <div style="
+                  width: 12px;
+                  height: 12px;
+                  background: ${color};
+                  border-radius: 50%;
+                  box-shadow: 0 0 10px ${color}80;
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  ${isMoving ? 'animation: pulse 2s infinite;' : ''}
+                "></div>
+                ${isMoving ? '' : `
+                  <div style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 20px;
+                    height: 20px;
+                    transform: translate(-50%, -50%);
+                    border: 2px solid ${color}40;
+                    border-radius: 50%;
+                    animation: pulse-ring 2s infinite;
+                  "></div>
+                `}
+              `;
+              
+              const marker = new mapboxgl.Marker({ element: el })
+                .setLngLat([vessel.latest.lng, vessel.latest.lat])
+                .setPopup(
+                  new mapboxgl.Popup({ offset: 20 })
+                    .setHTML(`
+                      <div style="padding: 8px;">
+                        <div style="font-weight: bold; color: ${color};">
+                          ${vessel.username || 'Unknown Captain'}
+                        </div>
+                        <div style="font-size: 11px; color: #888; margin-top: 2px;">
+                          ${vessel.latest.speed ? `${vessel.latest.speed.toFixed(1)} knots` : 'Stationary'}
+                        </div>
+                        <div style="font-size: 10px; color: #666; margin-top: 4px;">
+                          ${inlet?.name || 'Unknown Inlet'}
+                        </div>
+                        <div style="font-size: 9px; color: #999; margin-top: 2px;">
+                          Last seen: ${minutesAgo < 1 ? 'Just now' : `${Math.round(minutesAgo)} min ago`}
+                        </div>
+                      </div>
+                    `)
+                )
+                .addTo(map);
+              
+              fleetMarkersRef.current.set(vessel.user_id, marker);
+            });
+            
+            console.log(`[FLEET] Displayed ${fleetMarkersRef.current.size} vessels`);
+          }
+        } catch (error) {
+          console.error('[FLEET] Failed to fetch positions:', error);
+          // Fall back to mock data if API fails
+          const visibleFleet = selectedInletId && selectedInletId !== 'overview' 
+            ? MOCK_FLEET.filter(vessel => vessel.inlet === selectedInletId)
+            : MOCK_FLEET;
 
-      visibleFleet.forEach(vessel => {
-        const inlet = getInletById(vessel.inlet);
-        const color = inlet?.color || '#00DDEB';
+          visibleFleet.forEach(vessel => {
+            const inlet = getInletById(vessel.inlet);
+            const color = inlet?.color || '#00DDEB';
 
         // Create custom marker element
         const el = document.createElement('div');
@@ -428,8 +555,20 @@ export default function VesselLayer({
           )
           .addTo(map);
 
-        fleetMarkersRef.current.set(vessel.id, marker);
-      });
+            fleetMarkersRef.current.set(vessel.id, marker);
+          });
+        }
+      };
+      
+      // Fetch immediately and then every 30 seconds
+      fetchFleetPositions();
+      const interval = setInterval(fetchFleetPositions, 30000);
+      
+      return () => {
+        clearInterval(interval);
+        fleetMarkersRef.current.forEach(marker => marker.remove());
+        fleetMarkersRef.current.clear();
+      };
     }
 
     return () => {
