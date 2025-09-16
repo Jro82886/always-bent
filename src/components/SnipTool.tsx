@@ -168,21 +168,24 @@ function RectangleTooltip({ map, polygon, onDismiss }: { map: mapboxgl.Map | nul
     >
       {/* Arrow pointing down to rectangle */}
       <div className="relative">
-        <div className="bg-gradient-to-r from-cyan-900/98 to-blue-900/98 backdrop-blur-xl rounded-xl px-6 py-3 border-2 border-cyan-400 shadow-[0_0_30px_rgba(0,212,255,0.8)] animate-pulse">
-          <div className="flex flex-col items-center gap-1">
+        <div className="bg-slate-900/90 backdrop-blur-xl rounded-lg px-5 py-3 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+          <div className="flex flex-col items-center gap-2">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-ping" />
-              <span className="text-cyan-100 font-bold">Analysis Complete!</span>
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-ping" />
+              <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
+              <span className="text-cyan-100 font-semibold text-sm">Analysis Complete!</span>
+              <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
             </div>
-            <p className="text-cyan-300 font-semibold text-sm">
-              👇 Click rectangle for ocean intelligence
-            </p>
+            <div className="flex items-center gap-2 text-cyan-300/80 text-xs">
+              <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Click rectangle for ocean intelligence</span>
+            </div>
           </div>
         </div>
         {/* Arrow pointing down */}
         <div className="absolute left-1/2 -bottom-2 -translate-x-1/2">
-          <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-cyan-400"></div>
+          <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-cyan-500/30"></div>
         </div>
       </div>
     </div>
