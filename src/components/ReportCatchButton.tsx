@@ -585,7 +585,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         {/* Callout Arrow and Message */}
         {showCallout && (
           <>
-            <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <div className="absolute -top-20 left-1/2 transform -translate-x-1/2">
               <div className="bg-cyan-500/90 text-white px-4 py-2 rounded-lg shadow-lg relative whitespace-nowrap">
                 <div className="text-xs font-bold">Try ABFI!</div>
                 <div className="text-[10px]">Log your bites instantly</div>
@@ -594,22 +594,18 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
                 </div>
               </div>
             </div>
-            {/* Pulsing ring around button */}
-            <div className="absolute inset-0 rounded-xl animate-ping">
-              <div className="w-full h-full border-2 border-cyan-400 rounded-xl"></div>
-            </div>
           </>
         )}
         
         {/* NEW Feature Badge - Shows for first 7 days */}
         {typeof window !== 'undefined' && !localStorage.getItem('abfi_first_click') && !showCallout && (
-          <div className="absolute -top-3 -left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-bounce">
+          <div className="absolute -top-3 -left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
             NEW
           </div>
         )}
         <button
           onClick={handleReportCatch}
-          className={`relative px-8 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${showCallout ? 'animate-pulse' : ''}`}
+          className="relative px-8 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
           style={{
             background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
             backdropFilter: 'blur(16px)',
@@ -634,14 +630,14 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
           }}
         >
           <span className="relative flex items-center justify-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
             <span className="text-white font-bold tracking-wider text-sm">ABFI</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
           </span>
           
           {/* Pending bites badge */}
           {pendingBites > 0 && (
-            <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+            <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
               {pendingBites}
             </div>
           )}
@@ -649,7 +645,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
           {/* Syncing indicator */}
           {isSyncing && (
             <div className="absolute -top-2 -left-2">
-              <Upload size={12} className="text-cyan-400 animate-bounce" />
+              <Upload size={12} className="text-cyan-400" />
             </div>
           )}
         </button>
