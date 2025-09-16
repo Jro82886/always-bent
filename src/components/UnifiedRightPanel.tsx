@@ -22,6 +22,13 @@ export default function UnifiedRightPanel({
 }: UnifiedRightPanelProps) {
   const [legendExpanded, setLegendExpanded] = useState(true);
   const [tutorialExpanded, setTutorialExpanded] = useState(false);
+  const [offlineMode, setOfflineMode] = useState(() => {
+    // Load saved preference
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('abfi_offline_mode') === 'true';
+    }
+    return false;
+  });
   
   const startTutorial = () => {
     // Trigger the interactive tutorial
@@ -132,38 +139,100 @@ export default function UnifiedRightPanel({
       {currentMode === 'analysis' && (
         <div className="bg-slate-900/80 backdrop-blur-md rounded-t-xl border border-slate-500/20 border-b-0 px-4 py-2">
           <div className="group relative flex items-center justify-between">
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Connection Status</span>
-            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${
-              isOnline 
-                ? 'bg-green-500/10 border border-green-500/30' 
-                : 'bg-orange-500/10 border border-orange-500/30'
-            }`}>
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Connection Mode</span>
+            <button
+              onClick={() => {
+                const newMode = !offlineMode;
+                setOfflineMode(newMode);
+                
+                // Show notification toast
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
+                toast.innerHTML = `
+                  <div class="bg-slate-900/95 backdrop-blur-xl border ${newMode ? 'border-orange-500/30' : 'border-green-500/30'} rounded-lg px-6 py-4 shadow-2xl">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full ${newMode ? 'bg-orange-500/20' : 'bg-green-500/20'} flex items-center justify-center">
+                        ${newMode ? 
+                          `<svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"></path>
+                          </svg>` :
+                          `<svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                          </svg>`
+                        }
+                      </div>
+                      <div>
+                        <div class="text-white font-semibold">${newMode ? 'Offline Mode - Bite Button Only' : 'Online Mode - Full Features'}</div>
+                        <div class="text-gray-400 text-sm mt-1">${newMode ? 'Log bites locally - perfect for when offshore without signal' : 'Full ABFI suite: Reports, Chat, Trends, Real-time Analysis'}</div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Add animation style if needed
+                if (!document.getElementById('slide-down-animation')) {
+                  const style = document.createElement('style');
+                  style.id = 'slide-down-animation';
+                  style.textContent = \`
+                    @keyframes slide-down {
+                      from { transform: translate(-50%, -100%); opacity: 0; }
+                      to { transform: translate(-50%, 0); opacity: 1; }
+                    }
+                    .animate-slide-down {
+                      animation: slide-down 0.3s ease-out;
+                    }
+                  \`;
+                  document.head.appendChild(style);
+                }
+                
+                setTimeout(() => {
+                  if (toast && toast.parentNode) {
+                    toast.remove();
+                  }
+                }, 3000);
+                
+                // Store preference
+                localStorage.setItem('abfi_offline_mode', newMode.toString());
+              }}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all hover:scale-105 ${
+                offlineMode 
+                  ? 'bg-orange-500/10 border border-orange-500/30 hover:bg-orange-500/20' 
+                  : 'bg-green-500/10 border border-green-500/30 hover:bg-green-500/20'
+              }`}
+              title="Click to toggle online/offline mode"
+            >
               <div className={`w-1.5 h-1.5 rounded-full ${
-                isOnline ? 'bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.6)]' : 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.6)]'
+                offlineMode ? 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.6)]' : 'bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.6)]'
               }`} />
               <span className={`text-[10px] font-medium uppercase ${
-                isOnline ? 'text-green-400' : 'text-orange-400'
+                offlineMode ? 'text-orange-400' : 'text-green-400'
               }`}>
-                {isOnline ? 'ONLINE' : 'OFFLINE'}
+                {offlineMode ? 'OFFLINE' : 'ONLINE'}
               </span>
-            </div>
+            </button>
             {/* Tooltip */}
             <div className="absolute right-0 top-full mt-2 w-56 p-3 bg-slate-800/95 backdrop-blur rounded-lg border border-slate-600/30 
                           shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible 
                           transition-all duration-200 pointer-events-none z-50">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-400' : 'bg-orange-400'}`} />
+                  <div className={`w-2 h-2 rounded-full ${offlineMode ? 'bg-orange-400' : 'bg-green-400'}`} />
                   <span className="text-xs font-semibold text-slate-200">
-                    {isOnline ? 'Connected to ABFI Network' : 'Working Offline'}
+                    {offlineMode ? 'Offline Mode (Minimal)' : 'Online Mode (Full Suite)'}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 leading-relaxed">
-                  {isOnline 
-                    ? '✓ Analysis reports generate instantly\n✓ Community chat available\n✓ Real-time data sync\n✓ Access to trends & insights'
-                    : '• Limited to bite logging only\n• Reports queued for later\n• Data syncs when reconnected\n• Community features unavailable'
+                <p className="text-[10px] text-slate-400 leading-relaxed whitespace-pre-line">
+                  {offlineMode 
+                    ? '📍 BITE BUTTON ONLY\n• Log catches locally on phone\n• Perfect for offshore/no signal\n• Data saved for later sync\n• No internet required'
+                    : '🚀 FULL ABFI FEATURES\n✓ Bite Button + instant reports\n✓ Real-time analysis & hotspots\n✓ Community chat with captains\n✓ Trends & fishing intelligence\n✓ Live vessel tracking'
                   }
                 </p>
+                <div className="mt-2 pt-2 border-t border-slate-700/50">
+                  <p className="text-[9px] text-slate-500 italic">
+                    Toggle for mobile offshore use
+                  </p>
+                </div>
               </div>
             </div>
           </div>
