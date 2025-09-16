@@ -7,6 +7,7 @@ import * as turf from '@turf/turf';
 import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData } from '@/lib/analysis/sst-analyzer';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
+import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extractor';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
 import { getVesselsInBounds, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
 import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
@@ -760,16 +761,68 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       };
       console.log('[SNIP] Active layers:', activeLayers);
       
-      // Step 3: Generate ocean data using already calculated bounds
-      console.log('[SNIP] Step 3: Generating ocean data...');
-      setAnalysisStep('Extracting temperature and chlorophyll data...');
+      // Step 3: Extract REAL ocean data from tiles!
+      console.log('[SNIP] Step 3: Extracting REAL ocean data from tiles...');
+      setAnalysisStep('Extracting real temperature and chlorophyll data...');
       
-      // Generate data (using mock for now) - reuse bounds from Step 1
-      const sstData = activeLayers.sst || true ? generateMockSSTData(bounds) : null; // Always generate SST for demo
-      const chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
+      let sstData = null;
+      let chlData = null;
+      let pixelAnalysis = null;
       
-      // Step 4: Run analysis
-      console.log('[SNIP] Step 4: Running multi-layer analysis...');
+      try {
+        // Try to extract real pixel data first
+        const extractedData = await extractPixelData(map, polygon, {
+          sstLayerId: 'sst-lyr',
+          chlLayerId: 'chl-lyr',
+          sampleDensity: 20 // 20 points per km²
+        });
+        
+        if (extractedData.sst.length > 0 || extractedData.chl.length > 0) {
+          console.log('[SNIP] SUCCESS! Got real pixel data:', {
+            sstPoints: extractedData.sst.length,
+            chlPoints: extractedData.chl.length
+          });
+          
+          // Analyze the real data
+          pixelAnalysis = analyzePixelData(extractedData);
+          console.log('[SNIP] Real data analysis:', pixelAnalysis.stats);
+          
+          // Convert to format expected by analyzeMultiLayer
+          if (extractedData.sst.length > 0) {
+            sstData = extractedData.sst.map(p => ({
+              lat: p.lat,
+              lng: p.lng,
+              temp_f: p.value,
+              timestamp: p.timestamp
+            }));
+          }
+          
+          if (extractedData.chl.length > 0) {
+            chlData = extractedData.chl.map(p => ({
+              lat: p.lat,
+              lng: p.lng,
+              chl_mg_m3: p.value // Correct field name for CHLDataPoint
+            }));
+          }
+        } else {
+          console.log('[SNIP] No pixel data extracted, using fallback...');
+        }
+      } catch (pixelError) {
+        console.warn('[SNIP] Pixel extraction failed, using fallback:', pixelError);
+      }
+      
+      // Fallback to generated data if pixel extraction failed
+      if (!sstData && (activeLayers.sst || true)) {
+        console.log('[SNIP] Using generated SST data as fallback');
+        sstData = generateMockSSTData(bounds);
+      }
+      if (!chlData && activeLayers.chl) {
+        console.log('[SNIP] Using generated CHL data as fallback');
+        chlData = generateMockCHLData(bounds);
+      }
+      
+      // Step 4: Run analysis with real or generated data
+      console.log('[SNIP] Step 4: Running multi-layer analysis with', pixelAnalysis ? 'REAL' : 'generated', 'data...');
       setAnalysisStep('Detecting edges, fronts, and convergence zones...');
       
       let analysis;
@@ -779,6 +832,34 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           sstData,
           chlData
         );
+        
+        // If we have real pixel analysis, merge the stats
+        if (pixelAnalysis) {
+          analysis.stats = {
+            ...analysis.stats,
+            min_temp_f: pixelAnalysis.stats.sstMin || analysis.stats.min_temp_f,
+            max_temp_f: pixelAnalysis.stats.sstMax || analysis.stats.max_temp_f,
+            avg_temp_f: pixelAnalysis.stats.sstAvg || analysis.stats.avg_temp_f,
+            temp_range_f: (pixelAnalysis.stats.sstMax || 0) - (pixelAnalysis.stats.sstMin || 0) || analysis.stats.temp_range_f
+          };
+          
+          // Store gradient info separately
+          (analysis as any).gradient_strength = pixelAnalysis.stats.sstGradient;
+          (analysis as any).data_source = 'REAL_TILES';
+          
+          // Use real hotspots if detected
+          if (pixelAnalysis.hotspots.length > 0) {
+            const bestHotspot = pixelAnalysis.hotspots[0];
+            analysis.hotspot = {
+              location: [bestHotspot.lng, bestHotspot.lat],
+              gradient_strength: bestHotspot.strength,
+              confidence: 0.95, // High confidence for real data
+              optimal_approach: bestHotspot.type === 'temperature_break' ? 'North-South' : 'East-West'
+            };
+          }
+          
+          console.log('[SNIP] Enhanced analysis with REAL tile data!');
+        }
         
         // JEFF'S LOGIC: Only show hotspot if gradient meets threshold (>= 0.5°F/mile)
         if (!analysis.hotspot || !analysis.hotspot.location) {
