@@ -175,7 +175,7 @@ export default function UnifiedTrackingPanelLeft({
                               <div className="text-xs text-blue-300">
                                 <div className="font-medium mb-1">Privacy Protection Active</div>
                                 <div className="text-blue-300/80">
-                                  When live: Your location only displays when you're near your inlet and on the water. 
+                                  When live: Your location only displays within 10 miles of your inlet. 
                                   Just head out for your next trip!
                                 </div>
                                 <div className="text-yellow-400/80 mt-1">

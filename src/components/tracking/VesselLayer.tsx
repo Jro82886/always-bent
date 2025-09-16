@@ -230,9 +230,10 @@ export default function VesselLayer({
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
           const distance = R * c;
           
-          // Must be within 40 miles of inlet (matches the glow radius)
-          if (distance > 40) {
-            console.log(`[PRIVACY] User ${distance.toFixed(1)}mi from inlet, outside glow zone`);
+          // Must be within 10 miles of inlet (typical cell service range)
+          // Beyond this, users lose cell service and need offline mode anyway
+          if (distance > 10) {
+            console.log(`[PRIVACY] User ${distance.toFixed(1)}mi from inlet, beyond cell range`);
             return false;
           }
         }
