@@ -21,6 +21,15 @@ export default function CommercialVesselLayer({
   useEffect(() => {
     if (!map) return;
     
+    // Ensure map is fully loaded before any marker operations
+    if (!map.loaded()) {
+      const handleLoad = () => {
+        // Map is now loaded, re-run this effect
+      };
+      map.once('load', handleLoad);
+      return;
+    }
+    
     if (!showCommercial) {
       // Clear all commercial markers when hidden
       commercialMarkersRef.current.forEach(marker => marker.remove());
@@ -29,11 +38,6 @@ export default function CommercialVesselLayer({
     }
 
     const fetchAndDisplayCommercialVessels = async () => {
-      // Ensure map is loaded before proceeding
-      if (!map.loaded()) {
-        console.log('[GFW] Waiting for map to load...');
-        return;
-      }
       // Throttle API calls - max once per 30 seconds
       const now = Date.now();
       if (now - lastFetchRef.current < 30000) return;

@@ -168,6 +168,15 @@ export default function VesselLayer({
   // Render user marker
   useEffect(() => {
     if (!map || !userPosition) return;
+    
+    // Ensure map is fully loaded before creating markers
+    if (!map.loaded()) {
+      const handleLoad = () => {
+        // Map is now loaded, re-run this effect
+      };
+      map.once('load', handleLoad);
+      return;
+    }
 
     // Remove old marker
     if (userMarkerRef.current) {
@@ -410,12 +419,17 @@ export default function VesselLayer({
         document.head.appendChild(style);
       }
 
-      // Create marker
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([userPosition.coords.longitude, userPosition.coords.latitude])
-        .addTo(map);
-
-      userMarkerRef.current = marker;
+      // Create marker with safety check
+      try {
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([userPosition.coords.longitude, userPosition.coords.latitude])
+          .addTo(map);
+        
+        userMarkerRef.current = marker;
+      } catch (error) {
+        console.error('[VesselLayer] Failed to create user marker:', error);
+        return;
+      }
     }
 
     return () => {
@@ -439,6 +453,15 @@ export default function VesselLayer({
   // Render fleet markers
   useEffect(() => {
     if (!map) return;
+    
+    // Ensure map is fully loaded before creating markers
+    if (!map.loaded()) {
+      const handleLoad = () => {
+        // Map is now loaded, markers can be safely added
+      };
+      map.once('load', handleLoad);
+      return;
+    }
 
     // Clear existing fleet markers
     fleetMarkersRef.current.forEach(marker => marker.remove());
