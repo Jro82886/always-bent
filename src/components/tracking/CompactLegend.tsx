@@ -28,7 +28,7 @@ export default function CompactLegend({
 
   if (!isExpanded) {
     return (
-      <div className="absolute bottom-8 left-4 z-10">
+      <div className="absolute bottom-20 left-4 z-50">
         <button
           onClick={() => setIsExpanded(true)}
           className="bg-slate-900/90 backdrop-blur-xl rounded-lg px-3 py-2 border border-cyan-500/20 hover:bg-slate-900/95 transition-all group flex items-center gap-2"

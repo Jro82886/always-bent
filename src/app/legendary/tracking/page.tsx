@@ -38,7 +38,6 @@ function TrackingModeContent() {
   const [showYou, setShowYou] = useState(false); // User must explicitly enable
   const [showFleet, setShowFleet] = useState(false); // User must explicitly enable
   const [showCommercial, setShowCommercial] = useState(false); // User must explicitly enable
-  const [showABFINetwork, setShowABFINetwork] = useState(false); // User must explicitly enable
   const [showTracks, setShowTracks] = useState(false); // Off by default (performance)
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
   
@@ -246,21 +245,14 @@ function TrackingModeContent() {
   useEffect(() => {
     if (!map.current) return;
     
-    if (showABFINetwork) {
-      // Zoom out to show entire East Coast
-      const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]];
-      map.current.fitBounds(EAST_COAST_BOUNDS as any, {
-        padding: { top: 50, bottom: 50, left: 50, right: 350 }, // Extra right padding for control panel
-        duration: 1500
-      });
-    } else if (selectedInletId) {
-      // Return to inlet view
+    if (selectedInletId) {
+      // Zoom to inlet view
       const inlet = getInletById(selectedInletId);
       if (inlet) {
         flyToInlet60nm(map.current, inlet);
       }
     }
-  }, [showABFINetwork, selectedInletId]);
+  }, [selectedInletId]);
 
   return (
     <div className="w-full h-screen relative">
@@ -291,8 +283,6 @@ function TrackingModeContent() {
         setShowFleet={setShowFleet}
         showCommercial={showCommercial}
         setShowCommercial={setShowCommercial}
-        showABFINetwork={showABFINetwork}
-        setShowABFINetwork={setShowABFINetwork}
         showTracks={showTracks}
         setShowTracks={setShowTracks}
         trackingActive={trackingActive}
@@ -338,10 +328,10 @@ function TrackingModeContent() {
             <VesselLayer
               map={map.current}
               showYou={showYou}
-              showFleet={showFleet || showABFINetwork}
+              showFleet={showFleet}
               showCommercial={false} // Commercial vessels now handled separately
               showTracks={showTracks}
-              selectedInletId={showABFINetwork ? '' : selectedInletId}
+              selectedInletId={selectedInletId}
               onPositionUpdate={handlePositionUpdate}
             />
           )}

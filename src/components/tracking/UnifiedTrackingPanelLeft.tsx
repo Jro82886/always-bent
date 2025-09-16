@@ -17,8 +17,6 @@ interface UnifiedTrackingPanelLeftProps {
   setShowFleet: (show: boolean) => void;
   showCommercial: boolean;
   setShowCommercial: (show: boolean) => void;
-  showABFINetwork: boolean;
-  setShowABFINetwork: (show: boolean) => void;
   showTracks: boolean;
   setShowTracks: (show: boolean) => void;
   trackingActive: boolean;
@@ -39,8 +37,6 @@ export default function UnifiedTrackingPanelLeft({
   setShowFleet,
   showCommercial,
   setShowCommercial,
-  showABFINetwork,
-  setShowABFINetwork,
   showTracks,
   setShowTracks,
   trackingActive,
@@ -320,7 +316,7 @@ export default function UnifiedTrackingPanelLeft({
           )}
         </div>
         
-        {/* Display Options Section */}
+        {/* Display Options Section - Vessel Tracks Only */}
         <div className="border-b border-cyan-500/10">
           <button 
             onClick={() => toggleSection('display')}
@@ -336,26 +332,7 @@ export default function UnifiedTrackingPanelLeft({
           </button>
           
           {expandedSections.has('display') && (
-            <div className="px-5 pb-4 space-y-3">
-              {/* ABFI Network Toggle */}
-              <div className="flex items-center justify-between bg-slate-800/30 rounded-lg px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-cyan-400/50" />
-                  <span className="text-sm text-cyan-100">ABFI Network</span>
-                </div>
-                <button 
-                  onClick={() => setShowABFINetwork(!showABFINetwork)}
-                  disabled={!trackingActive}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${
-                    showABFINetwork && trackingActive ? 'bg-cyan-600' : 'bg-slate-700'
-                  } ${!trackingActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    showABFINetwork && trackingActive ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
-                </button>
-              </div>
-              
+            <div className="px-5 pb-4">
               {/* Vessel Tracks Toggle */}
               <div className="flex items-center justify-between bg-slate-800/30 rounded-lg px-3 py-2">
                 <div className="flex items-center gap-2">

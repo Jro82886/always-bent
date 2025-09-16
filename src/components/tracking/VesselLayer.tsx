@@ -165,9 +165,16 @@ export default function VesselLayer({
     };
   }, [map, showYou, onPositionUpdate]); // Added showYou dependency
 
-  // Render user marker
+  // Render user marker - ONLY controlled by showYou
   useEffect(() => {
-    if (!map || !userPosition) return;
+    if (!map || !userPosition || !showYou) {
+      // Clean up marker if conditions not met
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
+      }
+      return;
+    }
     
     // Ensure map is fully loaded before creating markers
     if (!map.loaded()) {
@@ -178,7 +185,7 @@ export default function VesselLayer({
       return;
     }
 
-    // Remove old marker
+    // Remove old marker before creating new one
     if (userMarkerRef.current) {
       userMarkerRef.current.remove();
     }
@@ -485,9 +492,8 @@ export default function VesselLayer({
           const data = await response.json();
           
           if (data.success && data.vessels && Array.isArray(data.vessels)) {
-            // Clear existing markers
-            fleetMarkersRef.current.forEach(marker => marker.remove());
-            fleetMarkersRef.current.clear();
+            // Track which vessels we've seen this update
+            const seenVesselIds = new Set<string>();
             
             // Get current user ID to avoid showing self
             const captainName = localStorage.getItem('abfi_captain_name') || 'Anonymous';
@@ -557,33 +563,52 @@ export default function VesselLayer({
                   `}
                 `;
                 
-                const marker = new mapboxgl.Marker({ element: el })
-                  .setLngLat([vessel.latest.lng, vessel.latest.lat])
-                  .setPopup(
-                    new mapboxgl.Popup({ offset: 20 })
-                      .setHTML(`
-                        <div style="padding: 8px;">
-                          <div style="font-weight: bold; color: ${color};">
-                            ${vessel.username || 'Unknown Captain'}
-                          </div>
-                          <div style="font-size: 11px; color: #888; margin-top: 2px;">
-                            ${vessel.latest.speed ? `${vessel.latest.speed.toFixed(1)} knots` : 'Stationary'}
-                          </div>
-                          <div style="font-size: 10px; color: #666; margin-top: 4px;">
-                            ${inlet?.name || 'Unknown Inlet'}
-                          </div>
-                          <div style="font-size: 9px; color: #999; margin-top: 2px;">
-                            Last seen: ${minutesAgo < 1 ? 'Just now' : `${Math.round(minutesAgo)} min ago`}
-                          </div>
-                        </div>
-                      `)
-                  )
-                  .addTo(map);
+                // Check if marker already exists
+                const existingMarker = fleetMarkersRef.current.get(vessel.user_id);
                 
-                fleetMarkersRef.current.set(vessel.user_id, marker);
+                if (existingMarker) {
+                  // Update existing marker position
+                  existingMarker.setLngLat([vessel.latest.lng, vessel.latest.lat]);
+                  seenVesselIds.add(vessel.user_id);
+                } else {
+                  // Create new marker
+                  const marker = new mapboxgl.Marker({ element: el })
+                    .setLngLat([vessel.latest.lng, vessel.latest.lat])
+                    .setPopup(
+                      new mapboxgl.Popup({ offset: 20 })
+                        .setHTML(`
+                          <div style="padding: 8px;">
+                            <div style="font-weight: bold; color: ${color};">
+                              ${vessel.username || 'Unknown Captain'}
+                            </div>
+                            <div style="font-size: 11px; color: #888; margin-top: 2px;">
+                              ${vessel.latest.speed ? `${vessel.latest.speed.toFixed(1)} knots` : 'Stationary'}
+                            </div>
+                            <div style="font-size: 10px; color: #666; margin-top: 4px;">
+                              ${inlet?.name || 'Unknown Inlet'}
+                            </div>
+                            <div style="font-size: 9px; color: #999; margin-top: 2px;">
+                              Last seen: ${minutesAgo < 1 ? 'Just now' : `${Math.round(minutesAgo)} min ago`}
+                            </div>
+                          </div>
+                        `)
+                    )
+                    .addTo(map);
+                  
+                  fleetMarkersRef.current.set(vessel.user_id, marker);
+                  seenVesselIds.add(vessel.user_id);
+                }
               } catch (vesselError) {
                 console.error('[FLEET] Error rendering vessel:', vesselError);
                 // Skip this vessel and continue with others
+              }
+            });
+            
+            // Remove markers for vessels no longer in the data
+            fleetMarkersRef.current.forEach((marker, vesselId) => {
+              if (!seenVesselIds.has(vesselId)) {
+                marker.remove();
+                fleetMarkersRef.current.delete(vesselId);
               }
             });
             
