@@ -6,10 +6,11 @@
 
 "use client";
 import { useState, useEffect } from 'react';
-import { Fish, MapPin, Thermometer, Waves, Users, Clock, TrendingUp, AlertCircle, Zap, Activity } from 'lucide-react';
+import { Fish, MapPin, Thermometer, Waves, Users, Clock, TrendingUp, AlertCircle, Zap, Activity, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { createClient } from '@/lib/supabase/client';
 import { useAppState } from '@/store/appState';
+import CompactReportCard from './CompactReportCard';
 
 interface BiteReport {
   id: string;
@@ -51,13 +52,15 @@ export default function ReportsFeed() {
   const [reports, setReports] = useState<BiteReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('network');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
   const { selectedInletId } = useAppState();
   const supabase = createClient();
   
   useEffect(() => {
     loadReports();
     
-    // Subscribe to new reports
+    // Subscribe to new reports for real-time updates
     const subscription = supabase
       .channel('bite_reports')
       .on('postgres_changes', {
@@ -65,15 +68,49 @@ export default function ReportsFeed() {
         schema: 'public',
         table: 'bite_reports'
       }, (payload) => {
-        console.log('[REPORTS] New report:', payload);
-        loadReports();
+        console.log('[REPORTS] New report received:', payload);
+        // Add new report to the top without full reload
+        setReports(prev => {
+          const newReport = payload.new as BiteReport;
+          // Check if it matches current filters
+          if (shouldShowReport(newReport, viewMode, selectedInletId)) {
+            return [newReport, ...prev].slice(0, 100); // Keep max 100 reports
+          }
+          return prev;
+        });
+        setLastUpdate(Date.now());
       })
       .subscribe();
     
+    // Auto-refresh every 30 seconds if enabled
+    let refreshInterval: NodeJS.Timeout;
+    if (autoRefresh) {
+      refreshInterval = setInterval(() => {
+        loadReports();
+        setLastUpdate(Date.now());
+      }, 30000);
+    }
+    
     return () => {
       subscription.unsubscribe();
+      if (refreshInterval) clearInterval(refreshInterval);
     };
-  }, [viewMode, selectedInletId]);
+  }, [viewMode, selectedInletId, autoRefresh]);
+  
+  // Helper to check if report matches current filters
+  const shouldShowReport = (report: BiteReport, mode: ViewMode, inletId?: string) => {
+    const currentUser = localStorage.getItem('abfi_username');
+    
+    if (mode === 'my' && currentUser) {
+      return report.user_id === currentUser || report.user_name === currentUser;
+    } else if (mode === 'inlet' && inletId) {
+      return report.inlet_id === inletId;
+    } else if (mode === 'network') {
+      return report.is_hotspot || report.is_abfi_highlight || 
+             (report.analysis?.confidence_score && report.analysis.confidence_score > 70);
+    }
+    return true;
+  };
   
   const loadReports = async () => {
     setLoading(true);
@@ -250,8 +287,29 @@ export default function ReportsFeed() {
           <Fish className="text-cyan-400" size={20} />
           ABFI Intelligence Feed
         </h2>
-        <div className="text-xs text-slate-400">
-          Last 72 hours
+        <div className="flex items-center gap-3">
+          {/* Auto-refresh toggle */}
+          <button
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`p-1.5 rounded transition-all ${
+              autoRefresh 
+                ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' 
+                : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700'
+            }`}
+            title={autoRefresh ? 'Auto-refresh ON (30s)' : 'Auto-refresh OFF'}
+          >
+            <RefreshCw size={14} className={autoRefresh ? 'animate-spin-slow' : ''} />
+          </button>
+          
+          {/* Report count */}
+          <div className="text-xs text-slate-400">
+            {reports.length} reports • Last 72hr
+          </div>
+          
+          {/* Last update indicator */}
+          <div className="text-xs text-cyan-400/60">
+            Updated {formatDistanceToNow(lastUpdate, { addSuffix: true })}
+          </div>
         </div>
       </div>
       
@@ -289,8 +347,8 @@ export default function ReportsFeed() {
         </button>
       </div>
       
-      {/* Reports List */}
-      <div className="space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar">
+      {/* Reports List - Compact View */}
+      <div className="max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
         {loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto mb-2"></div>
@@ -303,140 +361,39 @@ export default function ReportsFeed() {
             <div className="text-xs mt-1">Press ABFI to log your bites!</div>
           </div>
         ) : (
-          reports.map((report) => (
-            <ReportCard key={report.id} report={report} />
-          ))
+          <div className="space-y-0">
+            {reports.map((report) => (
+              <CompactReportCard key={report.bite_id || report.id} report={report} />
+            ))}
+          </div>
         )}
       </div>
+      
+      {/* Add custom scrollbar styles */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(6, 182, 212, 0.3);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(6, 182, 212, 0.5);
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 3s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
 
-/**
- * Individual Report Card Component
- */
-function ReportCard({ report }: { report: BiteReport }) {
-  const isHotspot = report.is_hotspot || report.is_abfi_highlight;
-  const confidence = report.analysis?.confidence_score || 0;
-  
-  return (
-    <div className={`
-      relative p-3 rounded-lg border transition-all hover:scale-[1.02] cursor-pointer
-      ${isHotspot 
-        ? 'bg-gradient-to-r from-orange-500/10 to-red-500/10 border-orange-500/30 shadow-lg shadow-orange-500/10' 
-        : 'bg-slate-800/30 border-slate-700/30 hover:border-cyan-500/30'
-      }
-    `}>
-      {/* ABFI Highlight Badge */}
-      {isHotspot && (
-        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg shadow-cyan-500/30">
-          <Zap size={12} className="text-yellow-300" />
-          ABFI Highlight
-          {report.hotspot_count && ` • ${report.hotspot_count} bites/hr`}
-          {report.highlight_reason && !report.hotspot_count && ` • ${report.highlight_reason.split(' • ')[0]}`}
-        </div>
-      )}
-      
-      {/* Header */}
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2">
-          {!isHotspot && (
-            <Activity size={14} className="text-cyan-400 opacity-70" />
-          )}
-          <div className={`w-2 h-2 rounded-full ${
-            confidence > 70 ? 'bg-green-400' :
-            confidence > 40 ? 'bg-yellow-400' :
-            'bg-slate-400'
-          } animate-pulse`} />
-          <span className="text-xs font-medium text-white">
-            {report.user_name || 'Anonymous'}
-          </span>
-          {report.fish_on && (
-            <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">
-              Fish On!
-            </span>
-          )}
-        </div>
-        <span className="text-xs text-slate-400">
-          {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
-        </span>
-      </div>
-      
-      {/* Location */}
-      <div className="flex items-center gap-2 text-xs text-slate-300 mb-2">
-        <MapPin size={12} />
-        <span>{report.inlet_name || `${report.lat.toFixed(4)}, ${report.lon.toFixed(4)}`}</span>
-      </div>
-      
-      {/* Ocean Conditions */}
-      {report.analysis?.ocean_conditions && (
-        <div className="grid grid-cols-3 gap-2 mb-2">
-          {report.analysis.ocean_conditions.sst && (
-            <div className="flex items-center gap-1 text-xs text-cyan-400">
-              <Thermometer size={12} />
-              <span>{report.analysis.ocean_conditions.sst.toFixed(1)}°F</span>
-            </div>
-          )}
-          {report.analysis.ocean_conditions.chl !== undefined && (
-            <div className="flex items-center gap-1 text-xs text-green-400">
-              <Waves size={12} />
-              <span>{report.analysis.ocean_conditions.chl.toFixed(2)} CHL</span>
-            </div>
-          )}
-          {report.analysis.vessel_activity?.nearby_count !== undefined && (
-            <div className="flex items-center gap-1 text-xs text-orange-400">
-              <Users size={12} />
-              <span>{report.analysis.vessel_activity.nearby_count} boats</span>
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Species if identified */}
-      {report.species && (
-        <div className="text-xs text-white font-medium mb-1">
-          Species: {report.species}
-        </div>
-      )}
-      
-      {/* Notes */}
-      {report.notes && (
-        <div className="text-xs text-slate-400 italic mb-2">
-          "{report.notes}"
-        </div>
-      )}
-      
-      {/* Recommendations */}
-      {report.analysis?.recommendations && report.analysis.recommendations.length > 0 && (
-        <div className="mt-2 pt-2 border-t border-slate-700/50">
-          <div className="text-xs text-cyan-400 font-medium mb-1">Intel:</div>
-          <div className="text-xs text-slate-300">
-            {report.analysis.recommendations[0]}
-          </div>
-        </div>
-      )}
-      
-      {/* Confidence Score */}
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="text-xs text-slate-400">Confidence:</div>
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className={`w-1.5 h-3 rounded-sm ${
-                  i <= Math.ceil(confidence / 20)
-                    ? 'bg-cyan-400'
-                    : 'bg-slate-700'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-        {isHotspot && (
-          <TrendingUp size={14} className="text-orange-400" />
-        )}
-      </div>
-    </div>
-  );
-}

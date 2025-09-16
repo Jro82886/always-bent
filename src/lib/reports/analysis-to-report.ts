@@ -216,37 +216,35 @@ export async function saveAnalysisAsReport(analysis: AnalysisData): Promise<void
   }
 }
 
+import NotificationManager from '@/lib/notifications/NotificationManager';
+
 /**
  * Notify about ABFI highlight
  */
 function notifyABFIHighlight(report: CommunityReport) {
-  // Create notification badge
-  const notification = document.createElement('div');
-  notification.className = 'fixed top-20 right-4 z-[99999] animate-slide-in';
-  notification.innerHTML = `
-    <div class="bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg shadow-2xl p-4 max-w-sm border border-cyan-400/30">
-      <div class="flex items-start gap-3">
-        <div class="p-2 bg-white/20 rounded-lg">
-          <svg class="w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/>
-          </svg>
-        </div>
-        <div class="flex-1">
-          <div class="font-bold text-sm mb-1">🎯 ABFI Network Highlight!</div>
-          <div class="text-xs opacity-90">${report.highlight_reason}</div>
-          ${report.inlet_name ? `<div class="text-xs mt-1 opacity-80">📍 ${report.inlet_name}</div>` : ''}
-        </div>
-      </div>
-    </div>
-  `;
+  const notificationManager = NotificationManager.getInstance();
   
-  document.body.appendChild(notification);
+  const icon = `<svg class="w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/>
+  </svg>`;
   
-  // Auto-remove after 5 seconds
-  setTimeout(() => {
-    notification.classList.add('animate-slide-out');
-    setTimeout(() => notification.remove(), 300);
-  }, 5000);
+  const title = '🎯 ABFI Network Highlight!';
+  const message = report.highlight_reason || 'Great conditions detected';
+  
+  notificationManager.showNotification(
+    'abfi',
+    title,
+    message + (report.inlet_name ? ` • ${report.inlet_name}` : ''),
+    {
+      icon,
+      priority: 'high',
+      duration: 7000,
+      onClick: () => {
+        // Navigate to community reports when clicked
+        window.location.href = '/legendary/community';
+      }
+    }
+  );
 }
 
 /**
