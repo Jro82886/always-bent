@@ -80,56 +80,6 @@ export function getInletById(id: string | null): Inlet | null {
   return INLETS.find(i => i.id === id) ?? null;
 }
 
-export function flyToInlet(map: any, inlet: Inlet) {
-  if (!map) return;
-  
-  if (inlet.isOverview) {
-    // Zoom out to full East Coast (Maine to Florida Keys visible)
-    map.fitBounds([
-      [-83, 24.0], // Southwest (Florida Keys) - extended west and south
-      [-68, 45]    // Northeast (Maine) - extended north and east
-    ], {
-      padding: { top: 20, bottom: 20, left: 20, right: 20 },
-      duration: 1500,
-      essential: true
-    });
-  } else {
-    // Calculate offset to position land on the left side of the screen
-    // The offset varies based on zoom level - less offset for wider views
-    const zoomFactor = inlet.zoom;
-    let longitudeOffset = 0;
-    
-    // Calculate offset based on zoom level to show ocean view to the east
-    // Higher zoom (closer) = less offset, Lower zoom (wider) = more offset
-    if (zoomFactor >= 8.4) {
-      longitudeOffset = 0.3;  // 20-30nm view - small offset
-    } else if (zoomFactor >= 8.0) {
-      longitudeOffset = 0.5;  // 35-45nm view
-    } else if (zoomFactor >= 7.8) {
-      longitudeOffset = 0.8;  // 50-60nm view
-    } else if (zoomFactor >= 7.5) {
-      longitudeOffset = 1.2;  // 65-75nm view
-    } else if (zoomFactor >= 7.3) {
-      longitudeOffset = 1.5;  // 80-85nm view
-    } else {
-      longitudeOffset = 1.8;  // 90nm view - large offset
-    }
-    
-    // Apply offset to center point - shift view eastward to show ocean
-    const adjustedCenter: [number, number] = [
-      inlet.center[0] + longitudeOffset,  // Shift east to show more ocean
-      inlet.center[1]
-    ];
-    
-    map.flyTo({
-      center: adjustedCenter,
-      zoom: inlet.zoom,
-      duration: 1000,
-      essential: true
-    });
-  }
-}
-
 // Find nearest inlet to a given lat/lng position
 export function nearestInlet(lat: number, lng: number): Inlet {
   let nearest = DEFAULT_INLET;

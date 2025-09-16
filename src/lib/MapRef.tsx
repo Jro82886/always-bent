@@ -6,6 +6,7 @@ import { MapCtx } from "@/lib/MapCtx";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAppState } from "@/store/appState";
 import { DEFAULT_INLET, getInletById } from "@/lib/inlets";
+import { flyToInlet60nm } from "@/lib/inletBounds";
 import { PersistentLayerManager } from "@/lib/persistLayers";
 import { overviewBundle } from "@/lib/persistentBundles";
 import { usePathname } from "next/navigation";
@@ -39,16 +40,6 @@ export function MapShell({ children }: { children: React.ReactNode }) {
   const plmRef = useRef<PersistentLayerManager | null>(null);
   const pathname = usePathname();
 
-  function adjustToShelf(center: [number, number], zoom: number): { center: [number, number]; zoom: number } {
-    const [lng, lat] = center;
-    // Heuristic: for inlets north of North Carolina (lat >= 35), pan ~0.6° offshore (east) and widen view
-    if (lat >= 35) {
-      const offshoreLng = lng + 0.6; // move east toward shelf (less negative)
-      const z = Math.max(8.5, zoom - 1.5);
-      return { center: [offshoreLng, lat], zoom: z } as any;
-    }
-    return { center, zoom } as any;
-  }
 
   useEffect(() => {
     if (mapRef.current || !divRef.current || !mapboxgl.accessToken) return;
@@ -99,10 +90,9 @@ export function MapShell({ children }: { children: React.ReactNode }) {
     const isLegendary = Boolean(pathname && pathname.startsWith('/legendary'));
     const shouldUseInlet = isTracking || isLegendary;
     const inlet = shouldUseInlet ? (getInletById(selectedInletId) || DEFAULT_INLET) : DEFAULT_INLET;
-    const target = inlet.isOverview
-      ? { center: inlet.center, zoom: inlet.zoom }
-      : adjustToShelf(inlet.center as any, inlet.zoom as any);
-    map.flyTo({ center: target.center as any, zoom: target.zoom as any, essential: true });
+    
+    // Use consistent 60nm Gulf Stream view for all inlet selections
+    flyToInlet60nm(map, inlet);
   }, [selectedInletId, pathname]);
 
   // Update SST tiles when the selected date changes
