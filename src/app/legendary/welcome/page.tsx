@@ -57,24 +57,24 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="w-full h-screen bg-black relative overflow-hidden">
-      {/* Glowing background effect */}
-      <div className="absolute inset-0">
+    <div className="w-full min-h-screen bg-black relative overflow-y-auto">
+      {/* Glowing background effect - fixed position */}
+      <div className="fixed inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-2xl" />
         <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-cyan-400/5 rounded-full blur-3xl" />
       </div>
       
-      <div className="relative z-10 w-full h-full flex items-center justify-center px-4">
+      <div className="relative z-10 w-full min-h-screen flex items-center justify-center px-4 py-8">
         <div className="max-w-2xl w-full">
-          <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 md:p-12 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+          <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-6 sm:p-8 md:p-12 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
             
-            {/* Header */}
-            <div className="text-center mb-10">
-              <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-3">
+            {/* Header - responsive sizing */}
+            <div className="text-center mb-6 sm:mb-10">
+              <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-2 sm:mb-3">
                 ABFI
               </h1>
-              <p className="text-lg text-cyan-300/80">Always Bent Fishing Intelligence</p>
+              <p className="text-base sm:text-lg text-cyan-300/80">Always Bent Fishing Intelligence</p>
               <div className="mt-2 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
             </div>
             
