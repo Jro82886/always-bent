@@ -8,7 +8,18 @@ import BiteSyncInitializer from '@/components/BiteSyncInitializer';
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
-export const metadata: Metadata = { title: 'Always Bent (v2 sandbox)' };
+export const metadata: Metadata = {
+  title: 'ABFI - Always Bent Fishing Intelligence',
+  description: 'Real-time fishing intelligence and bite tracking',
+  manifest: '/manifest.json',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+  themeColor: '#00DDEB',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'ABFI'
+  }
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
