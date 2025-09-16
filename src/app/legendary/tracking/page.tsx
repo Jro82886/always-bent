@@ -6,6 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import VesselLayer from '@/components/tracking/VesselLayer';
+import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import UnifiedTrackingPanelLeft from '@/components/tracking/UnifiedTrackingPanelLeft';
 import CompactLegend from '@/components/tracking/CompactLegend';
 import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
@@ -286,10 +287,16 @@ function TrackingModeContent() {
         map={map.current}
         showYou={showYou}
         showFleet={showFleet || showABFINetwork}
-        showCommercial={showCommercial}
+        showCommercial={false} // Commercial vessels now handled separately
         showTracks={showTracks}
         selectedInletId={showABFINetwork ? '' : selectedInletId}
         onPositionUpdate={handlePositionUpdate}
+      />
+      
+      {/* Commercial Vessel Layer - GFW data with ABFI branding */}
+      <CommercialVesselLayer
+        map={map.current}
+        showCommercial={showCommercial}
       />
     </div>
   );
