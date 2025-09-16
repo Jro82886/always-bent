@@ -8,6 +8,7 @@ interface VesselLayerProps {
   map: mapboxgl.Map | null;
   showYou: boolean;
   showFleet: boolean;
+  showCommercial?: boolean;
   showTracks: boolean;
   selectedInletId: string;
   onPositionUpdate?: (position: { lat: number; lng: number; speed: number }) => void;
@@ -25,6 +26,15 @@ const MOCK_FLEET = [
   { id: 'vessel-8', lat: 39.35, lng: -74.42, inlet: 'nj-atlantic-city', name: 'Jersey Devil' },
   { id: 'vessel-9', lat: 35.25, lng: -75.52, inlet: 'nc-hatteras', name: 'Outer Banks' },
   { id: 'vessel-10', lat: 32.78, lng: -79.93, inlet: 'sc-charleston', name: 'Palmetto Pride' },
+];
+
+// Mock GFW commercial vessels - public data available to all
+const MOCK_COMMERCIAL = [
+  { id: 'gfw-1', lat: 40.85, lng: -71.95, name: 'Commercial Trawler 1', type: 'Trawler', length: 85 },
+  { id: 'gfw-2', lat: 41.05, lng: -71.65, name: 'Long Liner Alpha', type: 'Longliner', length: 120 },
+  { id: 'gfw-3', lat: 40.75, lng: -72.25, name: 'Factory Ship Delta', type: 'Factory', length: 200 },
+  { id: 'gfw-4', lat: 39.45, lng: -74.15, name: 'Seine Vessel 22', type: 'Purse Seine', length: 95 },
+  { id: 'gfw-5', lat: 35.15, lng: -75.35, name: 'Dragger NC-45', type: 'Dragger', length: 75 },
 ];
 
 // Mock track data (last 4 hours of positions)

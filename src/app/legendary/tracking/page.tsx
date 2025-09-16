@@ -25,7 +25,8 @@ function TrackingModeContent() {
   // Vessel visibility states
   // Default: Show user (if location enabled) and fleet, hide tracks and network
   const [showYou, setShowYou] = useState(true); // Auto-on if location granted
-  const [showFleet, setShowFleet] = useState(true); // Always show inlet context
+  const [showFleet, setShowFleet] = useState(true); // Show if location enabled (share to see)
+  const [showCommercial, setShowCommercial] = useState(false); // GFW vessels - available to all
   const [showABFINetwork, setShowABFINetwork] = useState(false); // User chooses
   const [showTracks, setShowTracks] = useState(false); // Off by default (performance)
   
@@ -49,11 +50,18 @@ function TrackingModeContent() {
       setBoatName(storedBoatName);
     }
     
-    // Check if location is enabled, if not, disable "Your Position"
+    // Check if location is enabled
     const locationPermission = localStorage.getItem('abfi_location_permission');
     if (locationPermission !== 'granted') {
-      setShowYou(false); // Don't show user position if no location permission
+      // No location = no sharing = limited features
+      setShowYou(false); // Can't track without permission
+      setShowFleet(false); // Can't see fleet without sharing
+      setShowABFINetwork(false); // Can't see network without sharing
       setTrackingActive(false);
+      setShowCommercial(true); // CAN see commercial vessels (public GFW data)
+    } else {
+      // Location enabled = full features
+      setShowCommercial(false); // Default off when you have fleet access
     }
   }, []);
 
