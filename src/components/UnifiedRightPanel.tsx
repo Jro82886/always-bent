@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Target, ChevronDown, ChevronUp, Radio, Brain, Activity, Map, Navigation, HelpCircle, GraduationCap } from 'lucide-react';
 
 interface UnifiedRightPanelProps {
@@ -106,11 +106,73 @@ export default function UnifiedRightPanel({
   const legendItems = currentMode === 'analysis' ? analysisLegendItems : trackingLegendItems;
   const visibleItems = legendItems.filter(item => item.visible);
 
+  // Track online/offline status
+  const [isOnline, setIsOnline] = useState(true);
+  
+  useEffect(() => {
+    // Check initial state
+    setIsOnline(navigator.onLine);
+    
+    // Listen for online/offline events
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
     <div className="absolute top-20 right-4 z-40 flex flex-col gap-0 w-[280px]">
+      {/* Online/Offline Status Bar - Always visible at top */}
+      {currentMode === 'analysis' && (
+        <div className="bg-slate-900/80 backdrop-blur-md rounded-t-xl border border-slate-500/20 border-b-0 px-4 py-2">
+          <div className="group relative flex items-center justify-between">
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Connection Status</span>
+            <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md ${
+              isOnline 
+                ? 'bg-green-500/10 border border-green-500/30' 
+                : 'bg-orange-500/10 border border-orange-500/30'
+            }`}>
+              <div className={`w-1.5 h-1.5 rounded-full ${
+                isOnline ? 'bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.6)]' : 'bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.6)]'
+              }`} />
+              <span className={`text-[10px] font-medium uppercase ${
+                isOnline ? 'text-green-400' : 'text-orange-400'
+              }`}>
+                {isOnline ? 'ONLINE' : 'OFFLINE'}
+              </span>
+            </div>
+            {/* Tooltip */}
+            <div className="absolute right-0 top-full mt-2 w-56 p-3 bg-slate-800/95 backdrop-blur rounded-lg border border-slate-600/30 
+                          shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible 
+                          transition-all duration-200 pointer-events-none z-50">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-400' : 'bg-orange-400'}`} />
+                  <span className="text-xs font-semibold text-slate-200">
+                    {isOnline ? 'Connected to ABFI Network' : 'Working Offline'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-relaxed">
+                  {isOnline 
+                    ? '✓ Analysis reports generate instantly\n✓ Community chat available\n✓ Real-time data sync\n✓ Access to trends & insights'
+                    : '• Limited to bite logging only\n• Reports queued for later\n• Data syncs when reconnected\n• Community features unavailable'
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Tutorial Section - Only in Analysis Mode */}
       {currentMode === 'analysis' && (
-        <div className="bg-slate-900/80 backdrop-blur-md rounded-t-xl border border-slate-500/20 border-b-0">
+        <div className="bg-slate-900/80 backdrop-blur-md border-x border-slate-500/20 border-b border-slate-700/30">
           <button
             onClick={() => setTutorialExpanded(!tutorialExpanded)}
             className="w-full px-4 py-2 flex items-center justify-between hover:bg-slate-800/50 transition-colors"
