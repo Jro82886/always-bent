@@ -32,10 +32,31 @@ export default function LayersRuntime() {
 
       const beforeId = m.getStyle()?.layers?.find((l: any) => l.type === 'symbol')?.id;
       if (!m.getLayer('overview-edges-demo-fill')) {
-        m.addLayer({ id: 'overview-edges-demo-fill', type: 'fill', source: 'overview-edges-demo', paint: { 'fill-color': ['match',['get','class'],'filament','#00DDEB','eddy','#E879F9','#F59E0B'], 'fill-opacity': 0.12 } } as any, beforeId);
+        m.addLayer({ 
+          id: 'overview-edges-demo-fill', 
+          type: 'fill', 
+          source: 'overview-edges-demo', 
+          minzoom: 3,  // Visible from far zoom out
+          maxzoom: 22, // Visible even when very close
+          paint: { 
+            'fill-color': ['match',['get','class'],'filament','#00DDEB','eddy','#E879F9','#F59E0B'], 
+            'fill-opacity': 0.12 
+          } 
+        } as any, beforeId);
       }
       if (!m.getLayer('overview-edges-demo-line')) {
-        m.addLayer({ id: 'overview-edges-demo-line', type: 'line', source: 'overview-edges-demo', paint: { 'line-color': ['match',['get','class'],'filament','#06B6D4','eddy','#D946EF','#F59E0B'], 'line-width': 1.4, 'line-opacity': 0.65 } } as any, beforeId);
+        m.addLayer({ 
+          id: 'overview-edges-demo-line', 
+          type: 'line', 
+          source: 'overview-edges-demo', 
+          minzoom: 3,  // Visible from far zoom out
+          maxzoom: 22, // Visible even when very close
+          paint: { 
+            'line-color': ['match',['get','class'],'filament','#06B6D4','eddy','#D946EF','#F59E0B'], 
+            'line-width': 1.4, 
+            'line-opacity': 0.65 
+          } 
+        } as any, beforeId);
       }
     } else {
       if (m.getLayer('overview-edges-demo-line')) m.removeLayer('overview-edges-demo-line');

@@ -4,13 +4,19 @@ import { useState, useEffect } from 'react';
 import { WifiOff, Wifi, Cloud, CloudOff } from 'lucide-react';
 
 export default function NetworkStatusIndicator() {
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [pendingBites, setPendingBites] = useState(0);
+  const [actuallyOnline, setActuallyOnline] = useState(true);
 
   useEffect(() => {
     // Check initial online status
-    setIsOnline(navigator.onLine);
+    setActuallyOnline(navigator.onLine);
+    
+    // Load offline mode preference
+    const savedMode = localStorage.getItem('abfi_offline_mode');
+    setIsOfflineMode(savedMode === 'true');
 
     // Check for pending bites in localStorage
     const checkPendingBites = () => {
@@ -19,33 +25,35 @@ export default function NetworkStatusIndicator() {
     };
     checkPendingBites();
 
-    // Listen for online/offline events
+    // Listen for actual online/offline events
     const handleOnline = () => {
-      setIsOnline(true);
-      // Show encouraging message when coming back online
-      const toast = document.createElement('div');
-      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
-      toast.innerHTML = `
-        <div class="bg-slate-900/95 backdrop-blur-xl border border-green-500/30 rounded-lg px-6 py-4 shadow-2xl">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-              <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
-              </svg>
-            </div>
-            <div>
-              <div class="text-white font-semibold">Back Online!</div>
-              <div class="text-gray-400 text-sm mt-1">${pendingBites > 0 ? `Syncing ${pendingBites} offline bite${pendingBites > 1 ? 's' : ''}...` : 'All data synced'}</div>
+      setActuallyOnline(true);
+      if (!isOfflineMode) {
+        // Show encouraging message when coming back online
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
+        toast.innerHTML = `
+          <div class="bg-slate-900/95 backdrop-blur-xl border border-green-500/30 rounded-lg px-6 py-4 shadow-2xl">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="text-white font-semibold">Back Online!</div>
+                <div class="text-gray-400 text-sm mt-1">${pendingBites > 0 ? `Syncing ${pendingBites} offline bite${pendingBites > 1 ? 's' : ''}...` : 'All data synced'}</div>
+              </div>
             </div>
           </div>
-        </div>
-      `;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      }
     };
 
     const handleOffline = () => {
-      setIsOnline(false);
+      setActuallyOnline(false);
       // Show encouraging message for offline mode
       const toast = document.createElement('div');
       toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
@@ -79,7 +87,29 @@ export default function NetworkStatusIndicator() {
       window.removeEventListener('offline', handleOffline);
       clearInterval(interval);
     };
-  }, [pendingBites]);
+  }, [pendingBites, isOfflineMode]);
+
+  const isOnline = actuallyOnline && !isOfflineMode;
+
+  const handleToggleMode = () => {
+    if (!actuallyOnline && !isOfflineMode) {
+      // Can't go online if no connection
+      return;
+    }
+    setShowModal(true);
+  };
+
+  const confirmOfflineMode = () => {
+    setIsOfflineMode(true);
+    localStorage.setItem('abfi_offline_mode', 'true');
+    setShowModal(false);
+  };
+
+  const confirmOnlineMode = () => {
+    setIsOfflineMode(false);
+    localStorage.setItem('abfi_offline_mode', 'false');
+    setShowModal(false);
+  };
 
   return (
     <>
@@ -90,13 +120,16 @@ export default function NetworkStatusIndicator() {
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <div className={`
-            px-3 py-2 rounded-lg backdrop-blur-xl border transition-all cursor-pointer
-            ${isOnline 
-              ? 'bg-slate-900/80 border-green-500/20 hover:border-green-500/40' 
-              : 'bg-slate-900/80 border-orange-500/30 hover:border-orange-500/50'
-            }
-          `}>
+          <button
+            onClick={handleToggleMode}
+            className={`
+              px-3 py-2 rounded-lg backdrop-blur-xl border transition-all
+              ${isOnline 
+                ? 'bg-slate-900/80 border-green-500/20 hover:border-green-500/40' 
+                : 'bg-slate-900/80 border-orange-500/30 hover:border-orange-500/50'
+              }
+            `}
+          >
             <div className="flex items-center gap-2">
               {/* Network Icon */}
               {isOnline ? (
@@ -110,14 +143,14 @@ export default function NetworkStatusIndicator() {
                 {isOnline ? 'ONLINE' : 'OFFLINE'}
               </span>
               
-              {/* Pending Counter Badge */}
-              {!isOnline && pendingBites > 0 && (
+              {/* Pending Counter Badge - Only show when in offline mode */}
+              {isOfflineMode && pendingBites > 0 && (
                 <div className="bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                   {pendingBites}
                 </div>
               )}
             </div>
-          </div>
+          </button>
           
           {/* Hover Tooltip with More Info */}
           {showTooltip && (
@@ -159,8 +192,63 @@ export default function NetworkStatusIndicator() {
         </div>
       </div>
       
+      {/* Offline Mode Toggle Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
+          <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-cyan-500/30 shadow-2xl p-6 max-w-md mx-4">
+            <h2 className="text-xl font-bold text-white mb-4">
+              {isOfflineMode ? 'Switch to Online Mode?' : 'Heading Offshore?'}
+            </h2>
+            
+            {isOfflineMode ? (
+              <>
+                <p className="text-gray-300 mb-6">
+                  Ready to sync your data? Switch back to online mode to share your catches 
+                  with the ABFI network and see real-time community data.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={confirmOnlineMode}
+                    className="flex-1 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 text-green-300 rounded-lg font-medium transition-colors"
+                  >
+                    Go Online
+                  </button>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 px-4 py-2 bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 rounded-lg font-medium transition-colors"
+                  >
+                    Stay Offline
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-300 mb-6">
+                  Switch to offline mode before you lose signal. Your bites will be saved locally 
+                  and automatically sync when you're back in range.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={confirmOfflineMode}
+                    className="flex-1 px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 text-orange-300 rounded-lg font-medium transition-colors"
+                  >
+                    Go Offline
+                  </button>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 px-4 py-2 bg-slate-700/50 hover:bg-slate-700/70 text-gray-300 rounded-lg font-medium transition-colors"
+                  >
+                    Stay Online
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      
       {/* Offline Mode Feature Callout - Shows once when first going offline */}
-      {!isOnline && typeof window !== 'undefined' && !localStorage.getItem('abfi_offline_mode_seen') && (
+      {isOfflineMode && typeof window !== 'undefined' && !localStorage.getItem('abfi_offline_mode_seen') && (
         <div className="fixed bottom-32 left-1/2 transform -translate-x-1/2 z-50 animate-slide-up">
           <div className="bg-gradient-to-r from-orange-600/20 to-amber-600/20 backdrop-blur-xl rounded-xl border border-orange-500/30 shadow-2xl p-5 max-w-md">
             <div className="flex items-start gap-3">
