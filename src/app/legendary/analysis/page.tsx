@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { setVis } from '@/map/layerVis';
@@ -22,7 +23,7 @@ import '@/styles/mapSmoothing.css';
 // Set Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
-export default function LegendaryOceanPlatform() {
+function AnalysisModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const tutorialTriggerRef = useRef<(() => void) | null>(null);
@@ -413,5 +414,13 @@ export default function LegendaryOceanPlatform() {
       {/* Test Data Admin - Only in development */}
 
     </div>
+  );
+}
+
+export default function LegendaryOceanPlatform() {
+  return (
+    <PageWithSuspense>
+      <AnalysisModeContent />
+    </PageWithSuspense>
   );
 }

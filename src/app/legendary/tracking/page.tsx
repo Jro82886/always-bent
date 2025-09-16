@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
@@ -8,7 +9,7 @@ import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 // Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-export default function TrackingPage() {
+function TrackingModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [activeTab, setActiveTab] = useState('tracking');
@@ -41,5 +42,13 @@ export default function TrackingPage() {
         <p className="text-cyan-400">Tracking Page - Updated {new Date().toLocaleTimeString()}</p>
       </div>
     </div>
+  );
+}
+
+export default function TrackingPage() {
+  return (
+    <PageWithSuspense>
+      <TrackingModeContent />
+    </PageWithSuspense>
   );
 }
