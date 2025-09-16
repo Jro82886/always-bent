@@ -337,6 +337,7 @@ export default function VesselLayer({
       el.style.width = '30px';
       el.style.height = '30px';
       el.style.position = 'relative';
+      el.style.overflow = 'visible';  // Ensure glow doesn't get clipped
       el.innerHTML = `
         <div style="
           width: 16px;
@@ -344,10 +345,9 @@ export default function VesselLayer({
           background: white;
           border-radius: 50%;
           box-shadow: 
-            0 0 30px rgba(0, 255, 255, 1),
-            0 0 60px rgba(0, 221, 235, 0.8),
-            0 0 90px rgba(0, 221, 235, 0.6),
-            inset 0 0 15px rgba(0, 255, 255, 0.5);
+            0 0 20px rgba(0, 255, 255, 0.8),
+            0 0 40px rgba(0, 221, 235, 0.6),
+            inset 0 0 10px rgba(0, 255, 255, 0.5);
           position: absolute;
           top: 50%;
           left: 50%;
@@ -359,22 +359,24 @@ export default function VesselLayer({
           position: absolute;
           top: 50%;
           left: 50%;
-          width: 40px;
-          height: 40px;
+          width: 30px;
+          height: 30px;
           transform: translate(-50%, -50%);
-          border: 2px solid rgba(0, 255, 255, 0.6);
+          border: 2px solid rgba(0, 255, 255, 0.5);
           border-radius: 50%;
           animation: pulse-ring 2s infinite;
+          pointer-events: none;
         "></div>
         <div style="
           position: absolute;
           top: 50%;
           left: 50%;
-          width: 60px;
-          height: 60px;
+          width: 40px;
+          height: 40px;
           transform: translate(-50%, -50%);
-          background: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(0, 255, 255, 0.2) 0%, transparent 60%);
           animation: glow-pulse 2s infinite;
+          pointer-events: none;
         "></div>
       `;
 
