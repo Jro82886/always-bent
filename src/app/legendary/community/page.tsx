@@ -1,7 +1,12 @@
 'use client';
 
 import CommunityMode from '@/components/community/CommunityMode';
+import PageWithSuspense from '@/components/PageWithSuspense';
 
 export default function CommunityPage() {
-  return <CommunityMode />;
+  return (
+    <PageWithSuspense>
+      <CommunityMode />
+    </PageWithSuspense>
+  );
 }

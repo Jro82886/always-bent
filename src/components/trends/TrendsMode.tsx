@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { TrendingUp, Calendar, BarChart3, PieChart, Activity, Fish, Thermometer, Wind, ChevronDown } from 'lucide-react';
+import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 
 interface TrendsModeProps {
   // No map needed for trends - it's a dashboard!
@@ -66,9 +67,18 @@ export default function TrendsMode({}: TrendsModeProps) {
   }, [showTestData]);
   
   return (
-    <div className="absolute inset-0 z-20 top-16 md:top-20 pointer-events-auto overflow-y-auto">
-      {/* Full-screen dashboard overlay */}
-      <div className="min-h-full bg-gradient-to-br from-black/90 via-slate-900/90 to-black/90 backdrop-blur-xl">
+    <div className="w-full h-screen relative bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950">
+      {/* Unified Command Bar - Navigation */}
+      <UnifiedCommandBar 
+        map={null} 
+        activeTab="trends"
+        onTabChange={() => {}}
+      />
+      
+      {/* Trends Content - Adjusted for command bar */}
+      <div className="absolute inset-0 z-20 top-16 pointer-events-auto overflow-y-auto">
+        {/* Full-screen dashboard overlay */}
+        <div className="min-h-full bg-gradient-to-br from-black/90 via-slate-900/90 to-black/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto p-6">
           {/* Dashboard Header - Make it POP! */}
           <div className="mb-8">
@@ -353,6 +363,7 @@ export default function TrendsMode({}: TrendsModeProps) {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

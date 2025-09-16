@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { MessageCircle, Users, Wind, Waves, Thermometer, Navigation, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles, Mail, FileText, Fish } from 'lucide-react';
+import UnifiedCommandBar from '@/components/UnifiedCommandBar';
 import { useAppState } from '@/store/appState';
 import { INLETS, getInletById } from '@/lib/inlets';
 import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
@@ -314,7 +315,16 @@ export default function CommunityMode() {
   };
 
   return (
-    <div className="flex h-full">
+    <div className="w-full h-screen relative bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950">
+      {/* Unified Command Bar - Navigation */}
+      <UnifiedCommandBar 
+        map={null} 
+        activeTab="community"
+        onTabChange={() => {}}
+      />
+      
+      {/* Community Content - Adjusted for command bar */}
+      <div className="flex h-full pt-16">
       {/* Left Sidebar - Social Hub */}
       <div className="w-80 flex flex-col relative">
         {/* Smooth gradient background - more grey, less blue */}
@@ -777,7 +787,7 @@ export default function CommunityMode() {
           )}
         </div>
       </div>
-      
+      </div>
     </div>
   );
 }
