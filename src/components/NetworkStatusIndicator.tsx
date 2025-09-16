@@ -168,7 +168,7 @@ export default function NetworkStatusIndicator() {
                 <CloudOff className="w-5 h-5 text-orange-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-white font-bold mb-2">Offline Mode is Active! 🎣</h3>
+                <h3 className="text-white font-bold mb-2">Offline Mode is Active</h3>
                 <p className="text-gray-300 text-sm mb-3">
                   Lost signal? Don't worry! ABFI works offline too. Every bite you log is 
                   saved locally and will automatically sync when you're back in range.

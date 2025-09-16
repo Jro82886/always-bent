@@ -103,7 +103,7 @@ export default function DepartureMonitor({
               </svg>
             </div>
             <div class="flex-1">
-              <h3 class="text-white font-bold mb-2">Offline Mode Activated! 🎣</h3>
+              <h3 class="text-white font-bold mb-2">Offline Mode Activated</h3>
               <p class="text-gray-300 text-sm mb-2">
                 Perfect! Every bite you log will be saved locally and automatically 
                 synced when you're back at the dock with signal.
@@ -133,7 +133,7 @@ export default function DepartureMonitor({
               </svg>
             </div>
             <div class="flex-1">
-              <h3 class="text-white font-bold mb-2">Connected Mode! 📡</h3>
+              <h3 class="text-white font-bold mb-2">Connected Mode</h3>
               <p class="text-gray-300 text-sm">
                 Great! Your bites will sync in real-time with the ABFI network. 
                 You'll see live updates from other vessels too.
