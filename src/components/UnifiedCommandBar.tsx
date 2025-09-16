@@ -23,6 +23,7 @@ interface UnifiedCommandBarProps {
 export default function UnifiedCommandBar({ map, activeTab, onTabChange }: UnifiedCommandBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [captainName, setCaptainName] = useState<string>('');
   const [boatName, setBoatName] = useState<string>('');
   const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -33,8 +34,12 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   const currentMode = searchParams.get('mode') || 'analysis';
   
   useEffect(() => {
-    // Get boat name from localStorage
+    // Get captain and boat names from localStorage
+    const storedCaptainName = localStorage.getItem('abfi_captain_name');
     const storedBoatName = localStorage.getItem('abfi_boat_name');
+    if (storedCaptainName) {
+      setCaptainName(storedCaptainName);
+    }
     if (storedBoatName) {
       setBoatName(storedBoatName);
     }
@@ -169,11 +174,14 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
         
         {/* Boat & Inlet Info */}
         <div className="flex items-center gap-4 px-4 border-r border-cyan-500/10">
-          {/* Captain Info */}
-          {boatName && (
+          {/* Captain & Vessel Info */}
+          {(captainName || boatName) && (
             <div className="flex flex-col">
               <div className="text-xs text-cyan-100/80">
-                Captain: <span className="text-cyan-300 font-semibold">{boatName}</span>
+                Captain: <span className="text-cyan-300 font-semibold">{captainName || 'Unknown'}</span>
+              </div>
+              <div className="text-xs text-cyan-100/80">
+                F/V <span className="text-cyan-300 font-semibold">{boatName || 'Unnamed'}</span>
               </div>
             </div>
           )}

@@ -7,6 +7,7 @@ import { getInletById } from '@/lib/inlets';
 
 interface UnifiedTrackingPanelLeftProps {
   map: mapboxgl.Map | null;
+  captainName?: string;
   boatName?: string;
   selectedInletId: string;
   setSelectedInletId: (id: string) => void;
@@ -28,6 +29,7 @@ interface UnifiedTrackingPanelLeftProps {
 
 export default function UnifiedTrackingPanelLeft({
   map,
+  captainName,
   boatName,
   selectedInletId,
   setSelectedInletId,
@@ -127,7 +129,8 @@ export default function UnifiedTrackingPanelLeft({
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-white shadow-lg shadow-white/50" />
                     <div>
-                      <div className="text-sm font-medium text-cyan-100">{boatName || 'Set Your Boat Name'}</div>
+                      <div className="text-sm font-medium text-cyan-100">{captainName || 'Unknown Captain'}</div>
+                      <div className="text-xs text-cyan-300/80">F/V {boatName || 'Unnamed Vessel'}</div>
                       {trackingActive && (
                         <div className="flex items-center gap-2 mt-1">
                           <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />

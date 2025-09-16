@@ -46,6 +46,7 @@ function TrackingModeContent() {
   const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
   const [userSpeed, setUserSpeed] = useState(0);
   const [trackingActive, setTrackingActive] = useState(false);
+  const [captainName, setCaptainName] = useState<string>('');
   const [boatName, setBoatName] = useState<string>('');
   
   // Handle position updates from VesselLayer
@@ -135,9 +136,13 @@ function TrackingModeContent() {
     }
   };
 
-  // Get boat name and check location permission
+  // Get captain and boat names and check location permission
   useEffect(() => {
+    const storedCaptainName = localStorage.getItem('abfi_captain_name');
     const storedBoatName = localStorage.getItem('abfi_boat_name');
+    if (storedCaptainName) {
+      setCaptainName(storedCaptainName);
+    }
     if (storedBoatName) {
       setBoatName(storedBoatName);
     }
@@ -272,6 +277,7 @@ function TrackingModeContent() {
       {/* Tracking Panel - Left Side */}
       <UnifiedTrackingPanelLeft 
         map={map.current}
+        captainName={captainName}
         boatName={boatName}
         selectedInletId={selectedInletId}
         setSelectedInletId={(id) => {
