@@ -31,14 +31,29 @@ export default function LayersRuntime() {
       if (!m.getSource(demoId)) {
         const v = new Date().toISOString().slice(0,10); // cache-bust daily
         
-        // 🔴 JEFF: SWITCH TO LIVE DATA HERE
-        // Demo data (current):
-        m.addSource(demoId, { type: 'geojson', data: `/abfi_sst_edges_latest.geojson?v=${v}` });
+        // 🔴 LIVE DATA CONNECTION
+        // Try live data first, fallback to demo if not available
+        const liveUrl = `/api/ocean-features/live?feature=edges&date=${v}`;
         
-        // Live data (when ready):
-        // const liveUrl = `${process.env.NEXT_PUBLIC_POLYGONS_URL}/api/ocean-features/edges?date=${isoDate}`;
-        // m.addSource(demoId, { type: 'geojson', data: liveUrl });
-        // setUsingDemoData(false); // Remove demo badge
+        // Fetch to check if live data is available
+        fetch(liveUrl)
+          .then(res => res.json())
+          .then(data => {
+            if (!data.demo) {
+              // We have live data!
+              setUsingDemoData(false);
+              console.log('[Ocean Features] Using LIVE data from Python backend');
+            } else {
+              // Still using demo
+              console.log('[Ocean Features] Using DEMO data (Python backend not connected)');
+            }
+          })
+          .catch(err => {
+            console.error('[Ocean Features] Error checking data source:', err);
+          });
+        
+        // Use our API route which handles live/demo fallback
+        m.addSource(demoId, { type: 'geojson', data: liveUrl });
       }
 
       const beforeId = m.getStyle()?.layers?.find((l: any) => l.type === 'symbol')?.id;
