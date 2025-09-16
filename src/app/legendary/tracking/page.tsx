@@ -98,7 +98,12 @@ function TrackingModeContent() {
         document.head.appendChild(style);
       }
       
-      setTimeout(() => toast.remove(), 5000);
+      setTimeout(() => {
+        // Safely remove toast if it still exists
+        if (toast && toast.parentNode) {
+          toast.remove();
+        }
+      }, 5000);
       
       // Fly to the auto-selected inlet
       if (map.current && autoSelect.inlet) {
@@ -248,7 +253,14 @@ function TrackingModeContent() {
       />
       
       {/* Compact Legend - Lower Left */}
-      <CompactLegend inletColor={inlet?.color || '#06B6D4'} />
+      <CompactLegend 
+        inletColor={inlet?.color || '#06B6D4'}
+        showYou={showYou}
+        showFleet={showFleet}
+        showCommercial={showCommercial}
+        showABFINetwork={showABFINetwork}
+        showTracks={showTracks}
+      />
       
       {/* Network Status Indicator - Shows online/offline status */}
       <NetworkStatusIndicator />

@@ -63,6 +63,7 @@ export default function VesselLayer({
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const fleetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const trackSourceRef = useRef<boolean>(false);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Start GPS tracking
   useEffect(() => {
@@ -233,7 +234,17 @@ export default function VesselLayer({
         </div>
       `;
       document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
+      // Clear any existing timeout
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+      toastTimeoutRef.current = setTimeout(() => {
+        // Safely remove toast if it still exists
+        if (toast && toast.parentNode) {
+          toast.remove();
+        }
+        toastTimeoutRef.current = null;
+      }, 4000);
       
     } else if (!isVisible && wasVisibleLastCheck && showYou) {
       // Just became invisible - left inlet bounds
@@ -257,7 +268,17 @@ export default function VesselLayer({
         </div>
       `;
       document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
+      // Clear any existing timeout
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
+      toastTimeoutRef.current = setTimeout(() => {
+        // Safely remove toast if it still exists
+        if (toast && toast.parentNode) {
+          toast.remove();
+        }
+        toastTimeoutRef.current = null;
+      }, 4000);
     }
     
     if (isVisible) {

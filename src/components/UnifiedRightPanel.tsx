@@ -214,7 +214,7 @@ export default function UnifiedRightPanel({
       )}
       
       {/* Top Action Section */}
-      <div className={`bg-slate-900/80 backdrop-blur-md ${currentMode === 'analysis' && !tutorialExpanded ? 'border-t border-slate-700/30' : currentMode === 'tracking' ? 'rounded-t-xl' : ''} border-x border-cyan-500/20 border-b-0`}>
+      <div className={`bg-slate-900/80 backdrop-blur-md ${currentMode === 'analysis' ? 'border-t border-slate-700/30' : 'rounded-t-xl'} border-x border-cyan-500/20 border-b-0`}>
         <div className="px-4 py-3">
           {currentMode === 'analysis' ? (
             <>
