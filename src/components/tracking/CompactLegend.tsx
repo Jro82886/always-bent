@@ -94,10 +94,11 @@ export default function CompactLegend({
               {/* ABFI Network */}
               <div className={`flex items-center gap-2 ${!showABFINetwork && 'opacity-30'}`}>
                 <div className="w-4 flex justify-center">
-                  <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 shadow-[0_0_6px_rgba(0,191,255,0.5)]" />
+                  <div className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.8)]" 
+                       style={{ backgroundColor: '#22c55e' }} />
                 </div>
                 <span className="text-cyan-100/80 flex-1">ABFI Network</span>
-                {showABFINetwork && <Activity size={10} className="text-blue-400" />}
+                {showABFINetwork && <Activity size={10} className="text-green-400" />}
               </div>
             </div>
           </div>
