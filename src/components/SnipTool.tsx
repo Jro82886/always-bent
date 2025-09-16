@@ -229,13 +229,14 @@ function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
           'interpolate',
           ['linear'],
           ['get', 'confidence'],
-          0.3, '#2d3561', // Deep navy
-          0.6, '#5b21b6', // Deep purple
-          0.9, '#0d7377'  // Dark teal
+          0.3, '#334155', // Slate 700
+          0.6, '#64748b', // Slate 500 - glowing blue-grey
+          0.9, '#475569'  // Slate 600
         ],
-        'circle-opacity': 0.85,
-        'circle-stroke-color': '#1e293b', // Dark slate
-        'circle-stroke-width': 1.5
+        'circle-opacity': 0.9,
+        'circle-stroke-color': '#94a3b8', // Slate 400 for glow
+        'circle-stroke-width': 2,
+        'circle-stroke-opacity': 0.6
       }
     });
     
@@ -252,7 +253,7 @@ function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
           0.5, 15,
           1.0, 30
         ],
-        'circle-color': '#5b21b6', // Deep purple
+        'circle-color': '#64748b', // Glowing slate blue
         'circle-opacity': 0.2,
         'circle-stroke-width': 0
       }

@@ -442,10 +442,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         </div>
 
         {/* Compact Footer Actions */}
-        <div className="p-3 border-t border-cyan-500/20 flex justify-between items-center">
+        <div className="px-6 py-3 border-t border-cyan-500/20 flex justify-between items-center">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+            className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"
           >
             <span>✂️</span>
             <span>Back to Snipping</span>
@@ -455,7 +455,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             {onSave && (
               <button
                 onClick={onSave}
-                className="px-4 py-1.5 text-sm bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-1"
+                className="px-5 py-2 text-sm bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-2"
               >
                 <Save size={14} className="text-white drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]" />
                 <span>Save</span>
@@ -463,7 +463,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             )}
             <button
               onClick={onClose}
-              className="px-4 py-1.5 text-sm bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg font-semibold transition-all border border-cyan-500/30"
+              className="px-5 py-2 text-sm bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg font-semibold transition-all border border-cyan-500/30"
             >
               Done
             </button>
