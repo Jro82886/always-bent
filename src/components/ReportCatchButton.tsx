@@ -22,7 +22,6 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [pendingBites, setPendingBites] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [showCallout, setShowCallout] = useState(false);
   const { selectedInletId } = useAppState();
   
   useEffect(() => {
@@ -32,15 +31,6 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
     
     // Check for pending offline bites
     updatePendingCount();
-    
-    // Check if user has used ABFI before
-    const hasUsedABFI = localStorage.getItem('abfi_first_click');
-    const tutorialSeen = localStorage.getItem('abfi_tutorial_seen');
-    
-    // Show callout after main tutorial is complete but ABFI hasn't been used
-    if (tutorialSeen === 'true' && !hasUsedABFI) {
-      setTimeout(() => setShowCallout(true), 3000); // Show after 3 seconds
-    }
     
     // Listen for sync events
     const unsubscribe = onSyncEvent((event) => {
@@ -70,9 +60,8 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   const handleReportCatch = async () => {
     console.log('[ABFI] Button clicked!');
     
-    // Mark as used and hide callout
+    // Mark as used
     localStorage.setItem('abfi_first_click', 'true');
-    setShowCallout(false);
     
     // Check location permission from welcome screen
     const locationPermission = typeof window !== 'undefined' ? 
@@ -582,27 +571,6 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
     <>
       {/* ABFI INTELLIGENCE BUTTON - Refined Ocean Analysis Aesthetic */}
       <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
-        {/* Callout Arrow and Message */}
-        {showCallout && (
-          <>
-            <div className="absolute -top-20 left-1/2 transform -translate-x-1/2">
-              <div className="bg-cyan-500/90 text-white px-4 py-2 rounded-lg shadow-lg relative whitespace-nowrap">
-                <div className="text-xs font-bold">Try ABFI!</div>
-                <div className="text-[10px]">Log your bites instantly</div>
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full">
-                  <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-cyan-500/90"></div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-        
-        {/* NEW Feature Badge - Shows for first 7 days */}
-        {typeof window !== 'undefined' && !localStorage.getItem('abfi_first_click') && !showCallout && (
-          <div className="absolute -top-3 -left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            NEW
-          </div>
-        )}
         <button
           onClick={handleReportCatch}
           className="relative px-8 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
