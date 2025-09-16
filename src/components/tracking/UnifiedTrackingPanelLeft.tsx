@@ -221,7 +221,9 @@ export default function UnifiedTrackingPanelLeft({
             className="w-full px-5 py-3 flex items-center justify-between hover:bg-cyan-500/5 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <div className="text-xs font-medium text-cyan-400/70 uppercase tracking-wider">Inlet Fleet</div>
+              <div className="text-xs font-medium text-cyan-400/70 uppercase tracking-wider">
+                {inlet?.name || 'Inlet'} Fleet
+              </div>
             </div>
             {expandedSections.has('fleet') ? 
               <ChevronUp className="w-4 h-4 text-cyan-400/50" /> : 
@@ -243,8 +245,8 @@ export default function UnifiedTrackingPanelLeft({
                       }}
                     />
                     <div>
-                      <div className="text-sm font-medium text-cyan-100">ABFI Fleet</div>
-                      <div className="text-xs text-cyan-400/60">{fleetCount} vessels active</div>
+                      <div className="text-sm font-medium text-cyan-100">{inlet?.name || 'Inlet'} Vessels</div>
+                      <div className="text-xs text-cyan-400/60">{fleetCount} from your inlet</div>
                     </div>
                   </div>
                   <Users className="w-4 h-4 text-cyan-400/50" />
@@ -270,18 +272,18 @@ export default function UnifiedTrackingPanelLeft({
           )}
         </div>
         
-        {/* Public Data Section */}
+        {/* Commercial Vessels Section */}
         <div className="border-b border-cyan-500/10">
           <button 
             onClick={() => toggleSection('public')}
             className="w-full px-5 py-3 flex items-center justify-between hover:bg-cyan-500/5 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <div className="text-xs font-medium text-green-400/70 uppercase tracking-wider">Public Data</div>
+              <div className="text-xs font-medium text-orange-400/70 uppercase tracking-wider">Commercial Vessels</div>
             </div>
             {expandedSections.has('public') ? 
-              <ChevronUp className="w-4 h-4 text-green-400/50" /> : 
-              <ChevronDown className="w-4 h-4 text-green-400/50" />
+              <ChevronUp className="w-4 h-4 text-orange-400/50" /> : 
+              <ChevronDown className="w-4 h-4 text-orange-400/50" />
             }
           </button>
           
@@ -292,8 +294,8 @@ export default function UnifiedTrackingPanelLeft({
                   <div className="flex items-center gap-3">
                     <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-orange-500" />
                     <div>
-                      <div className="text-sm font-medium text-cyan-100">GFW Commercial</div>
-                      <div className="text-xs text-green-400/60">Always available</div>
+                      <div className="text-sm font-medium text-cyan-100">Global Fishing Watch</div>
+                      <div className="text-xs text-orange-400/60">Trawlers & Longliners</div>
                     </div>
                   </div>
                   <Ship className="w-4 h-4 text-orange-400/50" />

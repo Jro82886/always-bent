@@ -91,6 +91,17 @@ export default function CommercialVesselLayer({
           // Use most recent position
           const latestPosition = vessel.positions[vessel.positions.length - 1];
           
+          // WATER-ONLY FILTER: Skip vessels on land (west of coastline)
+          // East Coast coastline is roughly -76 to -75 longitude depending on latitude
+          const coastlineLng = latestPosition.lat > 40 ? -75.5 : // Northern states
+                              latestPosition.lat > 35 ? -76 :    // Mid-Atlantic  
+                              -80.5;                              // Southern states
+          
+          if (latestPosition.lon > coastlineLng) {
+            console.log(`[GFW] Skipping vessel on land: ${vessel.name} at ${latestPosition.lon}`);
+            return; // Skip vessels that appear to be on land
+          }
+          
           // Create custom marker with ABFI branding overlay
           const el = document.createElement('div');
           el.className = 'commercial-vessel-marker';

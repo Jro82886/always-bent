@@ -304,10 +304,10 @@ function TrackingModeContent() {
       {/* Compact Legend - Lower Left */}
       <CompactLegend 
         inletColor={inlet?.color || '#06B6D4'}
+        inletName={inlet?.name || 'Inlet'}
         showYou={showYou}
         showFleet={showFleet}
         showCommercial={showCommercial}
-        showABFINetwork={showABFINetwork}
         showTracks={showTracks}
       />
       
