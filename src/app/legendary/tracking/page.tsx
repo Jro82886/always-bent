@@ -9,7 +9,6 @@ import VesselLayer from '@/components/tracking/VesselLayer';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import UnifiedTrackingPanelLeft from '@/components/tracking/UnifiedTrackingPanelLeft';
 import CompactLegend from '@/components/tracking/CompactLegend';
-import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
 import DepartureMonitor from '@/components/tracking/DepartureMonitor';
 import InletRegions from '@/components/InletRegions';
 import TrackingErrorBoundary from '@/components/tracking/TrackingErrorBoundary';
@@ -318,8 +317,6 @@ function TrackingModeContent() {
         showTracks={showTracks}
       />
       
-      {/* Network Status Indicator - Shows online/offline status */}
-      <NetworkStatusIndicator />
       
       {/* Only render map-dependent components when map is fully ready */}
       {mapFullyReady && (

@@ -28,16 +28,16 @@ export default function CompactLegend({
 
   if (!isExpanded) {
     return (
-      <div className="absolute bottom-20 left-4 z-50">
+      <div className="absolute top-24 right-4 z-50">
         <button
           onClick={() => setIsExpanded(true)}
-          className="bg-slate-900/90 backdrop-blur-xl rounded-lg px-3 py-2 border border-cyan-500/20 hover:bg-slate-900/95 transition-all group flex items-center gap-2"
+          className="bg-slate-900/90 backdrop-blur-xl rounded-lg px-2.5 py-1.5 border border-cyan-500/20 hover:bg-slate-900/95 transition-all group flex items-center gap-1.5"
           title="Show Map Legend"
         >
-          <Info size={14} className="text-cyan-400" />
-          <span className="text-xs text-cyan-300/70 font-medium">Legend</span>
+          <Info size={12} className="text-cyan-400" />
+          <span className="text-[11px] text-cyan-300/70 font-medium">Legend</span>
           {activeCount > 0 && (
-            <span className="bg-cyan-500/20 text-cyan-300 text-[10px] font-bold px-1.5 py-0.5 rounded">
+            <span className="bg-cyan-500/20 text-cyan-300 text-[9px] font-bold px-1 py-0.5 rounded">
               {activeCount}
             </span>
           )}
@@ -47,8 +47,8 @@ export default function CompactLegend({
   }
 
   return (
-    <div className="absolute bottom-8 left-4 z-10">
-      <div className="bg-slate-900/95 backdrop-blur-xl rounded-lg border border-cyan-500/20 shadow-2xl w-72">
+    <div className="absolute top-24 right-4 z-50">
+      <div className="bg-slate-900/95 backdrop-blur-xl rounded-lg border border-cyan-500/20 shadow-2xl w-64">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-500/10">
           <div className="flex items-center gap-2">
