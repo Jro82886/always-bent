@@ -58,6 +58,13 @@ export default function VesselLayer({
     if (!map) return;
 
     const startTracking = () => {
+      // Check if location permission is granted
+      const locationPermission = localStorage.getItem('abfi_location_permission');
+      if (locationPermission !== 'granted') {
+        console.log('Location permission not granted, skipping GPS tracking');
+        return;
+      }
+      
       if ('geolocation' in navigator) {
         // Get initial position
         navigator.geolocation.getCurrentPosition(

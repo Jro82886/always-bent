@@ -23,10 +23,11 @@ function TrackingModeContent() {
   const { selectedInletId } = useAppState();
   
   // Vessel visibility states
-  const [showYou, setShowYou] = useState(true);
-  const [showFleet, setShowFleet] = useState(true);
-  const [showABFINetwork, setShowABFINetwork] = useState(false);
-  const [showTracks, setShowTracks] = useState(false);
+  // Default: Show user (if location enabled) and fleet, hide tracks and network
+  const [showYou, setShowYou] = useState(true); // Auto-on if location granted
+  const [showFleet, setShowFleet] = useState(true); // Always show inlet context
+  const [showABFINetwork, setShowABFINetwork] = useState(false); // User chooses
+  const [showTracks, setShowTracks] = useState(false); // Off by default (performance)
   
   // User position state
   const [userPosition, setUserPosition] = useState<{lat: number, lng: number} | null>(null);
@@ -41,11 +42,18 @@ function TrackingModeContent() {
     setTrackingActive(true);
   };
 
-  // Get boat name from localStorage
+  // Get boat name and check location permission
   useEffect(() => {
     const storedBoatName = localStorage.getItem('abfi_boat_name');
     if (storedBoatName) {
       setBoatName(storedBoatName);
+    }
+    
+    // Check if location is enabled, if not, disable "Your Position"
+    const locationPermission = localStorage.getItem('abfi_location_permission');
+    if (locationPermission !== 'granted') {
+      setShowYou(false); // Don't show user position if no location permission
+      setTrackingActive(false);
     }
   }, []);
 
