@@ -26,6 +26,8 @@ function TrackingModeContent() {
   const map = useRef<mapboxgl.Map | null>(null);
   const [activeTab, setActiveTab] = useState('tracking');
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [mapFullyReady, setMapFullyReady] = useState(false);
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
   
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
@@ -51,14 +53,15 @@ function TrackingModeContent() {
     setUserSpeed(position.speed * 1.94384); // Convert m/s to knots
     setTrackingActive(true);
     
-    // Auto-select closest inlet if none selected
-    const autoSelect = autoSelectInlet(
-      { lat: position.lat, lng: position.lng },
-      selectedInletId
-    );
-    
-    if (autoSelect.shouldAutoSelect && autoSelect.inlet) {
-      console.log(`[AUTO-SELECT] Selecting closest inlet: ${autoSelect.inlet.name} (${autoSelect.distance?.toFixed(1)}mi away)`);
+    // Only auto-select inlet once, and only if map is ready
+    if (!hasAutoSelected && mapFullyReady && !selectedInletId) {
+      const autoSelect = autoSelectInlet(
+        { lat: position.lat, lng: position.lng },
+        selectedInletId
+      );
+      
+      if (autoSelect.shouldAutoSelect && autoSelect.inlet) {
+        console.log(`[AUTO-SELECT] Selecting closest inlet: ${autoSelect.inlet.name} (${autoSelect.distance?.toFixed(1)}mi away)`);
       
       // Update global state
       const { setSelectedInletId } = useAppState.getState();
@@ -114,7 +117,7 @@ function TrackingModeContent() {
         clearTimeout(toastTimeoutRef.current);
       }
       
-      toastTimeoutRef.current = setTimeout(() => {
+      toastTimeoutRef.current =       setTimeout(() => {
         // Safely remove toast if it still exists
         const toastElement = document.getElementById(toastId);
         if (toastElement) {
@@ -123,10 +126,11 @@ function TrackingModeContent() {
         toastTimeoutRef.current = null;
       }, 5000);
       
-      // Fly to the auto-selected inlet
-      if (map.current && autoSelect.inlet) {
-        flyToInlet60nm(map.current, autoSelect.inlet);
-      }
+      // Mark that we've auto-selected
+      setHasAutoSelected(true);
+      
+      // Don't auto-fly anymore - let the inlet change effect handle it
+    }
     }
   };
 
@@ -175,8 +179,8 @@ function TrackingModeContent() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: [-71.4, 41.15],  // Start with default inlet (Block Island)
-      zoom: 7.5,  // Good zoom for inlet to Gulf Stream view
+      center: [-74, 38.5],  // East Coast overview center
+      zoom: 5.5,  // Wide view of East Coast
       pitch: 0,
       bearing: 0,
       cooperativeGestures: false  // Allow normal scroll zoom
@@ -188,7 +192,7 @@ function TrackingModeContent() {
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     
     mapInstance.on('load', () => {
-      console.log('[TRACKING] Map initialized');
+      console.log('[TRACKING] Map initialized - East Coast overview');
       
       // Set East Coast bounds to prevent getting lost
       const EAST_COAST_BOUNDS = [[-85, 23], [-64, 47]];
@@ -202,32 +206,35 @@ function TrackingModeContent() {
       mapInstance.dragRotate.disable();
       mapInstance.touchPitch.disable();
       
-      // Fly to selected inlet with Gulf Stream view after map loads
-      if (selectedInletId) {
-        const inlet = getInletById(selectedInletId);
-        if (inlet) {
-          flyToInlet60nm(mapInstance, inlet);
-          console.log(`[TRACKING] Initial fly to inlet: ${inlet.name}`);
-        }
-      }
+      // Mark map as fully ready after a brief delay to ensure all internal setup is complete
+      setTimeout(() => {
+        setMapFullyReady(true);
+        console.log('[TRACKING] Map fully ready for components');
+      }, 500);
     });
 
     return () => {
+      setMapFullyReady(false);
       map.current?.remove();
     };
-  }, [selectedInletId]);
+  }, []);
   
   // Watch for inlet changes and fly to selected inlet with Gulf Stream view
   useEffect(() => {
-    if (!map.current || !selectedInletId) return;
+    if (!map.current || !selectedInletId || !mapFullyReady) return;
     
     const inlet = getInletById(selectedInletId);
     if (inlet) {
+      // Only fly to inlet if map is ready and stable
+      map.current.once('moveend', () => {
+        console.log(`[TRACKING] Arrived at inlet: ${inlet.name}`);
+      });
+      
       // Use proper Gulf Stream view for each inlet
       flyToInlet60nm(map.current, inlet);
       console.log(`[TRACKING] Flying to inlet with Gulf Stream view: ${inlet.name}`);
     }
-  }, [selectedInletId]);
+  }, [selectedInletId, mapFullyReady]);
   
   // Handle ABFI Network view toggle
   useEffect(() => {
@@ -299,41 +306,46 @@ function TrackingModeContent() {
       {/* Network Status Indicator - Shows online/offline status */}
       <NetworkStatusIndicator />
       
-      {/* Inlet Regions - Glowing boundaries showing where location becomes visible */}
-      {map.current && map.current.loaded() && (
-        <InletRegions 
-          map={map.current} 
-          enabled={true} 
-          opacity={0.2}  // Subtle glow for tracking mode
-        />
-      )}
-      
-      {/* Departure Monitor - Detects when leaving inlet and asks about internet */}
-      <DepartureMonitor 
-        userPosition={userPosition}
-        selectedInletId={selectedInletId}
-        trackingActive={trackingActive}
-      />
-      
-      {/* Vessel Layer - Handles all vessel markers and tracks */}
-      {map.current && (
-        <VesselLayer
-          map={map.current}
-          showYou={showYou}
-          showFleet={showFleet || showABFINetwork}
-          showCommercial={false} // Commercial vessels now handled separately
-          showTracks={showTracks}
-          selectedInletId={showABFINetwork ? '' : selectedInletId}
-          onPositionUpdate={handlePositionUpdate}
-        />
-      )}
-      
-      {/* Commercial Vessel Layer - GFW data with ABFI branding */}
-      {map.current && (
-        <CommercialVesselLayer
-          map={map.current}
-          showCommercial={showCommercial}
-        />
+      {/* Only render map-dependent components when map is fully ready */}
+      {mapFullyReady && (
+        <>
+          {/* Inlet Regions - Glowing boundaries showing where location becomes visible */}
+          {map.current && (
+            <InletRegions 
+              map={map.current} 
+              enabled={true} 
+              opacity={0.2}  // Subtle glow for tracking mode
+            />
+          )}
+          
+          {/* Departure Monitor - Detects when leaving inlet and asks about internet */}
+          <DepartureMonitor 
+            userPosition={userPosition}
+            selectedInletId={selectedInletId}
+            trackingActive={trackingActive}
+          />
+          
+          {/* Vessel Layer - Handles all vessel markers and tracks */}
+          {map.current && (
+            <VesselLayer
+              map={map.current}
+              showYou={showYou}
+              showFleet={showFleet || showABFINetwork}
+              showCommercial={false} // Commercial vessels now handled separately
+              showTracks={showTracks}
+              selectedInletId={showABFINetwork ? '' : selectedInletId}
+              onPositionUpdate={handlePositionUpdate}
+            />
+          )}
+          
+          {/* Commercial Vessel Layer - GFW data with ABFI branding */}
+          {map.current && (
+            <CommercialVesselLayer
+              map={map.current}
+              showCommercial={showCommercial}
+            />
+          )}
+        </>
       )}
     </div>
   );
