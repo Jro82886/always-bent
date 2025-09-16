@@ -210,6 +210,29 @@ export default function UnifiedTrackingPanelLeft({
                     </div>
                   </div>
                 )}
+                
+                {/* Display Options - Part of YOUR vessel */}
+                <div className="mt-3 pt-3 border-t border-slate-700/50">
+                  <div className="flex items-center justify-between bg-slate-800/30 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-cyan-400/50" />
+                      <span className="text-sm text-cyan-100">Show My Track</span>
+                    </div>
+                    <button 
+                      onClick={() => setShowTracks(!showTracks)}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${
+                        showTracks ? 'bg-cyan-600' : 'bg-slate-700'
+                      }`}
+                    >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        showTracks ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
+                    </button>
+                  </div>
+                  <div className="text-xs text-cyan-400/60 mt-2 px-1">
+                    Shows your vessel's path on the map
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -318,44 +341,6 @@ export default function UnifiedTrackingPanelLeft({
                     }`} />
                   </button>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Display Options Section - Vessel Tracks Only */}
-        <div className="border-b border-cyan-500/10">
-          <button 
-            onClick={() => toggleSection('display')}
-            className="w-full px-5 py-3 flex items-center justify-between hover:bg-cyan-500/5 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <div className="text-xs font-medium text-cyan-400/70 uppercase tracking-wider">Display Options</div>
-            </div>
-            {expandedSections.has('display') ? 
-              <ChevronUp className="w-4 h-4 text-cyan-400/50" /> : 
-              <ChevronDown className="w-4 h-4 text-cyan-400/50" />
-            }
-          </button>
-          
-          {expandedSections.has('display') && (
-            <div className="px-5 pb-4">
-              {/* Vessel Tracks Toggle */}
-              <div className="flex items-center justify-between bg-slate-800/30 rounded-lg px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-cyan-400/50" />
-                  <span className="text-sm text-cyan-100">Vessel Tracks</span>
-                </div>
-                <button 
-                  onClick={() => setShowTracks(!showTracks)}
-                  className={`relative w-11 h-6 rounded-full transition-colors ${
-                    showTracks ? 'bg-cyan-600' : 'bg-slate-700'
-                  }`}
-                >
-                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    showTracks ? 'translate-x-6' : 'translate-x-1'
-                  }`} />
-                </button>
               </div>
             </div>
           )}

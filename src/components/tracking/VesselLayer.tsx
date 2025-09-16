@@ -167,8 +167,10 @@ export default function VesselLayer({
 
   // Render user marker - ONLY controlled by showYou
   useEffect(() => {
-    if (!map || !userPosition || !showYou) {
-      // Clean up marker if conditions not met
+    if (!map) return;
+    
+    // Clean up marker if we shouldn't show it
+    if (!userPosition || !showYou) {
       if (userMarkerRef.current) {
         userMarkerRef.current.remove();
         userMarkerRef.current = null;
@@ -185,9 +187,22 @@ export default function VesselLayer({
       return;
     }
 
-    // Remove old marker before creating new one
+    // If marker already exists and position hasn't changed significantly, just update it
     if (userMarkerRef.current) {
-      userMarkerRef.current.remove();
+      const currentLngLat = userMarkerRef.current.getLngLat();
+      const distance = Math.sqrt(
+        Math.pow(currentLngLat.lng - userPosition.coords.longitude, 2) +
+        Math.pow(currentLngLat.lat - userPosition.coords.latitude, 2)
+      );
+      
+      // Only update if moved more than 0.0001 degrees (about 11 meters)
+      if (distance > 0.0001) {
+        // Update existing marker position
+        userMarkerRef.current.setLngLat([userPosition.coords.longitude, userPosition.coords.latitude]);
+      }
+      
+      // Continue to check visibility even with existing marker
+      // Don't return here - we need to check if visibility changed
     }
 
     // ⚠️ PRODUCTION REMINDER: SET TO FALSE BEFORE GOING LIVE! ⚠️
@@ -347,7 +362,8 @@ export default function VesselLayer({
       }, 4000);
     }
     
-    if (isVisible) {
+    if (isVisible && !userMarkerRef.current) {
+      // Only create marker if we don't have one already
       // Create custom marker element with enhanced glow
       const el = document.createElement('div');
       el.className = 'user-vessel-marker';
@@ -438,6 +454,10 @@ export default function VesselLayer({
         console.error('[VesselLayer] Failed to create user marker:', error);
         return;
       }
+    } else if (!isVisible && userMarkerRef.current) {
+      // Remove marker if it should no longer be visible
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
     }
 
     return () => {

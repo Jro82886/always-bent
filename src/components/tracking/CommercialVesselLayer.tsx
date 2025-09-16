@@ -97,8 +97,10 @@ export default function CommercialVesselLayer({
                               latestPosition.lat > 35 ? -76 :    // Mid-Atlantic  
                               -80.5;                              // Southern states
           
+          // Vessels on land have longitude GREATER (less negative) than coastline
+          // e.g., -74 > -75.5 means vessel is on land
           if (latestPosition.lon > coastlineLng) {
-            console.log(`[GFW] Skipping vessel on land: ${vessel.name} at ${latestPosition.lon}`);
+            console.log(`[GFW] Skipping vessel on land: ${vessel.name} at lon=${latestPosition.lon} (coastline at ${coastlineLng})`);
             return; // Skip vessels that appear to be on land
           }
           
