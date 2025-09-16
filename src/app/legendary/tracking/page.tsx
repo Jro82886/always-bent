@@ -37,9 +37,10 @@ function TrackingModeContent() {
       {/* Map Container - No toolbar, just the map */}
       <div ref={mapContainer} className="w-full h-full" />
       
-      {/* Simple test message to verify updates */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-black/80 px-4 py-2 rounded">
-        <p className="text-cyan-400">Tracking Page - Updated {new Date().toLocaleTimeString()}</p>
+      {/* TEST INDICATOR - Remove this after confirming deployment! */}
+      <div className="absolute top-20 right-4 z-50 bg-red-600/90 px-4 py-2 rounded-lg animate-pulse">
+        <p className="text-white font-bold">🚨 TRACKING IS LIVE! 🚨</p>
+        <p className="text-xs text-white/80">Deploy confirmed at {new Date().toLocaleTimeString()}</p>
       </div>
     </div>
   );
