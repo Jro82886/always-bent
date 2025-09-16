@@ -53,7 +53,10 @@ export default function UnifiedTrackingPanelLeft({
     setSelectedInletId(inletId);
     setInletDropdownOpen(false);
     if (map && inletId) {
-      flyToInlet60nm(map, inletId);
+      const selectedInlet = getInletById(inletId);
+      if (selectedInlet) {
+        flyToInlet60nm(map, selectedInlet);
+      }
     }
   };
 

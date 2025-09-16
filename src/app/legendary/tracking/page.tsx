@@ -26,6 +26,7 @@ function TrackingModeContent() {
   
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
+  const inlet = selectedInletId ? getInletById(selectedInletId) : null;
   
   // Vessel visibility states
   // Default: Show user (if location enabled) and fleet, hide tracks and network
@@ -237,7 +238,7 @@ function TrackingModeContent() {
         setShowFleet={setShowFleet}
         showCommercial={showCommercial}
         setShowCommercial={setShowCommercial}
-        showABFINetwork={setShowABFINetwork}
+        showABFINetwork={showABFINetwork}
         setShowABFINetwork={setShowABFINetwork}
         showTracks={showTracks}
         setShowTracks={setShowTracks}
