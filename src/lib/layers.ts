@@ -47,7 +47,7 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "sst",
     name: "Sea Surface Temp (Copernicus)",
-    url: `/api/tiles/sst/{z}/{x}/{y}.png`,
+    url: `/api/tiles/sst/{z}/{x}/{y}.png?time={DATE}`,
     opacity: 0.9,
     minzoom: 0,
     maxzoom: 24,
@@ -57,7 +57,7 @@ export const RASTER_LAYERS: RasterLayerConfig[] = [
   {
     id: "chl",
     name: "Chlorophyll (Copernicus)",
-    url: `/api/tiles/chl/{z}/{x}/{y}.png`,
+    url: `/api/tiles/chl/{z}/{x}/{y}.png?time={DATE}`,
     opacity: 0.85,
     minzoom: 0,
     maxzoom: 24,
