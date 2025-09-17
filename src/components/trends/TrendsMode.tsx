@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { TrendingUp, Calendar, BarChart3, PieChart, Activity, Fish, Thermometer, Wind, ChevronDown } from 'lucide-react';
 import UnifiedCommandBar from '@/components/UnifiedCommandBar';
+import { supabase } from '@/lib/supabaseClient';
 
 interface TrendsModeProps {
   // No map needed for trends - it's a dashboard!
@@ -12,9 +13,10 @@ export default function TrendsMode({}: TrendsModeProps) {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'season' | 'year'>('week');
   const [selectedMetric, setSelectedMetric] = useState<'catches' | 'sst' | 'weather'>('catches');
   const [showTestData, setShowTestData] = useState(false); // Default to hiding test data
-  const [stats, setStats] = useState({ catches: 0, analyses: 0 });
+  const [stats, setStats] = useState({ catches: 0, analyses: 0, reports: 0 });
   const [trendFilter, setTrendFilter] = useState('By Species');
   const [showTrendDropdown, setShowTrendDropdown] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // This component is completely independent of the map
@@ -34,29 +36,85 @@ export default function TrendsMode({}: TrendsModeProps) {
   useEffect(() => {
     
     
-    // Load data, filtering out test data unless explicitly shown
-    const loadTrendsData = () => {
-      // Get production data only (not test data)
-      const catches = JSON.parse(localStorage.getItem('abfi_catches') || '[]');
-      const analyses = JSON.parse(localStorage.getItem('abfi_analyses') || '[]');
-      
-      // Filter out any test data that might have leaked into production storage
-      const productionCatches = catches.filter((c: any) => !c.is_test_data);
-      const productionAnalyses = analyses.filter((a: any) => !a.is_test_data);
-      
-      setStats({
-        catches: productionCatches.length,
-        analyses: productionAnalyses.length
-      });
-      
-      
-      
-      // Check for test data
-      const testCatches = JSON.parse(localStorage.getItem('abfi_test_catches') || '[]');
-      const testAnalyses = JSON.parse(localStorage.getItem('abfi_test_analyses') || '[]');
-      if (testCatches.length > 0 || testAnalyses.length > 0) {
-        // Test data detected
+    // Load data from Supabase
+    const loadTrendsData = async () => {
+      try {
+        // Fetch bite reports
+        const { data: biteReports, error: biteError } = await supabase
+          .from('bite_reports')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        // Fetch catch reports
+        const { data: catchReports, error: catchError } = await supabase
+          .from('catch_reports')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        // Combine and sort by time
+        const allReports = [
+          ...(biteReports || []).map(r => ({ ...r, type: 'bite' })),
+          ...(catchReports || []).map(r => ({ ...r, type: 'catch' }))
+        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        
+        // Set stats
+        setStats({
+          catches: catchReports?.length || 0,
+          analyses: biteReports?.filter(r => r.status === 'analyzed').length || 0,
+          reports: allReports.length
+        });
+        
+        // Format for activity feed
+        const formattedActivity = allReports.slice(0, 10).map(report => {
+          const timeSince = getTimeSince(report.created_at);
+          
+          if (report.type === 'bite') {
+            return {
+              id: report.id,
+              type: 'bite',
+              title: report.species ? `${report.species} bite reported` : 'Bite reported',
+              subtitle: `${report.inlet_id || 'Unknown location'} • ${timeSince} • ${report.user_name || 'Anonymous'}`,
+              color: report.fish_on ? 'green' : 'cyan'
+            };
+          } else {
+            return {
+              id: report.id,
+              type: 'catch',
+              title: report.species ? `${report.species} landed` : 'Fish landed',
+              subtitle: `${report.location || 'Unknown location'} • ${timeSince} • ${report.captain_name || 'Anonymous'}`,
+              color: 'green'
+            };
+          }
+        });
+        
+        setRecentActivity(formattedActivity);
+        
+      } catch (error) {
+        console.error('Failed to load trends data:', error);
+        // Fallback to localStorage if Supabase fails
+        const catches = JSON.parse(localStorage.getItem('abfi_catches') || '[]');
+        const analyses = JSON.parse(localStorage.getItem('abfi_analyses') || '[]');
+        
+        setStats({
+          catches: catches.length,
+          analyses: analyses.length,
+          reports: catches.length + analyses.length
+        });
       }
+    };
+    
+    // Helper function to format time since
+    const getTimeSince = (timestamp: string) => {
+      const seconds = Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000);
+      if (seconds < 60) return `${seconds}s ago`;
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
     };
     
     loadTrendsData();
@@ -196,42 +254,39 @@ export default function TrendsMode({}: TrendsModeProps) {
               </div>
             </div>
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {/* Mock real-time activity items */}
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 animate-pulse" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Bluefin landed - 42lbs</div>
-                  <div className="text-xs text-gray-400">Barnegat Inlet • 2 min ago • SST: 68°F</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Temperature break detected</div>
-                  <div className="text-xs text-gray-400">60-80ft contour • 3°F gradient • High activity zone</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-2" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Fleet concentration building</div>
-                  <div className="text-xs text-gray-400">5 boats • Canyon edge • Morning bite starting</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-2" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Pattern alert: Tide change in 30 min</div>
-                  <div className="text-xs text-gray-400">Historical data shows 45% increase in activity</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2" />
-                <div className="flex-1">
-                  <div className="text-sm text-white">Striped bass on - multiple hookups</div>
-                  <div className="text-xs text-gray-400">Montauk Point • 8 min ago • Dawn patrol success</div>
-                </div>
-              </div>
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                    <div className={`w-1.5 h-1.5 rounded-full mt-2 ${
+                      activity.color === 'green' ? 'bg-green-400 animate-pulse' :
+                      activity.color === 'cyan' ? 'bg-cyan-400' :
+                      'bg-yellow-400'
+                    }`} />
+                    <div className="flex-1">
+                      <div className="text-sm text-white">{activity.title}</div>
+                      <div className="text-xs text-gray-400">{activity.subtitle}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <>
+                  {/* Fallback mock data if no real reports */}
+                  <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 mt-2 animate-pulse" />
+                    <div className="flex-1">
+                      <div className="text-sm text-white">Waiting for reports...</div>
+                      <div className="text-xs text-gray-400">Be the first to report your catch!</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-2 bg-gray-950/30 rounded-lg border border-cyan-500/5 hover:border-cyan-500/20 transition-all">
+                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2" />
+                    <div className="flex-1">
+                      <div className="text-sm text-white">Ocean conditions optimal</div>
+                      <div className="text-xs text-gray-400">SST: 68-72°F • Perfect fishing weather</div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           

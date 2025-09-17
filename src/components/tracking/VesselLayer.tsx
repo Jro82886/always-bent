@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { getInletById } from '@/lib/inlets';
+import { shouldEnableTracking, getTrackingStatus } from '@/lib/tracking/landDetection';
+import { supabase } from '@/lib/supabaseClient';
 
 interface VesselLayerProps {
   map: mapboxgl.Map | null;
@@ -64,6 +66,29 @@ export default function VesselLayer({
   const fleetMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const trackSourceRef = useRef<boolean>(false);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Show tracking status toast
+  const showTrackingToast = (message: string, type: 'success' | 'warning' | 'info' = 'info') => {
+    // Remove existing toast if any
+    const existingToast = document.getElementById('tracking-toast');
+    if (existingToast) existingToast.remove();
+    
+    const toast = document.createElement('div');
+    toast.id = 'tracking-toast';
+    toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] px-4 py-2 rounded-lg shadow-lg animate-slide-down ${
+      type === 'success' ? 'bg-green-500/90 text-white' :
+      type === 'warning' ? 'bg-orange-500/90 text-white' :
+      'bg-blue-500/90 text-white'
+    }`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    toastTimeoutRef.current = setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  };
 
   // Start GPS tracking ONLY when user explicitly enables it
   useEffect(() => {
@@ -80,14 +105,52 @@ export default function VesselLayer({
       if ('geolocation' in navigator) {
         // Get initial position
         navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setUserPosition(position);
-            if (onPositionUpdate) {
-              onPositionUpdate({
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                speed: position.coords.speed || 0
-              });
+          async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            // Check if user is offshore
+            const trackingDecision = shouldEnableTracking(lat, lng);
+            
+            if (trackingDecision.enabled) {
+              setUserPosition(position);
+              
+              // Save position to Supabase for user tracks
+              try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                  const captainName = localStorage.getItem('abfi_captain_name') || 'Captain';
+                  const boatName = localStorage.getItem('abfi_boat_name') || 'Vessel';
+                  
+                  await supabase.from('vessel_tracks').insert({
+                    user_id: user.id,
+                    captain_name: captainName,
+                    boat_name: boatName,
+                    lat,
+                    lng,
+                    speed: position.coords.speed || 0,
+                    heading: position.coords.heading || 0,
+                    timestamp: new Date().toISOString()
+                  });
+                }
+              } catch (error) {
+                console.error('Failed to save track:', error);
+              }
+              
+              if (onPositionUpdate) {
+                onPositionUpdate({
+                  lat,
+                  lng,
+                  speed: position.coords.speed || 0
+                });
+              }
+              
+              // Show tracking status
+              showTrackingToast(getTrackingStatus(lat, lng), 'success');
+            } else {
+              // User is on land - disable tracking
+              console.log(trackingDecision.reason);
+              showTrackingToast(trackingDecision.reason, 'warning');
             }
           },
           (error) => {
