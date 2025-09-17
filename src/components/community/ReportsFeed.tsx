@@ -1,7 +1,8 @@
 /**
- * ABFI Reports Feed
- * Live feed of bite reports with 3-day rolling window
- * Shows My Reports, Inlet Reports, and ABFI Network
+ * ABFI Reports Feed - TEXT ONLY
+ * Live feed of written analysis reports (no map data)
+ * Shows digested, written summaries from SnipTool analysis
+ * READ-ONLY viewing - no interaction with maps
  */
 
 "use client";
@@ -49,6 +50,19 @@ interface BiteReport {
 type ViewMode = 'my' | 'inlet' | 'network';
 
 export default function ReportsFeed() {
+  // Ensure this is text-only - no map interactions
+  useEffect(() => {
+    // Safety flag to prevent any map code from running
+    if (typeof window !== 'undefined') {
+      (window as any).__reportsTextOnlyMode = true;
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as any).__reportsTextOnlyMode;
+      }
+    };
+  }, []);
+  
   const [reports, setReports] = useState<BiteReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('network');
