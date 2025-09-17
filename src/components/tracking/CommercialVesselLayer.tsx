@@ -43,7 +43,7 @@ export default function CommercialVesselLayer({
       if (now - lastFetchRef.current < 30000) return;
       lastFetchRef.current = now;
 
-      // Get map bounds or use default East Coast area
+      // Get map bounds but restrict to East Coast 0-200 miles offshore
       let boundsArray: [number, number, number, number];
       
       if (bounds) {
@@ -52,20 +52,20 @@ export default function CommercialVesselLayer({
         try {
           const mapBounds = map.getBounds();
           if (!mapBounds) {
-            // Default to East Coast area if map bounds not available
-            boundsArray = [-80, 25, -65, 45];
+            // Default to East Coast area 0-200 miles offshore
+            boundsArray = [-77, 25, -65, 45]; // Adjusted western boundary
           } else {
-            boundsArray = [
-              mapBounds.getWest(),
-              mapBounds.getSouth(),
-              mapBounds.getEast(),
-              mapBounds.getNorth()
-            ];
+            // Constrain bounds to East Coast offshore area
+            const west = Math.max(mapBounds.getWest(), -77); // Not further west than coast
+            const east = Math.min(mapBounds.getEast(), -65);  // Not further east than 200mi
+            const south = Math.max(mapBounds.getSouth(), 25); // Southern limit
+            const north = Math.min(mapBounds.getNorth(), 45); // Northern limit
+            
+            boundsArray = [west, south, east, north];
           }
         } catch (error) {
-          // If getBounds fails, use default area
-          
-          boundsArray = [-80, 25, -65, 45];
+          // If getBounds fails, use default East Coast offshore area
+          boundsArray = [-77, 25, -65, 45];
         }
       }
 
@@ -84,24 +84,37 @@ export default function CommercialVesselLayer({
         vessels.forEach(vessel => {
           if (vessel.positions.length === 0) return;
           
-          // Skip factory ships and seiners - only show trawlers and longliners
+          // FILTER: Only show trawlers, longliners, and drifting longline gear
           const vesselType = vessel.type?.toLowerCase() || '';
-          if (vesselType.includes('factory') || vesselType.includes('seiner')) return;
+          const allowedTypes = ['trawl', 'longliner', 'longline', 'drifting'];
+          const isAllowedType = allowedTypes.some(type => vesselType.includes(type));
+          
+          // Skip if not one of our target vessel types
+          if (!isAllowedType && vesselType !== 'commercial' && vesselType !== '') {
+            return;
+          }
           
           // Use most recent position
           const latestPosition = vessel.positions[vessel.positions.length - 1];
           
-          // WATER-ONLY FILTER: Skip vessels on land (west of coastline)
-          // East Coast coastline is roughly -76 to -75 longitude depending on latitude
-          const coastlineLng = latestPosition.lat > 40 ? -75.5 : // Northern states
-                              latestPosition.lat > 35 ? -76 :    // Mid-Atlantic  
-                              -80.5;                              // Southern states
+          // DISTANCE FILTER: Only show vessels 0-200 miles offshore
+          // East Coast coastline reference points
+          const coastlineLng = latestPosition.lat > 40 ? -74.0 : // NYC/Boston area
+                              latestPosition.lat > 35 ? -75.5 :   // Virginia/NC area
+                              latestPosition.lat > 30 ? -79.5 :   // Georgia/SC area
+                              -80.0;                               // Florida area
           
-          // Vessels on land have longitude GREATER (less negative) than coastline
-          // e.g., -74 > -75.5 means vessel is on land
+          // Calculate approximate distance from shore (1 degree longitude ≈ 60 nautical miles at this latitude)
+          const milesFromShore = Math.abs(latestPosition.lon - coastlineLng) * 60;
+          
+          // Skip if too close to shore (< 0 miles) or too far offshore (> 200 miles)
+          if (milesFromShore > 200) {
+            return; // Skip vessels beyond 200 mile limit
+          }
+          
+          // Skip vessels that appear to be on land (west of coastline)
           if (latestPosition.lon > coastlineLng) {
-            // Vessel on land, skipping
-            return; // Skip vessels that appear to be on land
+            return; // Skip vessels on land
           }
           
           // Create custom marker with ABFI branding overlay
@@ -112,9 +125,11 @@ export default function CommercialVesselLayer({
           el.style.height = '32px';
           el.style.cursor = 'pointer';
           
-          // Only trawlers and longliners - distinct colors, same triangle shape
-          const vesselColor = vesselType.includes('longliner') ? '#9B59B6' :    // Purple for longliners  
-                            '#FF6B35'; // Orange for trawlers and any other types
+          // Color coding for vessel types
+          const vesselColor = vesselType.includes('longliner') || vesselType.includes('longline') ? '#9B59B6' : // Purple for longliners
+                            vesselType.includes('drifting') ? '#3498DB' : // Blue for drifting gear
+                            vesselType.includes('trawl') ? '#FF6B35' :     // Orange for trawlers
+                            '#95A5A6'; // Gray for unknown commercial
           
           el.innerHTML = `
             <!-- Commercial Vessel Icon -->
