@@ -48,8 +48,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'lat & lng are required' }, { status: 400 });
     }
 
-    // Use mock data if no API key is configured
-    if (!process.env.STORMGLASS_API_KEY || process.env.STORMGLASS_API_KEY === 'YOUR_STORMGLASS_API_KEY_HERE') {
+    // Use mock data if no API key is configured or if it starts with placeholder text
+    if (!process.env.STORMGLASS_API_KEY || 
+        process.env.STORMGLASS_API_KEY === 'YOUR_STORMGLASS_API_KEY_HERE' ||
+        process.env.STORMGLASS_API_KEY.length < 10) {
+      console.log('Using mock marine data - no valid Stormglass API key configured');
       const mockData = getMockMarineData();
       return new NextResponse(
         JSON.stringify(mockData),
@@ -69,19 +72,50 @@ export async function GET(req: NextRequest) {
 
     const q = `lat=${lat}&lng=${lng}&start=${iso(now)}&end=${iso(end)}`;
 
-    const [astronomyRes, seaRes, extremesRes] = await Promise.all([
-      fetch(`${BASE}/astronomy/point?${q}`, { headers: AUTH_HEADER }),
-      fetch(`${BASE}/tide/sea-level/point?${q}`, { headers: AUTH_HEADER }),
-      fetch(`${BASE}/tide/extremes/point?${q}`, { headers: AUTH_HEADER }),
-    ]);
+    let astronomyRes, seaRes, extremesRes;
+    
+    try {
+      [astronomyRes, seaRes, extremesRes] = await Promise.all([
+        fetch(`${BASE}/astronomy/point?${q}`, { headers: AUTH_HEADER }),
+        fetch(`${BASE}/tide/sea-level/point?${q}`, { headers: AUTH_HEADER }),
+        fetch(`${BASE}/tide/extremes/point?${q}`, { headers: AUTH_HEADER }),
+      ]);
+    } catch (fetchError) {
+      console.error('Error fetching from Stormglass API:', fetchError);
+      // Return mock data on API failure
+      const mockData = getMockMarineData();
+      return new NextResponse(
+        JSON.stringify(mockData),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+            'cache-control': 's-maxage=600, stale-while-revalidate=300',
+            'x-data-source': 'mock-fallback'
+          },
+        }
+      );
+    }
 
     if (!astronomyRes.ok || !seaRes.ok || !extremesRes.ok) {
-      const text = {
-        astronomy: await astronomyRes.text(),
-        sea: await seaRes.text(),
-        extremes: await extremesRes.text(),
-      };
-      return NextResponse.json({ error: 'Upstream error', detail: text }, { status: 502 });
+      console.error('Stormglass API returned error status:', {
+        astronomy: astronomyRes.status,
+        sea: seaRes.status,
+        extremes: extremesRes.status
+      });
+      // Return mock data on API error
+      const mockData = getMockMarineData();
+      return new NextResponse(
+        JSON.stringify(mockData),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+            'cache-control': 's-maxage=600, stale-while-revalidate=300',
+            'x-data-source': 'mock-fallback'
+          },
+        }
+      );
     }
 
     const [astronomy, seaLevel, extremes] = await Promise.all([
