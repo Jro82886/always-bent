@@ -284,27 +284,46 @@ export async function analyzeSSTPolygon(
     }
   }
 
-  // Find primary hotspot ONLY if there's a real temperature break
+  // Find THE SINGLE BEST HOTSPOT based on maximum temperature gradient
   let hotspot = null;
   if (gradients.length > 0) {
+    // Find the point with the absolute maximum gradient
     const maxGradientPoint = gradients.reduce((max, g) => 
       g.gradient > max.gradient ? g : max
     );
     
+    // Convert gradient to °F per mile for display
+    const gradientPerMile = maxGradientPoint.gradient * MILE_TO_KM;
+    
     // Only create hotspot if gradient is significant (at least 0.5°F per mile)
-    if (maxGradientPoint.gradient >= EDGE_THR_F_PER_KM) {
+    if (gradientPerMile >= 0.5) {
+      // Determine confidence based on gradient strength
+      let confidence = 0.5;
+      let description = '';
+      
+      if (gradientPerMile >= 2.0) {
+        confidence = 0.95;
+        description = '🔥 HARD BREAK: Major temperature wall! Fish are concentrated here.';
+      } else if (gradientPerMile >= 1.0) {
+        confidence = 0.85;
+        description = '⚡ Strong edge detected. Prime fishing zone.';
+      } else if (gradientPerMile >= 0.5) {
+        confidence = 0.70;
+        description = '📍 Temperature gradient found. Worth investigating.';
+      }
+      
       // Determine optimal approach direction (perpendicular to gradient)
       const approachAngle = (maxGradientPoint.direction + 90) % 360;
       const approachDir = 
-        approachAngle < 45 || approachAngle >= 315 ? 'E-W' :
-        approachAngle < 135 ? 'N-S' :
-        approachAngle < 225 ? 'E-W' : 'N-S';
+        approachAngle < 45 || approachAngle >= 315 ? 'East-West' :
+        approachAngle < 135 ? 'North-South' :
+        approachAngle < 225 ? 'East-West' : 'North-South';
       
       hotspot = {
         location: [maxGradientPoint.point.lng, maxGradientPoint.point.lat] as [number, number],
-        confidence: Math.min(maxGradientPoint.gradient / HARD_THR_F_PER_KM, 1.0),
-        gradient_strength: maxGradientPoint.gradient,
-        optimal_approach: `Approach from ${approachDir} along the edge`
+        confidence: confidence,
+        gradient_strength: gradientPerMile, // Store as °F/mile for display
+        optimal_approach: `${description} Work ${approachDir} along the ${gradientPerMile.toFixed(1)}°F/mile edge.`
       };
     }
   }
@@ -319,11 +338,11 @@ export async function analyzeSSTPolygon(
     features,
     hotspot,
     stats: {
-      min_temp_f: minTemp,
-      max_temp_f: maxTemp,
-      avg_temp_f: avgTemp,
-      temp_range_f: tempRange,
-      area_km2: areaKm2
+      min_temp_f: Math.round(minTemp * 10) / 10,  // Round to 0.1°F
+      max_temp_f: Math.round(maxTemp * 10) / 10,
+      avg_temp_f: Math.round(avgTemp * 10) / 10,
+      temp_range_f: Math.round(tempRange * 10) / 10,
+      area_km2: Math.round(areaKm2 * 10) / 10
     }
   };
 }
@@ -357,55 +376,72 @@ export function generateMockSSTData(bounds: number[][]): SSTDataPoint[] {
   const latStep = (north - south) / 30;  // More points for better gradients
   const lngStep = (east - west) / 30;
   
-  // JEFF'S LOGIC: Randomly decide if this area has a temperature break
-  // 60% chance of having a significant edge (to demonstrate both scenarios)
-  const hasSignificantEdge = Math.random() < 0.6;
+  // Get current season for realistic East Coast temperatures
+  const month = new Date().getMonth();
+  let baseTemp = 68; // Default spring/fall
+  
+  if (month >= 5 && month <= 8) {
+    // Summer: June-September
+    baseTemp = 72;
+  } else if (month >= 11 || month <= 2) {
+    // Winter: December-March
+    baseTemp = 48;
+  }
+  
+  // REALISTIC SCENARIO: 70% chance of having a temperature break (common on East Coast)
+  const hasSignificantEdge = Math.random() < 0.7;
   
   if (hasSignificantEdge) {
-    // Create a REALISTIC temperature break (following Jeff's thresholds)
+    // Create a REALISTIC temperature break (Gulf Stream edge or shelf break)
     const edgeLng = west + (east - west) * (0.3 + Math.random() * 0.4);  // Random position
     
     for (let lat = south; lat <= north; lat += latStep) {
       for (let lng = west; lng <= east; lng += lngStep) {
         let temp_f;
         
-        // Create a temperature break that meets Jeff's minimum (0.5°F/mile = 0.31°F/km)
+        // Create realistic East Coast temperature gradient
         if (lng < edgeLng - (east - west) * 0.01) {
-          // Cold side (shelf water)
-          temp_f = 71 + Math.random() * 0.5;  // 71-71.5°F
+          // Inshore/shelf water (cooler)
+          temp_f = baseTemp + Math.random() * 2;  // e.g., 72-74°F in summer
         } else if (lng > edgeLng + (east - west) * 0.01) {
-          // Warm side (Gulf Stream edge)
-          temp_f = 74 + Math.random() * 0.5;  // 74-74.5°F (3°F difference)
+          // Offshore/Gulf Stream water (warmer)
+          temp_f = baseTemp + 6 + Math.random() * 2;  // e.g., 78-80°F in summer
         } else {
-          // Narrow transition zone - creates the gradient
+          // Narrow transition zone - creates the strong gradient
           const position = (lng - (edgeLng - (east - west) * 0.01)) / ((east - west) * 0.02);
-          temp_f = 71.25 + (position * 3);  // 3°F change over narrow zone
+          temp_f = baseTemp + (position * 6);  // 6°F change over narrow zone
         }
         
-        // Add some north-south variation
-        temp_f += ((lat - south) / (north - south)) * 0.5;
+        // Add realistic north-south variation (warmer south)
+        temp_f += ((lat - south) / (north - south)) * 1.5;
+        
+        // Add small-scale variation
+        temp_f += (Math.random() - 0.5) * 0.3;
         
         data.push({
           lat,
           lng,
-          temp_f
+          temp_f: Math.round(temp_f * 10) / 10  // Round to 0.1°F
         });
       }
     }
   } else {
     // Create UNIFORM water conditions (no significant gradients)
-    // This represents areas where Jeff's logic says NO HOTSPOT
-    const baseTemp = 70 + Math.random() * 4;  // Random base between 70-74°F
+    // This represents areas with no major temperature breaks
+    const uniformTemp = baseTemp + 3 + Math.random() * 2;  // Mid-range temperature
     
     for (let lat = south; lat <= north; lat += latStep) {
       for (let lng = west; lng <= east; lng += lngStep) {
         // Very minimal variation (< 0.5°F/mile threshold)
-        const temp_f = baseTemp + (Math.random() * 0.8 - 0.4);  // ±0.4°F variation
+        let temp_f = uniformTemp + (Math.random() * 0.8 - 0.4);  // ±0.4°F variation
+        
+        // Slight north-south trend
+        temp_f += ((lat - south) / (north - south)) * 0.5;
         
         data.push({
           lat,
           lng,
-          temp_f
+          temp_f: Math.round(temp_f * 10) / 10  // Round to 0.1°F
         });
       }
     }
