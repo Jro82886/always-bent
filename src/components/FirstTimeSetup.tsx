@@ -190,9 +190,9 @@ export default function FirstTimeSetup() {
             </div>
 
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 text-left">
-              <p className="text-amber-400 font-medium mb-1">🚧 Beta Week</p>
+              <p className="text-amber-400 font-medium mb-1">Beta Testing Week</p>
               <p className="text-sm text-amber-300/80">
-                Use the feedback button to report any issues!
+                Use the feedback button to report any issues.
               </p>
             </div>
 
