@@ -122,7 +122,12 @@ function OfflineBitesUploader() {
 }
 
 // Tooltip component that positions itself near the rectangle
-function RectangleTooltip({ map, polygon, onDismiss }: { map: mapboxgl.Map | null; polygon: any; onDismiss?: () => void }) {
+function RectangleTooltip({ map, polygon, onDismiss, analysis }: { 
+  map: mapboxgl.Map | null; 
+  polygon: any; 
+  onDismiss?: () => void;
+  analysis?: any;
+}) {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [mounted, setMounted] = useState(false);
 
@@ -173,6 +178,26 @@ function RectangleTooltip({ map, polygon, onDismiss }: { map: mapboxgl.Map | nul
       <div className="relative">
         <div className="bg-slate-900/90 backdrop-blur-xl rounded-lg px-5 py-3 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
           <div className="flex flex-col items-center gap-2">
+            {/* Temperature Range Display */}
+            {analysis?.stats && (
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-3">
+                  <div className="text-blue-400 text-xs font-medium">MIN</div>
+                  <div className="text-2xl font-bold text-white">
+                    {analysis.stats.min_temp_f.toFixed(1)}°F
+                  </div>
+                  <div className="text-gray-400 text-lg">→</div>
+                  <div className="text-2xl font-bold text-white">
+                    {analysis.stats.max_temp_f.toFixed(1)}°F
+                  </div>
+                  <div className="text-red-400 text-xs font-medium">MAX</div>
+                </div>
+                <div className="text-cyan-400 text-xs">
+                  {(analysis.stats.max_temp_f - analysis.stats.min_temp_f).toFixed(1)}°F range
+                  {analysis.hotspot && ' • Hotspot detected!'}
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
               <span className="text-cyan-100 font-semibold text-sm">Analysis Complete!</span>
@@ -1001,7 +1026,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Step 6: Store analysis but DON'T show modal yet
       
-      
+      // Log temperature range for visibility
+      console.log(`🌡️ Temperature Range: ${finalAnalysis.stats.min_temp_f.toFixed(1)}°F - ${finalAnalysis.stats.max_temp_f.toFixed(1)}°F`);
       
       // Store the analysis for later access when clicking
       setLastAnalysis(finalAnalysis);
@@ -1449,6 +1475,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           <RectangleTooltip 
             map={map} 
             polygon={currentPolygon.current}
+            analysis={lastAnalysis}
             onDismiss={() => setShowCompleteBanner(false)}
           />
         )}
