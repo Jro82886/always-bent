@@ -36,11 +36,11 @@ const LAYERS = {
 };
 
 export default function PolygonsPanel({ map }: Props) {
-  const [showPanel, setShowPanel] = useState(true); // Start open to show SST features
+  const [showPanel, setShowPanel] = useState(false); // Start closed - user toggles when needed
   const [enabled, setEnabled] = useState({
-    eddy: true,     // Enable eddies by default
-    edge: true,     // Enable edges by default  
-    filament: true  // Enable filaments by default
+    eddy: false,     // OFF by default - like Christmas lights at night
+    edge: false,     // OFF by default - user turns on when wanted
+    filament: false  // OFF by default - user controls the lights
   });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({

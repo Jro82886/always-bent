@@ -34,10 +34,10 @@ function TrackingModeContent() {
   
   // Vessel visibility states
   // Enable key tracking features by default for better user experience
-  const [showYou, setShowYou] = useState(true); // Enable user tracking by default
-  const [showFleet, setShowFleet] = useState(true); // Enable fleet tracking by default
-  const [showCommercial, setShowCommercial] = useState(true); // Enable GFW commercial vessels (filtered)
-  const [showTracks, setShowTracks] = useState(true); // Enable tracks to show vessel paths
+  const [showYou, setShowYou] = useState(false); // OFF by default - saves electricity!
+  const [showFleet, setShowFleet] = useState(false); // OFF by default - user turns on when needed
+  const [showCommercial, setShowCommercial] = useState(false); // OFF by default - conserve resources
+  const [showTracks, setShowTracks] = useState(false); // OFF by default - like lights at night
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
   
   // User position state

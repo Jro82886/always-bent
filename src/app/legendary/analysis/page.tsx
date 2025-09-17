@@ -73,7 +73,7 @@ function AnalysisModeContent() {
   
   // Ocean Basemap + Copernicus layers
   const [oceanActive, setOceanActive] = useState(false); // ESRI Ocean Basemap (bathymetry)
-  const [sstActive, setSstActive] = useState(true); // Enable SST by default to show ocean temps
+  const [sstActive, setSstActive] = useState(false); // OFF by default - saves electricity!
   const [chlActive, setChlActive] = useState(false); // Keep Chlorophyll off initially (performance)
   const [selectedDate, setSelectedDate] = useState('today');
   const [oceanOpacity, setOceanOpacity] = useState(60);
