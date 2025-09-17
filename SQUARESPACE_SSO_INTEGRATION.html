@@ -1,0 +1,210 @@
+<!-- SQUARESPACE SSO INTEGRATION FOR ABFI -->
+<!-- Add this code to your Squarespace site to enable SSO with ABFI -->
+
+<!-- METHOD 1: Custom Login Page (Add to Code Injection or Code Block) -->
+<div id="abfi-login-container">
+  <style>
+    .abfi-login-btn {
+      display: inline-block;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #00bcd4 0%, #2196f3 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 18px;
+      text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      display: block;
+    }
+    
+    .abfi-login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4);
+      background: linear-gradient(135deg, #00acc1 0%, #1976d2 100%);
+    }
+    
+    .abfi-login-container {
+      text-align: center;
+      padding: 40px 20px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      margin: 20px auto;
+      max-width: 500px;
+    }
+    
+    .abfi-title {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    
+    .abfi-subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    
+    .abfi-features {
+      text-align: left;
+      margin: 30px 0;
+    }
+    
+    .abfi-feature {
+      display: flex;
+      align-items: center;
+      margin: 15px 0;
+      color: #555;
+    }
+    
+    .abfi-check {
+      color: #00bcd4;
+      margin-right: 10px;
+      font-size: 20px;
+    }
+  </style>
+  
+  <div class="abfi-login-container">
+    <div class="abfi-title">Access ABFI Platform</div>
+    <div class="abfi-subtitle">Always Bent Fishing Intelligence</div>
+    
+    <button class="abfi-login-btn" onclick="loginToABFI()">
+      Launch ABFI Dashboard
+    </button>
+    
+    <div class="abfi-features">
+      <div class="abfi-feature">
+        <span class="abfi-check">✓</span>
+        <span>Real-time SST & ocean data</span>
+      </div>
+      <div class="abfi-feature">
+        <span class="abfi-check">✓</span>
+        <span>Commercial vessel tracking</span>
+      </div>
+      <div class="abfi-feature">
+        <span class="abfi-check">✓</span>
+        <span>AI-powered fishing analysis</span>
+      </div>
+      <div class="abfi-feature">
+        <span class="abfi-check">✓</span>
+        <span>Tide & moon phase data</span>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function loginToABFI() {
+      // Get current user session from Squarespace
+      const userEmail = getCurrentUserEmail(); // You'll need to implement this based on your Squarespace setup
+      const sessionToken = generateSessionToken(); // Generate a secure token
+      
+      // Redirect to ABFI with credentials
+      const abfiUrl = 'https://always-bent.vercel.app/auth/login';
+      const params = new URLSearchParams({
+        email: userEmail || '',
+        token: sessionToken || generateGuestToken()
+      });
+      
+      window.location.href = `${abfiUrl}?${params.toString()}`;
+    }
+    
+    // Helper function to get current Squarespace user email
+    function getCurrentUserEmail() {
+      // This depends on your Squarespace configuration
+      // Option 1: From Squarespace member areas
+      if (window.Static && window.Static.SQUARESPACE_CONTEXT) {
+        const context = window.Static.SQUARESPACE_CONTEXT;
+        if (context.authenticatedAccount) {
+          return context.authenticatedAccount.email;
+        }
+      }
+      
+      // Option 2: From a custom data attribute you set
+      const userElement = document.querySelector('[data-user-email]');
+      if (userElement) {
+        return userElement.getAttribute('data-user-email');
+      }
+      
+      // Option 3: Prompt user
+      return prompt('Please enter your email address:');
+    }
+    
+    // Generate a secure session token
+    function generateSessionToken() {
+      // In production, this should be generated server-side
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2, 15);
+      return `sq_${timestamp}_${random}`;
+    }
+    
+    // Generate a guest token for non-logged-in users
+    function generateGuestToken() {
+      return 'guest_' + Date.now();
+    }
+  </script>
+</div>
+
+<!-- METHOD 2: Simple Button (Add to any page) -->
+<a href="https://always-bent.vercel.app/auth/login" 
+   class="sqs-block-button-element--medium sqs-button-element--primary sqs-block-button-element"
+   style="background: linear-gradient(135deg, #00bcd4 0%, #2196f3 100%); border: none;">
+  Access ABFI Platform
+</a>
+
+<!-- METHOD 3: Embedded iFrame (For seamless integration) -->
+<div style="width: 100%; height: 600px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+  <iframe 
+    src="https://always-bent.vercel.app" 
+    style="width: 100%; height: 100%; border: none;"
+    allow="geolocation; camera"
+  ></iframe>
+</div>
+
+<!-- METHOD 4: Auto-login Script (Add to Member Area pages) -->
+<script>
+  // Auto-redirect logged-in Squarespace users to ABFI
+  (function() {
+    // Check if user is logged into Squarespace
+    if (window.Static && window.Static.SQUARESPACE_CONTEXT) {
+      const context = window.Static.SQUARESPACE_CONTEXT;
+      if (context.authenticatedAccount) {
+        // User is logged in
+        const email = context.authenticatedAccount.email;
+        const token = 'sq_auth_' + Date.now();
+        
+        // Store in session for return visits
+        sessionStorage.setItem('abfi_auto_login', 'true');
+        
+        // Auto-redirect to ABFI (optional - remove if you want manual control)
+        // window.location.href = `https://always-bent.vercel.app/auth/login?email=${encodeURIComponent(email)}&token=${token}`;
+      }
+    }
+  })();
+</script>
+
+<!-- METHOD 5: Navigation Menu Item (Add to navigation) -->
+<script>
+  // Add ABFI to Squarespace navigation
+  document.addEventListener('DOMContentLoaded', function() {
+    const nav = document.querySelector('.header-nav-list');
+    if (nav) {
+      const abfiLink = document.createElement('div');
+      abfiLink.className = 'header-nav-item';
+      abfiLink.innerHTML = `
+        <a href="https://always-bent.vercel.app" 
+           target="_blank"
+           style="color: #00bcd4; font-weight: bold;">
+          ABFI Platform
+        </a>
+      `;
+      nav.appendChild(abfiLink);
+    }
+  });
+</script>
