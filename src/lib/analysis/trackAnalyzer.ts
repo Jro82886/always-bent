@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf';
 import mapboxgl from 'mapbox-gl';
 import { getGFWVesselsInArea, transformGFWToTracks } from '@/lib/services/gfw';
+import { supabase } from '@/lib/supabaseClient';
 
 export interface VesselTrack {
   id: string;
@@ -27,16 +28,72 @@ export async function getVesselTracksInArea(
   polygon: GeoJSON.Feature<GeoJSON.Polygon>,
   map: mapboxgl.Map,
   daysLimit: number = 4  // Default 4 days for snipped areas
-): Promise<{ tracks: VesselTrack[], summary: string }> {
+): Promise<{ tracks: VesselTrack[], summary: string, reports: any[] }> {
   const bounds = turf.bbox(polygon);
   const [minLng, minLat, maxLng, maxLat] = bounds;
   
   const tracks: VesselTrack[] = [];
+  const reports: any[] = [];
   
-  // Calculate date range for GFW query
+  // Calculate date range for queries
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - daysLimit);
+  
+  // Fetch user reports from Supabase within the snipped area
+  try {
+    // Query bite_reports within the bounds
+    const { data: biteReports, error: biteError } = await supabase
+      .from('bite_reports')
+      .select('*')
+      .gte('lat', minLat)
+      .lte('lat', maxLat)
+      .gte('lon', minLng)
+      .lte('lon', maxLng)
+      .gte('created_at', startDate.toISOString())
+      .eq('status', 'analyzed')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (!biteError && biteReports) {
+      reports.push(...biteReports.map(report => ({
+        ...report,
+        type: 'bite',
+        displayName: report.user_name || 'Anonymous Captain'
+      })));
+    }
+    
+    // Query catch_reports within the bounds
+    const { data: catchReports, error: catchError } = await supabase
+      .from('catch_reports')
+      .select('*')
+      .gte('latitude', minLat)
+      .lte('latitude', maxLat)
+      .gte('longitude', minLng)
+      .lte('longitude', maxLng)
+      .gte('created_at', startDate.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (!catchError && catchReports) {
+      reports.push(...catchReports.map(report => ({
+        ...report,
+        type: 'catch',
+        lat: report.latitude,
+        lon: report.longitude,
+        displayName: report.captain_name || 'Anonymous Captain'
+      })));
+    }
+    
+    console.log(`Found ${reports.length} user reports in snipped area`);
+    
+    // Add report markers to the map
+    if (reports.length > 0) {
+      addReportMarkersToMap(reports, map);
+    }
+  } catch (error) {
+    console.error('Failed to fetch user reports:', error);
+  }
   
   // Fetch real GFW commercial vessel data with proper filters
   try {
@@ -141,9 +198,11 @@ export async function getVesselTracksInArea(
   // Generate summary
   const individualCount = tracks.filter(t => t.type === 'individual').length;
   const gfwCount = tracks.filter(t => t.type === 'gfw').length;
+  const biteCount = reports.filter(r => r.type === 'bite').length;
+  const catchCount = reports.filter(r => r.type === 'catch').length;
   
   const summary = `
-📍 VESSEL TRACKS IN AREA
+📍 VESSEL TRACKS & REPORTS IN AREA
 
 🚤 Individual Boats: ${individualCount}
 ${tracks.filter(t => t.type === 'individual').map(t => 
@@ -155,10 +214,17 @@ ${tracks.filter(t => t.type === 'gfw').map(t =>
   `   • ${t.vesselName} - ${t.timestamp}`
 ).join('\n')}
 
-Total Tracks: ${tracks.length}
+🎣 User Reports: ${reports.length}
+${biteCount > 0 ? `   • ${biteCount} Bite Reports` : ''}
+${catchCount > 0 ? `   • ${catchCount} Catch Reports` : ''}
+${reports.slice(0, 5).map(r => 
+  `   • ${r.displayName} - ${r.species || r.notes || 'Report'} (${new Date(r.created_at).toLocaleDateString()})`
+).join('\n')}
+
+Total Activity: ${tracks.length + reports.length} items
   `;
   
-  return { tracks, summary };
+  return { tracks, summary, reports };
 }
 
 /**
@@ -339,6 +405,96 @@ function drawTracksOnMap(tracks: VesselTrack[], map: mapboxgl.Map) {
 }
 
 /**
+ * Add report markers to the map
+ */
+function addReportMarkersToMap(reports: any[], map: mapboxgl.Map) {
+  reports.forEach((report, index) => {
+    const el = document.createElement('div');
+    el.className = 'report-marker-snip';
+    
+    // Create different styles for bite vs catch reports
+    const isBite = report.type === 'bite';
+    const color = isBite ? '#10B981' : '#3B82F6'; // Green for bites, blue for catches
+    const icon = isBite ? '🎣' : '🐟';
+    
+    el.innerHTML = `
+      <div style="
+        position: relative;
+        width: 32px;
+        height: 32px;
+      ">
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 28px;
+          height: 28px;
+          background: ${color};
+          border: 3px solid white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        ">${icon}</div>
+        ${report.fish_on || report.success ? `
+          <div style="
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            border-radius: 50%;
+            border: 1px solid white;
+          "></div>
+        ` : ''}
+      </div>
+    `;
+    
+    // Create popup content
+    const popupContent = `
+      <div style="padding: 10px; min-width: 200px;">
+        <div style="font-weight: bold; margin-bottom: 6px; color: ${color};">
+          ${report.displayName}
+        </div>
+        <div style="font-size: 12px; color: #666;">
+          ${isBite ? 'BITE Report' : 'CATCH Report'}
+        </div>
+        ${report.species ? `
+          <div style="margin-top: 4px; padding: 4px 8px; background: #F3F4F6; border-radius: 4px;">
+            <strong>Species:</strong> ${report.species}
+          </div>
+        ` : ''}
+        ${report.notes ? `
+          <div style="margin-top: 4px; font-size: 11px; color: #888;">
+            "${report.notes}"
+          </div>
+        ` : ''}
+        ${report.analysis?.confidence_score ? `
+          <div style="margin-top: 4px; font-size: 10px; color: #999;">
+            Confidence: ${report.analysis.confidence_score}%
+          </div>
+        ` : ''}
+        <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; font-size: 10px; color: #999;">
+          ${new Date(report.created_at).toLocaleString()}
+        </div>
+      </div>
+    `;
+    
+    new (window as any).mapboxgl.Marker(el)
+      .setLngLat([report.lon || report.longitude, report.lat || report.latitude])
+      .setPopup(
+        new (window as any).mapboxgl.Popup({ offset: 15 })
+          .setHTML(popupContent)
+      )
+      .addTo(map);
+  });
+}
+
+/**
  * Clear vessel tracks from the map
  */
 export function clearVesselTracks(map: mapboxgl.Map) {
@@ -355,9 +511,16 @@ export function clearVesselTracks(map: mapboxgl.Map) {
     }
   }
   
-  // Remove markers
-  const markers = document.querySelectorAll('.vessel-track-marker');
-  markers.forEach(marker => {
+  // Remove vessel markers
+  const vesselMarkers = document.querySelectorAll('.vessel-track-marker');
+  vesselMarkers.forEach(marker => {
+    const parent = marker.parentElement?.parentElement;
+    if (parent) parent.remove();
+  });
+  
+  // Remove report markers
+  const reportMarkers = document.querySelectorAll('.report-marker-snip');
+  reportMarkers.forEach(marker => {
     const parent = marker.parentElement?.parentElement;
     if (parent) parent.remove();
   });
