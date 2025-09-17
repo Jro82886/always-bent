@@ -2,19 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Anchor, Ship, User } from 'lucide-react';
+import { Loader2, Anchor } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
-import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [needsProfile, setNeedsProfile] = useState(false);
-  const [captainName, setCaptainName] = useState('');
-  const [boatName, setBoatName] = useState('');
-  const [userId, setUserId] = useState<string | null>(null);
   
   useEffect(() => {
     // Check if user is already logged in
@@ -23,23 +18,8 @@ export default function LoginPage() {
     // Listen for auth state changes (when coming back from OAuth)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        // Check if user has profile info
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('captain_name, boat_name')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profile?.captain_name && profile?.boat_name) {
-          // Profile complete, go to app
-          localStorage.setItem('abfi_captain_name', profile.captain_name);
-          localStorage.setItem('abfi_boat_name', profile.boat_name);
-          router.replace('/legendary?mode=analysis');
-        } else {
-          // Need to collect captain/boat info
-          setUserId(session.user.id);
-          setNeedsProfile(true);
-        }
+        // Always go to legendary welcome after auth to collect captain/boat info
+        router.replace('/legendary/welcome');
       }
     });
     
@@ -50,23 +30,8 @@ export default function LoginPage() {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user) {
-      // Check if they have profile info
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('captain_name, boat_name')
-        .eq('id', user.id)
-        .single();
-      
-      if (profile?.captain_name && profile?.boat_name) {
-        // Already logged in with complete profile
-        localStorage.setItem('abfi_captain_name', profile.captain_name);
-        localStorage.setItem('abfi_boat_name', profile.boat_name);
-        router.replace('/legendary?mode=analysis');
-      } else {
-        // Logged in but needs profile
-        setUserId(user.id);
-        setNeedsProfile(true);
-      }
+      // User is logged in, send them to welcome screen
+      router.replace('/legendary/welcome');
     }
   };
 
@@ -96,132 +61,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-  
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!captainName.trim() || !boatName.trim()) {
-      setError('Please enter both Captain Name and Boat Name');
-      return;
-    }
-    
-    if (!userId) {
-      setError('User session not found. Please log in again.');
-      return;
-    }
-    
-    setLoading(true);
-    setError('');
-    
-    try {
-      // Save or update profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: userId,
-          captain_name: captainName.trim(),
-          boat_name: boatName.trim(),
-          updated_at: new Date().toISOString()
-        });
-      
-      if (profileError) throw profileError;
-      
-      // Save to localStorage
-      localStorage.setItem('abfi_captain_name', captainName.trim());
-      localStorage.setItem('abfi_boat_name', boatName.trim());
-      
-      // Go to app
-      router.replace('/legendary?mode=analysis');
-    } catch (error: any) {
-      console.error('Profile error:', error);
-      setError('Failed to save profile. Please try again.');
-      setLoading(false);
-    }
-  };
-  
-  // If user needs to complete profile
-  if (needsProfile) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
-        <div className="fixed inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
-        </div>
-
-        <div className="relative z-10 w-full max-w-md">
-          <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
-            
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <Anchor className="w-12 h-12 text-cyan-400" />
-              </div>
-              <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-                Complete Your Profile
-              </h1>
-              <p className="text-slate-400 mt-2">Tell us about your vessel</p>
-            </div>
-
-            {error && (
-              <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleProfileSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="captain" className="block text-sm font-medium text-cyan-300 mb-2">
-                  <User className="inline w-4 h-4 mr-1" />
-                  Captain Name
-                </label>
-                <input
-                  type="text"
-                  id="captain"
-                  value={captainName}
-                  onChange={(e) => setCaptainName(e.target.value)}
-                  placeholder="Captain Mike"
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-                  required
-                  disabled={loading}
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label htmlFor="boat" className="block text-sm font-medium text-cyan-300 mb-2">
-                  <Ship className="inline w-4 h-4 mr-1" />
-                  Boat Name
-                </label>
-                <input
-                  type="text"
-                  id="boat"
-                  value={boatName}
-                  onChange={(e) => setBoatName(e.target.value)}
-                  placeholder="Reel Deal"
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-lg rounded-lg hover:from-green-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-green-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Saving Profile...
-                  </span>
-                ) : (
-                  'Complete Setup'
-                )}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    );
-  }
   
   // Main login screen with social auth
   return (
