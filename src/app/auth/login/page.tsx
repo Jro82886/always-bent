@@ -11,6 +11,9 @@ function LoginContent() {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usePassword, setUsePassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   
   // Get email from Squarespace redirect if provided
   const emailFromSquarespace = searchParams.get('email');
@@ -76,37 +79,65 @@ function LoginContent() {
   };
 
   const handleSquarespaceLogin = async () => {
-    setLoading(true);
-    setError('');
-    
-    // Use a proper email input instead of prompt
-    const email = prompt('Enter your Squarespace email address:');
-    
     if (!email) {
-      setLoading(false);
+      setError('Please enter your email address');
       return;
     }
     
+    setLoading(true);
+    setError('');
+    
     try {
-      // Use Supabase magic link for passwordless authentication
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/legendary/welcome`,
+      if (usePassword) {
+        // Password-based authentication (more secure, can't be forwarded)
+        if (!password) {
+          setError('Please enter your password');
+          setLoading(false);
+          return;
         }
-      });
-      
-      if (error) {
-        throw error;
+        
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+        
+        if (error) throw error;
+        
+        // Success - will redirect via onAuthStateChange
+        
+      } else {
+        // Magic link (less secure but more convenient)
+        // Add warning about security
+        const confirmed = confirm(
+          '⚠️ Security Notice:\n\n' +
+          'Magic links can be forwarded to others.\n' +
+          'For better security, use password login instead.\n\n' +
+          'Continue with magic link?'
+        );
+        
+        if (!confirmed) {
+          setUsePassword(true);
+          setLoading(false);
+          return;
+        }
+        
+        const { error } = await supabase.auth.signInWithOtp({
+          email: email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/legendary/welcome`,
+          }
+        });
+        
+        if (error) throw error;
+        
+        alert(`Check your email (${email}) for a magic link to sign in!`);
       }
       
-      // Show success message
-      alert(`Check your email (${email}) for a magic link to sign in!`);
       setLoading(false);
       
     } catch (error: any) {
       console.error('Login error:', error);
-      setError(error.message || 'Failed to send magic link. Please try again.');
+      setError(error.message || 'Authentication failed. Please try again.');
       setLoading(false);
     }
   };
@@ -141,8 +172,52 @@ function LoginContent() {
             </div>
           )}
 
-          {/* Squarespace SSO Login */}
+          {/* Login Form */}
           <div className="space-y-4">
+            {/* Email Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                disabled={loading}
+              />
+            </div>
+            
+            {/* Password Input (if using password mode) */}
+            {usePassword && (
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  disabled={loading}
+                />
+              </div>
+            )}
+            
+            {/* Login Method Toggle */}
+            <div className="flex items-center justify-between text-sm">
+              <button
+                type="button"
+                onClick={() => setUsePassword(!usePassword)}
+                className="text-cyan-400 hover:text-cyan-300 transition-colors"
+              >
+                {usePassword ? 'Use Magic Link Instead' : 'Use Password Instead (More Secure)'}
+              </button>
+            </div>
+            
+            {/* Submit Button */}
             <button
               onClick={handleSquarespaceLogin}
               disabled={loading}
@@ -153,7 +228,7 @@ function LoginContent() {
               ) : (
                 <>
                   <Shield className="w-5 h-5" />
-                  Sign in with Squarespace
+                  {usePassword ? 'Sign In' : 'Send Magic Link'}
                 </>
               )}
             </button>
