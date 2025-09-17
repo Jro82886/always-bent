@@ -379,7 +379,7 @@ export default function ReportsPanel() {
                     tooltip: 'No luck'
                   }
                 ].map(option => (
-                  <Tooltip key={option.value} text={option.tooltip} position="bottom">
+                  <Tooltip key={option.value} content={option.tooltip} position="bottom">
                     <button
                       onClick={() => setReport(r => ({ ...r, type: option.value as any }))}
                       className={`p-3 rounded-lg transition-all transform hover:scale-105 ${
