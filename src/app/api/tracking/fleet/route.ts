@@ -7,7 +7,7 @@ const getSupabaseClient = () => {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!url || !key) {
-    throw new Error('Supabase environment variables not configured');
+    return null;
   }
   
   return createClient(url, key);
@@ -21,6 +21,15 @@ export async function GET(request: NextRequest) {
     const hours = parseInt(searchParams.get('hours') || '4');
     
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json({
+        success: true,
+        vessels: [],
+        total: 0,
+        time_window: `${hours} hours`,
+        message: 'Database not configured'
+      });
+    }
     
     // Get positions from the last N hours
     const timeWindow = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();

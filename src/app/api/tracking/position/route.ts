@@ -7,7 +7,7 @@ const getSupabaseClient = () => {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!url || !key) {
-    throw new Error('Supabase environment variables not configured');
+    return null; // Return null instead of throwing
   }
   
   return createClient(url, key);
@@ -38,6 +38,14 @@ export async function POST(request: NextRequest) {
 
     // Insert position
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      // Return mock success when Supabase is not configured
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Position tracking disabled (no database configured)' 
+      });
+    }
+    
     const { data, error } = await supabase
       .from('vessel_positions')
       .insert({
@@ -90,7 +98,8 @@ export async function GET(request: NextRequest) {
     const hours = parseInt(searchParams.get('hours') || '4');
 
     // Check if Supabase is configured
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
       console.warn('[TRACKING API] Supabase not configured, returning empty vessel list');
       return NextResponse.json({
         success: true,
@@ -100,8 +109,6 @@ export async function GET(request: NextRequest) {
         message: 'Database not configured - using mock data'
       });
     }
-
-    const supabase = getSupabaseClient();
     let query = supabase
       .from('vessel_positions')
       .select('*')
@@ -181,6 +188,9 @@ async function checkForLoitering(
 ) {
   try {
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      return; // Skip loitering check if database not configured
+    }
     // Get recent positions for this user (last 30 minutes)
     const { data: recentPositions } = await supabase
       .from('vessel_positions')

@@ -7,7 +7,7 @@ const getSupabaseClient = () => {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!url || !key) {
-    throw new Error('Supabase environment variables not configured');
+    return null;
   }
   
   return createClient(url, key);
@@ -39,6 +39,19 @@ export async function GET(request: NextRequest) {
 
     // Get all positions in the polygon
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json({
+        success: true,
+        activity: {
+          vessel_count: 0,
+          vessels: [],
+          hotspots: [],
+          time_window: `${hours} hours`
+        },
+        message: 'Database not configured'
+      });
+    }
+    
     const { data: positions, error: posError } = await supabase
       .from('vessel_positions')
       .select('user_id, username, lat, lng, speed, timestamp')
