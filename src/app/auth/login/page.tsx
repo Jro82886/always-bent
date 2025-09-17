@@ -17,22 +17,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if already logged in - with timeout to prevent infinite loading
+  // Don't auto-redirect on the login page - let users choose
+  // Remove the auto-redirect so new users from Squarespace can set up properly
   useEffect(() => {
-    // Set a timeout to stop showing loading after 3 seconds
-    const timeout = setTimeout(() => {
-      if (authLoading) {
-        // Force stop loading if it's taking too long
-        window.location.reload();
-      }
-    }, 3000);
-
-    if (!authLoading && user) {
-      router.replace('/legendary?mode=analysis');
-    }
-
-    return () => clearTimeout(timeout);
-  }, [user, authLoading, router]);
+    // Just check auth status, don't redirect
+    // This lets new users see the page and click the button
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
