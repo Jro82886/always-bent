@@ -79,11 +79,21 @@ export default function RegisterPage() {
           created_at: new Date().toISOString()
         });
         
-        // Show success message
-        alert('Account created! Please check your email to verify your account.');
+        // For testing - auto sign in after registration
+        // In production, users would click email confirmation link
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        });
         
-        // Redirect to login
-        router.push('/auth/login');
+        if (!signInError) {
+          // Successfully signed in - redirect to welcome
+          router.push('/legendary/welcome');
+        } else {
+          // Show success message and redirect to login
+          alert('Account created! Please sign in with your new credentials.');
+          router.push('/auth/login');
+        }
       }
       
     } catch (error: any) {
