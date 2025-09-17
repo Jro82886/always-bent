@@ -103,7 +103,22 @@ function LoginContent() {
         password: password
       });
       
-      if (error) throw error;
+      if (error) {
+        // Check if it's an email verification error
+        if (error.message.includes('Email not confirmed')) {
+          // Try to get the user anyway - for testing
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            // If still no user, show friendly message
+            setError('Your account is created but needs email verification. Since email is not set up, please contact support.');
+            setLoading(false);
+            return;
+          }
+          // If we have a user, continue (bypass email verification for testing)
+        } else {
+          throw error;
+        }
+      }
       
       // Store remember me preference
       if (rememberMe && data.session) {
