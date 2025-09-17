@@ -1,0 +1,32 @@
+# 🚀 ENVIRONMENT VARIABLES TO ADD TO VERCEL
+
+## 1. STORMGLASS API KEY (For Real Tide/Moon Data)
+STORMGLASS_API_KEY=b07a-0242ac130006-ad72e440-93f3-11f0-b07a-0242ac13000
+
+## 2. OPENWEATHER API KEY (For Real Weather Data)
+# You need to get this from: https://openweathermap.org/api
+# Sign up for free API key
+OPENWEATHER_API_KEY=[YOUR_API_KEY_HERE]
+
+## 3. OPTIONAL: ENHANCE GFW DATA
+# If you want more detailed vessel data
+GFW_API_KEY=[YOUR_GFW_API_KEY_IF_YOU_HAVE_ONE]
+
+## HOW TO ADD TO VERCEL:
+1. Go to https://vercel.com/dashboard
+2. Select your "always-bent" project
+3. Go to Settings → Environment Variables
+4. Add each variable above
+5. Select "Production" environment
+6. Click "Save"
+
+## WHAT THIS WILL FIX:
+✅ Tide data will be REAL (high/low times, heights)
+✅ Moon phases will be REAL (affects fish behavior)
+⏳ Weather needs API key from OpenWeather
+✅ Analysis will use real marine conditions
+
+## PRIORITY:
+1. Add STORMGLASS_API_KEY first (we have it!)
+2. Get OpenWeather API key (free signup)
+3. GFW is optional (already working without key)

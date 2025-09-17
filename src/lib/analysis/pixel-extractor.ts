@@ -190,19 +190,94 @@ async function extractLayerPixels(
 
 /**
  * Convert RGBA pixel values to temperature or chlorophyll values
+ * Using NASA/Copernicus colormap conventions
  */
 function convertPixelToValue(r: number, g: number, b: number, a: number, dataType: 'sst' | 'chl'): number {
+  // Skip transparent or near-black pixels (no data)
+  if (a < 128 || (r < 10 && g < 10 && b < 10)) {
+    return NaN;
+  }
+  
   if (dataType === 'sst') {
-    // SST colormap typically goes from blue (cold) to red (hot)
-    // This is a simplified conversion - adjust based on actual colormap
-    // Assuming temperature range 60-85°F mapped to color gradient
-    const normalized = (r - b) / 255 + 0.5; // Normalize to 0-1
-    return 60 + normalized * 25; // Map to 60-85°F range
+    // NASA SST colormap (rainbow scale):
+    // Purple/Blue (cold) -> Cyan -> Green -> Yellow -> Orange -> Red (hot)
+    // East Coast typical range: 45-85°F (winter-summer)
+    
+    // Calculate hue from RGB
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    
+    if (delta === 0) {
+      // Grayscale - use as mid-range temp
+      return 65 + (r / 255) * 10;
+    }
+    
+    let hue = 0;
+    if (max === r) {
+      hue = ((g - b) / delta) % 6;
+    } else if (max === g) {
+      hue = (b - r) / delta + 2;
+    } else {
+      hue = (r - g) / delta + 4;
+    }
+    hue = hue * 60;
+    if (hue < 0) hue += 360;
+    
+    // Map hue to temperature
+    // Blue (240°) = 45°F, Cyan (180°) = 55°F, Green (120°) = 65°F
+    // Yellow (60°) = 75°F, Red (0°/360°) = 85°F
+    let temp = 65; // Default mid-range
+    
+    if (hue >= 200 && hue <= 280) {
+      // Blue to purple range (cold)
+      temp = 45 + ((280 - hue) / 80) * 15;
+    } else if (hue >= 160 && hue < 200) {
+      // Cyan range
+      temp = 55 + ((200 - hue) / 40) * 10;
+    } else if (hue >= 80 && hue < 160) {
+      // Green range
+      temp = 65 + ((160 - hue) / 80) * 10;
+    } else if (hue >= 30 && hue < 80) {
+      // Yellow range
+      temp = 75 + ((80 - hue) / 50) * 5;
+    } else {
+      // Red/orange range (hot)
+      temp = 80 + (1 - Math.abs(hue - 15) / 30) * 5;
+    }
+    
+    // Apply seasonal adjustment based on current month
+    const month = new Date().getMonth();
+    if (month >= 5 && month <= 8) {
+      // Summer: shift range up
+      temp += 5;
+    } else if (month >= 11 || month <= 2) {
+      // Winter: shift range down
+      temp -= 10;
+    }
+    
+    return Math.round(temp * 10) / 10; // Round to 0.1°F
+    
   } else {
-    // Chlorophyll typically uses green channel
-    // Assuming 0-10 mg/m³ range
-    const normalized = g / 255;
-    return normalized * 10;
+    // Chlorophyll uses green-yellow-red scale
+    // Dark blue/purple = low, Green = medium, Yellow/Red = high bloom
+    const greenDominance = g / Math.max(r, b, 1);
+    const yellowness = Math.min(r, g) / 255;
+    
+    // Calculate chlorophyll concentration
+    let chl = 0;
+    if (greenDominance > 1.5) {
+      // Green dominant - moderate chlorophyll
+      chl = 0.5 + greenDominance * 2;
+    } else if (yellowness > 0.5) {
+      // Yellow/red - high chlorophyll bloom
+      chl = 5 + yellowness * 5;
+    } else {
+      // Blue dominant - low chlorophyll
+      chl = 0.1 + (b / 255) * 0.4;
+    }
+    
+    return Math.round(chl * 100) / 100; // Round to 0.01 mg/m³
   }
 }
 
