@@ -82,7 +82,8 @@ export default function LoginPage() {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          }
+          },
+          scopes: provider === 'google' ? 'email profile' : undefined
         }
       });
       
