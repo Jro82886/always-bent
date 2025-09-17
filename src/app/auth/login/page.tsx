@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, Anchor, Ship, User, MessageSquare } from 'lucide-react';
+import { supabase } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,23 +39,48 @@ export default function LoginPage() {
     
     setLoading(true);
 
-    // Create a unique session for this user
-    const timestamp = Date.now();
-    const userId = `${captainName.replace(/\s+/g, '_')}_${timestamp}`;
-    
-    // Save to localStorage for the session
-    localStorage.setItem('abfi_captain_name', captainName.trim());
-    localStorage.setItem('abfi_boat_name', boatName.trim());
-    localStorage.setItem('abfi_user_id', userId);
-    localStorage.setItem('abfi_session_start', timestamp.toString());
-    
-    // Track this as a new session
-    console.log(`New ABFI session: ${captainName} on ${boatName} (${userId})`);
-    
-    // Go straight to the app - no auth needed!
-    setTimeout(() => {
-      router.replace('/legendary?mode=analysis');
-    }, 100);
+    try {
+      // Create anonymous Supabase user - NO EMAIL NEEDED!
+      const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+      
+      if (authError) throw authError;
+      
+      if (authData.user) {
+        // Save profile with captain and boat names
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            captain_name: captainName.trim(),
+            boat_name: boatName.trim(),
+            is_guest: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        
+        if (profileError) {
+          console.error('Profile error:', profileError);
+          // Continue anyway - profile might already exist
+        }
+        
+        // Save to localStorage for quick access
+        localStorage.setItem('abfi_captain_name', captainName.trim());
+        localStorage.setItem('abfi_boat_name', boatName.trim());
+        localStorage.setItem('abfi_user_id', authData.user.id);
+        localStorage.setItem('abfi_session_start', Date.now().toString());
+        
+        console.log(`New ABFI session: ${captainName} on ${boatName}`);
+        
+        // Go to app!
+        setTimeout(() => {
+          router.replace('/legendary?mode=analysis');
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Session error:', error);
+      setError('Connection issue - please try again');
+      setLoading(false);
+    }
   };
   
   return (

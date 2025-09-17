@@ -1,9 +1,22 @@
 /**
- * Mock Supabase client to prevent crashes
- * Real auth is handled by simple localStorage session
+ * REAL Supabase client with anonymous auth
+ * No email verification needed!
  */
 
-// Mock types
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://hobvjmmambhonsugehge.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhvYnZqbW1hbWJob25zdWdlaGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjcxMzEsImV4cCI6MjA3MzIwMzEzMX0.20xMzE0nYoDFzfLc4vIMnvprk48226exALM38FhXQqM';
+
+// Create the real client
+export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
+
+// Profile type
 export interface Profile {
   id: string;
   captain_name: string;
@@ -11,58 +24,28 @@ export interface Profile {
   email?: string;
   created_at?: string;
   updated_at?: string;
+  is_guest?: boolean;
 }
 
-// Mock Supabase client that returns empty data
-export const supabase = {
-  auth: {
-    getSession: async () => ({ data: { session: null }, error: null }),
-    getUser: async () => ({ data: { user: null }, error: null }),
-    signInWithPassword: async () => ({ data: null, error: new Error('Use simple login at /auth/login') }),
-    signUp: async () => ({ data: null, error: new Error('Use simple login at /auth/login') }),
-    signOut: async () => ({ error: null }),
-    onAuthStateChange: () => ({
-      data: { subscription: { unsubscribe: () => {} } }
-    })
-  },
-  from: (table: string) => ({
-    select: () => ({
-      eq: () => ({
-        single: async () => ({ data: null, error: null }),
-        order: () => ({
-          limit: () => ({
-            data: [],
-            error: null
-          })
-        })
-      }),
-      order: () => ({
-        limit: async () => ({ data: [], error: null })
-      }),
-      data: [],
-      error: null
-    }),
-    insert: async () => ({ data: null, error: null }),
-    update: async () => ({ data: null, error: null }),
-    delete: async () => ({ data: null, error: null }),
-    upsert: async () => ({ data: null, error: null })
-  }),
-  channel: () => ({
-    on: () => ({
-      subscribe: () => {}
-    })
-  }),
-  removeChannel: () => {}
+// Helper to get current user
+export const getCurrentUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
 };
 
-// Mock functions
-export const getCurrentUser = async () => null;
-export const getProfile = async (userId: string) => null;
+// Helper to get profile
+export const getProfile = async (userId: string) => {
+  const { data } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  return data as Profile | null;
+};
 
-// Mock create client function
+// Export for backward compatibility
 export function createClient() {
   return supabase;
 }
 
-// Export mock types
 export type { Database } from './database.types';

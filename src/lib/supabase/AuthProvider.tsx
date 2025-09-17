@@ -1,15 +1,11 @@
 'use client';
 
-import { createContext, useContext } from 'react';
-
-// Simple mock types to prevent crashes
-interface Profile {
-  captain_name: string;
-  boat_name: string;
-}
+import { createContext, useContext, useEffect, useState } from 'react';
+import { supabase, getCurrentUser, getProfile, type Profile } from './client';
+import { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -18,46 +14,84 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
 }
 
-// Mock context that does nothing - prevents crashes
 const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: false,
-  signIn: async () => ({ error: 'Auth disabled - use simple login at /auth/login' }),
-  signUp: async () => ({ error: 'Auth disabled - use simple login at /auth/login' }),
+  signIn: async () => ({ error: 'Use simple login at /auth/login' }),
+  signUp: async () => ({ error: 'Use simple login at /auth/login' }),
   signOut: async () => {
-    // Clear localStorage
-    localStorage.removeItem('abfi_captain_name');
-    localStorage.removeItem('abfi_boat_name');
-    localStorage.removeItem('abfi_user_id');
-    localStorage.removeItem('abfi_session_start');
-    localStorage.removeItem('abfi_setup_complete');
+    await supabase.auth.signOut();
+    localStorage.clear();
     window.location.href = '/auth/login';
   },
   updateProfile: async () => {},
 });
 
-// Mock provider that just passes through children
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-// Mock hook that returns empty state
-export function useAuth() {
-  return {
-    user: null,
-    profile: null,
-    loading: false,
-    signIn: async () => ({ error: 'Auth disabled - use simple login at /auth/login' }),
-    signUp: async () => ({ error: 'Auth disabled - use simple login at /auth/login' }),
+  useEffect(() => {
+    // Check for existing session
+    getCurrentUser().then(async (user) => {
+      if (user) {
+        setUser(user);
+        const profile = await getProfile(user.id);
+        setProfile(profile);
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      
+      if (currentUser) {
+        const profile = await getProfile(currentUser.id);
+        setProfile(profile);
+      } else {
+        setProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const value = {
+    user,
+    profile,
+    loading,
+    signIn: async () => ({ error: 'Use simple login at /auth/login' }),
+    signUp: async () => ({ error: 'Use simple login at /auth/login' }),
     signOut: async () => {
-      localStorage.removeItem('abfi_captain_name');
-      localStorage.removeItem('abfi_boat_name');
-      localStorage.removeItem('abfi_user_id');
-      localStorage.removeItem('abfi_session_start');
-      localStorage.removeItem('abfi_setup_complete');
+      await supabase.auth.signOut();
+      localStorage.clear();
       window.location.href = '/auth/login';
     },
-    updateProfile: async () => {},
+    updateProfile: async (updates: Partial<Profile>) => {
+      if (!user) return;
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+      
+      if (!error && profile) {
+        setProfile({ ...profile, ...updates });
+      }
+    },
   };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
 }
