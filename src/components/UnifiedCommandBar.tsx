@@ -7,8 +7,6 @@ import { Map } from 'mapbox-gl';
 import { useAppState } from '@/store/appState';
 import { findClosestInlet } from '@/lib/findClosestInlet';
 import { INLETS as inlets } from '@/lib/inlets';
-import { useAuth } from '@/lib/supabase/AuthProvider';
-
 interface UnifiedCommandBarProps {
   map?: Map | null;
   activeTab?: string;
@@ -25,7 +23,8 @@ const TAB_MODES = {
 export default function UnifiedCommandBar({ map, activeTab, onTabChange }: UnifiedCommandBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, profile, signOut } = useAuth();
+  const [captainName, setCaptainName] = useState('');
+  const [boatName, setBoatName] = useState('');
   const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { selectedInletId, setSelectedInletId } = useAppState();
@@ -38,6 +37,12 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   const currentTab = Object.entries(TAB_MODES).find(([_, mode]) => mode === currentMode)?.[0] || 'Analysis';
   
   useEffect(() => {
+    // Get captain and boat names from localStorage
+    const captain = localStorage.getItem('abfi_captain_name') || 'Captain';
+    const boat = localStorage.getItem('abfi_boat_name') || 'Vessel';
+    setCaptainName(captain);
+    setBoatName(boat);
+    
     // Check location permission status from localStorage (set by welcome screen)
     const checkLocationPermission = () => {
       const permission = localStorage.getItem('abfi_location_permission');
@@ -96,8 +101,13 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
     }
   };
 
-  const handleLogout = async () => {
-    await signOut();
+  const handleLogout = () => {
+    // Clear session data
+    localStorage.removeItem('abfi_captain_name');
+    localStorage.removeItem('abfi_boat_name');
+    localStorage.removeItem('abfi_user_id');
+    localStorage.removeItem('abfi_session_start');
+    localStorage.removeItem('abfi_setup_complete');
     router.push('/auth/login');
   };
 
@@ -167,14 +177,14 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             <div className="flex items-center h-full">
               {/* Boat & Inlet Info */}
               <div className="flex items-center gap-4 px-4 border-r border-cyan-500/10">
-                {/* Captain & Vessel Info - Using Supabase profile */}
-                {profile && (
+                {/* Captain & Vessel Info */}
+                {captainName && (
                   <div className="flex flex-col">
                     <div className="text-xs text-cyan-100/80">
-                      Captain: <span className="text-cyan-300 font-semibold">{profile.captain_name || 'Unknown'}</span>
+                      Captain: <span className="text-cyan-300 font-semibold">{captainName}</span>
                     </div>
                     <div className="text-xs text-cyan-100/80">
-                      F/V <span className="text-cyan-300 font-semibold">{profile.boat_name || 'Unnamed'}</span>
+                      F/V <span className="text-cyan-300 font-semibold">{boatName}</span>
                     </div>
                   </div>
                 )}
@@ -240,7 +250,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
               {/* User Info & Logout */}
               <div className="flex items-center gap-3 px-4 border-l border-cyan-500/10">
                 <div className="text-xs text-cyan-100/70">
-                  {profile?.captain_name || user?.email?.split('@')[0]}
+                  {captainName}
                 </div>
                 <button
                   onClick={handleLogout}
