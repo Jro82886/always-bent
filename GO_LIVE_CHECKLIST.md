@@ -35,12 +35,12 @@
 - [ ] DNS propagation complete
 
 ### 2. ENVIRONMENT VARIABLES
-- [ ] NEXT_PUBLIC_SUPABASE_URL
-- [ ] NEXT_PUBLIC_SUPABASE_ANON_KEY  
-- [ ] SUPABASE_SERVICE_ROLE_KEY
-- [ ] NEXT_PUBLIC_MAPBOX_TOKEN
-- [ ] DATABASE_URL
-- [ ] All ocean data API keys
+- [x] NEXT_PUBLIC_SUPABASE_URL ✓
+- [x] NEXT_PUBLIC_SUPABASE_ANON_KEY ✓
+- [x] SUPABASE_SERVICE_ROLE_KEY ✓
+- [x] NEXT_PUBLIC_MAPBOX_TOKEN ✓
+- [x] DATABASE_URL ✓
+- [x] All ocean data API keys ✓
 
 ### 3. SUPABASE DATABASE
 - [x] Run migration: `001_initial_schema.sql`
