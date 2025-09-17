@@ -225,7 +225,7 @@ export default function LeftZone({
                 <div className="flex gap-1 w-[76px] justify-end">
                   {sstActive && (
                     <>
-                      <Tooltip text="Adjust opacity" position="bottom">
+                      <Tooltip content="Adjust opacity" position="bottom">
                         <button
                           onClick={() => {
                             setShowSstOpacity(!showSstOpacity);
@@ -236,7 +236,7 @@ export default function LeftZone({
                           <Sliders size={12} className="text-purple-400" />
                         </button>
                       </Tooltip>
-                      <Tooltip text="Enhance contrast" position="bottom">
+                      <Tooltip content="Enhance contrast" position="bottom">
                         <button
                           onClick={() => {
                             setShowSstEnhance(!showSstEnhance);
@@ -332,7 +332,7 @@ export default function LeftZone({
                 </button>
                 <div className="flex gap-1 w-[76px] justify-end">
                   {chlActive && (
-                    <Tooltip text="Adjust opacity" position="bottom">
+                    <Tooltip content="Adjust opacity" position="bottom">
                       <button
                         onClick={() => {
                           setShowChlOpacity(!showChlOpacity);
@@ -383,7 +383,7 @@ export default function LeftZone({
                 </button>
                 <div className="flex gap-1 w-[76px] justify-end">
                   {oceanActive && (
-                    <Tooltip text="Adjust opacity" position="bottom">
+                    <Tooltip content="Adjust opacity" position="bottom">
                       <button
                         onClick={() => {
                           setShowOceanOpacity(!showOceanOpacity);
