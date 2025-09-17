@@ -51,7 +51,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   
   
 
-  const { hotspot, stats, features, layerAnalysis, boatActivity, vesselTracks, edgeAnalysis } = analysis as any;
+  const { hotspot, stats, features, layerAnalysis, boatActivity, vesselTracks, edgeAnalysis, comprehensiveAnalysis } = analysis as any;
   
   // Find the strongest feature
   const strongestFeature = features.length > 0 ? 
@@ -90,6 +90,24 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
         {/* Grid Layout Main Content */}
         <div className="p-4 grid grid-cols-2 gap-4 max-h-[calc(90vh-8rem)] overflow-y-auto">
+          {/* Comprehensive Analysis - Full Width at Top */}
+          {comprehensiveAnalysis && (
+            <div className="col-span-2 bg-gradient-to-br from-slate-900/90 to-slate-800/90 rounded-xl p-4 border border-cyan-500/30">
+              <h3 className="text-cyan-300 font-bold mb-3 flex items-center gap-2">
+                <Activity size={20} className="text-cyan-400" />
+                Comprehensive Analysis
+              </h3>
+              <div className="text-gray-300 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                {comprehensiveAnalysis.summary}
+              </div>
+              {comprehensiveAnalysis.recommendation && (
+                <div className="mt-3 pt-3 border-t border-cyan-500/20 text-gray-300 text-sm whitespace-pre-wrap font-mono">
+                  {comprehensiveAnalysis.recommendation}
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* Convergence Alert if detected - full width */}
           {layerAnalysis?.convergence?.detected && (
             <div className="col-span-2 bg-gradient-to-r from-cyan-500/20 via-green-500/20 to-cyan-500/20 rounded-xl p-4 border-2 border-cyan-400/50 animate-pulse">

@@ -9,6 +9,7 @@ import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData } from '@/l
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extractor';
 import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
+import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-analyzer';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
 import { getVesselsInBounds, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
 import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
@@ -903,13 +904,35 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         };
       }
       
-      // Step 5: Add vessel info and visualize on map
+      // Step 5: Generate comprehensive analysis
       
-      setAnalysisStep('Mapping hotspots and vessel activity...');
+      setAnalysisStep('Generating comprehensive analysis...');
+      
+      // Generate the comprehensive written analysis
+      const comprehensiveAnalysis = generateComprehensiveAnalysis(
+        polygon as GeoJSON.Feature<GeoJSON.Polygon>,
+        sstData,
+        vesselData,
+        analysis
+      );
+      
+      // Update analysis with comprehensive data
       const analysisWithVessels = {
         ...analysis,
-        vesselTracks: vesselData.summary
+        vesselTracks: vesselData.summary,
+        comprehensiveAnalysis: comprehensiveAnalysis
       };
+      
+      // Use comprehensive hotspot if better than original
+      if (comprehensiveAnalysis.hotspot && 
+          (!analysis.hotspot || comprehensiveAnalysis.hotspot.confidence > (analysis.hotspot.confidence * 100))) {
+        analysis.hotspot = {
+          location: comprehensiveAnalysis.hotspot.location,
+          confidence: comprehensiveAnalysis.hotspot.confidence / 100,
+          gradient_strength: analysis.hotspot?.gradient_strength || 1.0,
+          optimal_approach: 'Multi-factor analysis'
+        };
+      }
       
       // Visualize hotspots on map
       if (analysis.hotspot) {
