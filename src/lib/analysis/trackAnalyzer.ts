@@ -38,8 +38,11 @@ export async function getVesselTracksInArea(
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - daysLimit);
   
-  // Fetch real GFW commercial vessel data
+  // Fetch real GFW commercial vessel data with proper filters
   try {
+    // First check if commercial vessels are visible on the map
+    const commercialMarkersVisible = map.getLayoutProperty('commercial-vessel-markers', 'visibility') !== 'none';
+    
     const gfwVessels = await getGFWVesselsInArea(
       [minLng, minLat, maxLng, maxLat],
       startDate.toISOString(),
@@ -48,26 +51,47 @@ export async function getVesselTracksInArea(
     
     // Transform and add GFW tracks
     const gfwTracks = transformGFWToTracks(gfwVessels);
+    
+    // Filter vessels based on type and location (matching CommercialVesselLayer filters)
     gfwTracks.forEach(track => {
-      // Filter to only include tracks that intersect the polygon
+      const vesselType = track.vesselType?.toLowerCase() || '';
+      
+      // FILTER: Only trawlers, longliners, and drifting gear (same as CommercialVesselLayer)
+      const allowedTypes = ['trawl', 'longliner', 'longline', 'drifting'];
+      const isAllowedType = allowedTypes.some(type => vesselType.includes(type));
+      
+      // Skip if not an allowed type
+      if (!isAllowedType && vesselType !== 'commercial' && vesselType !== '') {
+        return;
+      }
+      
+      // Check if track intersects the snipped polygon
       const lineString = turf.lineString(track.coordinates);
       if (turf.booleanIntersects(lineString, polygon)) {
+        // Color code by vessel type (matching CommercialVesselLayer)
+        const vesselColor = vesselType.includes('longliner') || vesselType.includes('longline') ? '#9B59B6' : // Purple
+                          vesselType.includes('drifting') ? '#3498DB' : // Blue
+                          vesselType.includes('trawl') ? '#FF6B35' :     // Orange
+                          '#95A5A6'; // Gray for unknown
+        
         tracks.push({
           id: track.id,
           type: 'gfw',
           vesselName: track.vesselName,
-          vesselType: track.vesselType,
+          vesselType: track.vesselType || 'Commercial',
           flag: track.flag,
           mmsi: track.mmsi,
           points: track.coordinates,
-          color: track.color,
+          color: vesselColor,
           timestamp: track.timestamps[track.timestamps.length - 1],
           metadata: track.metadata
         });
       }
     });
+    
+    console.log(`Found ${tracks.filter(t => t.type === 'gfw').length} GFW vessels in snipped area`);
   } catch (error) {
-    console.error('Failed to fetch GFW data, using mock data:', error);
+    console.error('Failed to fetch GFW data:', error);
   }
   
   // Continue with mock individual tracks for now
@@ -204,9 +228,14 @@ function drawTracksOnMap(tracks: VesselTrack[], map: mapboxgl.Map) {
       source: sourceId,
       paint: {
         'line-color': track.color,
-        'line-width': track.type === 'gfw' ? 4 : 3, // Thicker lines for visibility
-        'line-opacity': 0.9, // Higher opacity for better visibility
-        'line-dasharray': track.type === 'gfw' ? [4, 2] : [1, 0] // Longer dashes for commercial
+        'line-width': track.type === 'gfw' ? 5 : 3, // Extra thick for GFW vessels
+        'line-opacity': track.type === 'gfw' ? 1 : 0.9, // Full opacity for GFW
+        'line-dasharray': track.type === 'gfw' ? [6, 2] : [1, 0], // Longer dashes for commercial
+        'line-blur': track.type === 'gfw' ? 0 : 1 // Sharp lines for GFW
+      },
+      layout: {
+        'line-cap': 'round',
+        'line-join': 'round'
       }
     });
     
@@ -215,37 +244,91 @@ function drawTracksOnMap(tracks: VesselTrack[], map: mapboxgl.Map) {
     if (lastPoint) {
       const el = document.createElement('div');
       el.className = 'vessel-track-marker';
-      el.innerHTML = `
-        <div style="
-          width: 20px;
-          height: 20px;
-          background: ${track.color};
-          border: 2px solid white;
-          border-radius: 50%;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 10px;
-          color: white;
-          font-weight: bold;
-        ">
-          ${track.type === 'gfw' ? 'C' : 'R'}
-        </div>
-      `;
+      
+      // Create different marker styles for GFW vs recreational
+      if (track.type === 'gfw') {
+        // Triangle marker for commercial vessels (matching CommercialVesselLayer)
+        el.innerHTML = `
+          <div style="
+            width: 24px;
+            height: 24px;
+            position: relative;
+          ">
+            <div style="
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 20px;
+              height: 20px;
+              background: ${track.color};
+              clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+              box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            "></div>
+            <div style="
+              position: absolute;
+              top: -4px;
+              right: -4px;
+              width: 12px;
+              height: 12px;
+              background: linear-gradient(135deg, #00DDEB, #0099CC);
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 7px;
+              font-weight: bold;
+              color: white;
+              border: 1px solid white;
+            ">GFW</div>
+          </div>
+        `;
+      } else {
+        // Circle marker for recreational vessels
+        el.innerHTML = `
+          <div style="
+            width: 20px;
+            height: 20px;
+            background: ${track.color};
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+          ">R</div>
+        `;
+      }
       
       new (window as any).mapboxgl.Marker(el)
         .setLngLat(lastPoint)
         .setPopup(
           new (window as any).mapboxgl.Popup({ offset: 15 })
             .setHTML(`
-              <div style="padding: 6px;">
-                <div style="font-weight: bold; color: ${track.color};">
+              <div style="padding: 8px; min-width: 180px;">
+                <div style="font-weight: bold; color: ${track.color}; margin-bottom: 4px;">
                   ${track.vesselName}
                 </div>
                 <div style="font-size: 11px; color: #666;">
-                  ${track.type === 'gfw' ? 'Commercial (GFW)' : 'Recreational'}
-                  <br/>${track.timestamp}
+                  ${track.type === 'gfw' ? 
+                    `<div style="margin-bottom: 4px;">
+                      <span style="background: linear-gradient(135deg, #00DDEB, #0099CC); 
+                             color: white; padding: 2px 6px; border-radius: 3px; 
+                             font-size: 9px; font-weight: bold;">GFW DATA</span>
+                    </div>
+                    <div>Type: ${track.vesselType || 'Commercial'}</div>
+                    ${track.flag ? `<div>Flag: ${track.flag}</div>` : ''}
+                    ${track.mmsi ? `<div>MMSI: ${track.mmsi}</div>` : ''}
+                    ${track.metadata?.length ? `<div>Length: ${Math.round(track.metadata.length)}m</div>` : ''}`
+                    : 
+                    '<div>Type: Recreational</div>'
+                  }
+                  <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #eee;">
+                    Last seen: ${track.timestamp}
+                  </div>
                 </div>
               </div>
             `)
