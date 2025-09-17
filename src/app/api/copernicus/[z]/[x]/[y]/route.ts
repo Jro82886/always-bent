@@ -86,7 +86,7 @@ export async function GET(
       });
     }
     
-    );
+    // Fetch the tile
     
     const response = await fetch(wmtsUrl!.toString(), {
       headers: { 

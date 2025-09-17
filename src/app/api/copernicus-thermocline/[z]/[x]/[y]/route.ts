@@ -85,7 +85,7 @@ export async function GET(
       });
     }
     
-    );
+    // Fetch thermocline tile
     
     const response = await fetch(wmtsUrl.toString(), {
       headers: { 

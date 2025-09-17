@@ -51,9 +51,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     timeParam = qTime; // assume caller provided a full ISO timestamp
   }
   
+  // SST tile fetching logic
   
-  }`);
-
   const u = process.env.COPERNICUS_USER || '';
   const p = process.env.COPERNICUS_PASS || '';
   const auth = 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64');

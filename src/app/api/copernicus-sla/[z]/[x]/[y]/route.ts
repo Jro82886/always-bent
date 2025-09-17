@@ -104,7 +104,7 @@ export async function GET(
       });
     }
     
-    );
+    // Fetch SLA tile
     
     const response = await fetch(wmtsUrl.toString(), {
       headers: { 
