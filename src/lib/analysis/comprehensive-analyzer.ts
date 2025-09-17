@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf';
+import { getCachedMarineData, analyzeFishingConditions, formatTideStage, formatMoonPhase, getNextTide } from '@/lib/services/marineData';
 
 interface ComprehensiveAnalysis {
   summary: string;
@@ -33,12 +34,13 @@ interface ComprehensiveAnalysis {
 /**
  * Generate comprehensive analysis combining all data sources
  */
-export function generateComprehensiveAnalysis(
+export async function generateComprehensiveAnalysis(
   polygon: GeoJSON.Feature<GeoJSON.Polygon>,
   sstData: any,
   vesselData: { tracks: any[], summary: string, reports: any[] },
-  analysis: any
-): ComprehensiveAnalysis {
+  analysis: any,
+  inletId?: string
+): Promise<ComprehensiveAnalysis> {
   const bounds = turf.bbox(polygon);
   const [minLng, minLat, maxLng, maxLat] = bounds;
   
@@ -147,14 +149,26 @@ export function generateComprehensiveAnalysis(
     hotspotScore = 60;
   }
   
+  // Fetch marine data if inlet is provided
+  let marineData = null;
+  let marineAnalysis = null;
+  if (inletId) {
+    marineData = await getCachedMarineData(inletId);
+    if (marineData) {
+      marineAnalysis = analyzeFishingConditions(marineData);
+    }
+  }
+  
   // GENERATE COMPREHENSIVE WRITTEN ANALYSIS
-  const summary = generateAnalysisSummary(
+  const summary = await generateAnalysisSummary(
     sstFactors,
     commercialTracks.length,
     recreationalTracks.length,
     vesselData.reports,
     hotspot,
-    bounds
+    bounds,
+    marineData,
+    marineAnalysis
   );
   
   // GENERATE FISHING RECOMMENDATION
@@ -189,14 +203,16 @@ export function generateComprehensiveAnalysis(
 /**
  * Generate detailed written analysis summary
  */
-function generateAnalysisSummary(
+async function generateAnalysisSummary(
   sst: any,
   commercialCount: number,
   recreationalCount: number,
   reports: any[],
   hotspot: any,
-  bounds: number[]
-): string {
+  bounds: number[],
+  marineData: any,
+  marineAnalysis: any
+): Promise<string> {
   const [minLng, minLat, maxLng, maxLat] = bounds;
   const centerLat = (minLat + maxLat) / 2;
   const centerLng = (minLng + maxLng) / 2;
@@ -205,7 +221,33 @@ function generateAnalysisSummary(
   
   // Location context
   summary += `**Location:** ${Math.abs(centerLat).toFixed(2)}°${centerLat >= 0 ? 'N' : 'S'}, ${Math.abs(centerLng).toFixed(2)}°${centerLng >= 0 ? 'E' : 'W'}\n`;
-  summary += `**Time:** ${new Date().toLocaleString()}\n\n`;
+  summary += `**Time:** ${new Date().toLocaleString()}\n`;
+  
+  // Marine conditions if available
+  if (marineData) {
+    summary += `\n🌙 **Marine Conditions:**\n`;
+    
+    if (marineData.moon.phaseText) {
+      const moonInfo = formatMoonPhase(marineData.moon);
+      summary += `• Moon: ${moonInfo}\n`;
+    }
+    
+    if (marineData.tide.stage) {
+      const tideInfo = formatTideStage(marineData.tide.stage, marineData.tide.rateCmPerHr);
+      summary += `• Tide: ${tideInfo}\n`;
+    }
+    
+    const nextTide = getNextTide(marineData.tide.extremes);
+    if (nextTide) {
+      summary += `• Next ${nextTide.type}: ${nextTide.timeUntil} (${nextTide.height.toFixed(1)}m)\n`;
+    }
+    
+    if (marineAnalysis) {
+      summary += `• Conditions Score: ${marineAnalysis.score}/100\n`;
+    }
+  }
+  
+  summary += `\n`;
   
   // Ocean Conditions
   summary += `🌊 **Ocean Conditions:**\n`;

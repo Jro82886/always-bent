@@ -908,12 +908,16 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       setAnalysisStep('Generating comprehensive analysis...');
       
+      // Get selected inlet for marine data
+      const selectedInletId = localStorage.getItem('abfi_selected_inlet') || undefined;
+      
       // Generate the comprehensive written analysis
-      const comprehensiveAnalysis = generateComprehensiveAnalysis(
+      const comprehensiveAnalysis = await generateComprehensiveAnalysis(
         polygon as GeoJSON.Feature<GeoJSON.Polygon>,
         sstData,
         vesselData,
-        analysis
+        analysis,
+        selectedInletId
       );
       
       // Update analysis with comprehensive data

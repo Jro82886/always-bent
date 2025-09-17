@@ -44,6 +44,9 @@ GIT_AUTHOR_EMAIL=dev@alwaysbent.com
 GIT_COMMITTER_NAME=Always Bent
 GIT_COMMITTER_EMAIL=dev@alwaysbent.com
 
+# Stormglass API for tide, moon, and weather data
+STORMGLASS_API_KEY=YOUR_STORMGLASS_API_KEY_HERE
+
 # ===== HOW TO ADD TO VERCEL =====
 # 1. Go to: https://vercel.com/jro82886s-projects/always-bent/settings/environment-variables
 # 2. Click "Add Multiple" button
