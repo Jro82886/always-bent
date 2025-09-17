@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Fish, MapPin, Clock, Send, Sparkles, ChevronDown, CircleCheck, Eye, X, CircleSlash, CheckCircle2, Anchor, Camera, TrendingUp, Activity } from 'lucide-react';
-import Tooltip from '@/components/ui/Tooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface FishingReport {
   type: 'bite' | 'catch' | 'sighting' | 'miss';
