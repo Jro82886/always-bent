@@ -744,14 +744,28 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       
       
+      // Get vessel tracks and reports from the area
+      let vesselTracksData;
+      try {
+        vesselTracksData = await getVesselTracksInArea(
+          polygon as GeoJSON.Feature<GeoJSON.Polygon>,
+          map,
+          7 // Look back 7 days for reports
+        );
+      } catch (error) {
+        console.error('Error fetching vessel tracks:', error);
+        vesselTracksData = { tracks: [], summary: '', reports: [] };
+      }
+      
       // Build vessel data in expected format
       const vesselData = {
         tracks: vesselsInBounds.flatMap(v => v.track || [[v.position[0], v.position[1]]]),
-        summary: vesselSummary.summary,
+        summary: vesselTracksData.summary || vesselSummary.summary,
         total: vesselSummary.totalVessels,
         userVessels: vesselSummary.userVessels,
         fleetVessels: vesselSummary.fleetVessels,
-        commercialVessels: vesselSummary.commercialVessels
+        commercialVessels: vesselSummary.commercialVessels,
+        reports: vesselTracksData.reports || []
       };
       
       // Step 2: Check active layers
