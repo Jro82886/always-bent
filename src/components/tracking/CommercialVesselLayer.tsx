@@ -100,19 +100,17 @@ export default function CommercialVesselLayer({
           // Vessels on land have longitude GREATER (less negative) than coastline
           // e.g., -74 > -75.5 means vessel is on land
           if (latestPosition.lon > coastlineLng) {
-            `);
+            // Vessel on land, skipping
             return; // Skip vessels that appear to be on land
           }
           
           // Create custom marker with ABFI branding overlay
           const el = document.createElement('div');
           el.className = 'commercial-vessel-marker';
-          el.style.cssText = `
-            position: relative;
-            width: 32px;
-            height: 32px;
-            cursor: pointer;
-          `;
+          el.style.position = 'relative';
+          el.style.width = '32px';
+          el.style.height = '32px';
+          el.style.cursor = 'pointer';
           
           // Only trawlers and longliners - distinct colors, same triangle shape
           const vesselColor = vesselType.includes('longliner') ? '#9B59B6' :    // Purple for longliners  
