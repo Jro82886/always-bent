@@ -59,10 +59,7 @@ function SignupContent() {
       setLoading(false);
     } else {
       setSuccess(true);
-      // Wait a moment to show success message
-      setTimeout(() => {
-        router.push('/legendary?mode=analysis');
-      }, 2000);
+      // Don't auto-redirect - user needs to confirm email first
     }
   };
 
@@ -72,8 +69,27 @@ function SignupContent() {
         <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-green-500/30 p-8 shadow-[0_0_50px_rgba(34,197,94,0.3)] max-w-md w-full">
           <div className="text-center">
             <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-green-400 mb-2">Welcome Aboard, Captain!</h2>
-            <p className="text-slate-400">Setting up your command bridge...</p>
+            <h2 className="text-2xl font-bold text-green-400 mb-4">Check Your Email!</h2>
+            <p className="text-slate-300 mb-4">
+              We've sent a confirmation link to <strong className="text-cyan-400">{email}</strong>
+            </p>
+            <p className="text-slate-400 mb-6">
+              Click the link in your email to activate your account and start tracking.
+            </p>
+            <div className="bg-slate-800/50 rounded-lg p-4 mb-6">
+              <p className="text-sm text-slate-400 mb-2">Didn't receive the email?</p>
+              <ul className="text-sm text-slate-500 space-y-1">
+                <li>• Check your spam folder</li>
+                <li>• Make sure you entered the right email</li>
+                <li>• Confirmation links expire after 1 hour</li>
+              </ul>
+            </div>
+            <Link 
+              href="/auth/login"
+              className="inline-block text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              Back to Login
+            </Link>
           </div>
         </div>
       </div>
