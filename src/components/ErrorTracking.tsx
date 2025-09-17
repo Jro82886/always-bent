@@ -3,6 +3,13 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
+// Declare gtag for TypeScript
+declare global {
+  interface Window {
+    gtag?: (command: string, ...args: any[]) => void;
+  }
+}
+
 // Simple error tracking (replace with Sentry in production)
 class ErrorTracker {
   private errors: Array<{
