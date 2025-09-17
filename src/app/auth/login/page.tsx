@@ -15,12 +15,15 @@ export default function LoginPage() {
   const [showFeedback, setShowFeedback] = useState(false);
   
   useEffect(() => {
-    // Clear any existing session to prevent auto-redirect
-    // This ensures users always see the welcome screen
-    localStorage.removeItem('abfi_captain_name');
-    localStorage.removeItem('abfi_boat_name');
-    localStorage.removeItem('abfi_user_id');
-    localStorage.removeItem('abfi_session_start');
+    // Check if user already has a session
+    const existingCaptain = localStorage.getItem('abfi_captain_name');
+    const existingBoat = localStorage.getItem('abfi_boat_name');
+    
+    // Only pre-fill if they have existing data (don't auto-redirect)
+    if (existingCaptain && existingBoat) {
+      setCaptainName(existingCaptain);
+      setBoatName(existingBoat);
+    }
   }, []);
 
   const handleEnterPlatform = async (e: React.FormEvent) => {

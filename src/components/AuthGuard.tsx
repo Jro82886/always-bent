@@ -17,6 +17,7 @@ export default function AuthGuard({
 }: AuthGuardProps) {
   const router = useRouter();
   const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     // Simple check: do they have captain & boat names?
@@ -25,11 +26,15 @@ export default function AuthGuard({
     
     if (captainName && boatName) {
       setHasSession(true);
+      setChecking(false);
     } else if (requireAuth) {
       // No names stored, redirect to login
+      setHasSession(false);
+      setChecking(false);
       router.push(fallbackPath);
     } else {
       setHasSession(false);
+      setChecking(false);
     }
   }, [requireAuth, fallbackPath, router]);
 
