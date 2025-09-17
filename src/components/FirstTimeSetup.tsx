@@ -3,22 +3,26 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Compass, Ship, ChevronRight, CheckCircle } from 'lucide-react';
-import { useAuth } from '@/lib/supabase/AuthProvider';
 
 export default function FirstTimeSetup() {
   const router = useRouter();
-  const { user, profile } = useAuth();
   const [step, setStep] = useState(1);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [captainName, setCaptainName] = useState('');
 
   useEffect(() => {
-    // Check if this is first visit
+    // Check if this is first visit with our simple auth
     const hasSeenSetup = localStorage.getItem('abfi_setup_complete');
-    if (!hasSeenSetup && user) {
+    const captain = localStorage.getItem('abfi_captain_name');
+    const boat = localStorage.getItem('abfi_boat_name');
+    
+    // Show setup if they have names but haven't seen setup yet
+    if (!hasSeenSetup && captain && boat) {
+      setCaptainName(captain);
       setIsVisible(true);
     }
-  }, [user]);
+  }, []);
 
   const requestLocation = async () => {
     try {
@@ -72,7 +76,7 @@ export default function FirstTimeSetup() {
             
             <div>
               <h2 className="text-2xl font-bold text-white mb-2">
-                Welcome Aboard, {profile?.captain_name || 'Captain'}!
+                Welcome Aboard, {captainName || 'Captain'}!
               </h2>
               <p className="text-slate-400">
                 Let's set up your Command Bridge
