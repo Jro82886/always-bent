@@ -71,11 +71,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     const target = base
       .replace('{z}', z)
       .replace('{x}', x)
-      .replace('{y}', y)
-      .replace('{TIME}', tryTime);
+    .replace('{y}', y)
+    .replace('{TIME}', tryTime);
     
-    [0]}`);
-    
+    // Attempt to fetch from upstream
 
     try {
       const response = await fetch(target, {
@@ -93,7 +92,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       if (response.ok) {
         upstream = response;
         successfulTime = tryTime;
-        [0]}`);
+        // Fallback attempt logged
         break;
       } else if (response.status === 400 && datesToTry.length > 1) {
         // Try next date

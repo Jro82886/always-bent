@@ -57,7 +57,7 @@ export async function GET(
       .replace('{y}', y)
       .replace('{TIME}', dateTime);
 
-    [0]}`);
+    // Fetching CHL tile
 
     try {
       const response = await fetch(url, {
