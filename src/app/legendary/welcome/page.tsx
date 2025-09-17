@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Anchor, Ship, User, MapPin, Loader2, ChevronRight, Waves, Fish } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { saveUserProfile, upsertProfileDirect } from '@/lib/supabase/profiles';
 
 export default function LegendaryWelcomePage() {
   const router = useRouter();
@@ -69,18 +70,18 @@ export default function LegendaryWelcomePage() {
     setError('');
     
     try {
-      // Save profile to Supabase
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: userId,
-          captain_name: captainName.trim(),
-          boat_name: boatName.trim(),
-          email: userEmail,
-          updated_at: new Date().toISOString()
-        });
+      // Save profile using the new function (with fallback)
+      const { error: profileError } = await upsertProfileDirect({
+        id: userId,
+        captain_name: captainName.trim(),
+        boat_name: boatName.trim(),
+        email: userEmail || undefined
+      });
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile save error:', profileError);
+        throw profileError;
+      }
       
       // Save to localStorage for quick access
       localStorage.setItem('abfi_captain_name', captainName.trim());
