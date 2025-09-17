@@ -15,6 +15,9 @@ import RightZone from '@/components/RightZone';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
 import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
+import WeatherDisplay from '@/components/WeatherDisplay';
+import OfflineManager from '@/components/OfflineManager';
+import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -35,6 +38,9 @@ function AnalysisModeContent() {
   
   // Track if analysis modal is open to hide BITE button
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
+  
+  // Commercial vessels toggle (OFF by default for energy saving)
+  const [showCommercial, setShowCommercial] = useState(false);
   
   // Check if tutorial should be shown (client-side only)
   const [showingTutorial, setShowingTutorial] = useState(false);
@@ -425,6 +431,47 @@ function AnalysisModeContent() {
           
           {/* Network Status Indicator - Shows online/offline status */}
           <NetworkStatusIndicator />
+          
+          {/* Weather Display - Top Right Corner */}
+          <div className="absolute top-32 right-4 z-50">
+            <WeatherDisplay />
+          </div>
+
+          {/* Commercial Vessels Toggle - Bottom Right */}
+          <div className="absolute bottom-24 right-4 z-50">
+            <button
+              onClick={() => setShowCommercial(!showCommercial)}
+              className={`
+                px-4 py-2 rounded-lg text-sm font-medium transition-all
+                ${showCommercial 
+                  ? 'bg-orange-500/90 text-white shadow-lg' 
+                  : 'bg-black/60 text-white/70 hover:bg-black/80'
+                }
+              `}
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {showCommercial ? 'Hide' : 'Show'} Commercial Vessels
+              </div>
+              {showCommercial && (
+                <div className="text-[10px] mt-1 text-white/70">
+                  Powered by GFW Data
+                </div>
+              )}
+            </button>
+          </div>
+
+          {/* Commercial Vessel Layer */}
+          <CommercialVesselLayer 
+            map={map.current} 
+            showCommercial={showCommercial} 
+          />
+
+          {/* Offline Manager - Handles offline capabilities */}
+          <OfflineManager />
           
       </>
       
