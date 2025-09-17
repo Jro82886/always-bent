@@ -1,113 +1,126 @@
-/**
- * Chlorophyll Tile Proxy Route
- * Fetches high-resolution chlorophyll tiles from Copernicus Marine WMTS
- * Similar to SST proxy but for ocean color/chlorophyll data
- */
+import { NextRequest } from 'next/server';
 
-import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-// Get today's date in UTC
-function getTodayUTC(): string {
-  const now = new Date();
-  const year = now.getUTCFullYear();
-  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(now.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}T12:00:00.000Z`;
-}
-
-// Get date N days ago
-function getDaysAgo(days: number): string {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() - days);
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}T12:00:00.000Z`;
-}
-
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ z: string; x: string; y: string }> }
-) {
-  const params = await context.params;
-  const { z, x, y } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ z: string; x: string; y: string }> }) {
+  const resolvedParams = await params;
+  const z = resolvedParams.z;
+  const x = resolvedParams.x;
+  const y = resolvedParams.y.replace('.png',''); // sanitize
   
-  // Get CHL WMTS template from environment
-  const template = process.env.NEXT_PUBLIC_CHL_WMTS_TEMPLATE;
-  if (!template) {
-    
-    return new NextResponse('CHL WMTS not configured', { status: 500 });
+  // Use the new OCEANCOLOUR chlorophyll endpoint
+  const base = process.env.CMEMS_CHL_WMTS_TEMPLATE;
+
+  if (!base) {
+    return new Response('CMEMS_CHL_WMTS_TEMPLATE not configured', { status: 500 });
   }
 
-  // Try today first, then fall back to previous days if needed
-  const datesToTry = [
-    getTodayUTC(),
-    getDaysAgo(1),
-    getDaysAgo(2),
-    getDaysAgo(3),
-    getDaysAgo(4),
-    getDaysAgo(5)
-  ];
+  // Build TIME for daily product (expects ISO8601 with milliseconds)
+  const qTime = req.nextUrl.searchParams.get('time');
+  const buildDailyIso = (d: Date) => {
+    const dd = new Date(d);
+    dd.setUTCHours(0, 0, 0, 0);
+    return dd.toISOString(); // Returns YYYY-MM-DDTHH:mm:ss.sssZ format
+  };
+  
+  // Generate fallback dates: yesterday and 2 days ago
+  // Chlorophyll data is usually 1-2 days behind
+  const fallbackDates: string[] = [];
+  for (let daysAgo = 1; daysAgo <= 2; daysAgo++) {
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    fallbackDates.push(buildDailyIso(date));
+  }
+  
+  let timeParam: string;
+  if (!qTime || qTime === 'latest') {
+    // Default to yesterday (1 day ago) - usually available
+    timeParam = fallbackDates[0];
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(qTime)) {
+    timeParam = `${qTime}T00:00:00.000Z`;
+  } else {
+    timeParam = qTime; // assume caller provided a full ISO timestamp
+  }
+  
+  // Authentication for Copernicus
+  const u = process.env.COPERNICUS_USER || '';
+  const p = process.env.COPERNICUS_PASS || '';
+  const auth = 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64');
 
-  for (const dateTime of datesToTry) {
-    // Build the Copernicus WMTS URL
-    const url = template
+  // Try with smart fallback if the requested date fails
+  let successfulTime = timeParam;
+  let upstream: Response | null = null;
+  let lastError: string = '';
+  
+  // If using 'latest' or default, try fallback dates
+  const datesToTry = (!qTime || qTime === 'latest') ? 
+    [timeParam, ...fallbackDates.slice(1)] : // Try yesterday, then 2 days ago
+    [timeParam]; // Only try the specific date requested
+
+  for (const tryTime of datesToTry) {
+    const target = base
       .replace('{z}', z)
       .replace('{x}', x)
       .replace('{y}', y)
-      .replace('{TIME}', dateTime);
-
-    // Fetching CHL tile
-
+      .replace('{TIME}', tryTime);
+    
+    // Attempt to fetch from upstream
     try {
-      const response = await fetch(url, {
+      const response = await fetch(target, {
         headers: {
-          'User-Agent': 'ABFI-CHL-Proxy/1.0',
+          Authorization: auth,
+          Accept: 'image/png',
+          'User-Agent': 'alwaysbent-abfi'
         },
-        // Don't cache failed attempts
+        redirect: 'follow',
         cache: 'no-store'
       });
 
       if (response.ok) {
-        const buffer = await response.arrayBuffer();
-        
-        // Return the tile with proper caching headers
-        return new NextResponse(buffer, {
-          status: 200,
-          headers: {
-            'Content-Type': 'image/png',
-            'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
-            'X-CHL-Date': dateTime.split('T')[0],
-            'X-CHL-Source': 'Copernicus-Marine',
-            'Access-Control-Allow-Origin': '*',
-          },
+        upstream = response;
+        successfulTime = tryTime;
+        // Successfully got chlorophyll data
+        break;
+      } else if (response.status === 400 && datesToTry.length > 1) {
+        // Try next date
+        lastError = await response.text();
+        continue;
+      } else {
+        // Non-400 error or last attempt
+        const text = await response.text();
+        return new Response(text || `Upstream ${response.status}`, {
+          status: response.status,
+          headers: { 
+            'x-upstream-url': target,
+            'x-chl-date-tried': tryTime.split('T')[0]
+          }
         });
       }
-
-      // If 404 or other error, try next date
-      // Trying earlier date
-      
-    } catch (error) {
-      
-      // Continue to next date
+    } catch (e: any) {
+      lastError = e?.message || String(e);
+      if (datesToTry.indexOf(tryTime) === datesToTry.length - 1) {
+        // Last attempt failed
+        break;
+      }
     }
   }
 
-  // If all dates failed, return a transparent tile
-  
-  
-  // Return transparent 256x256 PNG
-  const transparentPng = Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-    'base64'
-  );
-  
-  return new NextResponse(transparentPng, {
-    status: 200,
+  if (!upstream) {
+    return new Response(`All dates failed. Last error: ${lastError}`, {
+      status: 502,
+      headers: { 
+        'x-dates-tried': datesToTry.map(d => d.split('T')[0]).join(', ')
+      }
+    });
+  }
+
+  return new Response(upstream.body, {
     headers: {
       'Content-Type': 'image/png',
-      'Cache-Control': 'public, max-age=300', // Cache empty tiles for 5 min
-      'X-CHL-Status': 'no-data',
-    },
+      'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+      'x-upstream-url': base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{TIME}', successfulTime),
+      'x-chl-date': successfulTime.split('T')[0]
+    }
   });
 }

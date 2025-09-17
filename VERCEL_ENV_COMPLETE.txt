@@ -19,10 +19,10 @@ NEXT_PUBLIC_SST_TILES_URL=https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHR
 NEXT_PUBLIC_CHL_TILES_URL=https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_Chlorophyll_A_4km_Daily/default/{date}/2km/{z}/{y}/{x}.png
 
 # Copernicus Ocean Data (SST/CHL WMTS)
-NEXT_PUBLIC_SST_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m--DEPTH-0.49402499198913574m/{date}T12:00:00Z/{z}/{x}/{y}.png
-NEXT_PUBLIC_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_BGC_001_028/cmems_mod_glo_bgc-bio_anfc_0.25deg_P1D-m--CHL-SURF/{date}T12:00:00Z/{z}/{x}/{y}.png
-CMEMS_SST_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m--DEPTH-0.49402499198913574m/{date}T12:00:00Z/{z}/{x}/{y}.png
-CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_BGC_001_028/cmems_mod_glo_bgc-bio_anfc_0.25deg_P1D-m--CHL-SURF/{date}T12:00:00Z/{z}/{x}/{y}.png
+NEXT_PUBLIC_SST_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m--DEPTH-0.49402499198913574m/{TIME}/{z}/{x}/{y}.png
+NEXT_PUBLIC_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/OCEANCOLOUR_ATL_BGC_L4_MY_009_118/cmems_obs-oc_atl_bgc-plankton_my_l4-multi-1km_P1D/CHL-SURF/{TIME}/{z}/{x}/{y}.png
+CMEMS_SST_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m--DEPTH-0.49402499198913574m/{TIME}/{z}/{x}/{y}.png
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/OCEANCOLOUR_ATL_BGC_L4_MY_009_118/cmems_obs-oc_atl_bgc-plankton_my_l4-multi-1km_P1D/CHL-SURF/{TIME}/{z}/{x}/{y}.png
 
 # Copernicus Credentials
 COPERNICUS_USER=jro82886
