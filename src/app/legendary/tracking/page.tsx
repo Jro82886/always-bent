@@ -33,11 +33,11 @@ function TrackingModeContent() {
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
   
   // Vessel visibility states
-  // CRITICAL: Everything starts OFF to prevent crashes - users control what loads
-  const [showYou, setShowYou] = useState(false); // User must explicitly enable
-  const [showFleet, setShowFleet] = useState(false); // User must explicitly enable
-  const [showCommercial, setShowCommercial] = useState(false); // User must explicitly enable
-  const [showTracks, setShowTracks] = useState(false); // Off by default (performance)
+  // Enable key tracking features by default for better user experience
+  const [showYou, setShowYou] = useState(true); // Enable user tracking by default
+  const [showFleet, setShowFleet] = useState(true); // Enable fleet tracking by default
+  const [showCommercial, setShowCommercial] = useState(false); // Keep commercial off (performance)
+  const [showTracks, setShowTracks] = useState(true); // Enable tracks to show vessel paths
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
   
   // User position state
