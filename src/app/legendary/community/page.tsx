@@ -1,43 +1,20 @@
 'use client';
 
-import { Component, ReactNode } from 'react';
-import CommunityMode from '@/components/community/CommunityMode';
-import PageWithSuspense from '@/components/PageWithSuspense';
+import dynamic from 'next/dynamic';
 
-// Error boundary to catch any map-related errors
-class CommunityErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
+// Dynamically import CommunityMode to ensure complete isolation from map code
+const CommunityMode = dynamic(
+  () => import('@/components/community/CommunityMode'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Loading Community...</div>
+      </div>
+    )
   }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: any) {
-    // Log but don't crash
-    console.warn('Community page error (likely map-related):', error);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      // Still render the community mode even if there's an error
-      return this.props.children;
-    }
-    return this.props.children;
-  }
-}
+);
 
 export default function CommunityPage() {
-  return (
-    <PageWithSuspense>
-      <CommunityErrorBoundary>
-        <CommunityMode />
-      </CommunityErrorBoundary>
-    </PageWithSuspense>
-  );
+  return <CommunityMode />;
 }

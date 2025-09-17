@@ -13,13 +13,6 @@ import DMInterface from './DMInterface';
 import ReportsPanel from './ReportsPanel';
 import ReportsFeed from './ReportsFeed';
 
-// Ensure no map-related code runs in Community mode
-if (typeof window !== 'undefined' && (window as any).mapboxgl) {
-  // Temporarily disable mapbox in this component
-  (window as any)._mapboxgl_temp = (window as any).mapboxgl;
-  delete (window as any).mapboxgl;
-}
-
 interface WeatherData {
   wind: { speed: number; direction: string };
   waves: { height: number; period: number };
@@ -40,18 +33,21 @@ interface OnlineCaptain {
 }
 
 export default function CommunityMode() {
-  const { selectedInletId, username } = useAppState();
-  const inlet = getInletById(selectedInletId) || INLETS[0];
-  
-  // Cleanup mapbox on unmount
+  // Safety check - if any map code tries to run, stop it
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Override any map-related functions that might be called
+      (window as any).__communityModeActive = true;
+    }
     return () => {
-      if (typeof window !== 'undefined' && (window as any)._mapboxgl_temp) {
-        (window as any).mapboxgl = (window as any)._mapboxgl_temp;
-        delete (window as any)._mapboxgl_temp;
+      if (typeof window !== 'undefined') {
+        delete (window as any).__communityModeActive;
       }
     };
   }, []);
+  
+  const { selectedInletId, username } = useAppState();
+  const inlet = getInletById(selectedInletId) || INLETS[0];
   const [captainName, setCaptainName] = useState<string>('');
   const [boatName, setBoatName] = useState<string>('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
