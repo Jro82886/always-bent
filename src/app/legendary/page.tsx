@@ -4,6 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import AuthGuard from '@/components/AuthGuard';
+import BetaBanner from '@/components/BetaBanner';
+import FirstTimeSetup from '@/components/FirstTimeSetup';
 
 // Dynamically import modes
 const AnalysisMode = dynamic(() => import('./analysis/page'), { ssr: false });
@@ -16,9 +18,9 @@ function ABFICore() {
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode');
   
-  // No mode = show welcome (the trunk entry point)
+  // No mode = default to analysis (skip welcome for logged-in users)
   if (!mode) {
-    return <WelcomeMode />;
+    return <AnalysisMode />;
   }
   
   // Each branch accessed equally via ?mode=
@@ -34,13 +36,15 @@ function ABFICore() {
     case 'welcome':
       return <WelcomeMode />;
     default:
-      return <WelcomeMode />; // Unknown mode = welcome
+      return <AnalysisMode />; // Unknown mode = analysis
   }
 }
 
 export default function LegendaryPage() {
   return (
     <AuthGuard requireAuth={true} fallbackPath="/auth/login">
+      <BetaBanner />
+      <FirstTimeSetup />
       <Suspense fallback={
         <div className="w-full h-screen bg-black flex items-center justify-center">
           <div className="text-cyan-400">Loading...</div>
