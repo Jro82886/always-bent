@@ -1,0 +1,61 @@
+# Complete Vercel Environment Variables for Always Bent Production
+# Copy and paste these into Vercel Dashboard > Settings > Environment Variables
+
+# Mapbox (Map Display)
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.eyJ1IjoiamVmZmVyc29uMTk3OSIsImEiOiJjbTJkdGN4dGcwdGRyMmpxMWNkdXhsNGtpIn0.aJJMyFVhxiKVsziJZm3nog
+
+# Supabase (Database & Auth)
+NEXT_PUBLIC_SUPABASE_URL=https://hobvjmmambhonsugehge.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhvYnZqbW1hbWJob25zdWdlaGdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE1MzkyODIsImV4cCI6MjA0NzExNTI4Mn0.lzQy0Iw9qSRqHP-AjW-wCGsVZQdXrXC5Kp8ZqGEqSQU
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhvYnZqbW1hbWJob25zdWdlaGdlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczMTUzOTI4MiwiZXhwIjoyMDQ3MTE1MjgyfQ.xvxQIcwKmQOYQQX_PwJzCp0xCJe0LCc7hBb0-vCPNnE
+DATABASE_URL=postgresql://postgres.hobvjmmambhonsugehge:Jro!0788@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+
+# Python Backend Services
+POLYGONS_BACKEND_URL=https://always-bent-python-1039366079125.us-central1.run.app
+NEXT_PUBLIC_POLYGONS_URL=https://always-bent-python-1039366079125.us-central1.run.app
+
+# NASA/PODAC SST Tiles
+NEXT_PUBLIC_SST_TILES_URL=https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GHRSST_L4_MUR_Sea_Surface_Temperature/default/{date}/1km/{z}/{y}/{x}.png
+NEXT_PUBLIC_CHL_TILES_URL=https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_L3_Chlorophyll_A_4km_Daily/default/{date}/2km/{z}/{y}/{x}.png
+
+# Copernicus Ocean Data (SST/CHL WMTS)
+NEXT_PUBLIC_SST_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m--DEPTH-0.49402499198913574m/{date}T12:00:00Z/{z}/{x}/{y}.png
+NEXT_PUBLIC_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_BGC_001_028/cmems_mod_glo_bgc-bio_anfc_0.25deg_P1D-m--CHL-SURF/{date}T12:00:00Z/{z}/{x}/{y}.png
+CMEMS_SST_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m--DEPTH-0.49402499198913574m/{date}T12:00:00Z/{z}/{x}/{y}.png
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/GLOBAL_ANALYSISFORECAST_BGC_001_028/cmems_mod_glo_bgc-bio_anfc_0.25deg_P1D-m--CHL-SURF/{date}T12:00:00Z/{z}/{x}/{y}.png
+
+# Copernicus Credentials
+COPERNICUS_USER=jro82886
+COPERNICUS_PASS=Jro!0788
+COPERNICUS_WMTS_BASE=https://wmts.marine.copernicus.eu/teroWmts
+COPERNICUS_WMTS_SLA_LAYER=GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-zos_anfc_0.083deg_P1D-m
+COPERNICUS_WMTS_LAYER=GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m--DEPTH-0.49402499198913574m
+COPERNICUS_WMTS_THERMO_LAYER=GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m--DEPTH-50m
+COPERNICUS_WMTS_STYLE=cmp:sstanomalies
+COPERNICUS_WMTS_FORMAT=image/png
+COPERNICUS_WMTS_MATRIXSET=EPSG:3857
+
+# Processing Settings
+POLYGONS_BBOX_BUFFER_DEG=0.5
+
+# Git Configuration (for Vercel builds)
+GIT_AUTHOR_NAME=Always Bent
+GIT_AUTHOR_EMAIL=dev@alwaysbent.com
+GIT_COMMITTER_NAME=Always Bent
+GIT_COMMITTER_EMAIL=dev@alwaysbent.com
+
+# ===== HOW TO ADD TO VERCEL =====
+# 1. Go to: https://vercel.com/jro82886s-projects/always-bent/settings/environment-variables
+# 2. Click "Add Multiple" button
+# 3. Copy everything above (excluding these instructions)
+# 4. Paste into the text box
+# 5. Select "Production" environment
+# 6. Click "Save"
+# 7. Redeploy for changes to take effect
+
+# ===== NOTES =====
+# - All NEXT_PUBLIC_ variables are exposed to the browser
+# - Service role keys should NEVER be exposed to frontend
+# - Database URL includes connection pooling for serverless
+# - Copernicus credentials are for ocean data access
+# - Git config helps with Vercel build process
