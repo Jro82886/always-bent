@@ -77,11 +77,20 @@ export async function syncBites(manual: boolean = false): Promise<{
     
     
     // Get current user
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    let user;
+    try {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getUser();
+      user = data?.user;
+    } catch (authError) {
+      console.error('Auth error during sync:', authError);
+      // Skip sync if auth fails
+      return { synced: 0, failed: 0, expired };
+    }
     
     if (!user) {
-      throw new Error('Not authenticated');
+      console.log('No authenticated user, skipping sync');
+      return { synced: 0, failed: 0, expired };
     }
     
     // Prepare batch payload
@@ -104,12 +113,28 @@ export async function syncBites(manual: boolean = false): Promise<{
       }))
     };
     
+    // Get session token
+    let accessToken;
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      accessToken = session?.access_token;
+    } catch (sessionError) {
+      console.error('Session error during sync:', sessionError);
+      return { synced: 0, failed: 0, expired };
+    }
+    
+    if (!accessToken) {
+      console.log('No access token available, skipping sync');
+      return { synced: 0, failed: 0, expired };
+    }
+    
     // Send to server
     const response = await fetch('/api/bites/batch', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify(payload),
     });
@@ -195,6 +220,11 @@ function scheduleRetry() {
  * Initialize automatic sync on various triggers
  */
 export function initBiteSync() {
+  // Only run in browser environment
+  if (typeof window === 'undefined') {
+    return;
+  }
+  
   // Sync when coming online
   window.addEventListener('online', () => {
     
@@ -216,9 +246,9 @@ export function initBiteSync() {
     }
   }, 60000);
   
-  // Initial sync on load
-  if (navigator.onLine) {
-    setTimeout(() => syncBites(), 2000);
+  // Initial sync on load (delayed to allow auth to initialize)
+  if (typeof navigator !== 'undefined' && navigator.onLine) {
+    setTimeout(() => syncBites(), 5000);
   }
   
   
