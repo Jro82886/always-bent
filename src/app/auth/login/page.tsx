@@ -2,8 +2,9 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Anchor, Shield, Check } from 'lucide-react';
+import { Loader2, Anchor, Shield, Check, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import Link from 'next/link';
 
 function LoginContent() {
   const router = useRouter();
@@ -11,9 +12,10 @@ function LoginContent() {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [usePassword, setUsePassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   
   // Get email from Squarespace redirect if provided
   const emailFromSquarespace = searchParams.get('email');
@@ -78,7 +80,8 @@ function LoginContent() {
     }
   };
 
-  const handleSquarespaceLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!email) {
       setError('Please enter your email address');
       return;
@@ -87,52 +90,29 @@ function LoginContent() {
     setLoading(true);
     setError('');
     
+    if (!password) {
+      setError('Please enter your password');
+      setLoading(false);
+      return;
+    }
+    
     try {
-      if (usePassword) {
-        // Password-based authentication (more secure, can't be forwarded)
-        if (!password) {
-          setError('Please enter your password');
-          setLoading(false);
-          return;
-        }
-        
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-        
-        if (error) throw error;
-        
-        // Success - will redirect via onAuthStateChange
-        
+      // Password-based authentication only - secure and controlled by you
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+      
+      if (error) throw error;
+      
+      // Store remember me preference
+      if (rememberMe && data.session) {
+        localStorage.setItem('abfi_remember', 'true');
       } else {
-        // Magic link (less secure but more convenient)
-        // Add warning about security
-        const confirmed = confirm(
-          '⚠️ Security Notice:\n\n' +
-          'Magic links can be forwarded to others.\n' +
-          'For better security, use password login instead.\n\n' +
-          'Continue with magic link?'
-        );
-        
-        if (!confirmed) {
-          setUsePassword(true);
-          setLoading(false);
-          return;
-        }
-        
-        const { error } = await supabase.auth.signInWithOtp({
-          email: email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/legendary/welcome`,
-          }
-        });
-        
-        if (error) throw error;
-        
-        alert(`Check your email (${email}) for a magic link to sign in!`);
+        localStorage.removeItem('abfi_remember');
       }
       
+      // Success - will redirect via onAuthStateChange
       setLoading(false);
       
     } catch (error: any) {
@@ -179,48 +159,67 @@ function LoginContent() {
               <label className="block text-sm font-medium text-slate-400 mb-2">
                 Email Address
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
-                disabled={loading}
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  disabled={loading}
+                  required
+                />
+              </div>
             </div>
             
-            {/* Password Input (if using password mode) */}
-            {usePassword && (
-              <div>
-                <label className="block text-sm font-medium text-slate-400 mb-2">
-                  Password
-                </label>
+            {/* Password Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  className="w-full pl-10 pr-12 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
                   disabled={loading}
+                  required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-            )}
+            </div>
             
-            {/* Login Method Toggle */}
-            <div className="flex items-center justify-between text-sm">
-              <button
-                type="button"
-                onClick={() => setUsePassword(!usePassword)}
-                className="text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                {usePassword ? 'Use Magic Link Instead' : 'Use Password Instead (More Secure)'}
-              </button>
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 bg-slate-800 border-slate-600 rounded focus:ring-cyan-500"
+                />
+                Remember me
+              </label>
+              <Link href="/auth/forgot-password" className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                Forgot password?
+              </Link>
             </div>
             
             {/* Submit Button */}
             <button
-              onClick={handleSquarespaceLogin}
-              disabled={loading}
+              type="submit"
+              onClick={handleLogin}
+              disabled={loading || !email || !password}
               className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-lg flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? (
@@ -228,24 +227,34 @@ function LoginContent() {
               ) : (
                 <>
                   <Shield className="w-5 h-5" />
-                  {usePassword ? 'Sign In' : 'Send Magic Link'}
+                  Sign In
                 </>
               )}
             </button>
             
+            {/* Create Account Link */}
+            <div className="text-center pt-4">
+              <p className="text-slate-400 text-sm">
+                Don't have an account?{' '}
+                <Link href="/auth/register" className="text-cyan-400 hover:text-cyan-300 transition-colors font-semibold">
+                  Create Account
+                </Link>
+              </p>
+            </div>
+            
             {/* Benefits */}
-            <div className="space-y-2 mt-6">
+            <div className="space-y-2 mt-6 pt-6 border-t border-slate-800">
               <div className="flex items-start gap-2 text-sm text-slate-400">
                 <Check className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                <span>Use your existing Squarespace account</span>
+                <span>Your own secure account - no third parties</span>
               </div>
               <div className="flex items-start gap-2 text-sm text-slate-400">
                 <Check className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                <span>Seamless integration with Always Bent membership</span>
+                <span>Password protected and encrypted</span>
               </div>
               <div className="flex items-start gap-2 text-sm text-slate-400">
                 <Check className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                <span>Secure and encrypted connection</span>
+                <span>Full control over your account security</span>
               </div>
             </div>
           </div>
