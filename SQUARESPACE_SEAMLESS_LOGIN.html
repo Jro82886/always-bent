@@ -1,0 +1,84 @@
+<!-- 
+SQUARESPACE SEAMLESS LOGIN BUTTON
+Add this to your Squarespace member area
+-->
+
+<!-- OPTION 1: Simple Button with JavaScript -->
+<script>
+  function launchABFI() {
+    // Get member info from Squarespace (you may need to adjust these selectors)
+    const memberEmail = document.querySelector('[data-member-email]')?.innerText || 
+                        prompt('Enter your Always Bent email:');
+    const memberName = document.querySelector('[data-member-name]')?.innerText || 
+                       'Captain';
+    
+    // Create unique ID from email
+    const memberId = btoa(memberEmail).replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+    
+    // Launch ABFI with auto-login
+    const abfiUrl = `https://always-bent.vercel.app/auth/squarespace?email=${encodeURIComponent(memberEmail)}&name=${encodeURIComponent(memberName)}&member_id=${memberId}`;
+    
+    window.open(abfiUrl, '_blank');
+  }
+</script>
+
+<button onclick="launchABFI()" style="
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  color: white;
+  padding: 20px 40px;
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+  transition: all 0.3s;
+">
+  ⚡ Launch ABFI Platform
+</button>
+
+<!-- OPTION 2: Direct Links for Specific Members -->
+<!-- Replace EMAIL and NAME with actual member data -->
+
+<!-- For Amanda -->
+<a href="https://always-bent.vercel.app/auth/squarespace?email=amanda@alwaysbent.com&name=Amanda&member_id=amanda1" 
+   target="_blank"
+   style="display: inline-block; background: linear-gradient(135deg, #06b6d4, #3b82f6); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+  Amanda - Launch ABFI
+</a>
+
+<!-- For Jeff -->
+<a href="https://always-bent.vercel.app/auth/squarespace?email=jeff@alwaysbent.com&name=Jeff&member_id=jeff1" 
+   target="_blank"
+   style="display: inline-block; background: linear-gradient(135deg, #06b6d4, #3b82f6); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+  Jeff - Launch ABFI
+</a>
+
+<!-- For Other Team Members -->
+<a href="https://always-bent.vercel.app/auth/squarespace?email=member3@alwaysbent.com&name=Captain%20Mike&member_id=mike1" 
+   target="_blank"
+   style="display: inline-block; background: linear-gradient(135deg, #06b6d4, #3b82f6); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+  Mike - Launch ABFI
+</a>
+
+<!-- OPTION 3: Quick Test Fleet (for testing multiplayer) -->
+<div style="background: #1e293b; padding: 20px; border-radius: 12px; margin: 20px 0;">
+  <h3 style="color: #06b6d4; margin-bottom: 15px;">Test Fleet - Quick Login</h3>
+  <div style="display: grid; gap: 10px;">
+    <a href="https://always-bent.vercel.app/auth/squarespace?email=captain1@test.com&name=Captain%20Mike&member_id=test1" 
+       target="_blank"
+       style="background: #0f172a; color: #06b6d4; padding: 10px; text-decoration: none; border-radius: 6px; border: 1px solid #06b6d4;">
+      🚢 Captain Mike - Reel Deal
+    </a>
+    <a href="https://always-bent.vercel.app/auth/squarespace?email=captain2@test.com&name=Captain%20Sarah&member_id=test2" 
+       target="_blank"
+       style="background: #0f172a; color: #06b6d4; padding: 10px; text-decoration: none; border-radius: 6px; border: 1px solid #06b6d4;">
+      🚢 Captain Sarah - Blue Horizon
+    </a>
+    <a href="https://always-bent.vercel.app/auth/squarespace?email=captain3@test.com&name=Captain%20Tom&member_id=test3" 
+       target="_blank"
+       style="background: #0f172a; color: #06b6d4; padding: 10px; text-decoration: none; border-radius: 6px; border: 1px solid #06b6d4;">
+      🚢 Captain Tom - Marlin Hunter
+    </a>
+  </div>
+</div>
