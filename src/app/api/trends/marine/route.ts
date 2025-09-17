@@ -148,8 +148,8 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Helper function for phase bucketing
-export function phaseBucket(value: number) {
+// Helper function for phase bucketing (not exported from route file)
+function phaseBucket(value: number) {
   if (value < 0.03 || value > 0.97) return 'New';
   if (value < 0.22) return 'Waxing Crescent';
   if (value < 0.28) return 'First Quarter';
