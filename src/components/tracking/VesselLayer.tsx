@@ -234,7 +234,7 @@ export default function VesselLayer({
                           -80.5;              // Southern states
       
       if (lng > coastlineLng) {
-        , hiding from map');
+        // Vessel on land, hiding from map
         return false;
       }
       
@@ -257,7 +257,7 @@ export default function VesselLayer({
           // Must be within 10 miles of inlet (typical cell service range)
           // Beyond this, users lose cell service and need offline mode anyway
           if (distance > 10) {
-            }mi from inlet, beyond cell range`);
+            // Vessel too far from inlet, beyond cell range
             return false;
           }
         }

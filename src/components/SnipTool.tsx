@@ -881,11 +881,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         
         // JEFF'S LOGIC: Only show hotspot if gradient meets threshold (>= 0.5°F/mile)
         if (!analysis.hotspot || !analysis.hotspot.location) {
-          
-           + '°F');
+          // No significant gradient detected
           // Educational guidance will be shown in modal
         } else {
-           + '°F/km');
+          // Hotspot detected with significant gradient
         }
       } catch (analysisError) {
         

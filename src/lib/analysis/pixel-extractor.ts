@@ -51,7 +51,7 @@ export async function extractPixelData(
   const area = turf.area(polygon) / 1000000; // km²
   const numSamples = Math.min(Math.max(Math.floor(area * sampleDensity), 10), 500);
   
-  } km²`);
+  // Area calculated
   
   // Generate sample points within polygon
   const samplePoints = generateSamplePoints(polygon, numSamples);
