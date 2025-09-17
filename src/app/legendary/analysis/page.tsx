@@ -44,7 +44,15 @@ function AnalysisModeContent() {
     // Check tutorial status on client side
     const seen = localStorage.getItem('abfi_tutorial_seen');
     const skip = localStorage.getItem('abfi_skip_tutorial');
-    setShowingTutorial(!seen && skip !== 'true');
+    const shouldShow = localStorage.getItem('abfi_show_tutorial');
+    
+    // Show tutorial if explicitly requested from setup OR if not seen yet
+    if (shouldShow === 'true') {
+      setShowingTutorial(true);
+      localStorage.removeItem('abfi_show_tutorial'); // Clear the flag
+    } else {
+      setShowingTutorial(!seen && skip !== 'true');
+    }
     setTutorialCompleted(seen === 'true');
   }, []);
   
