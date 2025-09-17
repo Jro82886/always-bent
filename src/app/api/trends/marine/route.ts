@@ -5,6 +5,38 @@ const AUTH_HEADER = { Authorization: process.env.STORMGLASS_API_KEY || '' };
 
 function iso(dt: Date) { return dt.toISOString(); }
 
+// Mock data for when API key is not configured
+function getMockMarineData() {
+  const now = new Date();
+  const moonPhases = ['New Moon', 'Waxing Crescent', 'First Quarter', 'Waxing Gibbous', 'Full Moon', 'Waning Gibbous', 'Last Quarter', 'Waning Crescent'];
+  const randomPhase = moonPhases[Math.floor(Math.random() * moonPhases.length)];
+  
+  return {
+    moon: {
+      phaseText: randomPhase,
+      phaseValue: Math.random(),
+      illumination: Math.random(),
+      moonrise: new Date(now.getTime() + Math.random() * 12 * 3600000).toISOString(),
+      moonset: new Date(now.getTime() + Math.random() * 12 * 3600000).toISOString()
+    },
+    tide: {
+      stage: Math.random() > 0.5 ? 'flood' : 'ebb',
+      rateCmPerHr: Math.random() * 40 - 20,
+      series: Array.from({ length: 24 }, (_, i) => ({
+        time: new Date(now.getTime() + i * 3600000).toISOString(),
+        heightM: Math.sin(i / 4) * 1.5 + 1.5
+      })),
+      extremes: [
+        { time: new Date(now.getTime() + 6 * 3600000).toISOString(), height: 2.1, type: 'high' },
+        { time: new Date(now.getTime() + 12 * 3600000).toISOString(), height: 0.5, type: 'low' },
+        { time: new Date(now.getTime() + 18 * 3600000).toISOString(), height: 2.3, type: 'high' },
+        { time: new Date(now.getTime() + 24 * 3600000).toISOString(), height: 0.4, type: 'low' }
+      ]
+    },
+    raw: { note: 'Using mock data - configure STORMGLASS_API_KEY for real marine data' }
+  };
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -14,6 +46,22 @@ export async function GET(req: NextRequest) {
 
     if (!lat || !lng) {
       return NextResponse.json({ error: 'lat & lng are required' }, { status: 400 });
+    }
+
+    // Use mock data if no API key is configured
+    if (!process.env.STORMGLASS_API_KEY || process.env.STORMGLASS_API_KEY === 'YOUR_STORMGLASS_API_KEY_HERE') {
+      const mockData = getMockMarineData();
+      return new NextResponse(
+        JSON.stringify(mockData),
+        {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+            'cache-control': 's-maxage=600, stale-while-revalidate=300',
+            'x-data-source': 'mock'
+          },
+        }
+      );
     }
 
     const now = new Date();
