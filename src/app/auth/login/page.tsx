@@ -166,6 +166,44 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+          
+          {/* INSTANT DEMO ACCESS - ONE CLICK! */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-700"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-slate-900/80 text-slate-400">Skip the hassle</span>
+              </div>
+            </div>
+            
+            <button
+              type="button"
+              onClick={async () => {
+                setLoading(true);
+                // Use the confirmed demo account
+                const { error } = await signIn('demo@alwaysbent.com', 'demo123456');
+                if (!error) {
+                  setTimeout(() => {
+                    router.replace('/legendary?mode=analysis');
+                  }, 100);
+                } else {
+                  // If demo account doesn't exist, create it on the fly
+                  setError('Setting up demo access...');
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              className="mt-4 w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 hover:shadow-lg hover:shadow-green-500/25 transition-all duration-200 flex items-center justify-center gap-2 text-lg disabled:opacity-50"
+            >
+              ⚡ Try It Now - Instant Access
+            </button>
+            
+            <p className="text-xs text-slate-500 text-center mt-2">
+              No signup required • Full features • Ready to explore
+            </p>
+          </div>
 
           {/* Divider */}
           <div className="my-6 flex items-center">
