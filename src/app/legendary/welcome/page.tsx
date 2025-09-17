@@ -31,7 +31,7 @@ export default function LegendaryWelcomePage() {
     }
     
     setUserId(user.id);
-    setUserEmail(user.email);
+    setUserEmail(user.email || null);
     
     // Check if profile already exists
     const { data: profile } = await supabase
