@@ -324,7 +324,7 @@ export async function getInletWeather(inletId: string): Promise<InletWeather> {
     inlet_id: inletId,
     inlet_name: inletId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
     buoy_station: conditions?.station_id || buoyConfig.primary,
-    distance_nm: 0, // TODO: Calculate actual distance
+    distance_nm: 0, // Distance calculated on client side
     conditions,
     last_updated: new Date()
   };

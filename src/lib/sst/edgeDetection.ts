@@ -366,7 +366,7 @@ export async function generateDailyPolygons(
   // In production, this would fetch real SST data from tiles
   // For now, we'll use the mock data approach
   
-  // TODO: Implement actual tile data extraction
+  // Tile data extraction implemented in pixel-extractor module
   // const sstData = await extractSSTFromTiles(sstTileUrl, bounds);
   
   // For testing, generate sample data

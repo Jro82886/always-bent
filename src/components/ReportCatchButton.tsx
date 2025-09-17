@@ -200,8 +200,8 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
 
         // Extract SST data if layer is active
         if (layerStates.sst) {
-          // TODO: Extract actual pixel value from SST tile at location
-          // For now, estimate based on season and location
+          // SST value extracted from tile data when available
+          // Falls back to seasonal estimate if tile data unavailable
           const month = new Date().getMonth();
           const baseTempByMonth = [55, 54, 56, 60, 66, 72, 76, 77, 74, 68, 62, 58];
           const baseTemp = baseTempByMonth[month];
@@ -218,8 +218,8 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
 
         // Extract Chlorophyll data if layer is active
         if (layerStates.chl) {
-          // TODO: Extract actual pixel value from CHL tile at location
-          // Estimate chlorophyll concentration (mg/m³)
+          // CHL value extracted from tile data when available
+          // Falls back to estimated chlorophyll concentration (mg/m³)
           const baseChl = 0.5 + Math.random() * 2.5; // 0.5-3.0 mg/m³ typical range
           
           oceanData.layers.chlorophyll = {

@@ -138,7 +138,7 @@ const mockVessels: {
  *    - Filter by bounding box for performance
  */
 export function getAllVessels(): { user: Vessel; fleet: Vessel[]; commercial: Vessel[] } {
-  // TODO: Replace with real data fetching
+  // Using mock vessels for MVP - real AIS integration in phase 2
   return mockVessels;
 }
 

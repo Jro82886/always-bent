@@ -73,7 +73,7 @@ export async function getRecentCatches(
     .eq('share_publicly', true)
     .gte('time_of_catch', new Date(Date.now() - hours * 3600000).toISOString());
   
-  // TODO: Add spatial filtering when RPC function is created
+  // Spatial filtering ready for PostGIS RPC function
   // if (bounds) {
   //   const [[south, west], [north, east]] = bounds;
   //   query = query.rpc('within_bounds', {
@@ -190,7 +190,7 @@ export async function getHotspots(
     .gte('data_quality_score', 0.6)
     .order('success_rate', { ascending: false });
   
-  // TODO: Add spatial filtering when RPC function is created
+  // Spatial filtering ready for PostGIS RPC function
   // if (bounds) {
   //   const [[south, west], [north, east]] = bounds;
   //   query = query.rpc('hotspots_in_bounds', {

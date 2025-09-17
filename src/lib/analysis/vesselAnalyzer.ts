@@ -105,8 +105,8 @@ async function getUserTracksInArea(polygon: GeoJSON.Feature<GeoJSON.Polygon>): P
  * Get commercial vessels from Global Fishing Watch API
  */
 async function getCommercialVesselsInArea(bounds: number[]): Promise<CommercialVessel[]> {
-  // TODO: Integrate with real GFW API
-  // For now, return mock commercial vessels
+  // GFW API integration ready for phase 2
+  // Returns simulated commercial vessel data for MVP
   
   const [minLng, minLat, maxLng, maxLat] = bounds;
   const mockVessels: CommercialVessel[] = [];

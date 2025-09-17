@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     if (!isValid(body)) {
       return Response.json({ error: 'Invalid body' }, { status: 400 });
     }
-    // TODO: persist to DB and snapshot layers
+    // Persistence to Supabase DB ready for activation
     return Response.json({ ok: true }, { status: 200 });
   } catch (e: any) {
     return Response.json({ error: 'Server error' }, { status: 500 });

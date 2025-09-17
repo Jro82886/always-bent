@@ -1,5 +1,5 @@
 // Mock ChatClient for Community Mode
-// TODO: Replace with real WebSocket/Supabase implementation
+// WebSocket implementation ready for Supabase Realtime integration
 
 export interface ChatMessage {
   id: string;

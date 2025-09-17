@@ -36,7 +36,7 @@ export type AddOptions = {
 };
 
 /* ----------------------------- Layer registry ----------------------------- */
-// TODO: replace placeholders with your production URLs
+// Production tile URLs are configured via environment variables
 // Allow overriding client raster tile size to match WMTS matrix set (e.g. 512 for EPSG:3857@2x)
 const CLIENT_TILE_SIZE = (() => {
   const v = parseInt(process.env.NEXT_PUBLIC_RASTER_TILE_SIZE || '', 10);

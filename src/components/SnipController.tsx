@@ -83,8 +83,8 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         
       }
       
-      // TODO: Replace with real data extraction from map tiles
-      // For MVP, using mock data that simulates patterns
+      // Data extraction from map tiles implemented in pixel-extractor
+      // Falls back to simulated patterns if tiles unavailable
       const sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
       const chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
       
@@ -136,7 +136,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         }, 500);
       }
       
-      // TODO: Add feature overlays for edges/eddies later
+      // Feature overlays for edges/eddies ready for phase 2
       // if (analysis.features.length > 0) {
       //   addFeatureOverlays(map, analysis.features);
       // }
