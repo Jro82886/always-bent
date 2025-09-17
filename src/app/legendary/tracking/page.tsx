@@ -227,9 +227,7 @@ function TrackingModeContent() {
       setMapFullyReady(false);
       try {
         if (map.current) {
-          // Remove all event listeners
-          map.current.off();
-          // Remove the map
+          // Remove the map (this also removes all event listeners)
           map.current.remove();
           map.current = null;
         }

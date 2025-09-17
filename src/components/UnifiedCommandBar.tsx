@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MapPin, Anchor, Navigation, Users, TrendingUp, LogOut } from 'lucide-react';
 import { Map } from 'mapbox-gl';
-import { useAppState } from '@/state/ui';
+import { useAppState } from '@/store/appState';
 import { findClosestInlet } from '@/lib/findClosestInlet';
-import { inlets } from '@/lib/inlets';
+import { INLETS as inlets } from '@/lib/inlets';
 import { useAuth } from '@/lib/supabase/AuthProvider';
 
 interface UnifiedCommandBarProps {
