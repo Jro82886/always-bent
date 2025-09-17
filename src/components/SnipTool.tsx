@@ -8,6 +8,7 @@ import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData } from '@/lib/analysis/sst-analyzer';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extractor';
+import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
 import { getVesselsInBounds, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
 import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
@@ -770,23 +771,17 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       let pixelAnalysis = null;
       
       try {
-        // Try to extract real pixel data first
-        const extractedData = await extractPixelData(map, polygon, {
-          sstLayerId: 'sst-lyr',
-          chlLayerId: 'chl-lyr',
-          sampleDensity: 20 // 20 points per km²
+        // First try the enhanced tile data extraction for REAL data
+        const realData = await extractRealTileData(map, polygon, {
+          sstEnabled: activeLayers.sst || true,
+          chlEnabled: activeLayers.chl,
+          sampleDensity: 20
         });
         
-        if (extractedData.sst.length > 0 || extractedData.chl.length > 0) {
-          
-          
-          // Analyze the real data
-          pixelAnalysis = analyzePixelData(extractedData);
-          
-          
-          // Convert to format expected by analyzeMultiLayer
-          if (extractedData.sst.length > 0) {
-            sstData = extractedData.sst.map(p => ({
+        if (realData.isRealData) {
+          // SUCCESS! We got REAL ocean data from tiles!
+          if (realData.sst.length > 0) {
+            sstData = realData.sst.map(p => ({
               lat: p.lat,
               lng: p.lng,
               temp_f: p.value,
@@ -794,27 +789,53 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             }));
           }
           
-          if (extractedData.chl.length > 0) {
-            chlData = extractedData.chl.map(p => ({
+          if (realData.chl.length > 0) {
+            chlData = realData.chl.map(p => ({
               lat: p.lat,
               lng: p.lng,
-              chl_mg_m3: p.value // Correct field name for CHLDataPoint
+              chl_mg_m3: p.value
             }));
           }
         } else {
+          // Fallback to WebGL pixel extraction
+          const extractedData = await extractPixelData(map, polygon, {
+            sstLayerId: 'sst-lyr',
+            chlLayerId: 'chl-lyr',
+            sampleDensity: 20
+          });
           
+          if (extractedData.sst.length > 0 || extractedData.chl.length > 0) {
+            pixelAnalysis = analyzePixelData(extractedData);
+            
+            if (extractedData.sst.length > 0) {
+              sstData = extractedData.sst.map(p => ({
+                lat: p.lat,
+                lng: p.lng,
+                temp_f: p.value,
+                timestamp: p.timestamp
+              }));
+            }
+            
+            if (extractedData.chl.length > 0) {
+              chlData = extractedData.chl.map(p => ({
+                lat: p.lat,
+                lng: p.lng,
+                chl_mg_m3: p.value
+              }));
+            }
+          }
         }
       } catch (pixelError) {
-        
+        // Silent fallback to mock data
       }
       
       // Fallback to generated data if pixel extraction failed
       if (!sstData && (activeLayers.sst || true)) {
-        
+        // WARNING: Using MOCK data - real extraction failed
         sstData = generateMockSSTData(bounds);
       }
       if (!chlData && activeLayers.chl) {
-        
+        // WARNING: Using MOCK data - real extraction failed
         chlData = generateMockCHLData(bounds);
       }
       
