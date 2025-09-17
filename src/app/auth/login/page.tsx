@@ -77,13 +77,22 @@ function LoginContent() {
 
   const handleSquarespaceLogin = () => {
     setLoading(true);
-    // Redirect to Squarespace login
-    // In production, this would be your actual Squarespace site URL
-    const squarespaceLoginUrl = process.env.NEXT_PUBLIC_SQUARESPACE_URL || 'https://your-site.squarespace.com';
-    const returnUrl = encodeURIComponent(`${window.location.origin}/auth/login`);
+    setError('');
     
-    // Redirect to Squarespace with return URL
-    window.location.href = `${squarespaceLoginUrl}/abfi-login?return_url=${returnUrl}`;
+    // For now, create a simple email/password flow
+    // This will be replaced when you have your actual Squarespace domain
+    const email = prompt('Enter your email address:');
+    
+    if (!email) {
+      setLoading(false);
+      return;
+    }
+    
+    // Generate a token for this session
+    const token = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+    
+    // Authenticate with our backend
+    handleSquarespaceAuth(email, token);
   };
   
   // Main login screen with Squarespace SSO
