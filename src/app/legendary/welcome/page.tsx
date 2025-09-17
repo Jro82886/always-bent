@@ -16,6 +16,7 @@ export default function LegendaryWelcomePage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [step, setStep] = useState(1); // 1: captain/boat, 2: location permission
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const [isReturningUser, setIsReturningUser] = useState(false);
   
   useEffect(() => {
     checkAuth();
@@ -41,18 +42,12 @@ export default function LegendaryWelcomePage() {
       .single();
     
     if (profile?.captain_name && profile?.boat_name) {
-      // Profile exists, check if they need location setup
-      const hasLocationSetup = localStorage.getItem('abfi_location_setup');
-      if (!hasLocationSetup) {
-        setCaptainName(profile.captain_name);
-        setBoatName(profile.boat_name);
-        setStep(2); // Go to location permission step
-      } else {
-        // Everything complete, go to command bridge
-        localStorage.setItem('abfi_captain_name', profile.captain_name);
-        localStorage.setItem('abfi_boat_name', profile.boat_name);
-        router.replace('/legendary?mode=analysis');
-      }
+      // Profile exists - show it for confirmation instead of auto-advancing
+      setCaptainName(profile.captain_name);
+      setBoatName(profile.boat_name);
+      setIsReturningUser(true);
+      // Stay on step 1 - user must confirm or edit their info
+      // Don't auto-advance to step 2 or the main app
     }
   };
   
@@ -173,9 +168,11 @@ export default function LegendaryWelcomePage() {
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-                Welcome Aboard, Captain!
+                {isReturningUser ? 'Welcome Back, Captain!' : 'Welcome Aboard, Captain!'}
               </h1>
-              <p className="text-slate-400 mt-2">Let\'s set up your command bridge</p>
+              <p className="text-slate-400 mt-2">
+                {isReturningUser ? 'Confirm your details or make changes' : 'Let\'s set up your command bridge'}
+              </p>
               {userEmail && (
                 <p className="text-xs text-slate-500 mt-2">Signed in as {userEmail}</p>
               )}
@@ -185,6 +182,15 @@ export default function LegendaryWelcomePage() {
             {error && (
               <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
                 {error}
+              </div>
+            )}
+
+            {/* Show returning user notice */}
+            {isReturningUser && (
+              <div className="mb-6 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                <p className="text-cyan-400 text-sm flex items-center gap-2">
+                  <span>✓</span> Your profile was found. Review your details below:
+                </p>
               </div>
             )}
 
@@ -237,7 +243,7 @@ export default function LegendaryWelcomePage() {
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    Continue
+                    {isReturningUser ? 'Confirm & Continue' : 'Continue'}
                     <ChevronRight className="w-5 h-5" />
                   </span>
                 )}
