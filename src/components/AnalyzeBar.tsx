@@ -80,14 +80,25 @@ export default function AnalyzeBar() {
       }
       const mapRef: any = (globalThis as any).abfiMap;
       if (mapRef) fitToBBox(mapRef, bbox);
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bbox, time: isoDate || 'latest' }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Analyze failed');
-      if (mapRef) {
+      // Use real data analysis if map is available
+      let data;
+      if (mapRef && typeof window !== 'undefined') {
+        // Client-side analysis with REAL pixel data
+        const { analyzeAreaWithRealData } = await import('@/lib/analysis/client-analyzer');
+        data = await analyzeAreaWithRealData(mapRef, bbox);
+      } else {
+        // Fallback to API (will be updated to real data soon)
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bbox, time: isoDate || 'latest' }),
+        });
+        const apiData = await res.json();
+        if (!res.ok) throw new Error(apiData?.error || 'Analyze failed');
+        data = apiData;
+      }
+      
+      if (mapRef && data.hotspots) {
         ensureHotspotLayers(mapRef);
         drawHotspots(mapRef, data.hotspots);
         fitToBBox(mapRef, bbox);

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { findRealHotspots } from '@/lib/analysis/real-pixel-extractor';
 
 type AnalyzePayload = {
   bbox: [number, number, number, number];
   time?: string;
   layers?: string[];
   inletId?: string;
+  map?: any; // Map instance passed from client
 };
 
 export async function POST(req: NextRequest) {
