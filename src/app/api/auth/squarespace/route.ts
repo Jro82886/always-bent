@@ -106,29 +106,34 @@ export async function POST(req: NextRequest) {
         });
     }
     
-    // Generate a session for the user
-    const { data: session, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email,
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/legendary/welcome`
-      }
-    });
+    // Generate a magic link for the user to create a session
+    // Note: In production, you might want to use a different approach
+    // For now, we'll create a password-based session
     
-    if (sessionError || !session) {
-      console.error('Session error:', sessionError);
+    // Generate a secure temporary password
+    const tempPassword = crypto.randomBytes(32).toString('hex');
+    
+    // Update user with temporary password
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      userId,
+      { password: tempPassword }
+    );
+    
+    if (updateError) {
+      console.error('Error updating user:', updateError);
       return NextResponse.json(
         { error: 'Failed to create session' },
         { status: 500 }
       );
     }
     
-    // Create a custom session token
-    const { data: { session: userSession }, error: signInError } = await supabaseAdmin.auth.admin.createSession({
-      userId
+    // Sign in the user with the temporary password to get a session
+    const { data: authData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password: tempPassword
     });
     
-    if (signInError || !userSession) {
+    if (signInError || !authData.session) {
       console.error('Sign in error:', signInError);
       return NextResponse.json(
         { error: 'Failed to sign in user' },
@@ -137,7 +142,7 @@ export async function POST(req: NextRequest) {
     }
     
     return NextResponse.json({
-      session: userSession,
+      session: authData.session,
       user: {
         id: userId,
         email
