@@ -45,7 +45,6 @@ export default function LayersRuntime() {
               
             } else {
               // Still using demo
-              ');
             }
           })
           .catch(err => {

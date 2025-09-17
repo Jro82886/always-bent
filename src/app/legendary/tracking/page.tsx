@@ -61,14 +61,14 @@ function TrackingModeContent() {
       );
       
       if (autoSelect.shouldAutoSelect && autoSelect.inlet) {
-        }mi away)`);
+        // Auto-selected inlet based on location
+        
+        // Update global state
+        const { setSelectedInletId } = useAppState.getState();
+        setSelectedInletId(autoSelect.inlet.id);
       
-      // Update global state
-      const { setSelectedInletId } = useAppState.getState();
-      setSelectedInletId(autoSelect.inlet.id);
-      
-      // Show notification
-      const toastId = 'auto-select-toast';
+        // Show notification
+        const toastId = 'auto-select-toast';
       // Remove any existing toast first
       const existingToast = document.getElementById(toastId);
       if (existingToast) {
@@ -117,7 +117,7 @@ function TrackingModeContent() {
         clearTimeout(toastTimeoutRef.current);
       }
       
-      toastTimeoutRef.current =       setTimeout(() => {
+      toastTimeoutRef.current = setTimeout(() => {
         // Safely remove toast if it still exists
         const toastElement = document.getElementById(toastId);
         if (toastElement) {
@@ -125,6 +125,7 @@ function TrackingModeContent() {
         }
         toastTimeoutRef.current = null;
       }, 5000);
+      }
       
       // Mark that we've auto-selected
       setHasAutoSelected(true);

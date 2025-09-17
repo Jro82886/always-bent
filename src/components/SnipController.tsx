@@ -142,8 +142,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       // }
       
     } catch (error) {
-      
-      .stack);
+      // Error logged
       alert(`Analysis failed: ${(error as Error).message}`);
       
       // Clear the rectangle on error

@@ -42,11 +42,11 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       }
       
       // Show console notifications (replace with toast later)
-      if (event.type === 'sync-complete' && event.data?.synced > 0) {
-        
-      } else if (event.type === 'bite-expired' && event.data?.count > 0) {
-        `);
-      }
+          if (event.type === 'sync-complete' && event.data?.synced > 0) {
+            // Sync complete notification
+          } else if (event.type === 'bite-expired' && event.data?.count > 0) {
+            // Bite expired notification
+          }
     });
     
     return () => unsubscribe();

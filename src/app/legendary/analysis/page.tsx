@@ -121,7 +121,6 @@ function AnalysisModeContent() {
         }, 1600);
       } else {
         // First time - start with Atlantic view for tutorial
-        ');
         // Tutorial will handle the zoom to East Coast
       }
       
@@ -136,10 +135,7 @@ function AnalysisModeContent() {
       // Debug: List layers and confirm presence
       setTimeout(() => {
         const layers = mapInstance.getStyle().layers;
-        );
-        );
-        );
-        );
+        // Layer debug info removed
       }, 2000);
 
       // ESRI Ocean Basemap (bathymetry/depth data)
@@ -207,7 +203,7 @@ function AnalysisModeContent() {
         }, firstSymbolId);  // Place below labels and land
       }
 
-       - Atlantic East Coast coverage');
+      // Atlantic East Coast coverage
       
       
 

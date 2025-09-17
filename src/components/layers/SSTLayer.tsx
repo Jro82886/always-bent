@@ -87,7 +87,7 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           if (top && top !== lyrId) map.moveLayer(lyrId, top);
         }
       } catch (error) {
-        :', error);
+        // Layer update error handled
       }
     };
     

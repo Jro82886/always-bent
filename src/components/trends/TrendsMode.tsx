@@ -55,7 +55,7 @@ export default function TrendsMode({}: TrendsModeProps) {
       const testCatches = JSON.parse(localStorage.getItem('abfi_test_catches') || '[]');
       const testAnalyses = JSON.parse(localStorage.getItem('abfi_test_analyses') || '[]');
       if (testCatches.length > 0 || testAnalyses.length > 0) {
-        `);
+        // Test data detected
       }
     };
     
