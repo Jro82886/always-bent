@@ -27,11 +27,12 @@ export async function GET(request: NextRequest) {
     );
     
     // Add some logging
-     => f.properties?.type === 'eddy').length,
+    const stats = {
+      eddies: polygons.features.filter((f: any) => f.properties?.type === 'eddy').length,
       edges: polygons.features.filter((f: any) => f.properties?.type === 'edge').length,
       filaments: polygons.features.filter((f: any) => f.properties?.type === 'filament').length,
       bounds
-    });
+    };
     
     return NextResponse.json(polygons);
   } catch (error) {

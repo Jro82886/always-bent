@@ -85,7 +85,7 @@ export async function GET(
       }
 
       // If 404 or other error, try next date
-      [0]}, trying earlier date...`);
+      // Trying earlier date
       
     } catch (error) {
       

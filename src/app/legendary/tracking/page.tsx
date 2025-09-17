@@ -125,13 +125,12 @@ function TrackingModeContent() {
         }
         toastTimeoutRef.current = null;
       }, 5000);
-      }
       
       // Mark that we've auto-selected
       setHasAutoSelected(true);
+      }
       
       // Don't auto-fly anymore - let the inlet change effect handle it
-    }
     }
   };
 

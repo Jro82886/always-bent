@@ -146,7 +146,9 @@ export default function VesselLayer({
               
             }
           },
-          (error) => ,
+          (error) => {
+            // Geolocation error handled
+          },
           {
             enableHighAccuracy: true,
             maximumAge: 30000,

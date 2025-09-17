@@ -318,8 +318,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
               
               
               if (map) {
-                );
-                );
+                // Map overlay updated
               }
             }}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700"
