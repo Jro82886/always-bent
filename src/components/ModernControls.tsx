@@ -18,6 +18,7 @@ import {
   Anchor
 } from 'lucide-react';
 import { INLETS } from '@/lib/inlets';
+import { getBathymetrySources, getBathymetryLayers, type BathymetryConfig } from '@/lib/services/bathymetry';
 import { flyToInlet60nm } from '@/lib/inletBounds';
 
 interface ModernControlsProps {
@@ -119,8 +120,55 @@ export default function ModernControls({
     if (layer === 'ocean') {
       const newState = !oceanActive;
       setOceanActive(newState);
-      if (map?.getLayer('ocean-layer')) {
-        map.setLayoutProperty('ocean-layer', 'visibility', newState ? 'visible' : 'none');
+      
+      if (map) {
+        // Handle bathymetry layers
+        if (newState) {
+          // Add bathymetry sources if not already added
+          const sources = getBathymetrySources();
+          for (const [id, source] of Object.entries(sources)) {
+            if (!map.getSource(id)) {
+              map.addSource(id, source);
+            }
+          }
+          
+          // Add bathymetry layers with configuration
+          const bathyConfig: BathymetryConfig = {
+            multibeamMosaic: true,
+            demColorShadedRelief: true,
+            opacity: oceanOpacity / 100
+          };
+          
+          const layers = getBathymetryLayers(bathyConfig);
+          for (const layer of layers) {
+            if (!map.getLayer(layer.id)) {
+              // Add before labels if possible
+              const labelLayerId = map.getStyle().layers.find(
+                (l: any) => l.type === 'symbol' && l.layout?.['text-field']
+              )?.id;
+              
+              if (labelLayerId) {
+                map.addLayer(layer, labelLayerId);
+              } else {
+                map.addLayer(layer);
+              }
+            } else {
+              map.setLayoutProperty(layer.id, 'visibility', 'visible');
+            }
+          }
+        } else {
+          // Hide bathymetry layers
+          ['bathymetry-multibeam', 'bathymetry-dem-relief'].forEach(layerId => {
+            if (map.getLayer(layerId)) {
+              map.setLayoutProperty(layerId, 'visibility', 'none');
+            }
+          });
+        }
+        
+        // Legacy ocean layer handling
+        if (map.getLayer('ocean-layer')) {
+          map.setLayoutProperty('ocean-layer', 'visibility', newState ? 'visible' : 'none');
+        }
       }
     } else if (layer === 'sst') {
       setSstActive(!sstActive);
@@ -134,9 +182,26 @@ export default function ModernControls({
   };
   
   const updateOpacity = (layer: string, opacity: number) => {
-    if (layer === 'ocean' && map?.getLayer('ocean-layer')) {
+    if (layer === 'ocean') {
       setOceanOpacity(opacity);
-      map.setPaintProperty('ocean-layer', 'raster-opacity', opacity / 100);
+      
+      // Update bathymetry layers opacity
+      if (map) {
+        ['bathymetry-multibeam', 'bathymetry-dem-relief'].forEach(layerId => {
+          if (map.getLayer(layerId)) {
+            // Multibeam gets slightly lower opacity for better layering
+            const layerOpacity = layerId === 'bathymetry-multibeam' 
+              ? (opacity / 100) * 0.8 
+              : opacity / 100;
+            map.setPaintProperty(layerId, 'raster-opacity', layerOpacity);
+          }
+        });
+        
+        // Legacy ocean layer
+        if (map.getLayer('ocean-layer')) {
+          map.setPaintProperty('ocean-layer', 'raster-opacity', opacity / 100);
+        }
+      }
     } else if (layer === 'sst' && map?.getLayer('sst-lyr')) {
       setSstOpacity(opacity);
       map.setPaintProperty('sst-lyr', 'raster-opacity', opacity / 100);
@@ -309,9 +374,9 @@ export default function ModernControls({
                 style={oceanActive ? {
                   boxShadow: '0 0 20px rgba(59, 130, 246, 0.5), inset 0 0 10px rgba(59, 130, 246, 0.3)'
                 } : {}}
-                title="Ocean Floor Basemap (Bathymetry)"
+                title="NOAA Bathymetry - Multibeam mosaic & DEM color shaded relief"
               >
-                🌊 Ocean Floor
+                🌊 Ocean
                 {oceanActive && (
                   <button
                     onClick={(e) => {
