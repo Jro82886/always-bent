@@ -9,7 +9,7 @@ import { Loader2, Anchor, AlertCircle, Check } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, user, loading: authLoading } = useAuth();
+  const { signIn } = useAuth();  // Remove user and authLoading - we don't need to check
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,12 +17,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Don't auto-redirect on the login page - let users choose
-  // Remove the auto-redirect so new users from Squarespace can set up properly
-  useEffect(() => {
-    // Just check auth status, don't redirect
-    // This lets new users see the page and click the button
-  }, []);
+  // NO AUTO-REDIRECT AT ALL - Users must click the button
+  // This ensures Squarespace users see the page and choose to enter
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
