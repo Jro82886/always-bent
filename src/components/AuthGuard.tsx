@@ -1,0 +1,67 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/supabase/AuthProvider';
+import { Loader2, Lock } from 'lucide-react';
+
+interface AuthGuardProps {
+  children: React.ReactNode;
+  requireAuth?: boolean;
+  fallbackPath?: string;
+}
+
+export default function AuthGuard({ 
+  children, 
+  requireAuth = true,
+  fallbackPath = '/auth/login'
+}: AuthGuardProps) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && requireAuth && !user) {
+      // Not authenticated, redirect to login
+      router.push(fallbackPath);
+    }
+  }, [user, loading, requireAuth, fallbackPath, router]);
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+          <p className="text-cyan-400 animate-pulse">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If auth is required but user is not authenticated, show message
+  // (This is a fallback, the useEffect should redirect)
+  if (requireAuth && !user) {
+    return (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 max-w-md">
+          <div className="flex items-center gap-3 mb-4">
+            <Lock className="w-6 h-6 text-cyan-400" />
+            <h2 className="text-xl font-bold text-white">Authentication Required</h2>
+          </div>
+          <p className="text-gray-400 mb-6">
+            You need to be logged in to access ABFI Command Bridge.
+          </p>
+          <button
+            onClick={() => router.push('/auth/login')}
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // User is authenticated or auth not required, show content
+  return <>{children}</>;
+}

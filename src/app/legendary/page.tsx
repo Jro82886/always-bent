@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import AuthGuard from '@/components/AuthGuard';
 
 // Dynamically import modes
 const AnalysisMode = dynamic(() => import('./analysis/page'), { ssr: false });
@@ -39,12 +40,14 @@ function ABFICore() {
 
 export default function LegendaryPage() {
   return (
-    <Suspense fallback={
-      <div className="w-full h-screen bg-black flex items-center justify-center">
-        <div className="text-cyan-400">Loading...</div>
-      </div>
-    }>
-      <ABFICore />
-    </Suspense>
+    <AuthGuard requireAuth={true} fallbackPath="/auth/login">
+      <Suspense fallback={
+        <div className="w-full h-screen bg-black flex items-center justify-center">
+          <div className="text-cyan-400">Loading...</div>
+        </div>
+      }>
+        <ABFICore />
+      </Suspense>
+    </AuthGuard>
   );
 }

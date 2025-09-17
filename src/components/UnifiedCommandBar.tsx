@@ -8,8 +8,10 @@ import {
   TrendingUp,
   ChevronDown,
   Anchor,
-  MapPin
+  MapPin,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '@/lib/supabase/AuthProvider';
 import { INLETS } from '@/lib/inlets';
 import { flyToInlet60nm } from '@/lib/inletBounds';
 import { useAppState } from '@/store/appState';
@@ -23,6 +25,7 @@ interface UnifiedCommandBarProps {
 export default function UnifiedCommandBar({ map, activeTab, onTabChange }: UnifiedCommandBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, profile, signOut } = useAuth();
   const [captainName, setCaptainName] = useState<string>('');
   const [boatName, setBoatName] = useState<string>('');
   const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
@@ -354,6 +357,25 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
             <span>Trends</span>
           </button>
         </div>
+        
+        {/* User Info & Logout */}
+        {user && (
+          <div className="flex items-center gap-3 px-4 border-l border-cyan-500/10">
+            <div className="text-xs text-cyan-100/70">
+              {profile?.captain_name || user.email?.split('@')[0]}
+            </div>
+            <button
+              onClick={async () => {
+                await signOut();
+                router.push('/auth/login');
+              }}
+              className="p-2 rounded-full text-cyan-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all"
+              title="Sign Out"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+        )}
       </div>
       </div>
     </div>

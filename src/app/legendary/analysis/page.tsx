@@ -134,8 +134,10 @@ function AnalysisModeContent() {
       
       // Debug: List layers and confirm presence
       setTimeout(() => {
-        const layers = mapInstance.getStyle().layers;
-        // Layer debug info removed
+        if (mapInstance.getStyle()) {
+          const layers = mapInstance.getStyle().layers;
+          // Layer debug info removed
+        }
       }, 2000);
 
       // ESRI Ocean Basemap (bathymetry/depth data)
@@ -177,12 +179,14 @@ function AnalysisModeContent() {
 
       if (!mapInstance.getLayer('chl-lyr')) {
         // Find the first label layer to place chlorophyll underneath
-        const layers = mapInstance.getStyle().layers;
         let firstSymbolId;
-        for (const layer of layers) {
-          if (layer.type === 'symbol' || layer.id.includes('label') || layer.id.includes('place')) {
-            firstSymbolId = layer.id;
-            break;
+        if (mapInstance.getStyle()) {
+          const layers = mapInstance.getStyle().layers;
+          for (const layer of layers) {
+            if (layer.type === 'symbol' || layer.id.includes('label') || layer.id.includes('place')) {
+              firstSymbolId = layer.id;
+              break;
+            }
           }
         }
         
