@@ -75,24 +75,40 @@ function LoginContent() {
     }
   };
 
-  const handleSquarespaceLogin = () => {
+  const handleSquarespaceLogin = async () => {
     setLoading(true);
     setError('');
     
-    // For now, create a simple email/password flow
-    // This will be replaced when you have your actual Squarespace domain
-    const email = prompt('Enter your email address:');
+    // Use a proper email input instead of prompt
+    const email = prompt('Enter your Squarespace email address:');
     
     if (!email) {
       setLoading(false);
       return;
     }
     
-    // Generate a token for this session
-    const token = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2);
-    
-    // Authenticate with our backend
-    handleSquarespaceAuth(email, token);
+    try {
+      // Use Supabase magic link for passwordless authentication
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/legendary/welcome`,
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Show success message
+      alert(`Check your email (${email}) for a magic link to sign in!`);
+      setLoading(false);
+      
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setError(error.message || 'Failed to send magic link. Please try again.');
+      setLoading(false);
+    }
   };
   
   // Main login screen with Squarespace SSO
