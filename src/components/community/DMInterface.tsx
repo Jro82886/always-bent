@@ -278,7 +278,7 @@ export default function DMInterface() {
     setIsTyping(false);
     
     // In real app, send to server
-    console.log('Message sent:', newMessage);
+    
     
     // Scroll to bottom
     setTimeout(() => {
@@ -309,7 +309,7 @@ export default function DMInterface() {
         };
         setConversations(prev => [newConversation, ...prev]);
         setSelectedConversation(newConversation.id);
-        console.log('Started new conversation with:', user.username);
+        
       }
     }
     setShowUserSearch(false);

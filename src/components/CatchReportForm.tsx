@@ -88,7 +88,7 @@ export default function CatchReportForm({ visible, onClose, onConfirm, map, loca
     localStorage.setItem(storageKey, JSON.stringify(catches));
     
     if (isTestMode) {
-      console.log('🧪 Test catch report saved (not affecting production data)');
+      ');
     }
     
     onConfirm(finalData);

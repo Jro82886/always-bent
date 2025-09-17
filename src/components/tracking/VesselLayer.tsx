@@ -73,7 +73,7 @@ export default function VesselLayer({
       // Check if location permission is granted
       const locationPermission = localStorage.getItem('abfi_location_permission');
       if (locationPermission !== 'granted') {
-        console.log('Location permission not granted, skipping GPS tracking');
+        
         return;
       }
       
@@ -91,7 +91,7 @@ export default function VesselLayer({
             }
           },
           (error) => {
-            console.error('Geolocation error:', error);
+            
             // Use a default position if geolocation fails (e.g., Montauk)
             const mockPosition = {
               coords: {
@@ -141,12 +141,12 @@ export default function VesselLayer({
                   session_id: `session_${Date.now()}`
                 })
               });
-              console.log('[TRACKING] Position saved to database');
+              
             } catch (error) {
-              console.error('[TRACKING] Failed to save position:', error);
+              
             }
           },
-          (error) => console.error('Geolocation watch error:', error),
+          (error) => ,
           {
             enableHighAccuracy: true,
             maximumAge: 30000,
@@ -218,7 +218,7 @@ export default function VesselLayer({
       // TESTING: Temporarily bypass privacy for development testing only
       // This lets you test from home while someone is on a boat
       if (TESTING_MODE) {
-        console.log('[TESTING] Privacy checks temporarily disabled for testing - Production will enforce all privacy rules');
+        
         return true;
       }
       
@@ -232,7 +232,7 @@ export default function VesselLayer({
                           -80.5;              // Southern states
       
       if (lng > coastlineLng) {
-        console.log('[PRIVACY] User position on land (west of coastline), hiding from map');
+        , hiding from map');
         return false;
       }
       
@@ -255,7 +255,7 @@ export default function VesselLayer({
           // Must be within 10 miles of inlet (typical cell service range)
           // Beyond this, users lose cell service and need offline mode anyway
           if (distance > 10) {
-            console.log(`[PRIVACY] User ${distance.toFixed(1)}mi from inlet, beyond cell range`);
+            }mi from inlet, beyond cell range`);
             return false;
           }
         }
@@ -451,7 +451,7 @@ export default function VesselLayer({
         
         userMarkerRef.current = marker;
       } catch (error) {
-        console.error('[VesselLayer] Failed to create user marker:', error);
+        
         return;
       }
     } else if (!isVisible && userMarkerRef.current) {
@@ -491,7 +491,7 @@ export default function VesselLayer({
     
     // CRITICAL: Don't fetch fleet if overview mode or no inlet selected
     if (!selectedInletId || selectedInletId === 'overview') {
-      console.warn('[FLEET] Cannot show fleet in overview mode - please select a specific inlet');
+      
       return;
     }
     
@@ -625,7 +625,7 @@ export default function VesselLayer({
                   seenVesselIds.add(vessel.user_id);
                 }
               } catch (vesselError) {
-                console.error('[FLEET] Error rendering vessel:', vesselError);
+                
                 // Skip this vessel and continue with others
               }
             });
@@ -638,11 +638,11 @@ export default function VesselLayer({
               }
             });
             
-            console.log(`[FLEET] Displayed ${fleetMarkersRef.current.size} vessels`);
+            
             return; // Successfully loaded real data, exit function
           }
         } catch (error) {
-          console.error('[FLEET] Failed to fetch positions:', error);
+          
           // Fall back to mock data if API fails
           const visibleFleet = selectedInletId && selectedInletId !== 'overview' 
             ? MOCK_FLEET.filter(vessel => vessel.inlet === selectedInletId)

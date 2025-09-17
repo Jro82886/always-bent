@@ -43,9 +43,9 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       
       // Show console notifications (replace with toast later)
       if (event.type === 'sync-complete' && event.data?.synced > 0) {
-        console.log(`✅ Uploaded ${event.data.synced} bite${event.data.synced > 1 ? 's' : ''}`);
+        
       } else if (event.type === 'bite-expired' && event.data?.count > 0) {
-        console.warn(`⚠️ ${event.data.count} bite${event.data.count > 1 ? 's' : ''} expired (>24 hours old)`);
+        `);
       }
     });
     
@@ -58,7 +58,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   };
   
   const handleReportCatch = async () => {
-    console.log('[ABFI] Button clicked!');
+    
     
     // Mark as used
     localStorage.setItem('abfi_first_click', 'true');
@@ -82,11 +82,11 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
     
     // Check network connectivity
     const isOnline = navigator.onLine;
-    console.log('[ABFI] Network status:', isOnline ? 'ONLINE' : 'OFFLINE');
+    
     
     // ONE TAP = INSTANT LOG! No forms, no friction
     const logBite = async (location: { lat: number; lng: number }) => {
-      console.log('[ABFI] Logging bite at:', location);
+      
       
       try {
         // Get current user (optional - works without login)
@@ -108,7 +108,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         
         if (isOnline) {
           // ONLINE MODE: Instant report generation
-          console.log('[ABFI] ONLINE - Creating instant report');
+          
           
           // Record bite and immediately sync
           const bite = await recordBite({
@@ -136,7 +136,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
           
         } else {
           // OFFLINE MODE: Queue for later
-          console.log('[ABFI] OFFLINE - Queuing bite for later upload');
+          
           
           // Record the bite locally
           const bite = await recordBite({
@@ -162,10 +162,10 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         }
         
         // Log success
-        console.log('[ABFI] Bite recorded successfully');
+        
         
       } catch (error) {
-        console.error('[ABFI] Error logging bite:', error);
+        
         alert('Failed to log bite. Please try again.');
         return;
       }
@@ -334,9 +334,9 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         };
         
         await reportCatch(catchDraft);
-        console.log('[BITE] Saved to database successfully');
+        
       } catch (error) {
-        console.error('[BITE] Failed to save to database:', error);
+        
         // Continue anyway - local storage still has it
       }
       
@@ -445,7 +445,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
         setTimeout(() => toast.remove(), 300);
       }, 2500);
       
-      console.log('[BITE] Logged:', biteData);
+      
     };
     
     // Get location and log immediately
@@ -478,7 +478,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
   };
   
   const handleConfirmCatch = (data: any) => {
-    console.log('[CATCH] Confirmed:', data);
+    
     
     // Add a temporary marker on the map
     if (map && data.location) {

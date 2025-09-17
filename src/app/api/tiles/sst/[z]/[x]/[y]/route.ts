@@ -13,14 +13,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const base = process.env[tplKey];
 
   // DEBUG LOGGING
-  console.log(`🚨 SST DEBUG - Tile: ${z}/${x}/${y}`);
-  console.log(`🚨 SST DEBUG - Template Key: ${tplKey}`);
-  console.log(`🚨 SST DEBUG - Template: ${base ? 'SET' : 'MISSING'}`);
-  console.log(`🚨 SST DEBUG - User: ${process.env.COPERNICUS_USER ? 'SET' : 'MISSING'}`);
-  console.log(`🚨 SST DEBUG - Pass: ${process.env.COPERNICUS_PASS ? 'SET' : 'MISSING'}`);
+  
+  
+  
+  
+  
 
   if (!base) {
-    console.log(`🚨 SST ERROR - ${tplKey} not configured`);
+    
     return new Response(`${tplKey} not configured`, { status: 500 });
   }
 
@@ -51,8 +51,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     timeParam = qTime; // assume caller provided a full ISO timestamp
   }
   
-  console.log(`🚨 SST DEBUG - Time param: ${timeParam}`);
-  console.log(`🚨 SST DEBUG - Fallback dates available: ${fallbackDates.join(', ')}`);
+  
+  }`);
 
   const u = process.env.COPERNICUS_USER || '';
   const p = process.env.COPERNICUS_PASS || '';
@@ -75,8 +75,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       .replace('{y}', y)
       .replace('{TIME}', tryTime);
     
-    console.log(`🚨 SST DEBUG - Trying date: ${tryTime.split('T')[0]}`);
-    console.log(`🚨 SST DEBUG - URL: ${target}`);
+    [0]}`);
+    
 
     try {
       const response = await fetch(target, {
@@ -89,23 +89,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
         cache: 'no-store'
       });
 
-      console.log(`🚨 SST DEBUG - Response status: ${response.status}`);
+      
       
       if (response.ok) {
         upstream = response;
         successfulTime = tryTime;
-        console.log(`🚨 SST SUCCESS - Tile loaded for date: ${tryTime.split('T')[0]}`);
+        [0]}`);
         break;
       } else if (response.status === 400 && datesToTry.length > 1) {
         // Try next date
         lastError = await response.text();
-        console.log(`🚨 SST DEBUG - 400 error, trying fallback date...`);
+        
         continue;
       } else {
         // Non-400 error or last attempt
         const text = await response.text();
-        console.log(`🚨 SST ERROR - Upstream failed: ${response.status}`);
-        console.log(`🚨 SST ERROR - Full Response: ${text}`);
+        
+        
         return new Response(text || `Upstream ${response.status}`, {
           status: response.status,
           headers: { 
@@ -116,7 +116,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       }
     } catch (e: any) {
       lastError = e?.message || String(e);
-      console.log(`🚨 SST ERROR - Fetch failed: ${lastError}`);
+      
       if (datesToTry.indexOf(tryTime) === datesToTry.length - 1) {
         // Last attempt failed
         break;
@@ -125,7 +125,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   }
 
   if (!upstream) {
-    console.log(`🚨 SST ERROR - All dates failed`);
+    
     return new Response(`All dates failed. Last error: ${lastError}`, {
       status: 502,
       headers: { 

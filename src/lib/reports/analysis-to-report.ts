@@ -207,12 +207,12 @@ export async function saveAnalysisAsReport(analysis: AnalysisData): Promise<void
       });
       
     if (error) {
-      console.warn('[Reports] Supabase save failed:', error);
+      
     } else {
-      console.log('[Reports] Saved to Supabase successfully');
+      
     }
   } catch (e) {
-    console.warn('[Reports] Supabase not configured, using local storage only');
+    
   }
 }
 

@@ -23,15 +23,15 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   }, []);
 
   useEffect(() => {
-    console.log('[AnalysisModal] Props changed - visible:', visible, 'analysis:', !!analysis);
+    
     if (visible && analysis) {
       // Show immediately when visible prop is true
-      console.log('[AnalysisModal] Showing modal');
+      
       setIsVisible(true);
       // Force animation to start immediately
       setIsAnimating(true);
     } else if (!visible) {
-      console.log('[AnalysisModal] Hiding modal');
+      
       setIsAnimating(false);
       setTimeout(() => setIsVisible(false), 300);
     }
@@ -44,12 +44,12 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   // Show the modal if we have both visibility and analysis
   if (!visible || !analysis) {
-    console.log('[AnalysisModal] Not rendering - visible:', visible, 'analysis:', !!analysis);
+    
     return null;
   }
   
-  console.log('[AnalysisModal] Rendering modal with analysis:', analysis);
-  console.log('[AnalysisModal] Modal should be visible now!');
+  
+  
 
   const { hotspot, stats, features, layerAnalysis, boatActivity, vesselTracks, edgeAnalysis } = analysis as any;
   

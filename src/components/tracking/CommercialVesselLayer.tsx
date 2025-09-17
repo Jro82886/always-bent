@@ -64,7 +64,7 @@ export default function CommercialVesselLayer({
           }
         } catch (error) {
           // If getBounds fails, use default area
-          console.log('[GFW] Could not get map bounds, using default area');
+          
           boundsArray = [-80, 25, -65, 45];
         }
       }
@@ -100,7 +100,7 @@ export default function CommercialVesselLayer({
           // Vessels on land have longitude GREATER (less negative) than coastline
           // e.g., -74 > -75.5 means vessel is on land
           if (latestPosition.lon > coastlineLng) {
-            console.log(`[GFW] Skipping vessel on land: ${vessel.name} at lon=${latestPosition.lon} (coastline at ${coastlineLng})`);
+            `);
             return; // Skip vessels that appear to be on land
           }
           
@@ -253,9 +253,9 @@ export default function CommercialVesselLayer({
           commercialMarkersRef.current.set(vessel.id, marker);
         });
 
-        console.log(`[GFW] Displayed ${vessels.length} commercial vessels with ABFI branding`);
+        
       } catch (error) {
-        console.error('[GFW] Error fetching commercial vessels:', error);
+        
       }
     };
 

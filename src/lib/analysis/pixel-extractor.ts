@@ -38,7 +38,7 @@ export async function extractPixelData(
     sampleDensity = 10
   } = options;
 
-  console.log('[PIXEL] Starting pixel extraction from tiles');
+  
   
   // Get polygon bounds
   const bbox = turf.bbox(polygon);
@@ -51,7 +51,7 @@ export async function extractPixelData(
   const area = turf.area(polygon) / 1000000; // km²
   const numSamples = Math.min(Math.max(Math.floor(area * sampleDensity), 10), 500);
   
-  console.log(`[PIXEL] Sampling ${numSamples} points across ${area.toFixed(2)} km²`);
+  } km²`);
   
   // Generate sample points within polygon
   const samplePoints = generateSamplePoints(polygon, numSamples);
@@ -59,14 +59,14 @@ export async function extractPixelData(
   // Extract SST data if layer is visible
   let sstData: PixelData[] = [];
   if (map.getLayer(sstLayerId) && map.getLayoutProperty(sstLayerId, 'visibility') === 'visible') {
-    console.log('[PIXEL] Extracting SST data from tiles...');
+    
     sstData = await extractLayerPixels(map, sstLayerId, samplePoints, 'sst');
   }
   
   // Extract CHL data if layer is visible
   let chlData: PixelData[] = [];
   if (map.getLayer(chlLayerId) && map.getLayoutProperty(chlLayerId, 'visibility') === 'visible') {
-    console.log('[PIXEL] Extracting CHL data from tiles...');
+    
     chlData = await extractLayerPixels(map, chlLayerId, samplePoints, 'chl');
   }
   
@@ -137,7 +137,7 @@ async function extractLayerPixels(
   const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
   
   if (!gl) {
-    console.warn('[PIXEL] WebGL context not available, using fallback data');
+    
     return generateFallbackData(samplePoints, dataType);
   }
   
@@ -179,9 +179,9 @@ async function extractLayerPixels(
       }
     }
     
-    console.log(`[PIXEL] Extracted ${pixelData.length} ${dataType} values`);
+    
   } catch (error) {
-    console.error('[PIXEL] Error extracting pixels:', error);
+    
     return generateFallbackData(samplePoints, dataType);
   }
   

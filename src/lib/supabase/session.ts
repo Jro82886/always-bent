@@ -17,12 +17,12 @@ export async function checkExistingSession() {
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
-      console.error('Session check error:', error);
+      
       return null;
     }
     
     if (session) {
-      console.log('✅ Active session found - user stays logged in');
+      
       
       // Refresh token if needed
       const tokenExpiry = session.expires_at || 0;
@@ -31,7 +31,7 @@ export async function checkExistingSession() {
       
       if (hoursUntilExpiry < 24) {
         // Refresh if less than 24 hours remaining
-        console.log('🔄 Refreshing session token...');
+        
         const { data: { session: newSession } } = await supabase.auth.refreshSession();
         return newSession;
       }
@@ -41,7 +41,7 @@ export async function checkExistingSession() {
     
     return null;
   } catch (error) {
-    console.error('Session check failed:', error);
+    
     return null;
   }
 }
@@ -122,7 +122,7 @@ export async function clearAllSessions() {
   // Clear sessionStorage
   sessionStorage.clear();
   
-  console.log('🔒 All sessions cleared');
+  
 }
 
 /**
@@ -133,12 +133,12 @@ export async function extendSession() {
   const { data: { session }, error } = await supabase.auth.refreshSession();
   
   if (error) {
-    console.error('Failed to extend session:', error);
+    
     return false;
   }
   
   if (session) {
-    console.log('✅ Session extended');
+    
     return true;
   }
   

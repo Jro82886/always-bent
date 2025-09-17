@@ -71,13 +71,13 @@ export async function GET(
       
       if (testResponse && testResponse.ok) {
         success = true;
-        console.log(`🌿 Copernicus success with matrix: ${matrix}`);
+        
         break;
       }
     }
     
     if (!success) {
-      console.warn(`Copernicus WMTS failed for all matrix sets`);
+      
       return new NextResponse(BLANK_PNG, {
         headers: {
           'Content-Type': 'image/png',
@@ -86,7 +86,7 @@ export async function GET(
       });
     }
     
-    console.log('🌿 Copernicus WMTS URL:', wmtsUrl!.toString());
+    );
     
     const response = await fetch(wmtsUrl!.toString(), {
       headers: { 
@@ -106,7 +106,7 @@ export async function GET(
     });
     
   } catch (error: any) {
-    console.error('Copernicus WMTS error:', error);
+    
     return new NextResponse(BLANK_PNG, {
       headers: {
         'Content-Type': 'image/png',

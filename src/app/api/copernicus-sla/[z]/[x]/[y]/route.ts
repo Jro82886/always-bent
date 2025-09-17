@@ -71,7 +71,7 @@ export async function GET(
       
       if (testResponse?.ok) {
         success = true;
-        console.log(`🌊 Altimetry success with matrix: ${matrix}`);
+        
         break;
       }
     }
@@ -94,7 +94,7 @@ export async function GET(
     }
     
     if (!wmtsUrl) {
-      console.error('🚨 No valid WMTS URL found for Altimetry');
+      
       return new NextResponse(BLANK_PNG, {
         headers: {
           'Content-Type': 'image/png',
@@ -104,7 +104,7 @@ export async function GET(
       });
     }
     
-    console.log('🌊 Altimetry WMTS URL:', wmtsUrl.toString());
+    );
     
     const response = await fetch(wmtsUrl.toString(), {
       headers: { 
@@ -115,7 +115,7 @@ export async function GET(
     });
 
     if (!response.ok) {
-      console.error('Altimetry WMTS error:', response.status, response.statusText);
+      
       return new NextResponse(BLANK_PNG, {
         headers: {
           'Content-Type': 'image/png',
@@ -138,7 +138,7 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Altimetry tile error:', error);
+    
     return new NextResponse(BLANK_PNG, {
       headers: {
         'Content-Type': 'image/png',

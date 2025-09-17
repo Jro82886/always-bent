@@ -54,7 +54,7 @@ export default function GetOrganized({ map }: Props) {
     if (!map) return;
     
     const loadPolygons = async () => {
-      console.log('🗺️ Loading polygons...');
+      
       setLoading(true);
       try {
         // Get current map bounds
@@ -67,19 +67,19 @@ export default function GetOrganized({ map }: Props) {
         ].join(',') : '';
 
         // Fetch polygons from Jeff's endpoint
-        console.log('📡 Fetching from /api/polygons with bbox:', bbox);
+        
         const res = await fetch(`/api/polygons?bbox=${bbox}`);
         
         let data;
         if (!res.ok) {
-          console.error('❌ Polygon fetch failed:', res.status, res.statusText);
+          
           // Try without bbox as fallback
           const fallbackRes = await fetch('/api/polygons');
           data = await fallbackRes.json();
-          console.log('📦 Fallback polygon data loaded:', data.features?.length || 0, 'features');
+          
         } else {
           data = await res.json();
-          console.log('📦 Polygon data loaded:', data.features?.length || 0, 'features');
+          
         }
 
         // Count features by type
@@ -196,7 +196,7 @@ export default function GetOrganized({ map }: Props) {
         });
 
       } catch (error) {
-        console.error('Failed to load polygons:', error);
+        
       } finally {
         setLoading(false);
       }

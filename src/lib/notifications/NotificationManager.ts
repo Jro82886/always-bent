@@ -77,7 +77,7 @@ class NotificationManager {
     
     // Check throttle limit
     if (recentCount >= this.settings.maxNotificationsPerHour) {
-      console.log(`[Notifications] Throttled: ${recentCount}/${this.settings.maxNotificationsPerHour} shown in last hour`);
+      
       return false;
     }
     
@@ -88,7 +88,7 @@ class NotificationManager {
     );
     
     if (recentSameType.length > 0) {
-      console.log(`[Notifications] Skipping duplicate ${type} notification within 5 minutes`);
+      
       return false;
     }
     

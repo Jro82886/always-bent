@@ -215,7 +215,7 @@ export async function fetchBuoyData(stationId: string): Promise<BuoyData | null>
     );
 
     if (!response.ok) {
-      console.warn(`NOAA buoy ${stationId} not responding:`, response.status);
+      
       return null;
     }
 
@@ -223,7 +223,7 @@ export async function fetchBuoyData(stationId: string): Promise<BuoyData | null>
     const lines = text.split('\n').filter(l => l.trim());
     
     if (lines.length < 3) {
-      console.warn(`No data from buoy ${stationId}`);
+      
       return null;
     }
 
@@ -300,7 +300,7 @@ export async function fetchBuoyData(stationId: string): Promise<BuoyData | null>
     };
 
   } catch (error) {
-    console.error(`Error fetching buoy ${stationId}:`, error);
+    
     return null;
   }
 }
@@ -316,7 +316,7 @@ export async function getInletWeather(inletId: string): Promise<InletWeather> {
   
   // Fall back to backup if available
   if (!conditions && buoyConfig.backup) {
-    console.log(`Primary buoy ${buoyConfig.primary} failed, trying backup ${buoyConfig.backup}`);
+    
     conditions = await fetchBuoyData(buoyConfig.backup);
   }
   

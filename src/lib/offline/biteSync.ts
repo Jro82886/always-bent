@@ -46,13 +46,13 @@ export async function syncBites(manual: boolean = false): Promise<{
 }> {
   // Skip if already syncing
   if (isSyncing) {
-    console.log('[SYNC] Already syncing, skipping...');
+    
     return { synced: 0, failed: 0, expired: 0 };
   }
   
   // Check if online
   if (!navigator.onLine && !manual) {
-    console.log('[SYNC] Offline, skipping sync');
+    
     return { synced: 0, failed: 0, expired: 0 };
   }
   
@@ -70,11 +70,11 @@ export async function syncBites(manual: boolean = false): Promise<{
     const pending = await getPendingBites();
     
     if (pending.length === 0) {
-      console.log('[SYNC] No pending bites to sync');
+      
       return { synced: 0, failed: 0, expired };
     }
     
-    console.log(`[SYNC] Syncing ${pending.length} bites...`);
+    
     
     // Get current user
     const supabase = createClient();
@@ -137,7 +137,7 @@ export async function syncBites(manual: boolean = false): Promise<{
       }
     }
     
-    console.log(`[SYNC] Complete: ${synced} synced, ${failed} failed, ${expired} expired`);
+    
     
     // Reset retry count on successful sync
     if (synced > 0) {
@@ -149,7 +149,7 @@ export async function syncBites(manual: boolean = false): Promise<{
     return { synced, failed, expired };
     
   } catch (error) {
-    console.error('[SYNC] Error:', error);
+    
     
     // Mark all pending bites with error
     const pending = await getPendingBites();
@@ -183,7 +183,7 @@ function scheduleRetry() {
   // Exponential backoff: 5s, 10s, 20s, 40s, then cap at 60s
   const delay = Math.min(5000 * Math.pow(2, retryCount), 60000);
   
-  console.log(`[SYNC] Scheduling retry in ${delay / 1000}s...`);
+  
   
   syncTimer = setTimeout(() => {
     syncTimer = null;
@@ -197,14 +197,14 @@ function scheduleRetry() {
 export function initBiteSync() {
   // Sync when coming online
   window.addEventListener('online', () => {
-    console.log('[SYNC] Network online, triggering sync...');
+    
     syncBites();
   });
   
   // Sync when app becomes visible
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && navigator.onLine) {
-      console.log('[SYNC] App visible, checking for pending bites...');
+      
       syncBites();
     }
   });
@@ -221,7 +221,7 @@ export function initBiteSync() {
     setTimeout(() => syncBites(), 2000);
   }
   
-  console.log('[SYNC] Bite sync engine initialized');
+  
 }
 
 /**
@@ -232,7 +232,7 @@ export async function manualSync(): Promise<{
   failed: number;
   expired: number;
 }> {
-  console.log('[SYNC] Manual sync triggered');
+  
   return syncBites(true);
 }
 

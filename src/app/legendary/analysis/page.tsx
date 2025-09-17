@@ -56,7 +56,7 @@ function AnalysisModeContent() {
     if (inlet) {
       // Use proper Gulf Stream view for each inlet
       flyToInlet60nm(map.current, inlet);
-      console.log(`[NAV] Flying to inlet with Gulf Stream view: ${inlet.name}`);
+      
     }
   }, [selectedInletId]);
   
@@ -101,14 +101,14 @@ function AnalysisModeContent() {
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
     mapInstance.on('load', () => {
-      console.log('[INIT] LEGENDARY OCEAN PLATFORM INITIALIZED');
+      
       
       // Check if tutorial has been seen
       const tutorialSeen = localStorage.getItem('abfi_tutorial_seen');
       
       if (tutorialSeen === 'true') {
         // Tutorial already seen - go straight to East Coast view
-        console.log('[TUTORIAL] Already completed - zooming to East Coast');
+        
         const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]];
         mapInstance.fitBounds(EAST_COAST_BOUNDS as any, {
           padding: { top: 50, bottom: 50, left: 50, right: 50 },
@@ -121,7 +121,7 @@ function AnalysisModeContent() {
         }, 1600);
       } else {
         // First time - start with Atlantic view for tutorial
-        console.log('[VIEW] First visit - showing clean Atlantic Ocean view (no SST)');
+        ');
         // Tutorial will handle the zoom to East Coast
       }
       
@@ -136,10 +136,10 @@ function AnalysisModeContent() {
       // Debug: List layers and confirm presence
       setTimeout(() => {
         const layers = mapInstance.getStyle().layers;
-        console.log('🗺️ Available layers:', layers.map(l => l.id));
-        console.log('[OCEAN] Layer exists:', !!mapInstance.getLayer('ocean-layer'));
-        console.log('🌡️ SST layer exists:', !!mapInstance.getLayer('sst-lyr'));
-        console.log('🌿 CHL layer exists:', !!mapInstance.getLayer('chl-lyr'));
+        );
+        );
+        );
+        );
       }, 2000);
 
       // ESRI Ocean Basemap (bathymetry/depth data)
@@ -207,25 +207,25 @@ function AnalysisModeContent() {
         }, firstSymbolId);  // Place below labels and land
       }
 
-      console.log('[BASEMAP] ESRI Ocean layer added (bathymetry) - Atlantic East Coast coverage');
-      console.log('🌡️ Copernicus SST layer added - High resolution temperature data');
-      console.log('🌿 Copernicus Chlorophyll layer added - High resolution ocean color data');
+       - Atlantic East Coast coverage');
+      
+      
 
       // Debug: Check if Copernicus is configured
       // Copernicus credentials are backend-only, frontend doesn't need them
-      console.log('[SST] Tiles configured - using backend API proxy');
+      
       (window as any).map = mapInstance;
     });
 
     // 🔒 Additional error handling (backup)
 
     mapInstance.on('sourcedataloading', (e: any) => {
-      console.log('[LOADING] Data for source:', e.sourceId);
+      
     });
 
     mapInstance.on('sourcedata', (e: any) => {
       if (e.isSourceLoaded) {
-        console.log('[LOADED] Data for source:', e.sourceId);
+        
       }
     });
 
@@ -252,7 +252,7 @@ function AnalysisModeContent() {
         mapInstance.remove();
         map.current = null;
       } catch (error) {
-        console.warn('Error during map cleanup:', error);
+        
         // Still try to remove the map
         try {
           mapInstance.remove();
@@ -269,7 +269,7 @@ function AnalysisModeContent() {
     if (!map.current) return;
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(selectedDate)) return;
-    console.log(`📅 Date changed to: ${selectedDate} - ready for Copernicus layers`);
+    
   }, [selectedDate]);
 
   // Ocean Basemap toggle (bathymetry)
@@ -285,7 +285,7 @@ function AnalysisModeContent() {
         map.current.triggerRepaint();
       }
     }
-    console.log(`[BASEMAP] ESRI Ocean ${newState ? 'ON' : 'OFF'}`);
+    
   };
 
   // Initialize layer defaults
@@ -307,7 +307,7 @@ function AnalysisModeContent() {
     if (!map.current) return;
     const newState = !sstActive;
     setSstActive(newState);
-    console.log(`🌡️ Copernicus SST ${newState ? 'ON' : 'OFF'}`);
+    
   };
 
   // CHL toggle - Copernicus chlorophyll
@@ -316,7 +316,7 @@ function AnalysisModeContent() {
     const newState = !chlActive;
     setChlActive(newState);
     setVis(map.current, 'chl-lyr', newState);
-    console.log(`🌿 Copernicus CHL ${newState ? 'ON' : 'OFF'}`);
+    
   };
 
   // This duplicate inlet handler can be removed - already handled above

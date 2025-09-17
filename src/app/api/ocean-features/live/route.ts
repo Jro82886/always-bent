@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const PYTHON_BACKEND = process.env.NEXT_PUBLIC_POLYGONS_URL || process.env.POLYGONS_BACKEND_URL;
   
   if (!PYTHON_BACKEND) {
-    console.error('[Ocean Features] Python backend URL not configured');
+    
     // Return demo data as fallback
     return NextResponse.json({
       type: 'FeatureCollection',
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   try {
     // Call Python backend
     const pythonUrl = `${PYTHON_BACKEND}/api/ocean-features/${feature}?date=${date}`;
-    console.log('[Ocean Features] Fetching from:', pythonUrl);
+    
     
     const response = await fetch(pythonUrl, {
       headers: {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[Ocean Features] Error fetching from Python backend:', error);
+    
     
     // Fallback to demo data
     const demoResponse = await fetch(`${request.nextUrl.origin}/abfi_sst_edges_latest.geojson`);

@@ -54,7 +54,7 @@ export default function DepartureMonitor({
         if (avgSpeed > 3.45 && speedHistoryRef.current.length >= 3) {
           if (!isMoving) {
             setIsMoving(true);
-            console.log('[DEPARTURE] Vessel is moving, speed:', avgSpeed.toFixed(1), 'mph');
+            , 'mph');
             
             // Check if we haven't asked in the last 4 hours
             const lastAsked = localStorage.getItem('abfi_departure_asked');

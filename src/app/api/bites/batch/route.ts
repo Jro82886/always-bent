@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    console.log(`[BITES] Processing ${bites.length} bites from user ${user.id}`);
+    
     
     const results = [];
     
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
           });
         
         if (insertError) {
-          console.error('[BITES] Insert error:', insertError);
+          
           results.push({
             bite_id: bite.bite_id,
             status: `error:${insertError.message}`
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         
         // Queue analysis job (async - don't block response)
         queueBiteAnalysis(bite).catch(err => {
-          console.error('[BITES] Failed to queue analysis:', err);
+          
         });
         
         results.push({
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         });
         
       } catch (error) {
-        console.error('[BITES] Processing error for bite:', bite.bite_id, error);
+        
         results.push({
           bite_id: bite.bite_id,
           status: `error:${String(error)}`
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ results });
     
   } catch (error) {
-    console.error('[BITES] Endpoint error:', error);
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -183,10 +183,10 @@ async function queueBiteAnalysis(bite: any) {
       })
       .eq('bite_id', bite.bite_id);
     
-    console.log(`[BITES] Analysis complete for bite ${bite.bite_id}`);
+    
     
   } catch (error) {
-    console.error(`[BITES] Analysis failed for bite ${bite.bite_id}:`, error);
+    
     
     // Mark as failed
     await supabase

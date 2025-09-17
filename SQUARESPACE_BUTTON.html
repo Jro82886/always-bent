@@ -1,0 +1,62 @@
+<!-- ADD THIS TO YOUR SQUARESPACE MEMBER AREA -->
+<!-- Place this after successful payment/subscription -->
+
+<!-- OPTION 1: Simple Button -->
+<a href="https://app.alwaysbent.com/auth/signup?from=squarespace" 
+   class="sqs-block-button-element--medium sqs-block-button-element" 
+   style="background-color: #00DDEB; color: #000000; font-weight: bold;">
+   Access ABFI Command Bridge →
+</a>
+
+<!-- OPTION 2: Styled Card with Instructions -->
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            border: 2px solid #00DDEB; 
+            border-radius: 12px; 
+            padding: 30px; 
+            margin: 20px 0;
+            box-shadow: 0 0 30px rgba(0,221,235,0.3);">
+  
+  <h2 style="color: #00DDEB; margin-bottom: 15px;">
+    🎣 Welcome to ABFI Intelligence!
+  </h2>
+  
+  <p style="color: #ffffff; margin-bottom: 20px;">
+    Your membership is active! Click below to set up your Captain profile and access the command bridge.
+  </p>
+  
+  <a href="https://app.alwaysbent.com/auth/signup?from=squarespace" 
+     style="display: inline-block;
+            background: linear-gradient(90deg, #00DDEB 0%, #0891b2 100%);
+            color: #000000;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,221,235,0.4);"
+     onmouseover="this.style.transform='scale(1.05)'"
+     onmouseout="this.style.transform='scale(1)'">
+    Enter ABFI Command Bridge →
+  </a>
+  
+  <p style="color: #94a3b8; margin-top: 20px; font-size: 14px;">
+    First time? You'll create your ABFI credentials (one-time setup).<br>
+    Returning? You'll go straight to your dashboard.
+  </p>
+</div>
+
+<!-- OPTION 3: Auto-Redirect with Email (Advanced) -->
+<script>
+// If you have access to member email in Squarespace
+var memberEmail = '{customer.email}'; // Squarespace variable
+if (memberEmail && memberEmail !== '{customer.email}') {
+  // Build URL with email
+  var abfiUrl = 'https://app.alwaysbent.com/auth/signup?from=squarespace&email=' + encodeURIComponent(memberEmail);
+  
+  // Update button href
+  document.querySelectorAll('a[href*="app.alwaysbent.com"]').forEach(function(link) {
+    link.href = abfiUrl;
+  });
+}
+</script>

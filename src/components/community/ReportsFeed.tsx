@@ -68,7 +68,7 @@ export default function ReportsFeed() {
         schema: 'public',
         table: 'bite_reports'
       }, (payload) => {
-        console.log('[REPORTS] New report received:', payload);
+        
         // Add new report to the top without full reload
         setReports(prev => {
           const newReport = payload.new as BiteReport;
@@ -146,7 +146,7 @@ export default function ReportsFeed() {
           hasSupabase = true;
         }
       } catch (e) {
-        console.log('[REPORTS] Supabase not available, using local storage');
+        
       }
       
       // Also load from localStorage for testing
@@ -186,7 +186,7 @@ export default function ReportsFeed() {
       setReports(processed);
       
     } catch (error) {
-      console.error('[REPORTS] Error:', error);
+      
     } finally {
       setLoading(false);
     }

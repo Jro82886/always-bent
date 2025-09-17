@@ -61,7 +61,7 @@ function TrackingModeContent() {
       );
       
       if (autoSelect.shouldAutoSelect && autoSelect.inlet) {
-        console.log(`[AUTO-SELECT] Selecting closest inlet: ${autoSelect.inlet.name} (${autoSelect.distance?.toFixed(1)}mi away)`);
+        }mi away)`);
       
       // Update global state
       const { setSelectedInletId } = useAppState.getState();
@@ -196,7 +196,7 @@ function TrackingModeContent() {
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
     
     mapInstance.on('load', () => {
-      console.log('[TRACKING] Map initialized - East Coast overview');
+      
       
       // Set East Coast bounds to prevent getting lost
       const EAST_COAST_BOUNDS = [[-85, 23], [-64, 47]];
@@ -213,7 +213,7 @@ function TrackingModeContent() {
       // Mark map as fully ready after a brief delay to ensure all internal setup is complete
       setTimeout(() => {
         setMapFullyReady(true);
-        console.log('[TRACKING] Map fully ready for components');
+        
       }, 500);
     });
 
@@ -231,12 +231,12 @@ function TrackingModeContent() {
     if (inlet) {
       // Only fly to inlet if map is ready and stable
       map.current.once('moveend', () => {
-        console.log(`[TRACKING] Arrived at inlet: ${inlet.name}`);
+        
       });
       
       // Use proper Gulf Stream view for each inlet
       flyToInlet60nm(map.current, inlet);
-      console.log(`[TRACKING] Flying to inlet with Gulf Stream view: ${inlet.name}`);
+      
     }
   }, [selectedInletId, mapFullyReady]);
   

@@ -32,7 +32,7 @@ export default function TrendsMode({}: TrendsModeProps) {
   }, []);
   
   useEffect(() => {
-    console.log('📊 Fishing Intelligence activated');
+    
     
     // Load data, filtering out test data unless explicitly shown
     const loadTrendsData = () => {
@@ -49,20 +49,20 @@ export default function TrendsMode({}: TrendsModeProps) {
         analyses: productionAnalyses.length
       });
       
-      console.log(`📊 Loaded production data: ${productionCatches.length} catches, ${productionAnalyses.length} analyses`);
+      
       
       // Check for test data
       const testCatches = JSON.parse(localStorage.getItem('abfi_test_catches') || '[]');
       const testAnalyses = JSON.parse(localStorage.getItem('abfi_test_analyses') || '[]');
       if (testCatches.length > 0 || testAnalyses.length > 0) {
-        console.log(`🧪 Test data available: ${testCatches.length} test catches, ${testAnalyses.length} test analyses (hidden by default)`);
+        `);
       }
     };
     
     loadTrendsData();
     
     return () => {
-      console.log('📊 Fishing Intelligence deactivated');
+      
     };
   }, [showTestData]);
   

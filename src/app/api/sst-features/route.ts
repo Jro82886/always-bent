@@ -27,9 +27,7 @@ export async function GET(request: NextRequest) {
     );
     
     // Add some logging
-    console.log('[SST Features] Generated:', {
-      total: polygons.features.length,
-      eddies: polygons.features.filter((f: any) => f.properties?.type === 'eddy').length,
+     => f.properties?.type === 'eddy').length,
       edges: polygons.features.filter((f: any) => f.properties?.type === 'edge').length,
       filaments: polygons.features.filter((f: any) => f.properties?.type === 'filament').length,
       bounds
@@ -37,7 +35,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json(polygons);
   } catch (error) {
-    console.error('Error generating SST features:', error);
+    
     return NextResponse.json(
       { 
         type: 'FeatureCollection',

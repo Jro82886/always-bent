@@ -28,26 +28,26 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
   }, [showModal, onModalStateChange]);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
-    console.log('[ANALYZE] handleAnalyze called with polygon:', polygon);
-    console.log('[TYPE] Polygon type:', polygon.geometry.type);
+    
+    
     if (polygon.geometry.type === 'Polygon') {
       const polyGeom = polygon.geometry as GeoJSON.Polygon;
-      console.log('[COUNT] Polygon coordinates:', polyGeom.coordinates[0]?.length);
+      
     }
     
     if (!map) {
-      console.error('[ERROR] No map available for analysis');
+      
       return;
     }
     
-    console.log('[OK] Map is available, proceeding with analysis');
+    
     
     // Type-safe cast to Polygon feature for vessel tracking
     const polygonFeature = polygon as GeoJSON.Feature<GeoJSON.Polygon>;
     
     // Get vessel tracks in the area
     const vesselData = await getVesselTracksInArea(polygonFeature, map);
-    console.log('[VESSELS] Found tracks:', vesselData.tracks.length);
+    
     
     // Smooth delay before showing analyzing state
     setTimeout(() => {
@@ -60,14 +60,14 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
       ocean: map.getLayer('ocean-layer') && map.getLayoutProperty('ocean-layer', 'visibility') === 'visible'
     };
-    console.log('[SCAN] Active layers:', activeLayers);
-    console.log('[SCAN] Starting multi-layer analysis for polygon:', polygon);
+    
+    
 
     try {
       // Get polygon bounds
       const bbox = turf.bbox(polygon);
       const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]];
-      console.log('[BOUNDS] Polygon bounds:', bounds);
+      
       
       // Query boat activity in the polygon area
       let boatActivity = null;
@@ -77,10 +77,10 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         if (response.ok) {
           const data = await response.json();
           boatActivity = data.analysis;
-          console.log('[FLEET] Boat activity:', boatActivity);
+          
         }
       } catch (error) {
-        console.error('Failed to fetch boat activity:', error);
+        
       }
       
       // TODO: Replace with real data extraction from map tiles
@@ -88,10 +88,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       const sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
       const chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
       
-      console.log('[DATA] Generated mock data:', { 
-        sst: sstData ? `${sstData.length} points` : 'inactive',
-        chl: chlData ? `${chlData.length} points` : 'inactive'
-      });
+      
       
       // Run multi-layer analysis algorithm
       const analysis = await analyzeMultiLayer(
@@ -117,22 +114,22 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         vesselTracks: vesselData.summary
       };
       
-      console.log('[COMPLETE] Analysis complete:', analysisWithVessels);
+      
       setCurrentAnalysis(analysisWithVessels);
       
       // Show the pulsing cyan hotspot
       if (analysis.hotspot) {
         setHotspotPosition(analysis.hotspot.location);
         setShowHotspot(true);
-        console.log('[HOTSPOT] Location:', analysis.hotspot.location);
+        
         
         // Auto-show modal with analysis including vessel tracks
         setTimeout(() => {
-          console.log('[AUTO] Showing analysis modal with vessel tracks');
+          
           setShowModal(true);
         }, 800); // Small delay for smooth transition
       } else {
-        console.warn('[WARNING] No hotspot found in analysis');
+        
         // For non-hotspot, show educational modal immediately
         setTimeout(() => {
           setShowModal(true);
@@ -145,14 +142,14 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       // }
       
     } catch (error) {
-      console.error('[ERROR] Analysis failed:', error);
-      console.error('Error stack:', (error as Error).stack);
+      
+      .stack);
       alert(`Analysis failed: ${(error as Error).message}`);
       
       // Clear the rectangle on error
       clearMapOverlays(map);
     } finally {
-      console.log('[DONE] Analysis finished, setting isAnalyzing to false');
+      
       
       // Smooth fade out of analyzing state
       setTimeout(() => {
@@ -168,7 +165,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     if (!currentAnalysis) return;
     
     try {
-      console.log('[SAVE] Saving analysis...');
+      
       
       // Prepare data for saving
       const isTestMode = process.env.NODE_ENV === 'development' || 
@@ -206,10 +203,10 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       let saved = false;
       try {
         const result = await saveSnipAnalysis(analysisData as any);
-        console.log('[SAVED] Analysis saved to database:', result);
+        
         saved = true;
       } catch (dbError) {
-        console.warn('[WARNING] Database save failed, saving locally:', dbError);
+        
         // Fallback to localStorage if Supabase is not configured
         const localAnalyses = JSON.parse(localStorage.getItem('abfi_analyses') || '[]');
         localAnalyses.push({
@@ -218,7 +215,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           saved_at: new Date().toISOString()
         });
         localStorage.setItem('abfi_analyses', JSON.stringify(localAnalyses));
-        console.log('[SAVED] Analysis saved to local storage');
+        
         saved = true;
       }
       
@@ -233,9 +230,9 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           };
           
           await saveAnalysisAsReport(reportData as any);
-          console.log('[REPORT] Analysis saved to community reports');
+          
         } catch (reportError) {
-          console.warn('[WARNING] Failed to save as community report:', reportError);
+          
         }
         
         // Show success feedback
@@ -250,13 +247,13 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         }, 1500);
       }
     } catch (error) {
-      console.error('[ERROR] Failed to save analysis:', error);
+      
       alert('Failed to save analysis. Please try again.');
     }
   }, [currentAnalysis]);
 
   const handleCloseModal = useCallback(() => {
-    console.log('[RESET] Resetting for new snip');
+    
     
     // 1. Close modal
     setShowModal(false);
@@ -272,13 +269,13 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     }
     
     // 4. Show subtle feedback that tool is ready
-    console.log('[READY] Ready for new snip!');
+    
     showReadyToSnipToast();
   }, [map]);
 
   // Test function to simulate analysis
   const testAnalysis = () => {
-    console.log('[TEST] Triggering mock analysis');
+    
     const mockPolygon: GeoJSON.Feature = {
       type: 'Feature',
       geometry: {
@@ -302,7 +299,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         map={map} 
         onAnalysisComplete={(analysis) => {
           // SnipTool already performed the analysis, just set it
-          console.log('[SnipController] Received analysis from SnipTool:', analysis);
+          
           setCurrentAnalysis(analysis);
           setShowModal(true);
         }}
@@ -319,11 +316,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           </button>
           <button
             onClick={() => {
-              console.log('[DEBUG] Checking SnipTool state...');
-              console.log('Map exists:', !!map);
+              
+              
               if (map) {
-                console.log('Rectangle source exists:', !!map.getSource('rectangle'));
-                console.log('Rectangle layers exist:', !!map.getLayer('rectangle-fill'));
+                );
+                );
               }
             }}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700"
@@ -338,7 +335,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         position={hotspotPosition}
         visible={showHotspot}
         onClick={() => {
-          console.log('[HOTSPOT] Marker clicked - showing analysis');
+          
           setShowModal(true);
         }}
       />

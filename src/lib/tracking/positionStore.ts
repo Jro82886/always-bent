@@ -32,14 +32,14 @@ export async function storePosition(position: Omit<TrackingPosition, 'id' | 'tim
       }]);
 
     if (error) {
-      console.error('Error storing position:', error);
+      
       return false;
     }
 
-    console.log('Position stored successfully:', data);
+    
     return true;
   } catch (error) {
-    console.error('Failed to store position:', error);
+    
     return false;
   }
 }
@@ -63,7 +63,7 @@ export async function getTrackingTrail(
       .order('timestamp', { ascending: true });
 
     if (error) {
-      console.error('Error fetching trail:', error);
+      
       return null;
     }
 
@@ -89,7 +89,7 @@ export async function getTrackingTrail(
       totalDistance: Math.round(totalDistance * 100) / 100 // Round to 2 decimals
     };
   } catch (error) {
-    console.error('Failed to fetch tracking trail:', error);
+    
     return null;
   }
 }
@@ -108,13 +108,13 @@ export async function getCurrentPosition(userId: string): Promise<TrackingPositi
       .single();
 
     if (error) {
-      console.error('Error fetching current position:', error);
+      
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Failed to fetch current position:', error);
+    
     return null;
   }
 }

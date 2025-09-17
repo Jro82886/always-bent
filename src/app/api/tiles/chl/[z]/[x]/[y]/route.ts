@@ -35,7 +35,7 @@ export async function GET(
   // Get CHL WMTS template from environment
   const template = process.env.NEXT_PUBLIC_CHL_WMTS_TEMPLATE;
   if (!template) {
-    console.error('❌ NEXT_PUBLIC_CHL_WMTS_TEMPLATE not configured');
+    
     return new NextResponse('CHL WMTS not configured', { status: 500 });
   }
 
@@ -57,7 +57,7 @@ export async function GET(
       .replace('{y}', y)
       .replace('{TIME}', dateTime);
 
-    console.log(`🌿 Fetching CHL tile [${z}/${x}/${y}] for ${dateTime.split('T')[0]}`);
+    [0]}`);
 
     try {
       const response = await fetch(url, {
@@ -85,16 +85,16 @@ export async function GET(
       }
 
       // If 404 or other error, try next date
-      console.log(`⚠️ CHL tile not available for ${dateTime.split('T')[0]}, trying earlier date...`);
+      [0]}, trying earlier date...`);
       
     } catch (error) {
-      console.error(`❌ Error fetching CHL tile for ${dateTime}:`, error);
+      
       // Continue to next date
     }
   }
 
   // If all dates failed, return a transparent tile
-  console.log(`❌ No CHL data available for tile [${z}/${x}/${y}] in last 5 days`);
+  
   
   // Return transparent 256x256 PNG
   const transparentPng = Buffer.from(

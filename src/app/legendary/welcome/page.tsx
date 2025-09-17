@@ -59,17 +59,17 @@ export default function WelcomePage() {
         if (permission.state === 'prompt' || permission.state === 'granted') {
           navigator.geolocation.getCurrentPosition(
             (position) => {
-              console.log('Location access granted');
+              
               localStorage.setItem('abfi_location_permission', 'granted');
             },
             (error) => {
-              console.log('Location access denied');
+              
               localStorage.setItem('abfi_location_permission', 'denied');
             }
           );
         }
       } catch (err) {
-        console.log('Location permission check failed');
+        
       }
     }
     

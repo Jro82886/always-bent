@@ -11,11 +11,11 @@ export default function BiteSyncInitializer() {
   useEffect(() => {
     // Initialize the bite sync engine
     initBiteSync();
-    console.log('[ABFI] Bite sync engine initialized');
+    
     
     // Log sync status for debugging
     if (!navigator.onLine) {
-      console.log('[ABFI] Starting in offline mode');
+      
     }
   }, []);
   

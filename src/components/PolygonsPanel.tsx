@@ -58,32 +58,32 @@ export default function PolygonsPanel({ map }: Props) {
 
     const loadPolygons = async () => {
       if (!anyEnabled) {
-        console.log('⏸️ Skipping polygon load - no layers enabled');
+        
         return;
       }
-      console.log('🗺️ Loading polygons...');
+      
       setLoading(true);
       try {
         const bounds = map.getBounds();
         const bbox = bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()].join(',') : '';
 
-        console.log('📡 Fetching from /api/polygons with bbox:', bbox);
+        
         const res = await fetch(`/api/polygons?bbox=${bbox}`);
         
         let data;
         if (!res.ok) {
-          console.error('❌ Polygon fetch failed:', res.status, res.statusText);
+          
           // Try without bbox as fallback
           const fallbackRes = await fetch('/api/polygons');
           if (!fallbackRes.ok) {
-            console.error('❌ Fallback fetch also failed:', fallbackRes.status);
+            
             return;
           }
           data = await fallbackRes.json();
-          console.log('📦 Fallback polygon data loaded:', data.features?.length || 0, 'features');
+          
         } else {
           data = await res.json();
-          console.log('📦 Polygon data loaded:', data.features?.length || 0, 'features');
+          
         }
 
         // Count features by class (not type)
@@ -95,7 +95,7 @@ export default function PolygonsPanel({ map }: Props) {
           }
         });
         setStats(counts);
-        console.log('📊 Feature counts:', counts);
+        
 
         // Add source if not exists
         if (!map.getSource(SOURCE_ID)) {
@@ -103,11 +103,11 @@ export default function PolygonsPanel({ map }: Props) {
             type: 'geojson',
             data
           });
-          console.log('✅ Added polygon source');
+          
         } else {
           const source = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource;
           source.setData(data);
-          console.log('✅ Updated polygon source');
+          
         }
 
         // Add layers for each feature type
@@ -130,7 +130,7 @@ export default function PolygonsPanel({ map }: Props) {
                 'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
               }
             });
-            console.log(`✅ Added fill layer for ${type}`);
+            
           } else {
             // Update visibility if layer exists
             map.setLayoutProperty(config.fill, 'visibility', 
@@ -153,7 +153,7 @@ export default function PolygonsPanel({ map }: Props) {
                 'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
               }
             });
-            console.log(`✅ Added line layer for ${type}`);
+            
           } else {
             // Update visibility if layer exists
             map.setLayoutProperty(config.line, 'visibility', 
@@ -171,11 +171,11 @@ export default function PolygonsPanel({ map }: Props) {
               map.moveLayer(config.line);
             }
           });
-          console.log('📍 Moved polygon layers to top');
+          
         }, 100);
 
       } catch (error) {
-        console.error('Failed to load polygons:', error);
+        
       } finally {
         setLoading(false);
       }

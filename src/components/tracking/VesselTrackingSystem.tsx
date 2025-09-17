@@ -60,12 +60,12 @@ export default function VesselTrackingSystem({ map, onModeSwitch }: VesselTracki
       watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
           // Store position to Supabase (in production)
-          console.log('Position:', position.coords.latitude, position.coords.longitude);
+          
           
           // Check for hotspot (1+ hour in 1 mile radius)
           checkForHotspot(position.coords.latitude, position.coords.longitude);
         },
-        (error) => console.error('GPS error:', error),
+        (error) => ,
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     }
@@ -285,7 +285,7 @@ export default function VesselTrackingSystem({ map, onModeSwitch }: VesselTracki
   const checkForHotspot = (lat: number, lng: number) => {
     // Logic to detect if vessel has been in 1 mile radius for 1+ hour
     // This would track position history and calculate duration
-    console.log('Checking for hotspot at:', lat, lng);
+    
   };
 
   // Detect hotspots from tracks

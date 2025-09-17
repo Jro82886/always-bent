@@ -74,7 +74,7 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
       return;
     }
     const inlet = getInletById(id) ?? DEFAULT_INLET;
-    console.log("[HeaderBar] inlet change:", id, inlet);
+    
     setSelectedInletId(inlet.id);
   };
 

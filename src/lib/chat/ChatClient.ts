@@ -23,13 +23,13 @@ export default class ChatClient {
     
     // Mock: Simulate incoming messages periodically
     // In production, this would be WebSocket or Supabase Realtime
-    console.log(`[ChatClient] Subscribed to channel: ${channel}`);
+    
   }
 
   async unsubscribe() {
     this.channel = '';
     this.messageCallback = null;
-    console.log('[ChatClient] Unsubscribed');
+    
   }
 
   async send(message: ChatMessage): Promise<void> {

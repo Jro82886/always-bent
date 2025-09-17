@@ -54,7 +54,7 @@ export function MapShell({ children }: { children: React.ReactNode }) {
     });
 
     map.on("load", () => {
-      console.log("[MapShell] map ready");
+      
       // Basemap control moved to HUD
       // Add a global scale control (bottom-left) for context
       try {

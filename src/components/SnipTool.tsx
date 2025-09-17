@@ -72,7 +72,7 @@ function OfflineBitesUploader() {
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
     } catch (error) {
-      console.error('Upload failed:', error);
+      
     } finally {
       setIsUploading(false);
     }
@@ -197,15 +197,15 @@ function RectangleTooltip({ map, polygon, onDismiss }: { map: mapboxgl.Map | nul
 
 // Helper functions for map visualizations
 function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
-  console.log('[SNIP-VIZ] visualizeHotspotOnMap called with:', hotspot);
+  
   if (!hotspot || !hotspot.location) {
-    console.log('[SNIP-VIZ] No hotspot or location, skipping visualization');
+    
     return;
   }
   
   // Ensure source exists
   if (!map.getSource('snip-hotspots')) {
-    console.log('[SNIP-VIZ] Creating snip-hotspots source');
+    
     map.addSource('snip-hotspots', {
       type: 'geojson',
       data: {
@@ -293,9 +293,9 @@ function visualizeHotspotOnMap(map: mapboxgl.Map, hotspot: any) {
 
 // Visualize vessels within the snipped area
 function visualizeVesselsOnMap(map: mapboxgl.Map, vessels: any[], selectedInlet?: string) {
-  console.log('[SNIP-VIZ] visualizeVesselsOnMap called with', vessels?.length, 'vessels');
+  
   if (!vessels || vessels.length === 0) {
-    console.log('[SNIP-VIZ] No vessels to visualize');
+    
     return;
   }
   
@@ -309,7 +309,7 @@ function visualizeVesselsOnMap(map: mapboxgl.Map, vessels: any[], selectedInlet?
   
   // Create vessel markers and tracks matching the tracking page style
   vessels.forEach(vessel => {
-    console.log('[SNIP-VIZ] Adding vessel:', vessel.name, 'at', vessel.position);
+    
     const style = getVesselStyle(vessel, selectedInlet);
     
     // Add vessel track if available
@@ -441,15 +441,15 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   // Start drawing mode
   const startDrawing = useCallback(() => {
     if (!map) {
-      console.log('[SNIP] No map available');
+      
       return;
     }
 
-    console.log('[SNIP] Starting drawing mode');
+    
     
     // Ensure source and layers exist before starting
     if (!map.getSource('snip-rectangle')) {
-      console.log('[SNIP] Creating snip-rectangle source');
+      
       map.addSource('snip-rectangle', {
         type: 'geojson',
         data: {
@@ -460,7 +460,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     }
     
     if (!map.getLayer('snip-rectangle-fill')) {
-      console.log('[SNIP] Creating snip-rectangle layers');
+      
       map.addLayer({
         id: 'snip-rectangle-fill',
         type: 'fill',
@@ -490,7 +490,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         map.moveLayer('snip-rectangle-fill');
         map.moveLayer('snip-rectangle-outline');
       } catch (e) {
-        console.log('[SNIP] Could not move layers to top');
+        
       }
     }
     
@@ -560,7 +560,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const clearDrawing = useCallback(() => {
     if (!map) return;
     
-    console.log('[SNIP] Clearing drawing');
+    
     setIsDrawing(false);
     setIsAnalyzing(false);
     setCurrentArea(0);
@@ -642,7 +642,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
     // Ensure source exists
     if (!map.getSource('snip-rectangle')) {
-      console.log('[SNIP] Source missing, recreating...');
+      
       map.addSource('snip-rectangle', {
         type: 'geojson',
         data: {
@@ -720,14 +720,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const completeDrawing = useCallback(async () => {
     if (!map || !currentPolygon.current) return;
     
-    console.log('[SNIP] Completing drawing and analyzing...');
+    
     setIsAnalyzing(true);
     
     try {
       const polygon = currentPolygon.current;
       
       // Step 1: Get vessel data from shared service (source of truth)
-      console.log('[SNIP] Step 1: Getting vessel data from tracking system...');
+      
       
       // Get bounds from polygon for vessel detection
       const bbox = turf.bbox(polygon);
@@ -740,7 +740,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       const vesselsInBounds = getVesselsInBounds(bounds);
       const vesselSummary = getVesselTrackingSummary(vesselsInBounds);
       
-      console.log('[SNIP] Found vessels in area:', vesselSummary.summary);
+      
       
       // Build vessel data in expected format
       const vesselData = {
@@ -753,16 +753,16 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       };
       
       // Step 2: Check active layers
-      console.log('[SNIP] Step 2: Checking active layers...');
+      
       const activeLayers = {
         sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
         chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
         ocean: map.getLayer('ocean-layer') && map.getLayoutProperty('ocean-layer', 'visibility') === 'visible'
       };
-      console.log('[SNIP] Active layers:', activeLayers);
+      
       
       // Step 3: Extract REAL ocean data from tiles!
-      console.log('[SNIP] Step 3: Extracting REAL ocean data from tiles...');
+      
       setAnalysisStep('Extracting real temperature and chlorophyll data...');
       
       let sstData = null;
@@ -778,14 +778,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         });
         
         if (extractedData.sst.length > 0 || extractedData.chl.length > 0) {
-          console.log('[SNIP] SUCCESS! Got real pixel data:', {
-            sstPoints: extractedData.sst.length,
-            chlPoints: extractedData.chl.length
-          });
+          
           
           // Analyze the real data
           pixelAnalysis = analyzePixelData(extractedData);
-          console.log('[SNIP] Real data analysis:', pixelAnalysis.stats);
+          
           
           // Convert to format expected by analyzeMultiLayer
           if (extractedData.sst.length > 0) {
@@ -805,24 +802,24 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             }));
           }
         } else {
-          console.log('[SNIP] No pixel data extracted, using fallback...');
+          
         }
       } catch (pixelError) {
-        console.warn('[SNIP] Pixel extraction failed, using fallback:', pixelError);
+        
       }
       
       // Fallback to generated data if pixel extraction failed
       if (!sstData && (activeLayers.sst || true)) {
-        console.log('[SNIP] Using generated SST data as fallback');
+        
         sstData = generateMockSSTData(bounds);
       }
       if (!chlData && activeLayers.chl) {
-        console.log('[SNIP] Using generated CHL data as fallback');
+        
         chlData = generateMockCHLData(bounds);
       }
       
       // Step 4: Run analysis with real or generated data
-      console.log('[SNIP] Step 4: Running multi-layer analysis with', pixelAnalysis ? 'REAL' : 'generated', 'data...');
+      
       setAnalysisStep('Detecting edges, fronts, and convergence zones...');
       
       let analysis;
@@ -858,19 +855,19 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             };
           }
           
-          console.log('[SNIP] Enhanced analysis with REAL tile data!');
+          
         }
         
         // JEFF'S LOGIC: Only show hotspot if gradient meets threshold (>= 0.5°F/mile)
         if (!analysis.hotspot || !analysis.hotspot.location) {
-          console.log('[SNIP] No hotspot - water conditions do not meet Jeff\'s criteria');
-          console.log('[SNIP] Temperature range:', analysis.stats.temp_range_f.toFixed(2) + '°F');
+          
+           + '°F');
           // Educational guidance will be shown in modal
         } else {
-          console.log('[SNIP] HOTSPOT DETECTED! Gradient:', analysis.hotspot.gradient_strength.toFixed(2) + '°F/km');
+           + '°F/km');
         }
       } catch (analysisError) {
-        console.warn('[SNIP] Analysis function error, using basic analysis:', analysisError);
+        
         // Provide basic analysis without fake hotspot
         analysis = {
           polygon: polygon as GeoJSON.Feature<GeoJSON.Polygon>,
@@ -887,7 +884,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
       
       // Step 5: Add vessel info and visualize on map
-      console.log('[SNIP] Step 5: Adding visualizations to map...');
+      
       setAnalysisStep('Mapping hotspots and vessel activity...');
       const analysisWithVessels = {
         ...analysis,
@@ -896,7 +893,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Visualize hotspots on map
       if (analysis.hotspot) {
-        console.log('[SNIP] Visualizing hotspot at:', analysis.hotspot.location);
+        
         visualizeHotspotOnMap(map, analysis.hotspot);
         
         // Ensure hotspot layers stay on top
@@ -905,14 +902,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             if (map.getLayer('snip-hotspots-pulse')) map.moveLayer('snip-hotspots-pulse');
             if (map.getLayer('snip-hotspots-layer')) map.moveLayer('snip-hotspots-layer');
           } catch (e) {
-            console.log('[SNIP] Could not reorder hotspot layers:', e);
+            
           }
         }, 100);
       }
       
       // Visualize vessels within snipped area (matching tracking page style)
       if (vesselsInBounds && vesselsInBounds.length > 0) {
-        console.log('[SNIP] Visualizing', vesselsInBounds.length, 'vessels in snipped area');
+        
         // Get selected inlet for fleet colors (from global state if needed)
         const selectedInlet = localStorage.getItem('abfi_selected_inlet') || 'nc-hatteras';
         visualizeVesselsOnMap(map, vesselsInBounds, selectedInlet);
@@ -920,16 +917,16 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Process edges for analysis (no visualization - handled by polygon filter)
       if (analysis.features && analysis.features.length > 0) {
-        console.log('[SNIP] Processing', analysis.features.length, 'edge features for analysis');
+        
         const edgeInfo = processEdgesForAnalysis(analysis.features);
         if (edgeInfo) {
-          console.log('[SNIP] Edge analysis:', edgeInfo);
+          
         }
       }
       
       // Log vessel tracks for analysis
       if (vesselData.tracks && vesselData.tracks.length > 0) {
-        console.log('[SNIP] Found', vesselData.tracks.length, 'vessel tracks in area');
+        
         // Tracks will be shown if user enables them on tracking page
       }
       
@@ -942,8 +939,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       };
       
       // Step 6: Store analysis but DON'T show modal yet
-      console.log('[SNIP] Step 6: Analysis complete, visualizing results...');
-      console.log('[SNIP] Full analysis:', finalAnalysis);
+      
+      
       
       // Store the analysis for later access when clicking
       setLastAnalysis(finalAnalysis);
@@ -952,7 +949,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // DON'T show modal immediately - let user explore visualizations first
       // Modal will show when they click the rectangle
-      console.log('[SNIP] Click the highlighted area to view the written analysis');
+      
       
       // Keep rectangle AND visualizations visible
       // Rectangle stays to show the analyzed area
@@ -982,7 +979,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // The rectangle will only clear when user starts a new selection
     } catch (error) {
-      console.error('[SNIP] Analysis error:', error);
+      
       // Create a basic fallback analysis
       const fallbackAnalysis = {
         polygon: currentPolygon.current || { 
@@ -1005,7 +1002,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         vesselTracks: { total: 0, recreational: 0, commercial: 0 },
         edgeAnalysis: 'Analysis partially completed. Some features may not be detected.'
       };
-      console.log('[SNIP] Using fallback analysis due to error');
+      
       setLastAnalysis(fallbackAnalysis as any);
       setHasAnalysisResults(true);
       setShowCompleteBanner(true);
@@ -1020,7 +1017,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     if (!map) return;
 
     const initLayers = () => {
-      console.log('[SNIP] Initializing layers');
+      
       
       // Remove existing
       if (map.getLayer('snip-rectangle-fill')) map.removeLayer('snip-rectangle-fill');
@@ -1133,13 +1130,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
 
   // Handle clicks on analysis results
   useEffect(() => {
-    console.log('[SNIP] Setting up click handlers - hasResults:', hasAnalysisResults, 'hasAnalysis:', !!lastAnalysis);
+    
     if (!map) return;
     
     const handleResultClick = (e: mapboxgl.MapMouseEvent) => {
       // Check if we have analysis results
       if (!hasAnalysisResults || !lastAnalysis) {
-        console.log('[SNIP] No analysis results to show yet');
+        
         return;
       }
       
@@ -1148,11 +1145,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         layers: ['snip-rectangle-fill']
       });
       
-      console.log('[SNIP] Click detected, features found:', features.length);
+      
       
       if (features.length > 0) {
-        console.log('[SNIP] Clicked on analysis rectangle, showing report');
-        console.log('[SNIP] Analysis data:', lastAnalysis);
+        
+        
         // Hide the complete banner when showing analysis
         setShowCompleteBanner(false);
         // Re-show the analysis modal
@@ -1184,10 +1181,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   useEffect(() => {
     if (!map || !isDrawing) return;
 
-    console.log('[SNIP] Setting up drawing handlers, isDrawing:', isDrawing);
+    
 
     const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
-      console.log('[SNIP] Mouse down for drawing');
+      
       e.preventDefault();
       startPoint.current = [e.lngLat.lng, e.lngLat.lat];
       updateRectangle(startPoint.current, startPoint.current);
@@ -1206,7 +1203,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       const dx = Math.abs(endPoint[0] - startPoint.current[0]);
       const dy = Math.abs(endPoint[1] - startPoint.current[1]);
       
-      console.log('[SNIP] Mouse up, distance:', dx, dy);
+      
       
       if (dx > 0.0001 || dy > 0.0001) {
         // Keep rectangle visible and trigger analysis
@@ -1248,7 +1245,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   // Handle programmatic trigger
   useEffect(() => {
     const handleTrigger = () => {
-      console.log('[SNIP] Triggered programmatically');
+      
       startDrawing();
     };
     

@@ -6,7 +6,7 @@ import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 export default function SnipAnalyzeControl({ map }: { map: mapboxgl.Map }) {
   const handleAnalysisComplete = (analysis: AnalysisResult) => {
     // Handle the analysis result - for now just log it
-    console.log('[SnipAnalyzeControl] Analysis complete:', analysis);
+    
   };
 
   return <SnipTool map={map} onAnalysisComplete={handleAnalysisComplete} />;

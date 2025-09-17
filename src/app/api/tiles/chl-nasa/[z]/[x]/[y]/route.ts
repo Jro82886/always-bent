@@ -15,7 +15,7 @@ export async function GET(
   // SAFETY: NASA only supports zoom levels 0-13
   const zoomLevel = parseInt(z);
   if (zoomLevel > 13) {
-    console.log(`⚠️ NASA CHL: Zoom ${z} too high, returning transparent`);
+    
     const transparentPng = Buffer.from(
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
       'base64'
@@ -32,7 +32,7 @@ export async function GET(
   // NASA GIBS MODIS Aqua Chlorophyll endpoint
   const url = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_Chlorophyll_A/default/2024-09-10/GoogleMapsCompatible_Level13/${z}/${y}/${x}.png`;
   
-  console.log(`🌿 Fetching NASA CHL tile [${z}/${x}/${y}]`);
+  
 
   try {
     const response = await fetch(url, {
@@ -55,7 +55,7 @@ export async function GET(
       });
     }
   } catch (error) {
-    console.error(`❌ Error fetching NASA CHL tile:`, error);
+    
   }
 
   // Return transparent tile on error

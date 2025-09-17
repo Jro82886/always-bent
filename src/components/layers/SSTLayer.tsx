@@ -58,7 +58,7 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
       // Use our proxy endpoint which handles auth and fallback
       const url = `/api/tiles/sst/{z}/{x}/{y}.png${dateParam}`;
       
-      console.log('🌡️ SST Layer updating with date:', selectedDate, 'URL pattern:', url);
+      
 
       try {
         if (map.getLayer(lyrId)) map.removeLayer(lyrId);
@@ -87,7 +87,7 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           if (top && top !== lyrId) map.moveLayer(lyrId, top);
         }
       } catch (error) {
-        console.warn('SST Layer update error (non-critical):', error);
+        :', error);
       }
     };
     

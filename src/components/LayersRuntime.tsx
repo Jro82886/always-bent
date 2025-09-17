@@ -42,14 +42,14 @@ export default function LayersRuntime() {
             if (!data.demo) {
               // We have live data!
               setUsingDemoData(false);
-              console.log('[Ocean Features] Using LIVE data from Python backend');
+              
             } else {
               // Still using demo
-              console.log('[Ocean Features] Using DEMO data (Python backend not connected)');
+              ');
             }
           })
           .catch(err => {
-            console.error('[Ocean Features] Error checking data source:', err);
+            
           });
         
         // Use our API route which handles live/demo fallback
@@ -62,11 +62,11 @@ export default function LayersRuntime() {
           id: 'overview-edges-demo-fill', 
           type: 'fill', 
           source: 'overview-edges-demo', 
-          minzoom: 3,  // Visible from far zoom out
-          maxzoom: 22, // Visible even when very close
+          minzoom: 0,  // FIXED: Visible at ALL zoom levels including very close
+          maxzoom: 24, // Ensure visibility even at maximum zoom
           paint: { 
             'fill-color': ['match',['get','class'],'filament','#00DDEB','eddy','#E879F9','#F59E0B'], 
-            'fill-opacity': 0.12 
+            'fill-opacity': 0.15  // Slightly more visible
           } 
         } as any, beforeId);
       }
@@ -75,8 +75,8 @@ export default function LayersRuntime() {
           id: 'overview-edges-demo-line', 
           type: 'line', 
           source: 'overview-edges-demo', 
-          minzoom: 3,  // Visible from far zoom out
-          maxzoom: 22, // Visible even when very close
+          minzoom: 0,  // FIXED: Visible at ALL zoom levels including very close
+          maxzoom: 24, // Ensure visibility even at maximum zoom
           paint: { 
             'line-color': ['match',['get','class'],'filament','#06B6D4','eddy','#D946EF','#F59E0B'], 
             'line-width': 1.4, 

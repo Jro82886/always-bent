@@ -150,7 +150,7 @@ export default function LegendaryOceanPlatform() {
 
       // Make globally available
       (window as any).map = mapInstance;
-      console.log('🌊 LEGENDARY OCEAN PLATFORM INITIALIZED 🚀');
+      
     });
 
     return () => {
@@ -183,7 +183,7 @@ export default function LegendaryOceanPlatform() {
         map.current.setLayoutProperty('sst-layer', 'visibility', 'none');
       }
       
-      console.log(`🌡️ SST ${newState ? '🔥 ACTIVATED' : '❄️ DEACTIVATED'}`);
+      
       setDataStats(prev => ({ ...prev, tiles: newState ? prev.tiles + 1 : 0 }));
     }
   };
@@ -220,7 +220,7 @@ export default function LegendaryOceanPlatform() {
       });
     }
     
-    console.log(`🌀 Ocean Features ${newState ? '🎯 REVEALED' : '🫥 HIDDEN'}`);
+    
     setDataStats(prev => ({ ...prev, features: newState ? 42 : 0 }));
   };
 
@@ -234,7 +234,7 @@ export default function LegendaryOceanPlatform() {
         source.setData(data);
       }
     } catch (error) {
-      console.warn('Failed to load ocean features:', error);
+      
     }
   };
 

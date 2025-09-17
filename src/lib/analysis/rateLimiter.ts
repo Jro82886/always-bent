@@ -45,7 +45,7 @@ class AnalysisRateLimiter {
         this.saveTimestamps();
       }
     } catch (e) {
-      console.error('Failed to load rate limit data:', e);
+      
       this.timestamps = [];
     }
   }
@@ -54,7 +54,7 @@ class AnalysisRateLimiter {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.timestamps));
     } catch (e) {
-      console.error('Failed to save rate limit data:', e);
+      
     }
   }
 
@@ -140,7 +140,7 @@ class AnalysisRateLimiter {
 
       return { allowed: true };
     } catch (e) {
-      console.error('Storage check failed:', e);
+      
       return { allowed: true }; // Allow if we can't check
     }
   }
@@ -184,13 +184,13 @@ class AnalysisRateLimiter {
         // Update current storage
         localStorage.setItem(storageKey, JSON.stringify(toKeep));
         
-        console.log(`Archived ${toArchive.length} old analyses`);
+        
         return toArchive.length;
       }
       
       return 0;
     } catch (e) {
-      console.error('Archive operation failed:', e);
+      
       return 0;
     }
   }
@@ -217,12 +217,12 @@ class AnalysisRateLimiter {
         );
         const kept = sorted.slice(0, keepCount);
         localStorage.setItem('abfi_analyses', JSON.stringify(kept));
-        console.log(`Cleared ${analyses.length - kept.length} old analyses`);
+        
         return analyses.length - kept.length;
       }
       return 0;
     } catch (e) {
-      console.error('Failed to clear old analyses:', e);
+      
       return 0;
     }
   }
@@ -269,14 +269,14 @@ class AnalysisRateLimiter {
       localStorage.removeItem(testKey);
       localStorage.removeItem(testArchiveKey);
       
-      console.log(`Cleared ${totalCleared} test analyses`);
+      
       
       return {
         cleared: testData.length,
         archived: testArchive.length
       };
     } catch (e) {
-      console.error('Failed to clear test data:', e);
+      
       return { cleared: 0, archived: 0 };
     }
   }
