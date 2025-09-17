@@ -36,6 +36,7 @@ yarn-error.log*
 !.envrc
 !.env.schema
 !.env.test
+SUPABASE_ENV_VARS.txt
 
 # vercel
 .vercel
