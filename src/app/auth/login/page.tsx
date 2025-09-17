@@ -17,11 +17,21 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if already logged in
+  // Redirect if already logged in - with timeout to prevent infinite loading
   useEffect(() => {
+    // Set a timeout to stop showing loading after 3 seconds
+    const timeout = setTimeout(() => {
+      if (authLoading) {
+        // Force stop loading if it's taking too long
+        window.location.reload();
+      }
+    }, 3000);
+
     if (!authLoading && user) {
       router.replace('/legendary?mode=analysis');
     }
+
+    return () => clearTimeout(timeout);
   }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,18 +56,9 @@ export default function LoginPage() {
     }
   };
 
-  // Show loading while checking auth status
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
-          <p className="text-cyan-400 animate-pulse">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Don't wait for auth check - just show the login form immediately
+  // The useEffect will redirect if already logged in
+  
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       {/* Background effects */}
