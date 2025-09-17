@@ -1,49 +1,48 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/lib/supabase/AuthProvider';
-import { configureSessionPersistence } from '@/lib/supabase/session';
-import { Loader2, Anchor, AlertCircle, Check } from 'lucide-react';
+import { Loader2, Anchor, Ship, User } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn } = useAuth();  // Remove user and authLoading - we don't need to check
   
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true); // Default to remember
+  // Simple name-based entry - NO AUTH NEEDED!
+  const [captainName, setCaptainName] = useState('');
+  const [boatName, setBoatName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // NO AUTO-REDIRECT AT ALL - Users must click the button
-  // This ensures Squarespace users see the page and choose to enter
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEnterPlatform = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Simple validation
+    if (!captainName.trim() || !boatName.trim()) {
+      setError('Please enter both Captain Name and Boat Name');
+      return;
+    }
+    
     setLoading(true);
 
-    // Configure session persistence based on Remember Me
-    await configureSessionPersistence(rememberMe);
-
-    const { error } = await signIn(email, password);
+    // Create a unique session for this user
+    const timestamp = Date.now();
+    const userId = `${captainName.replace(/\s+/g, '_')}_${timestamp}`;
     
-    if (error) {
-      setError(error.message || 'Failed to sign in');
-      setLoading(false);
-    } else {
-      // Small delay to ensure auth state propagates before redirect
-      setTimeout(() => {
-        // Use replace instead of push to avoid back button issues
-        router.replace('/legendary?mode=analysis');
-      }, 100);
-    }
+    // Save to localStorage for the session
+    localStorage.setItem('abfi_captain_name', captainName.trim());
+    localStorage.setItem('abfi_boat_name', boatName.trim());
+    localStorage.setItem('abfi_user_id', userId);
+    localStorage.setItem('abfi_session_start', timestamp.toString());
+    
+    // Track this as a new session
+    console.log(`New ABFI session: ${captainName} on ${boatName} (${userId})`);
+    
+    // Go straight to the app - no auth needed!
+    setTimeout(() => {
+      router.replace('/legendary?mode=analysis');
+    }, 100);
   };
-
-  // Don't wait for auth check - just show the login form immediately
-  // The useEffect will redirect if already logged in
   
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
@@ -62,164 +61,82 @@ export default function LoginPage() {
               <Anchor className="w-12 h-12 text-cyan-400" />
             </div>
             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-              Welcome Back, Captain
+              Welcome to ABFI
             </h1>
-            <p className="text-slate-400 mt-2">Sign in to ABFI Command Bridge</p>
+            <p className="text-slate-400 mt-2">Enter your captain and boat name</p>
           </div>
 
           {/* Error message */}
           {error && (
-            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2 text-red-400">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">{error}</span>
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+              {error}
             </div>
           )}
 
-          {/* Login form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Simple Name Entry Form - NO PASSWORD! */}
+          <form onSubmit={handleEnterPlatform} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-cyan-300 mb-2">
-                Email Address
+              <label htmlFor="captain" className="block text-sm font-medium text-cyan-300 mb-2">
+                <User className="inline w-4 h-4 mr-1" />
+                Captain Name
               </label>
               <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="captain@vessel.com"
+                type="text"
+                id="captain"
+                value={captainName}
+                onChange={(e) => setCaptainName(e.target.value)}
+                placeholder="Captain Mike"
                 className="w-full px-4 py-3 bg-slate-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                 required
                 disabled={loading}
+                autoFocus
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-cyan-300 mb-2">
-                Password
+              <label htmlFor="boat" className="block text-sm font-medium text-cyan-300 mb-2">
+                <Ship className="inline w-4 h-4 mr-1" />
+                Boat Name
               </label>
               <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                type="text"
+                id="boat"
+                value={boatName}
+                onChange={(e) => setBoatName(e.target.value)}
+                placeholder="Reel Deal"
                 className="w-full px-4 py-3 bg-slate-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
                 required
                 disabled={loading}
               />
-            </div>
-
-            {/* Remember Me Checkbox */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center ${
-                  rememberMe 
-                    ? 'bg-cyan-500 border-cyan-500' 
-                    : 'bg-slate-800/50 border-cyan-500/30'
-                }`}>
-                  {rememberMe && <Check className="w-3 h-3 text-black" />}
-                </div>
-                <span className="text-sm text-slate-300">
-                  Keep me logged in for 30 days
-                </span>
-              </label>
-              
-              <Link 
-                href="/auth/forgot-password" 
-                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                Forgot password?
-              </Link>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-lg rounded-lg hover:from-green-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-green-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Authenticating...
+                  Entering Platform...
                 </span>
               ) : (
-                'Sign In'
+                <span className="flex items-center justify-center gap-2">
+                  <Anchor className="w-5 h-5" />
+                  Enter ABFI Platform
+                </span>
               )}
             </button>
           </form>
-          
-          {/* INSTANT DEMO ACCESS - ONE CLICK! */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-700"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-slate-900/80 text-slate-400">Skip the hassle</span>
-              </div>
-            </div>
-            
-            <button
-              type="button"
-              onClick={async () => {
-                setLoading(true);
-                // Use the confirmed demo account
-                const { error } = await signIn('demo@alwaysbent.com', 'demo123456');
-                if (!error) {
-                  setTimeout(() => {
-                    router.replace('/legendary?mode=analysis');
-                  }, 100);
-                } else {
-                  // If demo account doesn't exist, create it on the fly
-                  setError('Setting up demo access...');
-                  setLoading(false);
-                }
-              }}
-              disabled={loading}
-              className="mt-4 w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-lg hover:from-green-600 hover:to-emerald-600 hover:shadow-lg hover:shadow-green-500/25 transition-all duration-200 flex items-center justify-center gap-2 text-lg disabled:opacity-50"
-            >
-              ⚡ Try It Now - Instant Access
-            </button>
-            
-            <p className="text-xs text-slate-500 text-center mt-2">
-              No signup required • Full features • Ready to explore
+
+          {/* Simple footer */}
+          <div className="mt-8 pt-6 border-t border-slate-800">
+            <p className="text-xs text-center text-slate-500">
+              Access provided through Always Bent membership
             </p>
-          </div>
-
-          {/* Divider */}
-          <div className="my-6 flex items-center">
-            <div className="flex-1 h-px bg-slate-700" />
-            <span className="px-4 text-sm text-slate-500">or</span>
-            <div className="flex-1 h-px bg-slate-700" />
-          </div>
-
-          {/* Sign up link */}
-          <div className="text-center">
-            <p className="text-slate-400">
-              New to ABFI?{' '}
-              <Link 
-                href="/auth/signup" 
-                className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
-              >
-                Create an account
-              </Link>
+            <p className="text-xs text-center text-slate-400 mt-2">
+              Each captain gets their own unique session
             </p>
-          </div>
-
-          {/* Skip auth for testing */}
-          <div className="mt-6 pt-6 border-t border-slate-700">
-            <Link 
-              href="/legendary/welcome"
-              className="block text-center text-sm text-slate-500 hover:text-slate-400 transition-colors"
-            >
-              Continue without account (limited features)
-            </Link>
           </div>
         </div>
       </div>
