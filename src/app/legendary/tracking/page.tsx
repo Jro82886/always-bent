@@ -176,9 +176,15 @@ function TrackingModeContent() {
     };
   }, []);
   
-  // Initialize map
+  // Initialize map with cleanup
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
+
+    // Clean up any existing map instances first
+    const existingCanvas = mapContainer.current.querySelector('.mapboxgl-canvas');
+    if (existingCanvas) {
+      existingCanvas.remove();
+    }
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -219,7 +225,17 @@ function TrackingModeContent() {
 
     return () => {
       setMapFullyReady(false);
-      map.current?.remove();
+      try {
+        if (map.current) {
+          // Remove all event listeners
+          map.current.off();
+          // Remove the map
+          map.current.remove();
+          map.current = null;
+        }
+      } catch (error) {
+        console.error('Error cleaning up map:', error);
+      }
     };
   }, []);
   

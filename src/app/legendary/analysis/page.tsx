@@ -81,9 +81,15 @@ function AnalysisModeContent() {
     }
   }, []);
 
-  // Initialize map
+  // Initialize map with cleanup
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
+
+    // Clean up any existing map instances first
+    const existingCanvas = mapContainer.current.querySelector('.mapboxgl-canvas');
+    if (existingCanvas) {
+      existingCanvas.remove();
+    }
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
