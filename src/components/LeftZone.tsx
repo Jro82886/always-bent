@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
-import Tooltip from '@/components/ui/Tooltip';
+import { Tooltip } from '@/components/ui/Tooltip';
 
 interface LeftZoneProps {
   // Layer states
