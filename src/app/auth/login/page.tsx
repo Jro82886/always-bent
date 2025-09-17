@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Anchor, Ship, User } from 'lucide-react';
+import { Loader2, Anchor, Ship, User, MessageSquare } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +12,16 @@ export default function LoginPage() {
   const [boatName, setBoatName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showFeedback, setShowFeedback] = useState(false);
+  
+  useEffect(() => {
+    // Clear any existing session to prevent auto-redirect
+    // This ensures users always see the welcome screen
+    localStorage.removeItem('abfi_captain_name');
+    localStorage.removeItem('abfi_boat_name');
+    localStorage.removeItem('abfi_user_id');
+    localStorage.removeItem('abfi_session_start');
+  }, []);
 
   const handleEnterPlatform = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +56,17 @@ export default function LoginPage() {
   
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      {/* Beta Banner - Thin bar at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 text-center z-50">
+        <button
+          onClick={() => setShowFeedback(!showFeedback)}
+          className="flex items-center justify-center gap-2 mx-auto hover:opacity-80 transition-opacity"
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span className="text-sm font-medium">Beta Feedback</span>
+        </button>
+      </div>
+      
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
@@ -140,6 +161,32 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      
+      {/* Feedback Modal */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-900 border border-purple-500/30 rounded-xl p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold text-white mb-4">Beta Feedback</h3>
+            <p className="text-gray-400 mb-4">
+              This is a beta version. Please report any issues to the Always Bent team.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => window.open('mailto:support@alwaysbent.com', '_blank')}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg transition-colors"
+              >
+                Email Support
+              </button>
+              <button
+                onClick={() => setShowFeedback(false)}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
