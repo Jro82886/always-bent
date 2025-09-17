@@ -26,6 +26,13 @@ export default function IndividualTrackingWidget({ map }: IndividualTrackingWidg
   const [isPaused, setIsPaused] = useState(false);
   const [mockTimer, setMockTimer] = useState(0);
   
+  // Helper function for compass direction
+  const getCompassDirection = (heading: number): string => {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    const index = Math.round(heading / 45) % 8;
+    return directions[index];
+  };
+  
   // Mock data for demonstration
   const [mockData, setMockData] = useState({
     speed: 7.2,
@@ -323,13 +330,6 @@ export default function IndividualTrackingWidget({ map }: IndividualTrackingWidg
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Get compass direction
-  const getCompassDirection = (heading: number): string => {
-    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-    const index = Math.round(heading / 45) % 8;
-    return directions[index];
   };
 
   return (
