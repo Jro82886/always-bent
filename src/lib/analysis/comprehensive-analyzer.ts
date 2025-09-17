@@ -50,7 +50,7 @@ export async function generateComprehensiveAnalysis(
     max: analysis.stats?.max_temp_f || 72,
     avg: analysis.stats?.avg_temp_f || 70,
     gradient: (analysis as any).gradient_strength || 0,
-    breaks: []
+    breaks: [] as Array<{ location: [number, number]; strength: number }>
   };
   
   // Find temperature breaks
