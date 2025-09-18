@@ -20,6 +20,7 @@ import {
 import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
 import ContoursLayer from '@/components/layers/ContoursLayer';
+import CHLEdgesLayer from '@/components/layers/CHLEdgesLayer';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 interface LeftZoneProps {
@@ -644,6 +645,10 @@ export default function LeftZone({
           </div>
         )}
       </div>
+      
+      {/* Render edge detection layers */}
+      {sstContours && map && <ContoursLayer map={map} />}
+      {chlEdges && map && <CHLEdgesLayer map={map} enabled={chlEdges} />}
     </div>
   );
 }
