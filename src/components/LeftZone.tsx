@@ -237,32 +237,21 @@ export default function LeftZone({
                     SST
                   </span>
                 </button>
-                <div className="flex gap-1 w-[76px] justify-end">
+                <div className="flex gap-1 w-[40px] justify-end">
                   {sstActive && (
-                    <>
-                      <Tooltip content="Adjust opacity" position="bottom">
-                        <button
-                          onClick={() => {
-                            setShowSstOpacity(!showSstOpacity);
-                            setShowSstEnhance(false);
-                          }}
-                          className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
-                        >
-                          <Sliders size={12} className="text-purple-400" />
-                        </button>
-                      </Tooltip>
-                      <Tooltip content="Enhance contrast" position="bottom">
-                        <button
-                          onClick={() => {
-                            setShowSstEnhance(!showSstEnhance);
-                            setShowSstOpacity(false);
-                          }}
-                          className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-teal-600/60 rounded hover:from-cyan-500/60 hover:to-teal-500/60 transition-colors"
-                        >
-                          <Sparkles size={12} className="text-white" />
-                        </button>
-                      </Tooltip>
-                    </>
+                    <Tooltip content="Enhancements" position="bottom">
+                      <button
+                        onClick={() => {
+                          setShowSstEnhance(!showSstEnhance);
+                          setShowSstOpacity(false);
+                          setShowChlOpacity(false);
+                          setShowChlEnhance(false);
+                        }}
+                        className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-teal-600/60 rounded hover:from-cyan-500/60 hover:to-teal-500/60 transition-colors"
+                      >
+                        <Sparkles size={12} className="text-white" />
+                      </button>
+                    </Tooltip>
                   )}
                 </div>
               </div>
@@ -288,9 +277,21 @@ export default function LeftZone({
               {showSstEnhance && sstActive && (
                 <div ref={sstEnhanceRef} className="bg-slate-700/60 rounded-lg p-3 border border-purple-500/20 space-y-2">
                   <div className="text-xs font-bold text-purple-300 flex items-center gap-1">
-                    <Sparkles size={12} /> Enhance SST
+                    <Sparkles size={12} /> SST Enhancements
                   </div>
                   <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-400 w-16">Opacity</span>
+                      <input
+                        type="range"
+                        min="50"
+                        max="100"
+                        value={sstOpacity}
+                        onChange={(e) => updateOpacity('sst', parseInt(e.target.value))}
+                        className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <span className="text-[10px] text-gray-400 w-8">{sstOpacity}%</span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-gray-400 w-16">Contrast</span>
                       <input
@@ -345,36 +346,21 @@ export default function LeftZone({
                 >
                   <span>🌿 CHL</span>
                 </button>
-                <div className="flex gap-1 w-[76px] justify-end">
+                <div className="flex gap-1 w-[40px] justify-end">
                   {chlActive && (
-                    <>
-                      <Tooltip content="Adjust opacity" position="bottom">
-                        <button
-                          onClick={() => {
-                            setShowChlOpacity(!showChlOpacity);
-                            setShowChlEnhance(false);
-                            setShowSstOpacity(false);
-                            setShowSstEnhance(false);
-                          }}
-                          className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
-                        >
-                          <Sliders size={12} className="text-cyan-400" />
-                        </button>
-                      </Tooltip>
-                      <Tooltip content="Enhance contrast" position="bottom">
-                        <button
-                          onClick={() => {
-                            setShowChlEnhance(!showChlEnhance);
-                            setShowChlOpacity(false);
-                            setShowSstOpacity(false);
-                            setShowSstEnhance(false);
-                          }}
-                          className="p-1.5 bg-gradient-to-r from-green-600/60 to-teal-600/60 rounded hover:from-green-500/60 hover:to-teal-500/60 transition-colors"
-                        >
-                          <Sparkles size={12} className="text-white" />
-                        </button>
-                      </Tooltip>
-                    </>
+                    <Tooltip content="Enhancements" position="bottom">
+                      <button
+                        onClick={() => {
+                          setShowChlEnhance(!showChlEnhance);
+                          setShowChlOpacity(false);
+                          setShowSstOpacity(false);
+                          setShowSstEnhance(false);
+                        }}
+                        className="p-1.5 bg-gradient-to-r from-green-600/60 to-teal-600/60 rounded hover:from-green-500/60 hover:to-teal-500/60 transition-colors"
+                      >
+                        <Sparkles size={12} className="text-white" />
+                      </button>
+                    </Tooltip>
                   )}
                 </div>
               </div>
@@ -401,9 +387,21 @@ export default function LeftZone({
               {showChlEnhance && chlActive && (
                 <div ref={chlEnhanceRef} className="bg-slate-700/60 rounded-lg p-3 border border-green-500/20 space-y-2">
                   <div className="text-xs font-bold text-green-300 flex items-center gap-1">
-                    <Sparkles size={12} /> Enhance CHL
+                    <Sparkles size={12} /> CHL Enhancements
                   </div>
                   <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-400 w-16">Opacity</span>
+                      <input
+                        type="range"
+                        min="50"
+                        max="100"
+                        value={chlOpacity}
+                        onChange={(e) => updateOpacity('chl', parseInt(e.target.value))}
+                        className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <span className="text-[10px] text-gray-400 w-8">{chlOpacity}%</span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-gray-400 w-16">Contrast</span>
                       <input
