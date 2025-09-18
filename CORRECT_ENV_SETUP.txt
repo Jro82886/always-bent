@@ -1,0 +1,19 @@
+# ✅ CORRECT COPERNICUS CREDENTIALS
+
+COPERNICUS_USER=jrosenkilde
+COPERNICUS_PASS=fevhuh-wuvmo2-mafFus
+
+# 🌿 CHLOROPHYLL LAYER SETUP
+
+Once you get the correct CMEMS_CHL_WMTS_TEMPLATE from the other bot, add it to:
+
+1. Your local .env.local file
+2. Vercel environment variables
+
+The chlorophyll API route is already set up and ready to use Copernicus WMTS exactly like your working SST layer.
+
+# CURRENT STATUS:
+- ✅ Credentials are correct
+- ✅ API route is using Copernicus (not NASA)
+- ✅ Layer ordering is fixed (chlorophyll shows above ocean/SST)
+- ⏳ Waiting for correct CMEMS_CHL_WMTS_TEMPLATE value

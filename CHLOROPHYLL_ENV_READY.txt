@@ -1,0 +1,24 @@
+# 🌊 CHLOROPHYLL ENVIRONMENT VARIABLE - READY TO COPY!
+
+## Add this to Vercel Environment Variables:
+
+Name: CMEMS_CHL_WMTS_TEMPLATE
+
+Value:
+https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/cmems_obs-oc_glo_bgc-plankton_nrt_l4-gapfree-multi-4km_P1D_202311/CHL&STYLE=cmap:turbo&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+
+## Also update these credentials in Vercel:
+
+COPERNICUS_USER=jrosenkilde
+COPERNICUS_PASS=fevhuh-wuvmo2-mafFus
+
+## Steps:
+1. Go to https://vercel.com/dashboard
+2. Click your "always-bent" project
+3. Go to Settings → Environment Variables
+4. Add/Update the above variables
+5. Click Save
+6. Go to Deployments tab
+7. Click "..." on latest deployment → Redeploy
+
+Your blue-green chlorophyll layer will be live! 🎉
