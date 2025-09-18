@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { X, Target, Waves, Thermometer, Activity, Save } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { getAnalysisQuote } from '@/lib/philosophy';
+import '@/styles/analysis-glow.css';
 
 interface AnalysisModalProps {
   analysis: (AnalysisResult & { vesselTracks?: any }) | null;
@@ -98,9 +99,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                 <Activity size={20} className="text-cyan-400" />
                 Comprehensive Analysis
               </h3>
-              <div className="text-gray-300 text-sm whitespace-pre-wrap font-mono leading-relaxed">
-                {comprehensiveAnalysis.summary}
-              </div>
+              <div 
+                className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed analysis-content"
+                dangerouslySetInnerHTML={{ __html: comprehensiveAnalysis.summary }}
+              />
               {comprehensiveAnalysis.recommendation && (
                 <div className="mt-3 pt-3 border-t border-cyan-500/20 text-gray-300 text-sm whitespace-pre-wrap font-mono">
                   {comprehensiveAnalysis.recommendation}

@@ -1,0 +1,146 @@
+/* Analysis Report Glow Effects */
+
+/* Blue glow for ocean/water symbols */
+.glow-blue {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8));
+  animation: pulse-blue 2s ease-in-out infinite;
+}
+
+/* Orange glow for temperature/gradient symbols */
+.glow-orange {
+  filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.8));
+  animation: pulse-orange 2s ease-in-out infinite;
+}
+
+/* Green glow for chlorophyll/success symbols */
+.glow-green {
+  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.8));
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+/* Red glow for convergence/hotspot symbols */
+.glow-red {
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.9));
+  animation: pulse-red 2s ease-in-out infinite;
+}
+
+/* Purple glow for vessel symbols */
+.glow-purple {
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.8));
+  animation: pulse-purple 2s ease-in-out infinite;
+}
+
+/* Indigo glow for environmental symbols */
+.glow-indigo {
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.8));
+  animation: pulse-indigo 2s ease-in-out infinite;
+}
+
+/* Amber glow for knowledge symbols */
+.glow-amber {
+  filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+  animation: pulse-amber 2s ease-in-out infinite;
+}
+
+/* Teal glow for fishing intel symbols */
+.glow-teal {
+  filter: drop-shadow(0 0 8px rgba(20, 184, 166, 0.8));
+  animation: pulse-teal 2s ease-in-out infinite;
+}
+
+/* Yellow glow for tips symbols */
+.glow-yellow {
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.8));
+  animation: pulse-yellow 2s ease-in-out infinite;
+}
+
+/* Cyan glow for location symbols */
+.glow-cyan {
+  filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.8));
+  animation: pulse-cyan 2s ease-in-out infinite;
+}
+
+/* Pulse animations */
+@keyframes pulse-blue {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-orange {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes pulse-purple {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-indigo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-amber {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-teal {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-yellow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-cyan {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Analysis Content Styling */
+.analysis-content h1 {
+  @apply text-xl font-bold mb-4 text-cyan-300;
+}
+
+.analysis-content h2 {
+  @apply text-lg font-semibold mb-3 mt-4 text-cyan-200;
+}
+
+.analysis-content h3 {
+  @apply text-base font-semibold mb-2 mt-3 text-cyan-100;
+}
+
+.analysis-content ul {
+  @apply space-y-1 ml-4;
+}
+
+.analysis-content li {
+  @apply text-gray-300;
+}
+
+.analysis-content strong {
+  @apply text-white font-semibold;
+}
+
+.analysis-content p {
+  @apply mb-2;
+}
+
+/* Ensure inline spans display properly */
+.analysis-content span {
+  @apply inline-block;
+}

@@ -1570,14 +1570,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         </button>
         
         {/* Enhanced guide positioned near the rectangle */}
-        {showCompleteBanner && hasAnalysisResults && !isAnalyzing && !isDrawing && currentPolygon.current && (
-          <RectangleTooltip 
-            map={map} 
-            polygon={currentPolygon.current}
-            analysis={lastAnalysis}
-            onDismiss={() => setShowCompleteBanner(false)}
-          />
-        )}
+        {/* Completion banner removed - analysis modal handles notification */}
       
       {/* Enhanced Status display with better visibility */}
       {(isDrawing || isAnalyzing) && (
