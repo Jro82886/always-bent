@@ -9,7 +9,7 @@ interface CHLLayerProps {
   selectedDate?: string;
 }
 
-export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerProps) {
+export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerProps) {
   
   useEffect(() => {
     if (!map) return;
@@ -31,11 +31,31 @@ export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerP
 
       if (!on) return;
 
+      // Convert selectedDate to proper format for API (same as SST)
+      let dateParam = '';
+      if (selectedDate === 'today') {
+        dateParam = '?time=latest'; // API will use yesterday (most recent available)
+      } else if (selectedDate === 'yesterday') {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        dateParam = `?time=${yesterday.toISOString().split('T')[0]}`;
+      } else if (selectedDate === '2days') {
+        const twoDaysAgo = new Date();
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+        dateParam = `?time=${twoDaysAgo.toISOString().split('T')[0]}`;
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) {
+        // Already in YYYY-MM-DD format
+        dateParam = `?time=${selectedDate}`;
+      } else {
+        // Default to latest if unknown format
+        dateParam = '?time=latest';
+      }
+
       // Add Chlorophyll raster source - Copernicus WMTS
       map.addSource('chl-src', {
         type: 'raster',
         tiles: [
-          `/api/tiles/chl/{z}/{x}/{y}?time=${selectedDate}`
+          `/api/tiles/chl/{z}/{x}/{y}${dateParam}`
         ],
         tileSize: 256,
         attribution: '© Copernicus Marine Service'
