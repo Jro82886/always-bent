@@ -10,35 +10,26 @@ interface CHLLayerProps {
 }
 
 export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerProps) {
-  console.log('CHLLayer render - on:', on, 'map:', !!map, 'selectedDate:', selectedDate);
   
   useEffect(() => {
     if (!map) return;
 
     const addCHLLayer = () => {
-      console.log('addCHLLayer called - on:', on, 'map.loaded:', map.loaded());
-      
       // Wait for map to be ready (like SST does)
       if (!map.loaded() || !map.getStyle()) {
-        console.log('Map not ready, retrying...');
         setTimeout(addCHLLayer, 100);
         return;
       }
 
       // Remove existing layer if present
       if (map.getLayer('chl-lyr')) {
-        console.log('Removing existing CHL layer');
         map.removeLayer('chl-lyr');
       }
       if (map.getSource('chl-src')) {
-        console.log('Removing existing CHL source');
         map.removeSource('chl-src');
       }
 
-      if (!on) {
-        console.log('CHL toggled OFF, not adding layer');
-        return;
-      }
+      if (!on) return;
 
       // Add Chlorophyll raster source - Copernicus WMTS
       map.addSource('chl-src', {
@@ -67,48 +58,48 @@ export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerP
         }
       });
 
-      // CRITICAL LAYER ORDERING - CHL needs to be visible!
-      // The issue was CHL was at the BOTTOM (position 0)
-      
-      // First, find key reference layers
+      // CRITICAL LAYER ORDERING - CHL must be visible above water!
       const layers = map.getStyle().layers;
-      const landLayer = layers.find(layer => 
-        layer.id.includes('land') || 
-        layer.id.includes('landcover') ||
-        layer.id === 'land'
+      
+      // Find the water fill layer (which can block raster layers)
+      const waterLayer = layers.find(layer => 
+        layer.id === 'water' || 
+        layer.id.includes('water') && layer.type === 'fill'
       );
       
-      // Find the water layer (usually near bottom)
-      const waterLayer = layers.find(layer =>
-        layer.id.includes('water') ||
-        layer.id === 'water'
+      // Find label layers (we want to stay below these)
+      const firstLabelLayer = layers.find(layer => 
+        layer.type === 'symbol' || 
+        layer.id.includes('label')
       );
       
-      // Position CHL properly:
-      // If SST exists, put CHL right above it
-      if (map.getLayer('sst-lyr')) {
-        const sstIndex = layers.findIndex(l => l.id === 'sst-lyr');
-        const afterSST = layers[sstIndex + 1];
-        if (afterSST) {
-          map.moveLayer('chl-lyr', afterSST.id);
+      // STRATEGY: Position CHL in the "data layer zone"
+      // Above: base map, water fills, land
+      // Below: labels, symbols, UI elements
+      
+      if (firstLabelLayer) {
+        // Best case: put it right before the first label layer
+        map.moveLayer('chl-lyr', firstLabelLayer.id);
+        console.log(`Positioned CHL before labels (${firstLabelLayer.id})`);
+      } else if (waterLayer) {
+        // If no labels found, at least get above water
+        map.moveLayer('chl-lyr'); // Move to top first
+        console.log('Positioned CHL at top (above water)');
+      } else {
+        // Fallback: just move it up in the stack
+        const currentIndex = layers.findIndex(l => l.id === 'chl-lyr');
+        if (currentIndex < layers.length / 2) {
+          // If in bottom half, move to top
+          map.moveLayer('chl-lyr');
+          console.log('Moved CHL to top of stack');
         }
       }
-      // Otherwise, put it above water but below land
-      else if (waterLayer) {
-        // Find the layer right after water
-        const waterIndex = layers.findIndex(l => l.id === waterLayer.id);
-        const afterWater = layers[waterIndex + 1];
-        if (afterWater) {
-          map.moveLayer('chl-lyr', afterWater.id);
-        }
-      }
-      // As a fallback, just make sure we're not at the very bottom
-      else {
-        // Move above the first layer (position 0)
-        if (layers.length > 1) {
-          map.moveLayer('chl-lyr', layers[1].id);
-        }
-      }
+      
+      // Log final position for debugging
+      const newLayers = map.getStyle().layers;
+      const finalIndex = newLayers.findIndex(l => l.id === 'chl-lyr');
+      const waterIndex = newLayers.findIndex(l => l.id === 'water');
+      console.log(`CHL final position: ${finalIndex}, Water position: ${waterIndex}`);
 
       console.log('✅ CHL layer added successfully with proper ordering');
       console.log('Layer exists:', !!map.getLayer('chl-lyr'));
