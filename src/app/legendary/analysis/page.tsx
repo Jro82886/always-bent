@@ -15,7 +15,7 @@ import RightZone from '@/components/RightZone';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
 import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
-import WeatherDisplay from '@/components/WeatherDisplay';
+import UnifiedOceanConditions from '@/components/UnifiedOceanConditions';
 import OfflineManager from '@/components/OfflineManager';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import { useAppState } from '@/store/appState';
@@ -432,10 +432,15 @@ function AnalysisModeContent() {
           {/* Network Status Indicator - Shows online/offline status */}
           <NetworkStatusIndicator />
           
-          {/* Weather Display - Top Right Corner */}
-          <div className="absolute top-32 right-4 z-50">
-            <WeatherDisplay />
-          </div>
+          {/* Unified Ocean Conditions - Top Right Corner */}
+          <UnifiedOceanConditions
+            sstActive={sstActive}
+            chlActive={chlActive}
+            oceanActive={oceanActive}
+            onToggleSST={() => setSstActive(!sstActive)}
+            onToggleCHL={() => setChlActive(!chlActive)}
+            onToggleOcean={() => setOceanActive(!oceanActive)}
+          />
 
           {/* Commercial Vessels Toggle - Bottom Right */}
           <div className="absolute bottom-24 right-4 z-50">
