@@ -415,8 +415,8 @@ function AnalysisModeContent() {
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
-          {/* Tutorial Overlay - First tutorial for new users */}
-          {!tutorialCompleted && (
+          {/* Tutorial Overlay - First tutorial for new users - ONLY show after map loads */}
+          {!tutorialCompleted && map.current && (
             <TutorialOverlay onComplete={() => {
               setShowingTutorial(false);
               setTutorialCompleted(true);
