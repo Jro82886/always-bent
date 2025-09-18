@@ -1,7 +1,7 @@
 # ADD THESE TO YOUR .env.local FILE TO FIX 403 ERRORS
 
 # Copernicus Marine Service Authentication
-COPERNICUS_USER=arosenkilde
+COPERNICUS_USER=jrosenkilde
 COPERNICUS_PASS=Alwaysbent82886!
 
 # SST Configuration (WORKING)
