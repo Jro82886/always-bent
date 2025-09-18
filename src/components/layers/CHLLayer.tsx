@@ -29,7 +29,7 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
       map.addSource('chl-src', {
         type: 'raster',
         tiles: [
-          `/api/tiles/chl/{z}/{x}/{y}?date=${selectedDate}`
+          `/api/tiles/chl/{z}/{x}/{y}?time=${selectedDate}`
         ],
         tileSize: 256,
         attribution: '© Copernicus Marine Service',

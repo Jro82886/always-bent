@@ -11,6 +11,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   
   // EXACTLY like SST - use Copernicus WMTS
   const base = process.env.CMEMS_CHL_WMTS_TEMPLATE;
+  
+  // Debug logging
+  console.log('CHL Route - Environment check:', {
+    hasTemplate: !!base,
+    templateLength: base?.length || 0,
+    z, x, y
+  });
 
   if (!base) {
     console.error('CMEMS_CHL_WMTS_TEMPLATE not configured - please add to Vercel environment variables');

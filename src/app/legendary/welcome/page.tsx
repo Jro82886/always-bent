@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Anchor, Ship, User, MapPin, Loader2, ChevronRight, Waves, Fish } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
-import { saveUserProfile, upsertProfileDirect } from '@/lib/supabase/profiles';
+// Removed old auth - external developer handling this now
+// import { saveUserProfile, upsertProfileDirect } from '@/lib/supabase/profiles';
 
 export default function LegendaryWelcomePage() {
   const router = useRouter();
