@@ -64,7 +64,12 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
         if (map.getLayer(lyrId)) map.removeLayer(lyrId);
         if (map.getSource(srcId)) (map as any).removeSource(srcId);
 
-        (map as any).addSource(srcId, { type: 'raster', tiles: [url], tileSize } as any);
+        (map as any).addSource(srcId, { 
+          type: 'raster', 
+          tiles: [url], 
+          tileSize,
+          maxzoom: 12 // Allow overzooming for smoother high zoom
+        } as any);
         map.addLayer({
           id: lyrId,
           type: 'raster',
