@@ -460,6 +460,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [lastAnalysis, setLastAnalysis] = useState<AnalysisResult | null>(null);
   const [hasAnalysisResults, setHasAnalysisResults] = useState(false);
   const [showCompleteBanner, setShowCompleteBanner] = useState(false);
+  const [isZoomedToSnip, setIsZoomedToSnip] = useState(false);
+  const [previousView, setPreviousView] = useState<{ center: [number, number]; zoom: number } | null>(null);
   
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
@@ -1067,6 +1069,15 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Zoom to the snipped area for better visualization
       setTimeout(() => {
         if (currentPolygon.current) {
+          // Save current view before zooming
+          const currentCenter = map.getCenter();
+          const currentZoom = map.getZoom();
+          setPreviousView({
+            center: [currentCenter.lng, currentCenter.lat],
+            zoom: currentZoom
+          });
+          setIsZoomedToSnip(true);
+          
           const bounds = turf.bbox(currentPolygon.current);
           
           // Calculate padding based on current viewport
@@ -1087,17 +1098,17 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             }
           );
           
-          console.log('📍 Zooming to snipped area for detailed analysis...');
+          console.log('[SNIP] Zooming to analysis area...');
           
           // Add a visual indicator that we're analyzing this specific area
           setTimeout(() => {
             // Flash the rectangle to show it's being analyzed
             const currentOpacity = map.getPaintProperty('snip-rectangle-fill', 'fill-opacity') || 0.45;
             
-            // Pulse effect
+            // Pulse effect with slate blue-grey
             map.setPaintProperty('snip-rectangle-fill', 'fill-opacity', 0.7);
             map.setPaintProperty('snip-rectangle-outline', 'line-width', 4);
-            map.setPaintProperty('snip-rectangle-outline', 'line-color', '#06b6d4'); // Cyan
+            map.setPaintProperty('snip-rectangle-outline', 'line-color', '#475569'); // slate-600 to match
             
             setTimeout(() => {
               map.setPaintProperty('snip-rectangle-fill', 'fill-opacity', currentOpacity);
@@ -1142,6 +1153,23 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       setIsDrawing(false);
     }
   }, [map, onAnalysisComplete, clearDrawing]);
+
+  // Zoom out to previous view
+  const zoomOut = useCallback(() => {
+    if (!map || !previousView) return;
+    
+    console.log('[SNIP] Returning to overview...');
+    
+    map.flyTo({
+      center: previousView.center,
+      zoom: previousView.zoom,
+      duration: 1200,
+      essential: true
+    });
+    
+    setIsZoomedToSnip(false);
+    setPreviousView(null);
+  }, [map, previousView]);
 
   // Initialize layers
   useEffect(() => {
@@ -1357,7 +1385,15 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     };
 
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') clearDrawing();
+      if (e.key === 'Escape') {
+        if (isZoomedToSnip && previousView) {
+          // If zoomed in, zoom out first
+          zoomOut();
+        } else {
+          // Otherwise clear drawing
+          clearDrawing();
+        }
+      }
     };
 
     map.on('mousedown', handleMouseDown);
@@ -1371,7 +1407,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       map.off('mouseup', handleMouseUp);
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [map, isDrawing, updateRectangle, completeDrawing, clearDrawing]);
+  }, [map, isDrawing, updateRectangle, completeDrawing, clearDrawing, isZoomedToSnip, previousView, zoomOut]);
 
   // Handle programmatic trigger
   useEffect(() => {
@@ -1502,6 +1538,25 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
 
   return (
     <>
+      {/* Zoom Out Button - Only show when zoomed in */}
+      {isZoomedToSnip && previousView && (
+        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50">
+          <button
+            onClick={zoomOut}
+            className="bg-slate-800/90 hover:bg-slate-700/90 text-white px-4 py-2 rounded-lg 
+                     border border-slate-600 backdrop-blur-sm transition-all
+                     flex items-center gap-2 shadow-lg"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-white">
+              <path d="M10 6L8 4L6 6M8 4V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M3 8C3 5.239 5.239 3 8 3C10.761 3 13 5.239 13 8C13 10.761 10.761 13 8 13C5.239 13 3 10.761 3 8Z" 
+                    stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+            Return to Overview
+          </button>
+        </div>
+      )}
+      
       {/* Offline Bites Upload Section */}
       <OfflineBitesUploader />
       

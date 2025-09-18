@@ -182,7 +182,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         
         // Auto-show modal with analysis including vessel tracks
         setTimeout(() => {
-          console.log('🎯 Opening analysis modal with comprehensive data...');
+          console.log('[ANALYSIS] Opening comprehensive analysis view...');
           setShowModal(true);
           
           // Hotspot marker will be handled by HotspotMarker component
