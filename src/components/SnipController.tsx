@@ -92,7 +92,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         const { extractTileDataFromCanvas } = await import('@/lib/analysis/tile-data-extractor');
         
         if (activeLayers.sst) {
-          const sstPixels = await extractTileDataFromCanvas(map, bounds, 'sst-lyr', 'sst');
+          const sstPixels = await extractTileDataFromCanvas(map, bounds as [[number, number], [number, number]], 'sst-lyr', 'sst');
           // Convert to the expected format
           sstData = sstPixels.map(p => ({
             lat: p.lat,
@@ -104,7 +104,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         }
         
         if (activeLayers.chl) {
-          const chlPixels = await extractTileDataFromCanvas(map, bounds, 'chl-lyr', 'chl');
+          const chlPixels = await extractTileDataFromCanvas(map, bounds as [[number, number], [number, number]], 'chl-lyr', 'chl');
           // Convert to the expected format
           chlData = chlPixels.map(p => ({
             lat: p.lat,
