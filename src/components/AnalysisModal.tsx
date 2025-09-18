@@ -23,19 +23,19 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   }, []);
 
   useEffect(() => {
-    
+    console.log('AnalysisModal state:', { visible, hasAnalysis: !!analysis, mounted });
     if (visible && analysis) {
       // Show immediately when visible prop is true
-      
+      console.log('✅ Showing modal with analysis data');
       setIsVisible(true);
       // Force animation to start immediately
       setIsAnimating(true);
     } else if (!visible) {
-      
+      console.log('❌ Hiding modal');
       setIsAnimating(false);
       setTimeout(() => setIsVisible(false), 300);
     }
-  }, [visible, analysis]);
+  }, [visible, analysis, mounted]);
 
   // Don't render on server or if not mounted
   if (!mounted) {
@@ -64,6 +64,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60"
       onClick={onClose}
       style={{ pointerEvents: 'auto', display: 'flex' }}
+      data-analysis-modal="true"
     >
       {/* Modal Content - Wide layout to fit everything */}
       <div 

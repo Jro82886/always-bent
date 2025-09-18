@@ -1064,6 +1064,50 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         map.getCanvas().style.cursor = '';
       });
       
+      // Zoom to the snipped area for better visualization
+      setTimeout(() => {
+        if (currentPolygon.current) {
+          const bounds = turf.bbox(currentPolygon.current);
+          
+          // Calculate padding based on current viewport
+          const padding = {
+            top: 100,
+            bottom: 100,
+            left: 350,  // Account for left panel
+            right: 400  // Account for right panel and analysis
+          };
+          
+          // Animate zoom to the snipped area
+          map.fitBounds(
+            [[bounds[0], bounds[1]], [bounds[2], bounds[3]]],
+            {
+              padding: padding,
+              duration: 1500,
+              essential: true
+            }
+          );
+          
+          console.log('📍 Zooming to snipped area for detailed analysis...');
+          
+          // Add a visual indicator that we're analyzing this specific area
+          setTimeout(() => {
+            // Flash the rectangle to show it's being analyzed
+            const currentOpacity = map.getPaintProperty('snip-rectangle-fill', 'fill-opacity') || 0.45;
+            
+            // Pulse effect
+            map.setPaintProperty('snip-rectangle-fill', 'fill-opacity', 0.7);
+            map.setPaintProperty('snip-rectangle-outline', 'line-width', 4);
+            map.setPaintProperty('snip-rectangle-outline', 'line-color', '#06b6d4'); // Cyan
+            
+            setTimeout(() => {
+              map.setPaintProperty('snip-rectangle-fill', 'fill-opacity', currentOpacity);
+              map.setPaintProperty('snip-rectangle-outline', 'line-width', 2);
+              map.setPaintProperty('snip-rectangle-outline', 'line-color', '#334155');
+            }, 500);
+          }, 1000);
+        }
+      }, 300);
+      
       // The rectangle will only clear when user starts a new selection
     } catch (error) {
       

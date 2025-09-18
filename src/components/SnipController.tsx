@@ -182,9 +182,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         
         // Auto-show modal with analysis including vessel tracks
         setTimeout(() => {
-          
+          console.log('🎯 Opening analysis modal with comprehensive data...');
           setShowModal(true);
-        }, 800); // Small delay for smooth transition
+          
+          // Hotspot marker will be handled by HotspotMarker component
+        }, 2000); // Delay to allow zoom animation to complete
       } else {
         
         // For non-hotspot, show educational modal immediately
