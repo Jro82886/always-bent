@@ -44,6 +44,9 @@ function AnalysisModeContent() {
   // Commercial vessels toggle (OFF by default for energy saving)
   const [showCommercial, setShowCommercial] = useState(false);
   
+  // Get inlet data for legend
+  const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+  
   // Check if tutorial should be shown (client-side only)
   const [showingTutorial, setShowingTutorial] = useState(false);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
