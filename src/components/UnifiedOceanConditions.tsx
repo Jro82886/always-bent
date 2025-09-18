@@ -6,22 +6,10 @@ import { InletWeather, formatWind, formatWaves, assessFishingConditions } from '
 import { getInletById } from '@/lib/inlets';
 
 interface OceanConditionsProps {
-  sstActive: boolean;
-  chlActive: boolean;
-  oceanActive: boolean;
-  onToggleSST: () => void;
-  onToggleCHL: () => void;
-  onToggleOcean: () => void;
+  // Remove layer props as they're moving back to LeftZone
 }
 
-export default function UnifiedOceanConditions({
-  sstActive,
-  chlActive,
-  oceanActive,
-  onToggleSST,
-  onToggleCHL,
-  onToggleOcean
-}: OceanConditionsProps) {
+export default function WeatherPanel() {
   const { selectedInletId } = useAppState();
   const [weather, setWeather] = useState<InletWeather | null>(null);
   const [loading, setLoading] = useState(false);
@@ -62,56 +50,52 @@ export default function UnifiedOceanConditions({
   const conditions = weather?.conditions ? assessFishingConditions(weather.conditions) : null;
 
   return (
-    <div className="absolute top-24 right-4 z-[60] w-80">
-      {/* Unified Ocean Conditions Panel */}
-      <div className="bg-gray-900/95 backdrop-blur-lg rounded-xl shadow-2xl border border-cyan-500/20 overflow-hidden">
+    <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[60] w-96">
+      {/* Compact Weather Bar - Centered at top */}
+      <div className="bg-gray-900/90 backdrop-blur-lg rounded-lg shadow-xl border border-cyan-500/20 overflow-hidden">
         
-        {/* Header */}
-        <div 
-          className="px-4 py-3 bg-gradient-to-r from-cyan-600/20 to-blue-600/20 cursor-pointer"
-          onClick={() => setExpanded(!expanded)}
-        >
+        {/* Compact Header Bar */}
+        <div className="px-4 py-2 bg-gradient-to-r from-cyan-600/20 to-blue-600/20">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                  d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-              </svg>
-              <h3 className="text-white font-semibold">Ocean Conditions</h3>
+            <div className="flex items-center gap-3">
               {inlet && (
-                <span className="text-cyan-400 text-sm">• {inlet.name}</span>
+                <span className="text-cyan-400 text-sm font-medium">{inlet.name}</span>
               )}
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400">Water:</span>
+                  <span className="text-cyan-400 font-bold">{oceanTemp}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400">Wind:</span>
+                  <span className="text-white font-bold">
+                    {weather?.conditions ? formatWind(weather.conditions.wind_speed_kt, weather.conditions.wind_direction) : '--'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-400">Waves:</span>
+                  <span className="text-white font-bold">
+                    {weather?.conditions ? formatWaves(weather.conditions.wave_height_ft, weather.conditions.wave_period_sec) : '--'}
+                  </span>
+                </div>
+              </div>
             </div>
-            <svg 
-              className={`w-4 h-4 text-gray-400 transform transition-transform ${expanded ? 'rotate-180' : ''}`}
-              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="p-1 hover:bg-cyan-500/20 rounded transition-colors"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+              <svg 
+                className={`w-4 h-4 text-gray-400 transform transition-transform ${expanded ? 'rotate-180' : ''}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </div>
         </div>
 
         {expanded && (
           <>
-            {/* Quick Stats Bar */}
-            <div className="px-4 py-2 bg-black/30 grid grid-cols-3 gap-2 text-xs">
-              <div className="text-center">
-                <div className="text-gray-400">Water</div>
-                <div className="text-cyan-400 font-bold text-lg">{oceanTemp}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-gray-400">Wind</div>
-                <div className="text-white font-bold text-lg">
-                  {weather?.conditions ? formatWind(weather.conditions.wind_speed_kt, weather.conditions.wind_direction) : '--'}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-gray-400">Waves</div>
-                <div className="text-white font-bold text-lg">
-                  {weather?.conditions ? formatWaves(weather.conditions.wave_height_ft, weather.conditions.wave_period_sec) : '--'}
-                </div>
-              </div>
-            </div>
 
             {/* Conditions Assessment */}
             {conditions && (
@@ -125,77 +109,7 @@ export default function UnifiedOceanConditions({
               </div>
             )}
 
-            {/* Data Layers Section */}
-            <div className="px-4 py-3 border-t border-gray-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-400">OCEAN DATA LAYERS</span>
-                <span className="text-xs text-cyan-400">
-                  {[sstActive, chlActive, oceanActive].filter(Boolean).length} active
-                </span>
-              </div>
-              
-              <div className="space-y-2">
-                {/* SST Toggle */}
-                <button
-                  onClick={onToggleSST}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
-                    sstActive 
-                      ? 'bg-orange-500/20 border border-orange-500/40' 
-                      : 'bg-black/20 border border-gray-700 hover:bg-black/40'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${sstActive ? 'bg-orange-500' : 'bg-gray-600'}`} />
-                    <span className={`text-sm ${sstActive ? 'text-orange-400' : 'text-gray-400'}`}>
-                      Sea Surface Temp
-                    </span>
-                  </div>
-                  {sstActive && (
-                    <span className="text-xs text-orange-400 animate-pulse">LIVE</span>
-                  )}
-                </button>
-
-                {/* Chlorophyll Toggle */}
-                <button
-                  onClick={onToggleCHL}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
-                    chlActive 
-                      ? 'bg-green-500/20 border border-green-500/40' 
-                      : 'bg-black/20 border border-gray-700 hover:bg-black/40'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${chlActive ? 'bg-green-500' : 'bg-gray-600'}`} />
-                    <span className={`text-sm ${chlActive ? 'text-green-400' : 'text-gray-400'}`}>
-                      Chlorophyll
-                    </span>
-                  </div>
-                  {chlActive && (
-                    <span className="text-xs text-green-400 animate-pulse">LIVE</span>
-                  )}
-                </button>
-
-                {/* Bathymetry Toggle */}
-                <button
-                  onClick={onToggleOcean}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
-                    oceanActive 
-                      ? 'bg-blue-500/20 border border-blue-500/40' 
-                      : 'bg-black/20 border border-gray-700 hover:bg-black/40'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${oceanActive ? 'bg-blue-500' : 'bg-gray-600'}`} />
-                    <span className={`text-sm ${oceanActive ? 'text-blue-400' : 'text-gray-400'}`}>
-                      Bathymetry
-                    </span>
-                  </div>
-                  {oceanActive && (
-                    <span className="text-xs text-blue-400 animate-pulse">ACTIVE</span>
-                  )}
-                </button>
-              </div>
-            </div>
+            {/* Removed Data Layers - Now in LeftZone */}
 
             {/* Weather Details */}
             {weather?.conditions && (

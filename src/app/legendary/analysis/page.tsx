@@ -392,6 +392,8 @@ function AnalysisModeContent() {
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             map={map.current}
+            showCommercial={showCommercial}
+            setShowCommercial={setShowCommercial}
           />
           
           {/* RIGHT ZONE - Action Controls (Over Ocean) */}
@@ -435,42 +437,10 @@ function AnalysisModeContent() {
           {/* Network Status Indicator - Shows online/offline status */}
           <NetworkStatusIndicator />
           
-          {/* Unified Ocean Conditions - Top Right Corner */}
-          <UnifiedOceanConditions
-            sstActive={sstActive}
-            chlActive={chlActive}
-            oceanActive={oceanActive}
-            onToggleSST={() => setSstActive(!sstActive)}
-            onToggleCHL={() => setChlActive(!chlActive)}
-            onToggleOcean={() => toggleOcean()}
-          />
+          {/* Weather Conditions - Top Right Corner */}
+          <UnifiedOceanConditions />
 
-          {/* Commercial Vessels Toggle - Bottom Right */}
-          <div className="absolute bottom-24 right-4 z-50">
-            <button
-              onClick={() => setShowCommercial(!showCommercial)}
-              className={`
-                px-4 py-2 rounded-lg text-sm font-medium transition-all
-                ${showCommercial 
-                  ? 'bg-orange-500/90 text-white shadow-lg' 
-                  : 'bg-black/60 text-white/70 hover:bg-black/80'
-                }
-              `}
-            >
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {showCommercial ? 'Hide' : 'Show'} Commercial Vessels
-              </div>
-              {showCommercial && (
-                <div className="text-[10px] mt-1 text-white/70">
-                  Powered by GFW Data
-                </div>
-              )}
-            </button>
-          </div>
+          {/* Commercial Vessels Toggle - Moved to LeftZone */}
 
           {/* Commercial Vessel Layer */}
           <CommercialVesselLayer 
