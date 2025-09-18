@@ -3,6 +3,7 @@
 import HeaderBar from '@/components/HeaderBar';
 import CleanReloadButton from '@/components/CleanReloadButton';
 import BasemapControl from '@/components/BasemapControl';
+import LiveWeatherWidget from '@/components/LiveWeatherWidget';
 
 export default function TopHUD({ includeAbfi = false, className, extraRight, showSoon = false, showLayers = true }: { includeAbfi?: boolean; className?: string; extraRight?: React.ReactNode; showSoon?: boolean; showLayers?: boolean }) {
   return (
@@ -20,6 +21,12 @@ export default function TopHUD({ includeAbfi = false, className, extraRight, sho
         ].join(' ')}
       >
         <HeaderBar includeAbfi={includeAbfi} />
+        
+        {/* Live Weather Widget */}
+        <div className="hidden md:block">
+          <LiveWeatherWidget />
+        </div>
+        
         {showSoon ? (
           <div className="hidden md:flex flex-col items-start pl-2 ml-2 border-l border-white/10">
             <div className="text-[10px] uppercase tracking-wide text-white/50 mb-1">Coming soon</div>
