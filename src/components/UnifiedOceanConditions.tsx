@@ -127,7 +127,12 @@ export default function UnifiedOceanConditions({
 
             {/* Data Layers Section */}
             <div className="px-4 py-3 border-t border-gray-800">
-              <div className="text-xs text-gray-400 mb-2">OCEAN DATA LAYERS</div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-400">OCEAN DATA LAYERS</span>
+                <span className="text-xs text-cyan-400">
+                  {[sstActive, chlActive, oceanActive].filter(Boolean).length} active
+                </span>
+              </div>
               
               <div className="space-y-2">
                 {/* SST Toggle */}
@@ -145,7 +150,9 @@ export default function UnifiedOceanConditions({
                       Sea Surface Temp
                     </span>
                   </div>
-                  {sstActive && <span className="text-xs text-orange-400">LIVE</span>}
+                  {sstActive && (
+                    <span className="text-xs text-orange-400 animate-pulse">LIVE</span>
+                  )}
                 </button>
 
                 {/* Chlorophyll Toggle */}
@@ -163,7 +170,9 @@ export default function UnifiedOceanConditions({
                       Chlorophyll
                     </span>
                   </div>
-                  {chlActive && <span className="text-xs text-green-400">LIVE</span>}
+                  {chlActive && (
+                    <span className="text-xs text-green-400 animate-pulse">LIVE</span>
+                  )}
                 </button>
 
                 {/* Bathymetry Toggle */}
@@ -181,7 +190,9 @@ export default function UnifiedOceanConditions({
                       Bathymetry
                     </span>
                   </div>
-                  {oceanActive && <span className="text-xs text-blue-400">DEPTH</span>}
+                  {oceanActive && (
+                    <span className="text-xs text-blue-400 animate-pulse">ACTIVE</span>
+                  )}
                 </button>
               </div>
             </div>

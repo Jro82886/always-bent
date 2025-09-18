@@ -302,11 +302,14 @@ function AnalysisModeContent() {
     if (map.current.getLayer('ocean-layer')) {
       map.current.setLayoutProperty('ocean-layer', 'visibility', newState ? 'visible' : 'none');
       if (newState) {
-        map.current.moveLayer('ocean-layer'); // Move to bottom
+        // Ensure proper layer ordering: ocean (bottom) -> SST -> CHL (top)
+        const firstSymbolLayer = map.current.getStyle().layers.find(layer => layer.type === 'symbol');
+        if (firstSymbolLayer) {
+          map.current.moveLayer('ocean-layer', firstSymbolLayer.id);
+        }
         map.current.triggerRepaint();
       }
     }
-    
   };
 
   // Initialize layer defaults
@@ -439,7 +442,7 @@ function AnalysisModeContent() {
             oceanActive={oceanActive}
             onToggleSST={() => setSstActive(!sstActive)}
             onToggleCHL={() => setChlActive(!chlActive)}
-            onToggleOcean={() => setOceanActive(!oceanActive)}
+            onToggleOcean={() => toggleOcean()}
           />
 
           {/* Commercial Vessels Toggle - Bottom Right */}
