@@ -647,7 +647,7 @@ export default function LeftZone({
       </div>
       
       {/* Render edge detection layers */}
-      {sstContours && map && <ContoursLayer map={map} />}
+      {sstContours && map && <ContoursLayer map={map} enabled={sstContours} />}
       {chlEdges && map && <CHLEdgesLayer map={map} enabled={chlEdges} />}
     </div>
   );
