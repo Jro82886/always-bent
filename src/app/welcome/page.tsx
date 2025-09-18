@@ -137,7 +137,7 @@ function WelcomeContent() {
             Click below to sign in with your existing account.
           </p>
           <button
-            onClick={() => router.push('/auth/login')}
+            onClick={() => router.push('/legendary/welcome')}
             className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-cyan-500/25 transition-all"
           >
             Go to Sign In
@@ -248,7 +248,7 @@ function WelcomeContent() {
               Already have an ABFI account?
             </p>
             <button
-              onClick={() => router.push('/auth/login')}
+              onClick={() => router.push('/legendary/welcome')}
               className="text-cyan-400 hover:text-cyan-300 font-medium"
             >
               Sign In Instead

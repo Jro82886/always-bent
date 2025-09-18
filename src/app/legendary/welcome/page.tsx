@@ -28,7 +28,7 @@ export default function LegendaryWelcomePage() {
     
     if (!user) {
       // Not authenticated, redirect to login
-      router.replace('/auth/login');
+      // Skip auth check - user can proceed
       return;
     }
     
@@ -62,7 +62,7 @@ export default function LegendaryWelcomePage() {
     
     if (!userId) {
       setError('Authentication required. Please log in again.');
-      router.replace('/auth/login');
+      // Skip auth check - user can proceed
       return;
     }
     

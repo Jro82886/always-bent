@@ -2,102 +2,81 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
 import { Anchor, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function StartPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleDemoAccess = async () => {
     setLoading(true);
-    setError('');
     
-    try {
-      // Sign in with the demo account
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: 'demo@alwaysbent.com',
-        password: 'demo123456'
-      });
+    // Set demo user in localStorage
+    localStorage.setItem('abfi_captain_name', 'Demo Captain');
+    localStorage.setItem('abfi_boat_name', 'Demo Vessel');
+    localStorage.setItem('abfi_user_id', `demo-${Date.now()}`);
+    
+    // Redirect to app
+    setTimeout(() => {
+      router.push('/legendary');
+    }, 500);
+  };
 
-      if (signInError) {
-        setError('Demo access temporarily unavailable. Please try again.');
-        setLoading(false);
-        return;
-      }
-
-      // Success - redirect to app
-      router.push('/legendary?mode=analysis');
-    } catch (err) {
-      setError('Something went wrong. Please refresh and try again.');
-      setLoading(false);
-    }
+  const handleSignIn = () => {
+    router.push('/legendary/welcome');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4">
-      {/* Ocean effect */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-cyan-500/5 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10 w-full max-w-lg">
-        <div className="bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-cyan-500/20 p-12 shadow-[0_20px_70px_rgba(6,182,212,0.2)]">
-          
-          {/* Logo */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-950 to-slate-950 flex items-center justify-center p-4">
+      <div className="max-w-md w-full">
+        <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-2xl">
+          {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 mb-6">
-              <Anchor className="w-12 h-12 text-cyan-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full mb-4">
+              <Anchor className="w-8 h-8 text-white" />
             </div>
-            
-            <h1 className="text-4xl font-bold text-white mb-3">
+            <h1 className="text-3xl font-bold text-white mb-2">
               Always Bent
             </h1>
-            <p className="text-xl text-cyan-400 font-semibold">
-              Fishing Intelligence
+            <p className="text-cyan-400 text-lg">
+              Fishing Intelligence Platform
             </p>
           </div>
 
-          {/* Welcome Message */}
-          <div className="text-center mb-8">
-            <p className="text-slate-300 text-lg">
-              Welcome, Captain!
-            </p>
-            <p className="text-slate-400 mt-2">
-              Your advanced ocean analysis platform is ready.
-            </p>
+          {/* Buttons */}
+          <div className="space-y-3">
+            <button
+              onClick={handleDemoAccess}
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Loading Demo...
+                </>
+              ) : (
+                <>
+                  Try Demo Access
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleSignIn}
+              disabled={loading}
+              className="w-full bg-slate-800 text-cyan-400 py-3 px-4 rounded-lg font-medium hover:bg-slate-700 transition-colors border border-cyan-500/30"
+            >
+              Enter Your Details
+            </button>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
-          )}
-
-          {/* ONE BIG BUTTON */}
-          <button
-            onClick={handleDemoAccess}
-            disabled={loading}
-            className="w-full py-5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-xl rounded-2xl shadow-xl hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-6 h-6 animate-spin" />
-                Loading Platform...
-              </>
-            ) : (
-              <>
-                Enter ABFI Platform
-                <ArrowRight className="w-6 h-6" />
-              </>
-            )}
-          </button>
-
-          {/* Simple footer */}
-          <p className="text-center text-xs text-slate-500 mt-8">
-            By clicking above, you agree to our terms of service.
-          </p>
+          {/* Footer */}
+          <div className="mt-6 text-center text-sm text-gray-400">
+            <p>Beta Version 1.0</p>
+            <p className="mt-1">© 2025 Always Bent Fishing Intelligence</p>
+          </div>
         </div>
       </div>
     </div>

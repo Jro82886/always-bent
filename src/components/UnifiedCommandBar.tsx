@@ -108,7 +108,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
     localStorage.removeItem('abfi_user_id');
     localStorage.removeItem('abfi_session_start');
     localStorage.removeItem('abfi_setup_complete');
-    router.push('/auth/login');
+    router.push('/legendary/welcome');
   };
 
   const selectedInlet = inlets.find(i => i.id === selectedInletId);
