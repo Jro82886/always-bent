@@ -3,7 +3,7 @@ import { useState } from "react";
 import type mapboxgl from "mapbox-gl";
 import SnipTool from "@/components/SnipTool";
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
-import { convertAnalysisToReport } from '@/lib/reports/analysis-to-report';
+import { analysisToReport } from '@/lib/reports/analysis-to-report';
 import { useAppState } from '@/store/appState';
 import { CheckCircle, Save, X, RefreshCw } from 'lucide-react';
 
@@ -40,9 +40,9 @@ export default function SnipAnalyzeControl({ map }: { map: mapboxgl.Map }) {
       };
       
       // Save to reports (this will use the existing analysis-to-report logic)
-      const result = await convertAnalysisToReport(reportData as any);
+      const result = await analysisToReport(reportData as any);
       
-      if (result.success) {
+      if (result) {
         setSaveSuccess(true);
         console.log('Report saved successfully:', result);
         
@@ -95,16 +95,16 @@ export default function SnipAnalyzeControl({ map }: { map: mapboxgl.Map }) {
                 <div>
                   <h3 className="text-sm font-medium text-cyan-400 mb-2">Analysis Summary</h3>
                   <p className="text-sm text-gray-300 whitespace-pre-wrap">
-                    {currentAnalysis.summary}
+                    {(currentAnalysis as any).summary || 'Ocean analysis complete. See details below.'}
                   </p>
                 </div>
                 
                 {/* Hotspots */}
-                {currentAnalysis.hotspots && currentAnalysis.hotspots.length > 0 && (
+                {(currentAnalysis as any).hotspots && (currentAnalysis as any).hotspots.length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-cyan-400 mb-2">Detected Hotspots</h3>
                     <div className="space-y-2">
-                      {currentAnalysis.hotspots.map((hotspot, i) => (
+                      {(currentAnalysis as any).hotspots.map((hotspot: any, i: number) => (
                         <div key={i} className="bg-black/40 rounded-lg p-3">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-medium text-white">{hotspot.type}</span>
@@ -120,23 +120,23 @@ export default function SnipAnalyzeControl({ map }: { map: mapboxgl.Map }) {
                 )}
                 
                 {/* Ocean Conditions */}
-                {currentAnalysis.conditions && (
+                {(currentAnalysis as any).conditions && (
                   <div>
                     <h3 className="text-sm font-medium text-cyan-400 mb-2">Ocean Conditions</h3>
                     <div className="grid grid-cols-2 gap-3">
-                      {currentAnalysis.conditions.sst && (
+                      {(currentAnalysis as any).conditions.sst && (
                         <div className="bg-black/40 rounded-lg p-2">
                           <span className="text-xs text-gray-400">SST Range</span>
                           <p className="text-sm text-white">
-                            {currentAnalysis.conditions.sst.min?.toFixed(1)}°F - {currentAnalysis.conditions.sst.max?.toFixed(1)}°F
+                            {(currentAnalysis as any).conditions.sst.min?.toFixed(1)}°F - {(currentAnalysis as any).conditions.sst.max?.toFixed(1)}°F
                           </p>
                         </div>
                       )}
-                      {currentAnalysis.conditions.chlorophyll && (
+                      {(currentAnalysis as any).conditions.chlorophyll && (
                         <div className="bg-black/40 rounded-lg p-2">
                           <span className="text-xs text-gray-400">Chlorophyll</span>
                           <p className="text-sm text-white">
-                            {currentAnalysis.conditions.chlorophyll.avg?.toFixed(2)} mg/m³
+                            {(currentAnalysis as any).conditions.chlorophyll.avg?.toFixed(2)} mg/m³
                           </p>
                         </div>
                       )}
@@ -145,11 +145,11 @@ export default function SnipAnalyzeControl({ map }: { map: mapboxgl.Map }) {
                 )}
                 
                 {/* Recommendations */}
-                {currentAnalysis.recommendations && currentAnalysis.recommendations.length > 0 && (
+                {(currentAnalysis as any).recommendations && (currentAnalysis as any).recommendations.length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium text-cyan-400 mb-2">Recommendations</h3>
                     <ul className="space-y-1">
-                      {currentAnalysis.recommendations.map((rec, i) => (
+                      {(currentAnalysis as any).recommendations.map((rec: string, i: number) => (
                         <li key={i} className="text-sm text-gray-300 flex items-start gap-2">
                           <span className="text-cyan-400 mt-1">•</span>
                           <span>{rec}</span>

@@ -1,15 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { MessageCircle, Users, Wind, Waves, Thermometer, Navigation, MapPin, Anchor, Send, Zap, Target, Trophy, Compass, Activity, Sparkles, Mail, FileText, Fish } from 'lucide-react';
+import { MessageCircle, Users, Wind, Waves, Thermometer, MapPin, Send, Mail } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 import { INLETS, getInletById } from '@/lib/inlets';
 import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
-import { highlightMentions } from '@/lib/chat/mentions';
-import { SPECIES, getSpeciesById, getSpeciesColor } from '@/lib/species';
-import DMPanel from './DMPanel';
-import DMInterface from './DMInterface';
-import ReportsPanel from './ReportsPanel';
 import ReportsFeed from './ReportsFeed';
 
 interface WeatherData {
@@ -98,9 +93,10 @@ export default function CommunityModeFixed() {
     const msg: ChatMessage = {
       id: `msg-${Date.now()}`,
       text: inputMessage,
-      sender: captainName,
+      user: captainName,
+      captainName: captainName,
       boatName: boatName,
-      timestamp: Date.now(),
+      createdAt: Date.now(),
       inletId: inlet.id
     };
     
@@ -234,14 +230,14 @@ export default function CommunityModeFixed() {
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {messages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.sender === captainName ? 'justify-end' : 'justify-start'}`}>
+                    <div key={msg.id} className={`flex ${msg.user === captainName ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-md px-4 py-2 rounded-lg ${
-                        msg.sender === captainName 
+                        msg.user === captainName 
                           ? 'bg-cyan-500/20 text-white border border-cyan-500/40' 
                           : 'bg-gray-800/50 text-white border border-gray-700'
                       }`}>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-semibold">{msg.sender}</span>
+                          <span className="text-xs font-semibold">{msg.user}</span>
                           {msg.boatName && (
                             <span className="text-xs text-gray-400">• {msg.boatName}</span>
                           )}
@@ -276,12 +272,12 @@ export default function CommunityModeFixed() {
             )}
 
             {activePanel === 'dm' && (
-              <DMInterface 
-                selectedConversation={selectedConversation}
-                onConversationSelect={setSelectedConversation}
-                unreadCounts={unreadCounts}
-                setUnreadCounts={setUnreadCounts}
-              />
+              <div className="h-full p-4">
+                <div className="text-center text-gray-400 mt-10">
+                  <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Direct Messages coming soon</p>
+                </div>
+              </div>
             )}
 
             {activePanel === 'reports' && (
