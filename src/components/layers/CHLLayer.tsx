@@ -10,26 +10,35 @@ interface CHLLayerProps {
 }
 
 export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerProps) {
+  console.log('CHLLayer render - on:', on, 'map:', !!map, 'selectedDate:', selectedDate);
   
   useEffect(() => {
     if (!map) return;
 
     const addCHLLayer = () => {
+      console.log('addCHLLayer called - on:', on, 'map.loaded:', map.loaded());
+      
       // Wait for map to be ready (like SST does)
       if (!map.loaded() || !map.getStyle()) {
+        console.log('Map not ready, retrying...');
         setTimeout(addCHLLayer, 100);
         return;
       }
 
       // Remove existing layer if present
       if (map.getLayer('chl-lyr')) {
+        console.log('Removing existing CHL layer');
         map.removeLayer('chl-lyr');
       }
       if (map.getSource('chl-src')) {
+        console.log('Removing existing CHL source');
         map.removeSource('chl-src');
       }
 
-      if (!on) return;
+      if (!on) {
+        console.log('CHL toggled OFF, not adding layer');
+        return;
+      }
 
       // Add Chlorophyll raster source - Copernicus WMTS
       map.addSource('chl-src', {
@@ -83,7 +92,9 @@ export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerP
         map.moveLayer('chl-lyr', landLayer.id);
       }
 
-      console.log('CHL layer added successfully with proper ordering');
+      console.log('✅ CHL layer added successfully with proper ordering');
+      console.log('Layer exists:', !!map.getLayer('chl-lyr'));
+      console.log('Source exists:', !!map.getSource('chl-src'));
       
       // Debug: Check if tiles are loading
       map.on('data', (e: any) => {
