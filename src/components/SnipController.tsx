@@ -109,8 +109,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           chlData = chlPixels.map(p => ({
             lat: p.lat,
             lng: p.lng,
-            concentration: p.value,
-            timestamp: p.timestamp
+            chl_mg_m3: p.value
           }));
           console.log(`Extracted ${chlData.length} real CHL data points`);
         }
