@@ -15,7 +15,6 @@ import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
-import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
 // Weather now integrated into UnifiedCommandCenter
 import OfflineManager from '@/components/OfflineManager';
 import SettingsPanel from '@/components/SettingsPanel';
@@ -437,9 +436,6 @@ function AnalysisModeContent() {
           
           {/* Settings Panel - Bottom right corner */}
           <SettingsPanel />
-          
-          {/* Network Status Indicator - Shows online/offline status */}
-          <NetworkStatusIndicator />
           
           {/* Weather Conditions - Only show after tutorial is complete */}
           {/* Weather now integrated into UnifiedCommandCenter */}

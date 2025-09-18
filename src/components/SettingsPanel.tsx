@@ -75,24 +75,24 @@ export default function SettingsPanel() {
 
   return (
     <>
-      {/* Settings Button - Fixed in bottom right */}
+      {/* Settings Button - Fixed above zoom controls */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-4 right-4 z-50 p-3 rounded-full transition-all duration-200 ${
+        className={`fixed bottom-[120px] right-[10px] z-50 p-2 rounded-lg transition-all duration-200 ${
           isOpen 
             ? 'bg-slate-700/90 text-white shadow-lg' 
             : 'bg-slate-800/70 text-slate-400 hover:bg-slate-700/80 hover:text-white shadow-md'
         } backdrop-blur-sm border border-slate-600/30`}
         title="Settings"
       >
-        {isOpen ? <X size={20} /> : <Settings size={20} />}
+        {isOpen ? <X size={18} /> : <Settings size={18} />}
       </button>
 
       {/* Settings Panel */}
       {isOpen && (
         <div 
           ref={panelRef}
-          className="fixed bottom-20 right-4 z-50 w-64 bg-slate-800/95 backdrop-blur-md rounded-lg shadow-xl border border-slate-600/30 overflow-hidden animate-slide-up"
+          className="fixed bottom-[160px] right-[10px] z-50 w-64 bg-slate-800/95 backdrop-blur-md rounded-lg shadow-xl border border-slate-600/30 overflow-hidden animate-slide-up"
         >
           {/* Panel Header */}
           <div className="px-4 py-3 bg-slate-700/50 border-b border-slate-600/30">
