@@ -71,6 +71,7 @@ export default function LeftZone({
   const [showChlEnhance, setShowChlEnhance] = useState(false);
   const [chlContrast, setChlContrast] = useState(50);
   const [chlSaturation, setChlSaturation] = useState(50);
+  const [chlHue, setChlHue] = useState(0);  // Green tint adjustment
   const [showOceanOpacity, setShowOceanOpacity] = useState(false);
   const [showSstEnhance, setShowSstEnhance] = useState(false);
   const [sstContrast, setSstContrast] = useState(50);
@@ -436,6 +437,28 @@ export default function LeftZone({
                         className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
                       />
                       <span className="text-[10px] text-gray-400 w-8">{chlSaturation}%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-400 w-16">Green Tint</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="60"
+                        value={chlHue || 0}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          setChlHue?.(val) || localStorage.setItem('chl_hue', val.toString());
+                          if (map?.getLayer('chl-lyr')) {
+                            // Hue rotate towards green (positive values shift blue->green)
+                            map.setPaintProperty('chl-lyr', 'raster-hue-rotate', val);
+                          }
+                        }}
+                        className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, #3b82f6 0%, #10b981 100%)`
+                        }}
+                      />
+                      <span className="text-[10px] text-gray-400 w-8">{chlHue || 0}°</span>
                     </div>
                   </div>
                 </div>
