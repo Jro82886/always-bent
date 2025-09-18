@@ -447,7 +447,8 @@ export default function LeftZone({
                         value={chlHue || 0}
                         onChange={(e) => {
                           const val = parseInt(e.target.value);
-                          setChlHue?.(val) || localStorage.setItem('chl_hue', val.toString());
+                          setChlHue(val);
+                          localStorage.setItem('chl_hue', val.toString());
                           if (map?.getLayer('chl-lyr')) {
                             // Hue rotate towards green (positive values shift blue->green)
                             map.setPaintProperty('chl-lyr', 'raster-hue-rotate', val);
