@@ -110,8 +110,8 @@ export default function CommunityModeFixed() {
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 overflow-hidden">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-md border-b border-cyan-500/20">
+      {/* Header with proper spacing from top */}
+      <div className="absolute top-16 left-0 right-0 z-50 bg-black/40 backdrop-blur-md border-b border-cyan-500/20">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -133,8 +133,8 @@ export default function CommunityModeFixed() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="pt-16 h-full flex">
+      {/* Main Content with proper top spacing */}
+      <div className="pt-32 h-full flex">
         {/* Left Sidebar - Weather & Stats */}
         <div className="w-80 bg-black/40 backdrop-blur-md border-r border-cyan-500/20 p-4 overflow-y-auto">
           {/* Weather Widget */}

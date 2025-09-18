@@ -1,219 +1,402 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { TrendingUp, Calendar, BarChart3, PieChart, Activity, Fish, Thermometer, Wind, ChevronDown, Users, Target, MapPin } from 'lucide-react';
+import { 
+  TrendingUp, Calendar, BarChart3, Activity, Fish, Thermometer, Wind, 
+  Moon, Waves, MapPin, Sunrise, Sunset, Navigation, Cloud, Droplets,
+  AlertCircle, Info, ChevronRight, Clock, Anchor
+} from 'lucide-react';
+import { useAppState } from '@/store/appState';
+import { getInletById } from '@/lib/inlets';
 
-interface TrendData {
-  date: string;
-  catches: number;
-  temperature: number;
-  activity: number;
+interface TideData {
+  type: 'high' | 'low';
+  time: string;
+  height: number;
+}
+
+interface MoonPhase {
+  phase: string;
+  illumination: number;
+  icon: string;
+}
+
+interface EnvironmentalData {
+  tides: TideData[];
+  moonPhase: MoonPhase;
+  sunrise: string;
+  sunset: string;
+  waterTemp: number;
+  airTemp: number;
+  windSpeed: number;
+  windDirection: string;
+  pressure: number;
+  visibility: number;
+  cloudCover: number;
 }
 
 export default function TrendsModeFixed() {
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'season' | 'year'>('week');
-  const [selectedMetric, setSelectedMetric] = useState<'catches' | 'sst' | 'weather'>('catches');
-  const [trendFilter, setTrendFilter] = useState('By Species');
-  const [showTrendDropdown, setShowTrendDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { selectedInletId } = useAppState();
+  const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+  const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
+  const [environmentalData, setEnvironmentalData] = useState<EnvironmentalData | null>(null);
+  const [loading, setLoading] = useState(true);
   
-  // Mock data for demonstration
-  const [stats] = useState({ 
-    catches: 247, 
-    analyses: 1432, 
-    reports: 892,
-    activeCaptains: 156
-  });
+  // Fetch Storm Glass data for tides and moon phases
+  useEffect(() => {
+    const fetchEnvironmentalData = async () => {
+      if (!inlet) return;
+      
+      try {
+        // Call Storm Glass API through your backend
+        const response = await fetch(`/api/stormglass?lat=${inlet.center[1]}&lon=${inlet.center[0]}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Parse Storm Glass response
+          setEnvironmentalData({
+            tides: data.tides || [
+              { type: 'high', time: '06:23 AM', height: 4.2 },
+              { type: 'low', time: '12:45 PM', height: 0.8 },
+              { type: 'high', time: '06:52 PM', height: 4.5 },
+              { type: 'low', time: '01:10 AM', height: 0.6 }
+            ],
+            moonPhase: data.moonPhase || {
+              phase: 'Waxing Gibbous',
+              illumination: 78,
+              icon: '🌔'
+            },
+            sunrise: data.sunrise || '06:42 AM',
+            sunset: data.sunset || '07:15 PM',
+            waterTemp: data.waterTemp || 72,
+            airTemp: data.airTemp || 78,
+            windSpeed: data.windSpeed || 12,
+            windDirection: data.windDirection || 'NE',
+            pressure: data.pressure || 1013,
+            visibility: data.visibility || 10,
+            cloudCover: data.cloudCover || 25
+          });
+        } else {
+          // Use fallback data if API fails
+          setEnvironmentalData({
+            tides: [
+              { type: 'high', time: '06:23 AM', height: 4.2 },
+              { type: 'low', time: '12:45 PM', height: 0.8 },
+              { type: 'high', time: '06:52 PM', height: 4.5 },
+              { type: 'low', time: '01:10 AM', height: 0.6 }
+            ],
+            moonPhase: { phase: 'Waxing Gibbous', illumination: 78, icon: '🌔' },
+            sunrise: '06:42 AM',
+            sunset: '07:15 PM',
+            waterTemp: 72,
+            airTemp: 78,
+            windSpeed: 12,
+            windDirection: 'NE',
+            pressure: 1013,
+            visibility: 10,
+            cloudCover: 25
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch environmental data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchEnvironmentalData();
+    // Refresh every hour
+    const interval = setInterval(fetchEnvironmentalData, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [inlet]);
 
-  const [trendData] = useState<TrendData[]>([
-    { date: 'Mon', catches: 12, temperature: 72, activity: 65 },
-    { date: 'Tue', catches: 19, temperature: 74, activity: 78 },
-    { date: 'Wed', catches: 15, temperature: 73, activity: 72 },
-    { date: 'Thu', catches: 25, temperature: 75, activity: 85 },
-    { date: 'Fri', catches: 32, temperature: 76, activity: 92 },
-    { date: 'Sat', catches: 28, temperature: 74, activity: 88 },
-    { date: 'Sun', catches: 22, temperature: 73, activity: 76 }
+  // Mock trend data for visualization
+  const [activityTrend] = useState([
+    { time: '6am', activity: 20, bites: 2 },
+    { time: '8am', activity: 45, bites: 8 },
+    { time: '10am', activity: 78, bites: 15 },
+    { time: '12pm', activity: 65, bites: 12 },
+    { time: '2pm', activity: 82, bites: 18 },
+    { time: '4pm', activity: 90, bites: 22 },
+    { time: '6pm', activity: 75, bites: 16 },
+    { time: '8pm', activity: 40, bites: 6 }
   ]);
 
   const [topSpecies] = useState([
-    { name: 'Mahi', count: 89, trend: '+12%', color: 'bg-yellow-500' },
-    { name: 'Tuna', count: 67, trend: '+8%', color: 'bg-blue-500' },
-    { name: 'Wahoo', count: 45, trend: '+15%', color: 'bg-purple-500' },
-    { name: 'Marlin', count: 23, trend: '-3%', color: 'bg-indigo-500' },
-    { name: 'Sailfish', count: 19, trend: '+5%', color: 'bg-cyan-500' }
+    { name: 'Mahi', percentage: 35, trend: 'up', color: 'bg-yellow-500' },
+    { name: 'Tuna', percentage: 28, trend: 'up', color: 'bg-blue-500' },
+    { name: 'Wahoo', percentage: 20, trend: 'stable', color: 'bg-purple-500' },
+    { name: 'Marlin', percentage: 12, trend: 'down', color: 'bg-indigo-500' },
+    { name: 'Other', percentage: 5, trend: 'stable', color: 'bg-gray-500' }
   ]);
 
-  const [hotspots] = useState([
-    { name: 'Baltimore Canyon', activity: 'High', temp: '76°F', depth: '80-120ft' },
-    { name: 'Washington Canyon', activity: 'Medium', temp: '74°F', depth: '60-100ft' },
-    { name: 'Norfolk Canyon', activity: 'High', temp: '75°F', depth: '100-150ft' },
-    { name: 'Poor Mans Canyon', activity: 'Low', temp: '73°F', depth: '70-110ft' }
-  ]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowTrendDropdown(false);
-      }
+  const getMoonPhaseIcon = (phase: string) => {
+    const phases: Record<string, string> = {
+      'New Moon': '🌑',
+      'Waxing Crescent': '🌒',
+      'First Quarter': '🌓',
+      'Waxing Gibbous': '🌔',
+      'Full Moon': '🌕',
+      'Waning Gibbous': '🌖',
+      'Last Quarter': '🌗',
+      'Waning Crescent': '🌘'
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const getMaxValue = () => {
-    switch (selectedMetric) {
-      case 'catches': return Math.max(...trendData.map(d => d.catches));
-      case 'sst': return Math.max(...trendData.map(d => d.temperature));
-      case 'weather': return Math.max(...trendData.map(d => d.activity));
-      default: return 100;
-    }
-  };
-
-  const getValue = (data: TrendData) => {
-    switch (selectedMetric) {
-      case 'catches': return data.catches;
-      case 'sst': return data.temperature;
-      case 'weather': return data.activity;
-      default: return 0;
-    }
+    return phases[phase] || '🌔';
   };
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 overflow-hidden">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-md border-b border-cyan-500/20">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-cyan-400" />
-              <h1 className="text-lg font-bold text-white">Fishing Trends & Analytics</h1>
+      {/* Clean Header - Everything at a Glance */}
+      <div className="absolute top-20 left-0 right-0 z-40 px-6">
+        <div className="bg-black/40 backdrop-blur-xl rounded-xl border border-cyan-500/20 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-cyan-400" />
+                <h1 className="text-lg font-bold text-white">Ocean Intelligence Overview</h1>
+              </div>
+              <span className="text-sm text-gray-400">Everything at a glance</span>
             </div>
-          </div>
-          
-          {/* Time Range Selector */}
-          <div className="flex items-center gap-2">
-            {(['week', 'month', 'season', 'year'] as const).map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  timeRange === range
-                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
-                    : 'bg-black/40 text-gray-400 border border-white/10 hover:border-white/20'
-                }`}
-              >
-                {range.charAt(0).toUpperCase() + range.slice(1)}
-              </button>
-            ))}
+            
+            {/* Time Range Selector */}
+            <div className="flex items-center gap-2">
+              {(['today', 'week', 'month'] as const).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    timeRange === range
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+                      : 'bg-black/40 text-gray-400 border border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  {range === 'today' ? 'Today' : range === 'week' ? 'This Week' : 'This Month'}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="pt-20 px-6 pb-6 h-full overflow-y-auto">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Fish className="w-5 h-5 text-cyan-400" />
-              <span className="text-xs text-emerald-400">+12%</span>
+      {/* Main Content Area */}
+      <div className="pt-36 px-6 pb-6 h-full overflow-y-auto">
+        {/* Environmental Conditions Bar */}
+        <div className="mb-6 bg-gradient-to-r from-blue-900/20 via-cyan-900/20 to-teal-900/20 backdrop-blur-xl rounded-xl border border-cyan-500/20 p-4">
+          <div className="grid grid-cols-6 gap-4">
+            {/* Moon Phase */}
+            <div className="text-center">
+              <div className="text-3xl mb-1">{environmentalData?.moonPhase.icon}</div>
+              <div className="text-xs text-gray-400">Moon Phase</div>
+              <div className="text-sm text-white font-medium">{environmentalData?.moonPhase.phase}</div>
+              <div className="text-xs text-cyan-400">{environmentalData?.moonPhase.illumination}% illuminated</div>
             </div>
-            <div className="text-2xl font-bold text-white">{stats.catches}</div>
-            <div className="text-xs text-gray-400">Total Catches</div>
-          </div>
-          
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Target className="w-5 h-5 text-orange-400" />
-              <span className="text-xs text-emerald-400">+8%</span>
+
+            {/* Current Tide */}
+            <div className="text-center border-l border-white/10 pl-4">
+              <Waves className="w-8 h-8 text-cyan-400 mx-auto mb-1" />
+              <div className="text-xs text-gray-400">Next Tide</div>
+              <div className="text-sm text-white font-medium">
+                {environmentalData?.tides[0]?.type === 'high' ? 'High' : 'Low'} Tide
+              </div>
+              <div className="text-xs text-cyan-400">{environmentalData?.tides[0]?.time}</div>
             </div>
-            <div className="text-2xl font-bold text-white">{stats.analyses}</div>
-            <div className="text-xs text-gray-400">Analyses Run</div>
-          </div>
-          
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Activity className="w-5 h-5 text-purple-400" />
-              <span className="text-xs text-emerald-400">+15%</span>
+
+            {/* Sunrise/Sunset */}
+            <div className="text-center border-l border-white/10 pl-4">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <Sunrise className="w-4 h-4 text-orange-400" />
+                <Sunset className="w-4 h-4 text-purple-400" />
+              </div>
+              <div className="text-xs text-gray-400">Sun Times</div>
+              <div className="text-xs text-white">↑ {environmentalData?.sunrise}</div>
+              <div className="text-xs text-white">↓ {environmentalData?.sunset}</div>
             </div>
-            <div className="text-2xl font-bold text-white">{stats.reports}</div>
-            <div className="text-xs text-gray-400">Reports Filed</div>
-          </div>
-          
-          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-4">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="w-5 h-5 text-emerald-400" />
-              <span className="text-xs text-emerald-400">+5%</span>
+
+            {/* Water Temp */}
+            <div className="text-center border-l border-white/10 pl-4">
+              <Thermometer className="w-8 h-8 text-orange-400 mx-auto mb-1" />
+              <div className="text-xs text-gray-400">Water Temp</div>
+              <div className="text-lg text-white font-bold">{environmentalData?.waterTemp}°F</div>
+              <div className="text-xs text-emerald-400">Optimal</div>
             </div>
-            <div className="text-2xl font-bold text-white">{stats.activeCaptains}</div>
-            <div className="text-xs text-gray-400">Active Captains</div>
+
+            {/* Wind */}
+            <div className="text-center border-l border-white/10 pl-4">
+              <Wind className="w-8 h-8 text-blue-400 mx-auto mb-1" />
+              <div className="text-xs text-gray-400">Wind</div>
+              <div className="text-sm text-white font-medium">
+                {environmentalData?.windSpeed} kts
+              </div>
+              <div className="text-xs text-cyan-400">{environmentalData?.windDirection}</div>
+            </div>
+
+            {/* Pressure */}
+            <div className="text-center border-l border-white/10 pl-4">
+              <Cloud className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+              <div className="text-xs text-gray-400">Pressure</div>
+              <div className="text-sm text-white font-medium">{environmentalData?.pressure} mb</div>
+              <div className="text-xs text-cyan-400">Stable</div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
-          {/* Main Chart */}
+        {/* Tide Chart */}
+        <div className="grid grid-cols-3 gap-6 mb-6">
           <div className="col-span-2 bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-white">Activity Trends</h2>
-              <div className="flex items-center gap-2">
-                {(['catches', 'sst', 'weather'] as const).map((metric) => (
-                  <button
-                    key={metric}
-                    onClick={() => setSelectedMetric(metric)}
-                    className={`px-3 py-1 rounded text-xs font-medium transition-all ${
-                      selectedMetric === metric
-                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
-                        : 'bg-black/40 text-gray-400 border border-white/10'
-                    }`}
-                  >
-                    {metric === 'sst' ? 'SST' : metric.charAt(0).toUpperCase() + metric.slice(1)}
-                  </button>
-                ))}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-white">Today's Tides</h2>
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <MapPin className="w-3 h-3" />
+                <span>{inlet?.name || 'East Coast'}</span>
               </div>
             </div>
             
-            {/* Bar Chart */}
-            <div className="h-64 flex items-end justify-between gap-4">
-              {trendData.map((data, i) => {
-                const value = getValue(data);
-                const maxValue = getMaxValue();
-                const height = (value / maxValue) * 100;
+            {/* Tide Timeline */}
+            <div className="relative h-32 mb-4">
+              <svg className="w-full h-full" viewBox="0 0 800 100">
+                {/* Tide curve */}
+                <path
+                  d="M 0 50 Q 100 20 200 50 T 400 50 T 600 50 T 800 50"
+                  fill="none"
+                  stroke="url(#tideGradient)"
+                  strokeWidth="2"
+                />
+                <defs>
+                  <linearGradient id="tideGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#06b6d4" />
+                    <stop offset="50%" stopColor="#0891b2" />
+                    <stop offset="100%" stopColor="#0e7490" />
+                  </linearGradient>
+                </defs>
                 
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="relative w-full h-48 flex items-end">
-                      <div
-                        className="w-full bg-gradient-to-t from-cyan-500/40 to-cyan-400/20 rounded-t-lg transition-all duration-300 hover:from-cyan-500/60 hover:to-cyan-400/30"
-                        style={{ height: `${height}%` }}
-                      >
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-cyan-400 font-medium">
-                          {value}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="text-xs text-gray-400">{data.date}</span>
+                {/* Tide markers */}
+                {environmentalData?.tides.map((tide, i) => (
+                  <g key={i} transform={`translate(${i * 200 + 100}, ${tide.type === 'high' ? 20 : 80})`}>
+                    <circle r="4" fill="#06b6d4" />
+                    <text x="0" y="-10" textAnchor="middle" fill="white" fontSize="10">
+                      {tide.time}
+                    </text>
+                    <text x="0" y="20" textAnchor="middle" fill="#9ca3af" fontSize="9">
+                      {tide.type === 'high' ? 'HIGH' : 'LOW'}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+            </div>
+            
+            {/* Tide List */}
+            <div className="grid grid-cols-4 gap-4">
+              {environmentalData?.tides.map((tide, i) => (
+                <div key={i} className={`p-2 rounded-lg ${
+                  tide.type === 'high' ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-gray-800/50 border border-gray-700'
+                }`}>
+                  <div className="text-xs text-gray-400 mb-1">
+                    {tide.type === 'high' ? '↑ High Tide' : '↓ Low Tide'}
                   </div>
-                );
-              })}
+                  <div className="text-sm text-white font-medium">{tide.time}</div>
+                  <div className="text-xs text-cyan-400">{tide.height.toFixed(1)} ft</div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Top Species */}
+          {/* Activity Prediction */}
           <div className="bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Top Species</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">Bite Prediction</h2>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
+                <div>
+                  <div className="text-sm text-white font-medium">Best Time Today</div>
+                  <div className="text-xs text-gray-400">Based on conditions</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg text-emerald-400 font-bold">4-6 PM</div>
+                  <div className="text-xs text-emerald-400">High Activity</div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Morning (6-10am)</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full w-[60%] bg-yellow-500/50" />
+                    </div>
+                    <span className="text-xs text-yellow-400">60%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Midday (10-2pm)</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full w-[40%] bg-orange-500/50" />
+                    </div>
+                    <span className="text-xs text-orange-400">40%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Afternoon (2-6pm)</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full w-[85%] bg-emerald-500/50" />
+                    </div>
+                    <span className="text-xs text-emerald-400">85%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Evening (6-10pm)</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full w-[55%] bg-blue-500/50" />
+                    </div>
+                    <span className="text-xs text-blue-400">55%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Activity Trends & Species Distribution */}
+        <div className="grid grid-cols-2 gap-6 mb-6">
+          {/* Activity Chart */}
+          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Today's Activity Pattern</h2>
+            <div className="h-48 flex items-end justify-between gap-2">
+              {activityTrend.map((data, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="relative w-full flex flex-col items-center">
+                    <span className="text-xs text-cyan-400 mb-1">{data.bites}</span>
+                    <div 
+                      className="w-full bg-gradient-to-t from-cyan-500/40 to-cyan-400/20 rounded-t"
+                      style={{ height: `${(data.activity / 100) * 150}px` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-400">{data.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Species Distribution */}
+          <div className="bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Species Activity</h2>
             <div className="space-y-3">
               {topSpecies.map((species, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${species.color}`} />
-                    <span className="text-sm text-white">{species.name}</span>
-                  </div>
+                <div key={i} className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${species.color}`} />
+                  <span className="text-sm text-white flex-1">{species.name}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">{species.count}</span>
-                    <span className={`text-xs ${species.trend.startsWith('+') ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {species.trend}
-                    </span>
+                    <div className="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full ${species.color} opacity-60`}
+                        style={{ width: `${species.percentage}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-400 w-10 text-right">{species.percentage}%</span>
+                    {species.trend === 'up' && <TrendingUp className="w-3 h-3 text-emerald-400" />}
+                    {species.trend === 'down' && <TrendingUp className="w-3 h-3 text-red-400 rotate-180" />}
                   </div>
                 </div>
               ))}
@@ -221,45 +404,49 @@ export default function TrendsModeFixed() {
           </div>
         </div>
 
-        {/* Hotspots Table */}
-        <div className="mt-6 bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Hot Fishing Zones</h2>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <MapPin className="w-4 h-4" />
-              <span>East Coast Overview</span>
-            </div>
+        {/* Intelligence Insights */}
+        <div className="bg-gradient-to-r from-cyan-900/20 to-blue-900/20 backdrop-blur-xl rounded-xl border border-cyan-500/20 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Info className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-lg font-semibold text-white">Intelligence Insights</h2>
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left text-xs text-gray-400 font-medium pb-2">Location</th>
-                  <th className="text-left text-xs text-gray-400 font-medium pb-2">Activity</th>
-                  <th className="text-left text-xs text-gray-400 font-medium pb-2">Water Temp</th>
-                  <th className="text-left text-xs text-gray-400 font-medium pb-2">Depth Range</th>
-                </tr>
-              </thead>
-              <tbody>
-                {hotspots.map((spot, i) => (
-                  <tr key={i} className="border-b border-white/5">
-                    <td className="py-3 text-sm text-white">{spot.name}</td>
-                    <td className="py-3">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        spot.activity === 'High' ? 'bg-emerald-500/20 text-emerald-400' :
-                        spot.activity === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        {spot.activity}
-                      </span>
-                    </td>
-                    <td className="py-3 text-sm text-white">{spot.temp}</td>
-                    <td className="py-3 text-sm text-gray-400">{spot.depth}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                <Anchor className="w-4 h-4 text-cyan-400" />
+              </div>
+              <div>
+                <div className="text-sm text-white font-medium">Optimal Conditions</div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Rising tide with moderate wind creates ideal feeding conditions this afternoon
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <Thermometer className="w-4 h-4 text-orange-400" />
+              </div>
+              <div>
+                <div className="text-sm text-white font-medium">Temperature Break</div>
+                <div className="text-xs text-gray-400 mt-1">
+                  2°F temperature change detected 15 miles offshore - potential hotspot
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                <Moon className="w-4 h-4 text-purple-400" />
+              </div>
+              <div>
+                <div className="text-sm text-white font-medium">Moon Influence</div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Waxing moon phase typically increases night bite activity
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
