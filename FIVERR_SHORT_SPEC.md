@@ -23,14 +23,15 @@ Build a single-page SaaS landing with Memberstack authentication that redirects 
 
 **Memberstack 2.0:**
 - Email/password authentication
-- Single free plan: "Beta Access" ($0)
+- Single paid plan: "Pro Access" ($39/month or your pricing)
 - Custom fields: boatName, homePort (optional)
+- Stripe integration for payments
 
 **Authentication Flow:**
 ```
-User clicks "Start Free Beta" →
+User clicks "Get Started" →
 ├─ If logged in → Redirect to app with member ID
-└─ If not → Show signup modal → Create account → Redirect to app with member ID
+└─ If not → Show signup modal → Create account → Payment → Redirect to app
 ```
 
 **Data Handoff via URL:** 
@@ -49,7 +50,7 @@ window.location.href = redirectUrl;
 - H1: Always Bent Fishing Intelligence
 - H2: Powered by AI. Driven by Community.
 - Body: Real-time ocean data, vessel tracking, and hotspot analysis.
-- CTA: "Start Free Beta"
+- CTA: "Get Started" or "Start Your Trial"
 
 **Colors:**
 - Background: #030712
