@@ -19,6 +19,7 @@ import InteractiveTutorial from '@/components/InteractiveTutorial';
 import OfflineManager from '@/components/OfflineManager';
 import SettingsPanel from '@/components/SettingsPanel';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
+import CompactLegend from '@/components/tracking/CompactLegend';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -446,6 +447,16 @@ function AnalysisModeContent() {
           <CommercialVesselLayer 
             map={map.current} 
             showCommercial={showCommercial} 
+          />
+
+          {/* Vessel Legend - Shows what vessel types are displayed */}
+          <CompactLegend 
+            inletColor={inlet?.color || '#06B6D4'}
+            inletName={inlet?.name || 'Inlet'}
+            showYou={false}  // Analysis mode doesn't show user vessel
+            showFleet={false}  // Analysis mode doesn't show fleet
+            showCommercial={showCommercial}  // Show commercial vessels legend when toggled
+            showTracks={false}  // Analysis mode doesn't show tracks
           />
 
           {/* Offline Manager - Handles offline capabilities */}

@@ -128,17 +128,25 @@ export default function CompactLegend({
             <div className="space-y-1.5">
               <div className="text-[10px] font-bold text-orange-400/70 uppercase tracking-wider">Commercial</div>
               
-              <div className="flex items-center gap-4 pl-1">
-                {/* Trawler */}
-                <div className="flex items-center gap-2">
-                  <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-orange-500" />
-                  <div className="text-[11px] text-cyan-100/80">Trawlers</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-4 pl-1">
+                  {/* Trawler */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-orange-500" />
+                    <div className="text-[11px] text-cyan-100/80">Trawlers</div>
+                  </div>
+                  
+                  {/* Longliner */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-purple-500" />
+                    <div className="text-[11px] text-cyan-100/80">Longliners</div>
+                  </div>
                 </div>
                 
-                {/* Longliner */}
-                <div className="flex items-center gap-2">
-                  <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-purple-500" />
-                  <div className="text-[11px] text-cyan-100/80">Longliners</div>
+                {/* Drifting Gear */}
+                <div className="flex items-center gap-2 pl-1">
+                  <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-yellow-500" />
+                  <div className="text-[11px] text-cyan-100/80">Drifting Gear</div>
                 </div>
               </div>
             </div>
