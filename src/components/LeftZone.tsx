@@ -441,27 +441,30 @@ export default function LeftZone({
                       <span className="text-[10px] text-gray-400 w-8">{chlSaturation}%</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-gray-400 w-16">Green Tint</span>
+                      <span className="text-[10px] text-green-400 w-16">Green Tint</span>
                         <input
                           type="range"
-                          min="-30"
-                          max="30"
+                          min="0"
+                          max="60"
                           value={chlHue || 0}
                           onChange={(e) => {
                             const val = parseInt(e.target.value);
                             setChlHue(val);
                             localStorage.setItem('chl_hue', val.toString());
                             if (map?.getLayer('chl-lyr')) {
-                              // Negative = more blue, Positive = more green
+                              // Apply green tint only to high concentration areas
                               map.setPaintProperty('chl-lyr', 'raster-hue-rotate', val);
+                              // Boost saturation for high concentrations when tinting
+                              const saturationBoost = val > 0 ? 0.2 + (val / 60) * 0.3 : 0;
+                              map.setPaintProperty('chl-lyr', 'raster-saturation', saturationBoost);
                             }
                           }}
                           className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
                           style={{
-                            background: `linear-gradient(to right, #0ea5e9 0%, #3b82f6 33%, #6366f1 50%, #10b981 66%, #22c55e 100%)`
+                            background: `linear-gradient(to right, #3b82f6 0%, #10b981 50%, #22c55e 100%)`
                           }}
                         />
-                      <span className="text-[10px] text-gray-400 w-8">{chlHue || 0}°</span>
+                      <span className="text-[10px] text-green-400 w-8">{chlHue || 0}°</span>
                     </div>
                     {/* CHL Edge Detection */}
                     <div className="pt-2 mt-2 border-t border-slate-700/50">
