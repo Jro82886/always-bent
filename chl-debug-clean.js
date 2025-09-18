@@ -1,8 +1,5 @@
-# Force Chlorophyll Visibility
+// Copy and paste this entire block into your browser console:
 
-Run this in console to maximize CHL visibility:
-
-```javascript
 // Force CHL to maximum visibility
 if (map.getLayer('chl-lyr')) {
   map.setPaintProperty('chl-lyr', 'raster-opacity', 1);
@@ -25,13 +22,6 @@ if (map.getLayer('chl-lyr')) {
   map.moveLayer('chl-lyr', topLayer.id);
   console.log('Moved CHL to top!');
 }
-
-// Check what tiles are actually loading
-map.on('data', (e) => {
-  if (e.sourceId === 'chl-src' && e.tile) {
-    console.log('CHL tile loaded:', e.tile.coord, 'State:', e.tile.state);
-  }
-});
 
 // Test a single tile directly
 fetch('/api/tiles/chl/5/9/12?time=latest')
@@ -57,4 +47,3 @@ fetch('/api/tiles/chl/5/9/12?time=latest')
     };
     img.src = url;
   });
-```

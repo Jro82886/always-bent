@@ -67,10 +67,10 @@ export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerP
         }
       });
 
-      // CRITICAL LAYER ORDERING - This is what other bots missed!
-      // Order from bottom to top: ocean -> SST -> CHL -> land -> labels
+      // CRITICAL LAYER ORDERING - CHL needs to be visible!
+      // The issue was CHL was at the BOTTOM (position 0)
       
-      // First, find reference layers
+      // First, find key reference layers
       const layers = map.getStyle().layers;
       const landLayer = layers.find(layer => 
         layer.id.includes('land') || 
@@ -78,37 +78,63 @@ export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerP
         layer.id === 'land'
       );
       
-      // If SST layer exists, put CHL above it
-      if (map.getLayer('sst-lyr')) {
-        map.moveLayer('chl-lyr', 'sst-lyr');
-      }
-      // If ocean layer exists, ensure we're above it
-      else if (map.getLayer('ocean-layer')) {
-        map.moveLayer('chl-lyr', 'ocean-layer');
-      }
+      // Find the water layer (usually near bottom)
+      const waterLayer = layers.find(layer =>
+        layer.id.includes('water') ||
+        layer.id === 'water'
+      );
       
-      // But always stay below land if it exists
-      if (landLayer) {
-        map.moveLayer('chl-lyr', landLayer.id);
+      // Position CHL properly:
+      // If SST exists, put CHL right above it
+      if (map.getLayer('sst-lyr')) {
+        const sstIndex = layers.findIndex(l => l.id === 'sst-lyr');
+        const afterSST = layers[sstIndex + 1];
+        if (afterSST) {
+          map.moveLayer('chl-lyr', afterSST.id);
+        }
+      }
+      // Otherwise, put it above water but below land
+      else if (waterLayer) {
+        // Find the layer right after water
+        const waterIndex = layers.findIndex(l => l.id === waterLayer.id);
+        const afterWater = layers[waterIndex + 1];
+        if (afterWater) {
+          map.moveLayer('chl-lyr', afterWater.id);
+        }
+      }
+      // As a fallback, just make sure we're not at the very bottom
+      else {
+        // Move above the first layer (position 0)
+        if (layers.length > 1) {
+          map.moveLayer('chl-lyr', layers[1].id);
+        }
       }
 
       console.log('✅ CHL layer added successfully with proper ordering');
       console.log('Layer exists:', !!map.getLayer('chl-lyr'));
       console.log('Source exists:', !!map.getSource('chl-src'));
       
-      // Debug: Check if tiles are loading
-      map.on('data', (e: any) => {
+      // Debug: Check if tiles are loading (use once to avoid multiple listeners)
+      const handleData = (e: any) => {
         if (e.sourceId === 'chl-src' && e.isSourceLoaded) {
           console.log('CHL tiles loading...', e);
         }
-      });
+      };
       
       // Debug: Check for tile errors
-      map.on('error', (e: any) => {
+      const handleError = (e: any) => {
         if (e.sourceId === 'chl-src') {
           console.error('CHL tile error:', e.error);
         }
-      });
+      };
+      
+      // Remove old listeners first
+      map.off('data', handleData);
+      map.off('error', handleError);
+      
+      // Add new listeners
+      map.on('data', handleData);
+      map.on('error', handleError);
     };
 
     // Start the process
