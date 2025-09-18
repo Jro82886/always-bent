@@ -13,7 +13,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const base = process.env.CMEMS_CHL_WMTS_TEMPLATE;
 
   if (!base) {
-    return new Response('CMEMS_CHL_WMTS_TEMPLATE not configured', { status: 500 });
+    console.error('CMEMS_CHL_WMTS_TEMPLATE not configured - please add to Vercel environment variables');
+    return new Response(JSON.stringify({ 
+      error: 'Chlorophyll layer not configured',
+      message: 'Please add CMEMS_CHL_WMTS_TEMPLATE to environment variables',
+      required: 'CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:turbo&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}'
+    }), { 
+      status: 502,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   // Build TIME for Copernicus (expects ISO8601 with milliseconds)
