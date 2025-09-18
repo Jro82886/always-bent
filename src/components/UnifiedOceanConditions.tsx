@@ -62,7 +62,7 @@ export default function UnifiedOceanConditions({
   const conditions = weather ? assessFishingConditions(weather) : null;
 
   return (
-    <div className="absolute top-20 right-4 z-50 w-80">
+    <div className="absolute top-24 right-4 z-[60] w-80">
       {/* Unified Ocean Conditions Panel */}
       <div className="bg-gray-900/95 backdrop-blur-lg rounded-xl shadow-2xl border border-cyan-500/20 overflow-hidden">
         
