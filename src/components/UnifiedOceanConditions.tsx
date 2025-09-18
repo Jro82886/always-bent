@@ -50,8 +50,8 @@ export default function WeatherPanel() {
   const conditions = weather?.conditions ? assessFishingConditions(weather.conditions) : null;
 
   return (
-    <div className="absolute top-20 right-4 z-[60] w-80">
-      {/* Compact Weather Panel - In right toolbar */}
+    <div className="absolute top-64 right-4 z-[60] w-80">
+      {/* Compact Weather Panel - Below right toolbar */}
       <div className="bg-gray-900/90 backdrop-blur-lg rounded-lg shadow-xl border border-cyan-500/20 overflow-hidden">
         
         {/* Compact Header Bar */}
