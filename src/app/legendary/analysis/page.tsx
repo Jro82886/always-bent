@@ -437,8 +437,8 @@ function AnalysisModeContent() {
           {/* Network Status Indicator - Shows online/offline status */}
           <NetworkStatusIndicator />
           
-          {/* Weather Conditions - Top Right Corner */}
-          <UnifiedOceanConditions />
+          {/* Weather Conditions - Only show after tutorial is complete */}
+          {tutorialCompleted && <UnifiedOceanConditions />}
 
           {/* Commercial Vessels Toggle - Moved to LeftZone */}
 

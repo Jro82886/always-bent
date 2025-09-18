@@ -68,6 +68,9 @@ export default function LeftZone({
   const [showDateSelector, setShowDateSelector] = useState(false);
   const [showSstOpacity, setShowSstOpacity] = useState(false);
   const [showChlOpacity, setShowChlOpacity] = useState(false);
+  const [showChlEnhance, setShowChlEnhance] = useState(false);
+  const [chlContrast, setChlContrast] = useState(50);
+  const [chlSaturation, setChlSaturation] = useState(50);
   const [showOceanOpacity, setShowOceanOpacity] = useState(false);
   const [showSstEnhance, setShowSstEnhance] = useState(false);
   const [sstContrast, setSstContrast] = useState(50);
@@ -77,6 +80,7 @@ export default function LeftZone({
   const sstEnhanceRef = useRef<HTMLDivElement>(null);
   const sstOpacityRef = useRef<HTMLDivElement>(null);
   const chlOpacityRef = useRef<HTMLDivElement>(null);
+  const chlEnhanceRef = useRef<HTMLDivElement>(null);
   const oceanOpacityRef = useRef<HTMLDivElement>(null);
   const dateSelectorRef = useRef<HTMLDivElement>(null);
   const layersPanelRef = useRef<HTMLDivElement>(null);
@@ -338,18 +342,34 @@ export default function LeftZone({
                 </button>
                 <div className="flex gap-1 w-[76px] justify-end">
                   {chlActive && (
-                    <Tooltip content="Adjust opacity" position="bottom">
-                      <button
-                        onClick={() => {
-                          setShowChlOpacity(!showChlOpacity);
-                          setShowSstOpacity(false);
-                          setShowSstEnhance(false);
-                        }}
-                        className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
-                      >
-                        <Sliders size={12} className="text-cyan-400" />
-                      </button>
-                    </Tooltip>
+                    <>
+                      <Tooltip content="Adjust opacity" position="bottom">
+                        <button
+                          onClick={() => {
+                            setShowChlOpacity(!showChlOpacity);
+                            setShowChlEnhance(false);
+                            setShowSstOpacity(false);
+                            setShowSstEnhance(false);
+                          }}
+                          className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
+                        >
+                          <Sliders size={12} className="text-cyan-400" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip content="Enhance contrast" position="bottom">
+                        <button
+                          onClick={() => {
+                            setShowChlEnhance(!showChlEnhance);
+                            setShowChlOpacity(false);
+                            setShowSstOpacity(false);
+                            setShowSstEnhance(false);
+                          }}
+                          className="p-1.5 bg-gradient-to-r from-green-600/60 to-teal-600/60 rounded hover:from-green-500/60 hover:to-teal-500/60 transition-colors"
+                        >
+                          <Sparkles size={12} className="text-white" />
+                        </button>
+                      </Tooltip>
+                    </>
                   )}
                 </div>
               </div>
@@ -368,6 +388,55 @@ export default function LeftZone({
                       className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
                     />
                     <span className="text-xs text-gray-400 w-10">{chlOpacity}%</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* CHL Enhancement */}
+              {showChlEnhance && chlActive && (
+                <div ref={chlEnhanceRef} className="bg-slate-700/60 rounded-lg p-3 border border-green-500/20 space-y-2">
+                  <div className="text-xs font-bold text-green-300 flex items-center gap-1">
+                    <Sparkles size={12} /> Enhance CHL
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-400 w-16">Contrast</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={chlContrast}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          setChlContrast(val);
+                          if (map?.getLayer('chl-lyr')) {
+                            const contrastAdjust = (val - 50) / 50;
+                            map.setPaintProperty('chl-lyr', 'raster-contrast', contrastAdjust);
+                          }
+                        }}
+                        className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <span className="text-[10px] text-gray-400 w-8">{chlContrast}%</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-gray-400 w-16">Saturation</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={chlSaturation}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          setChlSaturation(val);
+                          if (map?.getLayer('chl-lyr')) {
+                            const satAdjust = (val - 50) / 50;
+                            map.setPaintProperty('chl-lyr', 'raster-saturation', satAdjust);
+                          }
+                        }}
+                        className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <span className="text-[10px] text-gray-400 w-8">{chlSaturation}%</span>
+                    </div>
                   </div>
                 </div>
               )}
