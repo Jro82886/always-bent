@@ -83,10 +83,43 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         
       }
       
-      // Data extraction from map tiles implemented in pixel-extractor
-      // Falls back to simulated patterns if tiles unavailable
-      const sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
-      const chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
+      // Extract REAL data from map tiles using Jeff's pixel extraction
+      let sstData = null;
+      let chlData = null;
+      
+      try {
+        // Import the real extraction functions
+        const { extractTileDataFromCanvas } = await import('@/lib/analysis/tile-data-extractor');
+        
+        if (activeLayers.sst) {
+          const sstPixels = await extractTileDataFromCanvas(map, bounds, 'sst-lyr', 'sst');
+          // Convert to the expected format
+          sstData = sstPixels.map(p => ({
+            lat: p.lat,
+            lng: p.lng,
+            temp_f: p.value,
+            timestamp: p.timestamp
+          }));
+          console.log(`Extracted ${sstData.length} real SST data points`);
+        }
+        
+        if (activeLayers.chl) {
+          const chlPixels = await extractTileDataFromCanvas(map, bounds, 'chl-lyr', 'chl');
+          // Convert to the expected format
+          chlData = chlPixels.map(p => ({
+            lat: p.lat,
+            lng: p.lng,
+            concentration: p.value,
+            timestamp: p.timestamp
+          }));
+          console.log(`Extracted ${chlData.length} real CHL data points`);
+        }
+      } catch (error) {
+        console.error('Failed to extract real data, falling back to mock:', error);
+        // Fallback to mock data if extraction fails
+        sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
+        chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
+      }
       
       
       
@@ -108,10 +141,35 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         }
       }
       
-      // Add vessel track info to analysis
+      // Get current weather and moon phase data
+      let weatherData = null;
+      let moonPhase = null;
+      
+      try {
+        // Get selected inlet for weather
+        const selectedInletId = (window as any).selectedInletId || 'ocean-city';
+        const weatherResponse = await fetch(`/api/weather?inlet=${selectedInletId}`);
+        if (weatherResponse.ok) {
+          weatherData = await weatherResponse.json();
+        }
+        
+        // TODO: Add moon phase from Stormglass API when ready
+        moonPhase = 'Waxing Gibbous'; // Placeholder
+      } catch (error) {
+        console.error('Failed to fetch weather data:', error);
+      }
+      
+      // Add all data to analysis
       const analysisWithVessels = {
         ...analysis,
-        vesselTracks: vesselData.summary
+        vesselTracks: vesselData.summary,
+        weather: weatherData,
+        moonPhase: moonPhase,
+        snippedArea: {
+          bounds: bounds,
+          center: [(bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2],
+          date: new Date().toISOString()
+        }
       };
       
       
