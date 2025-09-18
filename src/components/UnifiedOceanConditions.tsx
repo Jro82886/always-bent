@@ -43,8 +43,8 @@ export default function UnifiedOceanConditions({
         setWeather(data);
         
         // Extract ocean temp if available
-        if (data.conditions?.waterTemp) {
-          setOceanTemp(`${Math.round(data.conditions.waterTemp)}°F`);
+        if (data.conditions?.water_temp_f) {
+          setOceanTemp(`${Math.round(data.conditions.water_temp_f)}°F`);
         }
       } catch (err) {
         console.error('Weather fetch error:', err);
@@ -102,13 +102,13 @@ export default function UnifiedOceanConditions({
               <div className="text-center">
                 <div className="text-gray-400">Wind</div>
                 <div className="text-white font-bold text-lg">
-                  {weather?.conditions ? formatWind(weather.conditions.wind) : '--'}
+                  {weather?.conditions ? formatWind(weather.conditions.wind_speed_kt, weather.conditions.wind_direction) : '--'}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-gray-400">Waves</div>
                 <div className="text-white font-bold text-lg">
-                  {weather?.conditions ? formatWaves(weather.conditions.waves) : '--'}
+                  {weather?.conditions ? formatWaves(weather.conditions.wave_height_ft, weather.conditions.wave_period_sec) : '--'}
                 </div>
               </div>
             </div>
@@ -205,28 +205,36 @@ export default function UnifiedOceanConditions({
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-gray-500">Air Temp:</span>
-                    <span className="text-white ml-1">{Math.round(weather.conditions.airTemp)}°F</span>
+                    <span className="text-white ml-1">
+                      {weather.conditions.air_temp_f ? `${Math.round(weather.conditions.air_temp_f)}°F` : '--'}
+                    </span>
                   </div>
                   <div>
                     <span className="text-gray-500">Pressure:</span>
-                    <span className="text-white ml-1">{weather.conditions.pressure.toFixed(1)} mb</span>
+                    <span className="text-white ml-1">
+                      {weather.conditions.pressure_mb ? `${weather.conditions.pressure_mb.toFixed(1)} mb` : '--'}
+                    </span>
                   </div>
                   <div>
                     <span className="text-gray-500">Visibility:</span>
-                    <span className="text-white ml-1">{weather.conditions.visibility} mi</span>
+                    <span className="text-white ml-1">
+                      {weather.conditions.visibility_nm ? `${weather.conditions.visibility_nm} nm` : '--'}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Humidity:</span>
-                    <span className="text-white ml-1">{weather.conditions.humidity}%</span>
+                    <span className="text-gray-500">Wind Gust:</span>
+                    <span className="text-white ml-1">
+                      {weather.conditions.wind_gust_kt ? `${Math.round(weather.conditions.wind_gust_kt)} kts` : '--'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Tide Info if available */}
-                {weather.conditions.tides && weather.conditions.tides.length > 0 && (
+                {/* Wave Direction if available */}
+                {weather.conditions.wave_direction && (
                   <div className="pt-2 border-t border-gray-800">
-                    <div className="text-xs text-gray-400 mb-1">NEXT TIDE</div>
+                    <div className="text-xs text-gray-400 mb-1">WAVE DIRECTION</div>
                     <div className="text-sm text-white">
-                      {weather.conditions.tides[0].type} at {new Date(weather.conditions.tides[0].time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {weather.conditions.wave_direction}° • {weather.conditions.dominant_wave_period ? `${weather.conditions.dominant_wave_period}s dominant` : ''}
                     </div>
                   </div>
                 )}
