@@ -84,7 +84,7 @@ export default function CommercialVesselLayer({
         vessels.forEach(vessel => {
           if (vessel.positions.length === 0) return;
           
-          // FILTER: Only show trawlers, longliners, and drifting longline gear
+          // FILTER: Only show trawlers, longliners, and drifting gear (no freight/cargo ships)
           const vesselType = vessel.type?.toLowerCase() || '';
           const allowedTypes = ['trawl', 'longliner', 'longline', 'drifting'];
           const isAllowedType = allowedTypes.some(type => vesselType.includes(type));
