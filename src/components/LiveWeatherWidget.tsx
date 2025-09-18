@@ -41,8 +41,8 @@ export default function LiveWeatherWidget() {
       
       setLoading(true);
       try {
-        // Fetch real weather data from API
-        const response = await fetch(`/api/weather?lat=${inlet.center[1]}&lon=${inlet.center[0]}`);
+        // Fetch real weather data from API using inlet ID
+        const response = await fetch(`/api/weather?inlet=${selectedInletId}`);
         
         if (!response.ok) {
           throw new Error('Weather API error');
@@ -93,7 +93,7 @@ export default function LiveWeatherWidget() {
     // Refresh every 30 minutes
     const interval = setInterval(fetchWeather, 30 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [inlet]);
+  }, [inlet, selectedInletId]);
   
   // Helper functions for weather conditions
   const determineRating = (data: any): 'POOR' | 'FAIR' | 'GOOD' | 'EXCELLENT' => {
