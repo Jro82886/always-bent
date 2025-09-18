@@ -43,8 +43,8 @@ export default function UnifiedOceanConditions({
         setWeather(data);
         
         // Extract ocean temp if available
-        if (data.waterTemp) {
-          setOceanTemp(`${Math.round(data.waterTemp)}°F`);
+        if (data.conditions?.waterTemp) {
+          setOceanTemp(`${Math.round(data.conditions.waterTemp)}°F`);
         }
       } catch (err) {
         console.error('Weather fetch error:', err);
@@ -59,7 +59,7 @@ export default function UnifiedOceanConditions({
   }, [selectedInletId]);
 
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
-  const conditions = weather ? assessFishingConditions(weather) : null;
+  const conditions = weather?.conditions ? assessFishingConditions(weather.conditions) : null;
 
   return (
     <div className="absolute top-24 right-4 z-[60] w-80">
@@ -102,13 +102,13 @@ export default function UnifiedOceanConditions({
               <div className="text-center">
                 <div className="text-gray-400">Wind</div>
                 <div className="text-white font-bold text-lg">
-                  {weather ? formatWind(weather.wind) : '--'}
+                  {weather?.conditions ? formatWind(weather.conditions.wind) : '--'}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-gray-400">Waves</div>
                 <div className="text-white font-bold text-lg">
-                  {weather ? formatWaves(weather.waves) : '--'}
+                  {weather?.conditions ? formatWaves(weather.conditions.waves) : '--'}
                 </div>
               </div>
             </div>
@@ -116,12 +116,12 @@ export default function UnifiedOceanConditions({
             {/* Conditions Assessment */}
             {conditions && (
               <div className={`px-4 py-2 text-xs font-medium text-center ${
-                conditions === 'Excellent' ? 'bg-green-500/20 text-green-400' :
-                conditions === 'Good' ? 'bg-blue-500/20 text-blue-400' :
-                conditions === 'Fair' ? 'bg-yellow-500/20 text-yellow-400' :
+                conditions.rating === 'excellent' ? 'bg-green-500/20 text-green-400' :
+                conditions.rating === 'good' ? 'bg-blue-500/20 text-blue-400' :
+                conditions.rating === 'fair' ? 'bg-yellow-500/20 text-yellow-400' :
                 'bg-red-500/20 text-red-400'
               }`}>
-                {conditions} Fishing Conditions
+                {conditions.rating.charAt(0).toUpperCase() + conditions.rating.slice(1)} Fishing Conditions
               </div>
             )}
 
@@ -198,35 +198,35 @@ export default function UnifiedOceanConditions({
             </div>
 
             {/* Weather Details */}
-            {weather && (
+            {weather?.conditions && (
               <div className="px-4 py-3 border-t border-gray-800 space-y-2">
                 <div className="text-xs text-gray-400 mb-2">CURRENT CONDITIONS</div>
                 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-gray-500">Air Temp:</span>
-                    <span className="text-white ml-1">{Math.round(weather.airTemp)}°F</span>
+                    <span className="text-white ml-1">{Math.round(weather.conditions.airTemp)}°F</span>
                   </div>
                   <div>
                     <span className="text-gray-500">Pressure:</span>
-                    <span className="text-white ml-1">{weather.pressure.toFixed(1)} mb</span>
+                    <span className="text-white ml-1">{weather.conditions.pressure.toFixed(1)} mb</span>
                   </div>
                   <div>
                     <span className="text-gray-500">Visibility:</span>
-                    <span className="text-white ml-1">{weather.visibility} mi</span>
+                    <span className="text-white ml-1">{weather.conditions.visibility} mi</span>
                   </div>
                   <div>
                     <span className="text-gray-500">Humidity:</span>
-                    <span className="text-white ml-1">{weather.humidity}%</span>
+                    <span className="text-white ml-1">{weather.conditions.humidity}%</span>
                   </div>
                 </div>
 
                 {/* Tide Info if available */}
-                {weather.tides && weather.tides.length > 0 && (
+                {weather.conditions.tides && weather.conditions.tides.length > 0 && (
                   <div className="pt-2 border-t border-gray-800">
                     <div className="text-xs text-gray-400 mb-1">NEXT TIDE</div>
                     <div className="text-sm text-white">
-                      {weather.tides[0].type} at {new Date(weather.tides[0].time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {weather.conditions.tides[0].type} at {new Date(weather.conditions.tides[0].time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </div>
                   </div>
                 )}
