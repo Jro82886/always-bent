@@ -9,67 +9,52 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const x = resolvedParams.x;
   const y = resolvedParams.y.replace('.png',''); // sanitize
   
-  // Use the new OCEANCOLOUR chlorophyll endpoint
-  const base = process.env.CMEMS_CHL_WMTS_TEMPLATE;
-
-  if (!base) {
-    return new Response('CMEMS_CHL_WMTS_TEMPLATE not configured', { status: 500 });
-  }
-
-  // Build TIME for daily product (expects ISO8601 with milliseconds)
+  // NASA GIBS provides reliable chlorophyll data
+  // Using MODIS Aqua Chlorophyll-a concentration
   const qTime = req.nextUrl.searchParams.get('time');
-  const buildDailyIso = (d: Date) => {
-    const dd = new Date(d);
-    dd.setUTCHours(0, 0, 0, 0);
-    return dd.toISOString(); // Returns YYYY-MM-DDTHH:mm:ss.sssZ format
+  
+  // NASA GIBS expects YYYY-MM-DD format
+  const buildDateStr = (d: Date) => {
+    return d.toISOString().split('T')[0];
   };
   
-  // Generate fallback dates: yesterday and 2 days ago
-  // Chlorophyll data is usually 1-2 days behind
+  // Generate fallback dates: NASA data is usually 1-8 days behind
   const fallbackDates: string[] = [];
-  for (let daysAgo = 1; daysAgo <= 2; daysAgo++) {
+  for (let daysAgo = 1; daysAgo <= 8; daysAgo++) {
     const date = new Date();
     date.setDate(date.getDate() - daysAgo);
-    fallbackDates.push(buildDailyIso(date));
+    fallbackDates.push(buildDateStr(date));
   }
   
-  let timeParam: string;
+  let dateParam: string;
   if (!qTime || qTime === 'latest') {
-    // Default to yesterday (1 day ago) - usually available
-    timeParam = fallbackDates[0];
+    // Default to 3 days ago - usually available
+    dateParam = fallbackDates[2];
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(qTime)) {
-    timeParam = `${qTime}T00:00:00.000Z`;
+    dateParam = qTime;
   } else {
-    timeParam = qTime; // assume caller provided a full ISO timestamp
+    // Extract date from ISO timestamp
+    dateParam = qTime.split('T')[0];
   }
   
-  // Authentication for Copernicus
-  const u = process.env.COPERNICUS_USER || '';
-  const p = process.env.COPERNICUS_PASS || '';
-  const auth = 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64');
-
   // Try with smart fallback if the requested date fails
-  let successfulTime = timeParam;
+  let successfulDate = dateParam;
   let upstream: Response | null = null;
   let lastError: string = '';
   
-  // If using 'latest' or default, try fallback dates
+  // If using 'latest' or default, try multiple fallback dates
   const datesToTry = (!qTime || qTime === 'latest') ? 
-    [timeParam, ...fallbackDates.slice(1)] : // Try yesterday, then 2 days ago
-    [timeParam]; // Only try the specific date requested
+    [dateParam, ...fallbackDates.slice(3)] : // Try from 3 days ago onwards
+    [dateParam]; // Only try the specific date requested
 
-  for (const tryTime of datesToTry) {
-    const target = base
-      .replace('{z}', z)
-      .replace('{x}', x)
-      .replace('{y}', y)
-      .replace('{TIME}', tryTime);
+  for (const tryDate of datesToTry) {
+    // NASA GIBS WMTS endpoint for MODIS Aqua Chlorophyll-a
+    const target = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Aqua_Chlorophyll_A/default/${tryDate}/GoogleMapsCompatible_Level9/${z}/${y}/${x}.png`;
     
-    // Attempt to fetch from upstream
+    // Attempt to fetch from NASA GIBS (no auth required)
     try {
       const response = await fetch(target, {
         headers: {
-          Authorization: auth,
           Accept: 'image/png',
           'User-Agent': 'alwaysbent-abfi'
         },
@@ -79,27 +64,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
 
       if (response.ok) {
         upstream = response;
-        successfulTime = tryTime;
+        successfulDate = tryDate;
         // Successfully got chlorophyll data
         break;
-      } else if (response.status === 400 && datesToTry.length > 1) {
+      } else if (response.status === 404 && datesToTry.length > 1) {
         // Try next date
-        lastError = await response.text();
+        lastError = `404 for ${tryDate}`;
         continue;
       } else {
-        // Non-400 error or last attempt
+        // Non-404 error or last attempt
         const text = await response.text();
-        return new Response(text || `Upstream ${response.status}`, {
+        return new Response(text || `NASA GIBS ${response.status}`, {
           status: response.status,
           headers: { 
             'x-upstream-url': target,
-            'x-chl-date-tried': tryTime.split('T')[0]
+            'x-chl-date-tried': tryDate
           }
         });
       }
     } catch (e: any) {
       lastError = e?.message || String(e);
-      if (datesToTry.indexOf(tryTime) === datesToTry.length - 1) {
+      if (datesToTry.indexOf(tryDate) === datesToTry.length - 1) {
         // Last attempt failed
         break;
       }
@@ -110,7 +95,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     return new Response(`All dates failed. Last error: ${lastError}`, {
       status: 502,
       headers: { 
-        'x-dates-tried': datesToTry.map(d => d.split('T')[0]).join(', ')
+        'x-dates-tried': datesToTry.join(', '),
+        'x-service': 'NASA GIBS MODIS Aqua Chlorophyll'
       }
     });
   }
@@ -119,8 +105,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     headers: {
       'Content-Type': 'image/png',
       'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
-      'x-upstream-url': base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{TIME}', successfulTime),
-      'x-chl-date': successfulTime.split('T')[0]
+      'x-upstream-url': `https://gibs.earthdata.nasa.gov/.../MODIS_Aqua_Chlorophyll_A/.../`,
+      'x-chl-date': successfulDate,
+      'x-service': 'NASA GIBS'
     }
   });
 }
