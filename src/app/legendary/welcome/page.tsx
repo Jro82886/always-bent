@@ -92,8 +92,14 @@ export default function LegendaryWelcomePage() {
       setStep(2);
       setLoading(false);
     } catch (error: any) {
-      console.error('Profile error:', error);
-      setError('Failed to save profile. Please try again.');
+      console.error('Profile error (bypassing):', error);
+      // BYPASS: Skip profile save error and use localStorage
+      localStorage.setItem('abfi_captain_name', captainName.trim());
+      localStorage.setItem('abfi_boat_name', boatName.trim());
+      localStorage.setItem('abfi_user_id', userId || `local-${Date.now()}`);
+      
+      // Move to location permission step anyway
+      setStep(2);
       setLoading(false);
     }
   };

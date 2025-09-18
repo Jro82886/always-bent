@@ -84,16 +84,10 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-    
+    // Use user ID from request body (sent from client localStorage)
     const body = await req.json();
+    const userId = body.user_id || `local-${Date.now()}`;
+    const user = { id: userId, email: `${userId}@local.abfi` };
     
     // Validate required fields
     if (!body.latitude || !body.longitude || !body.confidence) {

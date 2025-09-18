@@ -42,7 +42,7 @@ function ABFICore() {
 
 export default function LegendaryPage() {
   return (
-    <AuthGuard requireAuth={true} fallbackPath="/auth/login">
+    <AuthGuard requireAuth={true} fallbackPath="/legendary/welcome">
       <BetaBanner />
       <FirstTimeSetup />
       <Suspense fallback={

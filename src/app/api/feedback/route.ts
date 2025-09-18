@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { feedback, type } = await request.json();
+    const { feedback, type, user_id, captain_name, boat_name } = await request.json();
     
-    // Log the feedback for now
-    console.log(`[BETA FEEDBACK] ${new Date().toISOString()}:`, feedback);
+    // Log the feedback with user info
+    console.log(`[BETA FEEDBACK] ${new Date().toISOString()}:`, {
+      feedback,
+      type,
+      user: { user_id, captain_name, boat_name }
+    });
     
     // Later you can:
     // 1. Send email to yourself

@@ -9,8 +9,8 @@ export async function GET(req: NextRequest) {
     const inlet = searchParams.get('inlet');
     const showAll = searchParams.get('all') === 'true';
     
-    // Get authenticated user for filtering friends/fleet
-    const { data: { user } } = await supabase.auth.getUser();
+    // Use mock user for now (will get from localStorage on client)
+    const user = { id: 'demo-user', email: 'demo@abfi.com' };
     
     // Build query for vessel positions
     let query = supabase
@@ -103,16 +103,10 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
     
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-    
+    // Use user ID from request body (sent from client localStorage)
     const body = await req.json();
+    const userId = body.user_id || `local-${Date.now()}`;
+    const user = { id: userId, email: `${userId}@local.abfi` };
     
     // Validate required fields
     if (!body.latitude || !body.longitude) {
