@@ -72,6 +72,7 @@ export default function LeftZone({
   const [chlContrast, setChlContrast] = useState(50);
   const [chlSaturation, setChlSaturation] = useState(50);
   const [chlHue, setChlHue] = useState(0);  // Green tint adjustment
+  const [chlEdgeMode, setChlEdgeMode] = useState(false);  // Front enhancement mode
   const [showOceanOpacity, setShowOceanOpacity] = useState(false);
   const [showSstEnhance, setShowSstEnhance] = useState(false);
   const [sstContrast, setSstContrast] = useState(50);
@@ -460,6 +461,47 @@ export default function LeftZone({
                         }}
                       />
                       <span className="text-[10px] text-gray-400 w-8">{chlHue || 0}°</span>
+                    </div>
+                    {/* EDGE ENHANCEMENT MODE */}
+                    <div className="pt-2 mt-2 border-t border-slate-700/50">
+                      <button
+                        onClick={() => {
+                          const newMode = !chlEdgeMode;
+                          setChlEdgeMode(newMode);
+                          
+                          if (map?.getLayer('chl-lyr')) {
+                            if (newMode) {
+                              // EDGE MODE: Make fronts POP!
+                              map.setPaintProperty('chl-lyr', 'raster-contrast', 1.2);
+                              map.setPaintProperty('chl-lyr', 'raster-brightness-min', 0.1);
+                              map.setPaintProperty('chl-lyr', 'raster-brightness-max', 0.9);
+                              map.setPaintProperty('chl-lyr', 'raster-saturation', 0.8);
+                              // Also apply current hue setting
+                              map.setPaintProperty('chl-lyr', 'raster-hue-rotate', chlHue - 20);
+                            } else {
+                              // Reset to normal view
+                              map.setPaintProperty('chl-lyr', 'raster-contrast', (chlContrast - 50) / 50);
+                              map.setPaintProperty('chl-lyr', 'raster-saturation', (chlSaturation - 50) / 50);
+                              map.setPaintProperty('chl-lyr', 'raster-brightness-min', 0);
+                              map.setPaintProperty('chl-lyr', 'raster-brightness-max', 1);
+                              map.setPaintProperty('chl-lyr', 'raster-hue-rotate', chlHue);
+                            }
+                          }
+                        }}
+                        className={`w-full px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 ${
+                          chlEdgeMode 
+                            ? 'bg-green-500/30 text-green-300 border border-green-500/40' 
+                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/30 hover:border-green-500/30'
+                        }`}
+                      >
+                        <Activity size={12} />
+                        {chlEdgeMode ? 'Edge Mode ON' : 'Enhance Fronts'}
+                      </button>
+                      {chlEdgeMode && (
+                        <p className="text-[9px] text-green-400/70 mt-1 text-center">
+                          Highlighting chlorophyll transition zones
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
