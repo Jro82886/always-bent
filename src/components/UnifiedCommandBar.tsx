@@ -209,8 +209,8 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                           <div className="text-xs text-cyan-400 font-bold uppercase tracking-wider">SELECT FISHING AREA</div>
                         </div>
                         <div className="max-h-80 overflow-y-auto bg-black/40">
-                          {/* Group by state */}
-                          {['ME', 'MA', 'RI', 'NY', 'NJ', 'MD', 'NC'].map(state => {
+                          {/* Group by state - ALL states with inlets */}
+                          {['ME', 'MA', 'RI', 'NY', 'NJ', 'DE', 'MD', 'VA', 'NC', 'SC', 'GA', 'GA/FL', 'FL', 'FL Keys'].map(state => {
                             const stateInlets = inlets.filter(i => i.state === state);
                             if (stateInlets.length === 0) return null;
                             
@@ -221,35 +221,38 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                                 </div>
                                 {stateInlets.map(inlet => {
                                   const isSelected = selectedInletId === inlet.id;
-                                  const colorClass = inlet.id.includes('portland') ? 'border-purple-400 text-purple-300' :
-                                                    inlet.id.includes('cape-cod') ? 'border-blue-400 text-blue-300' :
-                                                    inlet.id.includes('point-judith') ? 'border-cyan-400 text-cyan-300' :
-                                                    inlet.id.includes('montauk') ? 'border-green-400 text-green-300' :
-                                                    inlet.id.includes('manasquan') ? 'border-yellow-400 text-yellow-300' :
-                                                    inlet.id.includes('barnegat') ? 'border-orange-400 text-orange-300' :
-                                                    inlet.id.includes('ocean-city-md') ? 'border-red-400 text-red-300' :
-                                                    inlet.id.includes('ocean-city-nj') ? 'border-pink-400 text-pink-300' :
-                                                    'border-gray-400 text-gray-300';
+                                  // Use the ACTUAL inlet color from the inlet data
+                                  const inletColor = inlet.color || '#64748b';
                                   
                                   return (
                                     <button
                                       key={inlet.id}
                                       onClick={() => handleInletChange(inlet.id)}
                                       className={`
-                                        w-full px-4 py-2.5 text-left transition-all flex items-center gap-3
+                                        w-full px-3 py-2 text-left transition-all flex items-center gap-2
                                         ${isSelected 
-                                          ? 'bg-cyan-500/20 border-l-4 ' + colorClass
-                                          : 'hover:bg-cyan-500/10 border-l-4 border-transparent hover:border-l-4 hover:' + colorClass
+                                          ? 'bg-cyan-500/20' 
+                                          : 'hover:bg-cyan-500/10'
                                         }
                                       `}
+                                      style={{
+                                        borderLeft: `3px solid ${inletColor}`,
+                                        borderLeftColor: isSelected ? inletColor : `${inletColor}66`
+                                      }}
                                     >
                                       <div className="flex-1">
-                                        <div className={`text-sm font-medium ${isSelected ? colorClass : 'text-gray-200'}`}>
+                                        <div 
+                                          className={`text-sm font-medium ${isSelected ? 'text-cyan-300' : 'text-gray-200'}`}
+                                          style={{ color: isSelected ? inletColor : undefined }}
+                                        >
                                           {inlet.name}
                                         </div>
                                       </div>
                                       {isSelected && (
-                                        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                                        <div 
+                                          className="w-2 h-2 rounded-full animate-pulse"
+                                          style={{ backgroundColor: inletColor }}
+                                        />
                                       )}
                                     </button>
                                   );
