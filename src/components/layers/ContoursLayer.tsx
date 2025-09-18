@@ -36,6 +36,8 @@ export default function ContoursLayer({
       
       try {
         const bounds = map.getBounds();
+        if (!bounds) return;
+        
         const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
         
         const response = await fetch(`/api/ocean-features/contours?bbox=${bbox}`);
