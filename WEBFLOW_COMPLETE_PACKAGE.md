@@ -254,17 +254,38 @@ Tagline: Fish Smarter. Not Harder.
 --font-extrabold: 800;
 ```
 
-### **LOGO GUIDANCE**
-```
-Primary Logo: "ABFI" in bold, modern font
-Size: 32px height in navbar
-Colors: White text or cyan-400 accent
-Placement: Top left of navbar
-Mobile: Can abbreviate to just "ABFI" icon
+### **LOGO FILES READY TO USE**
 
-Favicon: Fishing hook icon or "A" lettermark
-Format: SVG preferred, PNG fallback
-Sizes: 16x16, 32x32, 180x180 (Apple touch)
+**Available Logos (in /public/logos/):**
+1. **abfi-logo-primary.svg** - Main logo with cyan accent (120x40)
+2. **abfi-logo-white.svg** - White version for dark backgrounds (120x40)
+3. **abfi-icon.svg** - Square icon for favicon/mobile (32x32)
+4. **abfi-logo-full.svg** - Full company name version (320x60)
+5. **abfi-logo-dark.svg** - Badge with dark background (120x40)
+
+**How to Upload to Webflow:**
+1. In Webflow Designer → Assets Panel (left sidebar)
+2. Click "Upload" → Select all SVG files
+3. Once uploaded, drag into navbar/footer/etc.
+
+**Recommended Usage:**
+- **Navbar:** Use `abfi-logo-primary.svg` (top left, 120px wide)
+- **Footer:** Use `abfi-logo-full.svg` (centered or left, 320px wide)
+- **Favicon:** Use `abfi-icon.svg` (Project Settings → SEO → Favicon)
+- **Loading screens:** Use `abfi-logo-white.svg` on dark background
+- **Email/Social:** Use `abfi-logo-dark.svg` (self-contained)
+
+**Logo HTML for Webflow:**
+```html
+<!-- Navbar Logo -->
+<a href="/" class="navbar-brand">
+  <img src="abfi-logo-primary.svg" alt="ABFI" height="40">
+</a>
+
+<!-- Footer Logo -->
+<div class="footer-logo">
+  <img src="abfi-logo-full.svg" alt="Always Bent Fishing Intelligence" height="60">
+</div>
 ```
 
 ---

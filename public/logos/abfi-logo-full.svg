@@ -1,0 +1,40 @@
+<svg width="320" height="60" viewBox="0 0 320 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Full Logo with Company Name -->
+  <g id="abfi-full-logo">
+    <!-- Background Glow Effect -->
+    <ellipse cx="30" cy="30" rx="25" ry="25" fill="#22d3ee" opacity="0.1"/>
+    
+    <!-- Icon Container -->
+    <rect x="10" y="10" width="40" height="40" rx="8" fill="#111827" stroke="#22d3ee" stroke-width="1"/>
+    
+    <!-- Fishing Hook Icon -->
+    <g transform="translate(22, 18)">
+      <path d="M8 4C8 4 8 12 8 16C8 20 6 22 4 22C2 22 0 20 0 18C0 16 2 14 4 14" 
+            stroke="#22d3ee" 
+            stroke-width="2.5" 
+            stroke-linecap="round" 
+            fill="none"/>
+      <circle cx="8" cy="3" r="2.5" fill="#22d3ee"/>
+    </g>
+    
+    <!-- Main Text -->
+    <g transform="translate(65, 0)">
+      <!-- ABFI -->
+      <text x="0" y="28" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="24" font-weight="800" fill="#f9fafb">
+        ALWAYS BENT
+      </text>
+      
+      <!-- Tagline -->
+      <text x="0" y="46" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#9ca3af">
+        FISHING INTELLIGENCE
+      </text>
+    </g>
+    
+    <!-- Decorative Wave -->
+    <path d="M65 52 Q80 50 95 52 T125 52 T155 52" 
+          stroke="#22d3ee" 
+          stroke-width="1.5" 
+          fill="none" 
+          opacity="0.4"/>
+  </g>
+</svg>

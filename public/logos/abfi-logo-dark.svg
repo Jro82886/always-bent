@@ -1,0 +1,32 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark Background Version -->
+  <rect width="120" height="40" rx="8" fill="#030712"/>
+  
+  <!-- Logo Content -->
+  <g transform="translate(10, 8)">
+    <!-- Fishing Hook Icon -->
+    <path d="M8 4C8 4 8 10 8 14C8 18 6 20 4 20C2 20 0 18 0 16C0 14 2 12 4 12" 
+          stroke="#22d3ee" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          fill="none"/>
+    <circle cx="8" cy="2" r="2" fill="#22d3ee"/>
+    
+    <!-- ABFI Text -->
+    <text x="20" y="18" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="#f9fafb">
+      ABFI
+    </text>
+    
+    <!-- Glow Effect -->
+    <rect x="20" y="22" width="35" height="1.5" fill="url(#gradient)" opacity="0.8"/>
+  </g>
+  
+  <!-- Gradient Definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#22d3ee" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>
