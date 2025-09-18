@@ -49,7 +49,15 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
         }
       });
 
-      console.log('CHL layer added successfully');
+      // Ensure CHL is above ocean and SST layers
+      const layers = map.getStyle().layers;
+      const firstSymbolLayer = layers.find(layer => layer.type === 'symbol');
+      if (firstSymbolLayer) {
+        // Move CHL just below the first symbol layer (so it's visible but below labels)
+        map.moveLayer('chl-lyr', firstSymbolLayer.id);
+      }
+
+      console.log('CHL layer added successfully with proper ordering');
     };
 
     // Wait for map to be loaded
