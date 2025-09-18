@@ -24,31 +24,24 @@ export default function LegendaryWelcomePage() {
   }, []);
   
   const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Check if user already has details in localStorage
+    const existingCaptain = localStorage.getItem('abfi_captain_name');
+    const existingBoat = localStorage.getItem('abfi_boat_name');
+    const existingUserId = localStorage.getItem('abfi_user_id');
     
-    if (!user) {
-      // Not authenticated, redirect to login
-      // Skip auth check - user can proceed
-      return;
-    }
-    
-    setUserId(user.id);
-    setUserEmail(user.email || null);
-    
-    // Check if profile already exists
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('captain_name, boat_name')
-      .eq('id', user.id)
-      .single();
-    
-    if (profile?.captain_name && profile?.boat_name) {
-      // Profile exists - show it for confirmation instead of auto-advancing
-      setCaptainName(profile.captain_name);
-      setBoatName(profile.boat_name);
+    if (existingCaptain && existingBoat && existingUserId) {
+      // Profile exists - show it for confirmation
+      setCaptainName(existingCaptain);
+      setBoatName(existingBoat);
+      setUserId(existingUserId);
       setIsReturningUser(true);
-      // Stay on step 1 - user must confirm or edit their info
-      // Don't auto-advance to step 2 or the main app
+    } else {
+      // Generate a new user ID if needed
+      const newUserId = existingUserId || `user-${Date.now()}`;
+      setUserId(newUserId);
+      if (!existingUserId) {
+        localStorage.setItem('abfi_user_id', newUserId);
+      }
     }
   };
   
