@@ -1,11 +1,13 @@
 # CORRECT CHLOROPHYLL CONFIGURATION FOR COPERNICUS
-# The variable name at the end MUST be lowercase "chl" not "CHL"
+# Using YOUR ACTUAL Vercel endpoint (which should work!)
 
-CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/cmems_obs-oc_glo_bgc-plankton_nrt_l4-gapfree-multi-4km_P1D/chl&STYLE=default&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:turbo&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
 
-# Key differences from the broken version:
-# 1. "/chl" at the end (lowercase, not "/CHL")
-# 2. STYLE=default (not cmap:jet which may not exist for this layer)
+# This is the EXACT endpoint from your Vercel environment
+# Key points:
+# 1. Uses MY (Multi-Year) dataset, not NRT
+# 2. "/CHL" at the end (uppercase) 
+# 3. STYLE=cmap:turbo (your configured style)
 
 # Your existing auth credentials (these are correct):
 COPERNICUS_USER=jrosenkilde
