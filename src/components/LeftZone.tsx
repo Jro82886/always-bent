@@ -72,8 +72,8 @@ export default function LeftZone({
   const [showChlEnhance, setShowChlEnhance] = useState(false);
   const [chlContrast, setChlContrast] = useState(50);
   const [chlSaturation, setChlSaturation] = useState(50);
-  const [chlHue, setChlHue] = useState(0);  // Green tint adjustment
-  const [chlEdgeMode, setChlEdgeMode] = useState(false);  // Front enhancement mode
+  const [chlHue, setChlHue] = useState(0);  // Color tint adjustment (-30 to +30)
+  const [chlEdges, setChlEdges] = useState(false);  // Chlorophyll edge detection
   const [sstContours, setSstContours] = useState(false);  // Temperature contour lines
   const [showOceanOpacity, setShowOceanOpacity] = useState(false);
   const [showSstEnhance, setShowSstEnhance] = useState(false);
@@ -443,65 +443,43 @@ export default function LeftZone({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-gray-400 w-16">Green Tint</span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="60"
-                        value={chlHue || 0}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value);
-                          setChlHue(val);
-                          localStorage.setItem('chl_hue', val.toString());
-                          if (map?.getLayer('chl-lyr')) {
-                            // Hue rotate towards green (positive values shift blue->green)
-                            map.setPaintProperty('chl-lyr', 'raster-hue-rotate', val);
-                          }
-                        }}
-                        className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                        style={{
-                          background: `linear-gradient(to right, #3b82f6 0%, #10b981 100%)`
-                        }}
-                      />
+                        <input
+                          type="range"
+                          min="-30"
+                          max="30"
+                          value={chlHue || 0}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setChlHue(val);
+                            localStorage.setItem('chl_hue', val.toString());
+                            if (map?.getLayer('chl-lyr')) {
+                              // Negative = more blue, Positive = more green
+                              map.setPaintProperty('chl-lyr', 'raster-hue-rotate', val);
+                            }
+                          }}
+                          className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                          style={{
+                            background: `linear-gradient(to right, #0ea5e9 0%, #3b82f6 33%, #6366f1 50%, #10b981 66%, #22c55e 100%)`
+                          }}
+                        />
                       <span className="text-[10px] text-gray-400 w-8">{chlHue || 0}°</span>
                     </div>
-                    {/* EDGE ENHANCEMENT MODE */}
+                    {/* CHL Edge Detection */}
                     <div className="pt-2 mt-2 border-t border-slate-700/50">
                       <button
-                        onClick={() => {
-                          const newMode = !chlEdgeMode;
-                          setChlEdgeMode(newMode);
-                          
-                          if (map?.getLayer('chl-lyr')) {
-                            if (newMode) {
-                              // EDGE MODE: Make fronts POP!
-                              map.setPaintProperty('chl-lyr', 'raster-contrast', 1.2);
-                              map.setPaintProperty('chl-lyr', 'raster-brightness-min', 0.1);
-                              map.setPaintProperty('chl-lyr', 'raster-brightness-max', 0.9);
-                              map.setPaintProperty('chl-lyr', 'raster-saturation', 0.8);
-                              // Also apply current hue setting
-                              map.setPaintProperty('chl-lyr', 'raster-hue-rotate', chlHue - 20);
-                            } else {
-                              // Reset to normal view
-                              map.setPaintProperty('chl-lyr', 'raster-contrast', (chlContrast - 50) / 50);
-                              map.setPaintProperty('chl-lyr', 'raster-saturation', (chlSaturation - 50) / 50);
-                              map.setPaintProperty('chl-lyr', 'raster-brightness-min', 0);
-                              map.setPaintProperty('chl-lyr', 'raster-brightness-max', 1);
-                              map.setPaintProperty('chl-lyr', 'raster-hue-rotate', chlHue);
-                            }
-                          }
-                        }}
+                        onClick={() => setChlEdges(!chlEdges)}
                         className={`w-full px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 ${
-                          chlEdgeMode 
-                            ? 'bg-green-500/30 text-green-300 border border-green-500/40' 
+                          chlEdges
+                            ? 'bg-green-500/30 text-green-300 border border-green-500/40'
                             : 'bg-slate-700/50 text-slate-400 border border-slate-600/30 hover:border-green-500/30'
                         }`}
                       >
                         <Activity size={12} />
-                        {chlEdgeMode ? 'Edge Mode ON' : 'Enhance Fronts'}
+                        {chlEdges ? 'Edges ON' : 'Show CHL Edges'}
                       </button>
-                      {chlEdgeMode && (
+                      {chlEdges && (
                         <p className="text-[9px] text-green-400/70 mt-1 text-center">
-                          Highlighting chlorophyll transition zones
+                          Highlighting chlorophyll concentration breaks
                         </p>
                       )}
                     </div>
