@@ -16,7 +16,7 @@ import RightZone from '@/components/RightZone';
 import ReportCatchButton from '@/components/ReportCatchButton';
 import InteractiveTutorial from '@/components/InteractiveTutorial';
 import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
-import UnifiedOceanConditions from '@/components/UnifiedOceanConditions';
+// Weather now integrated into UnifiedCommandCenter
 import OfflineManager from '@/components/OfflineManager';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import { useAppState } from '@/store/appState';
@@ -438,7 +438,7 @@ function AnalysisModeContent() {
           <NetworkStatusIndicator />
           
           {/* Weather Conditions - Only show after tutorial is complete */}
-          {tutorialCompleted && <UnifiedOceanConditions />}
+          {/* Weather now integrated into UnifiedCommandCenter */}
 
           {/* Commercial Vessels Toggle - Moved to LeftZone */}
 

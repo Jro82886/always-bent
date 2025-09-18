@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from 'react';
 import SnipController from '@/components/SnipController';
-import UnifiedRightPanel from '@/components/UnifiedRightPanel';
+import UnifiedCommandCenter from '@/components/UnifiedCommandCenter';
 
 interface RightZoneProps {
   map: mapboxgl.Map | null;
@@ -38,8 +38,8 @@ export default function RightZone({ map, onModalStateChange, onStartTutorial }: 
         <SnipController map={map} onModalStateChange={handleModalStateChange} />
       </div>
       
-      {/* Unified Right Panel - Visible UI */}
-      <UnifiedRightPanel 
+      {/* Unified Command Center - Weather + Snip Tool */}
+      <UnifiedCommandCenter 
         onAnalyze={handleAnalyze}
         currentMode="analysis"
         onStartTutorial={onStartTutorial}
