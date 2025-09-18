@@ -385,7 +385,7 @@ export function buildAnalysisContext(
       },
       recentReports: vesselData?.reports ? {
         count: vesselData.reports.length,
-        species: [...new Set(vesselData.reports.map((r: any) => r.species).filter(Boolean))],
+        species: [...new Set(vesselData.reports.map((r: any) => r.species).filter(Boolean))] as string[],
         quality: vesselData.reports.reduce((sum: number, r: any) => sum + (r.quality || 3), 0) / vesselData.reports.length
       } : undefined
     }

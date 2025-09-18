@@ -113,34 +113,50 @@
 
 /* Analysis Content Styling */
 .analysis-content h1 {
-  @apply text-xl font-bold mb-4 text-cyan-300;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: rgb(103 232 249);
 }
 
 .analysis-content h2 {
-  @apply text-lg font-semibold mb-3 mt-4 text-cyan-200;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  margin-top: 1rem;
+  color: rgb(165 243 252);
 }
 
 .analysis-content h3 {
-  @apply text-base font-semibold mb-2 mt-3 text-cyan-100;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 0.75rem;
+  color: rgb(207 250 254);
 }
 
 .analysis-content ul {
-  @apply space-y-1 ml-4;
+  margin-left: 1rem;
+}
+
+.analysis-content ul li {
+  margin-bottom: 0.25rem;
 }
 
 .analysis-content li {
-  @apply text-gray-300;
+  color: rgb(209 213 219);
 }
 
 .analysis-content strong {
-  @apply text-white font-semibold;
+  color: white;
+  font-weight: 600;
 }
 
 .analysis-content p {
-  @apply mb-2;
+  margin-bottom: 0.5rem;
 }
 
 /* Ensure inline spans display properly */
 .analysis-content span {
-  @apply inline-block;
+  display: inline-block;
 }
