@@ -6,6 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
+import CHLLayer from '@/components/layers/CHLLayer';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
 import InletRegions from '@/components/InletRegions';
 import TutorialOverlay from '@/components/TutorialOverlay';
@@ -330,13 +331,9 @@ function AnalysisModeContent() {
     
   };
 
-  // CHL toggle - Copernicus chlorophyll
+  // CHL toggle - handled by CHLLayer component now
   const toggleCHL = () => {
-    if (!map.current) return;
-    const newState = !chlActive;
-    setChlActive(newState);
-    setVis(map.current, 'chl-lyr', newState);
-    
+    setChlActive(!chlActive);
   };
 
   // This duplicate inlet handler can be removed - already handled above
@@ -406,6 +403,9 @@ function AnalysisModeContent() {
           
           {/* SST Layer component - ONLY on Analysis tab */}
           {map.current && <SSTLayer map={map.current} on={sstActive} selectedDate={selectedDate} />}
+          
+          {/* CHL Layer component - Chlorophyll concentration */}
+          {map.current && <CHLLayer map={map.current} on={chlActive} selectedDate={selectedDate} />}
           
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
