@@ -48,6 +48,7 @@ export default function PolygonsPanel({ map }: Props) {
     edge: 0,
     filament: 0
   });
+  const [isLive, setIsLive] = useState(false);
 
   // Load polygons when map is ready and at least one layer is enabled
   useEffect(() => {
@@ -68,22 +69,23 @@ export default function PolygonsPanel({ map }: Props) {
         const bbox = bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()].join(',') : '';
 
         
-        const res = await fetch(`/api/polygons?bbox=${bbox}`);
+        // Use LIVE polygons that update with SST/CHL data!
+        const res = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
         
         let data;
         if (!res.ok) {
           
-          // Try without bbox as fallback
+          // Try fallback to static data
           const fallbackRes = await fetch('/api/polygons');
           if (!fallbackRes.ok) {
             
             return;
           }
           data = await fallbackRes.json();
-          
+          setIsLive(false);
         } else {
           data = await res.json();
-          
+          setIsLive(true); // We're using LIVE data!
         }
 
         // Count features by class (not type)
@@ -219,6 +221,11 @@ export default function PolygonsPanel({ map }: Props) {
         <div className="flex items-center gap-2">
           <Layers size={14} className="text-cyan-400" />
           <span className="text-sm font-medium text-cyan-300">Polygons</span>
+          {isLive && (
+            <span className="ml-1 px-1.5 py-0.5 bg-green-500/20 text-green-400 text-[9px] font-bold rounded border border-green-500/30 animate-pulse">
+              LIVE
+            </span>
+          )}
           {loading && <span className="text-xs text-gray-500">(loading...)</span>}
         </div>
         {showPanel ? (
