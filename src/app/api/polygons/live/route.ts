@@ -228,7 +228,7 @@ export async function GET(req: NextRequest) {
         generated_at: new Date().toISOString(),
         bbox: [minLng, minLat, maxLng, maxLat],
         data_sources: layers.split(','),
-        data_type: 'synthetic', // TODO: Change to 'real' when pixel extraction is connected
+        data_type: 'synthetic-realistic', // Using oceanographic patterns until real pixel extraction
         feature_count: {
           thermal_fronts: features.filter(f => f.properties.type === 'thermal_front').length,
           chlorophyll_edges: features.filter(f => f.properties.type === 'chlorophyll_edge').length,

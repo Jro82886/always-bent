@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
+import ContoursLayer from '@/components/layers/ContoursLayer';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 interface LeftZoneProps {
@@ -73,6 +74,7 @@ export default function LeftZone({
   const [chlSaturation, setChlSaturation] = useState(50);
   const [chlHue, setChlHue] = useState(0);  // Green tint adjustment
   const [chlEdgeMode, setChlEdgeMode] = useState(false);  // Front enhancement mode
+  const [sstContours, setSstContours] = useState(false);  // Temperature contour lines
   const [showOceanOpacity, setShowOceanOpacity] = useState(false);
   const [showSstEnhance, setShowSstEnhance] = useState(false);
   const [sstContrast, setSstContrast] = useState(50);

@@ -9,7 +9,7 @@ interface CHLLayerProps {
   selectedDate?: string;
 }
 
-export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerProps) {
+export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerProps) {
   
   useEffect(() => {
     if (!map) return;

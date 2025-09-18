@@ -3,6 +3,10 @@ import { NextRequest } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// 512px tiles for smoother rendering
+const TILE_SIZE = 512;
+const COPERNICUS_TILE_SIZE = 256; // Their native size
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ z: string; x: string; y: string }> }) {
   const resolvedParams = await params;
   const z = resolvedParams.z;
