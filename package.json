@@ -12,7 +12,11 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
+    "type-check:quick": "node scripts/type-check-quick.js",
+    "prebuild": "node scripts/type-check-quick.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

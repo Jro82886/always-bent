@@ -1,0 +1,51 @@
+name: TypeScript Check
+
+on:
+  push:
+    branches: [ main, staging, development ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  type-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run TypeScript compiler check
+      run: npm run type-check
+      
+    - name: Check for 'any' types in critical files
+      run: |
+        echo "Checking for 'any' types in critical files..."
+        CRITICAL_FILES=(
+          "src/components/SnipController.tsx"
+          "src/components/SnipTool.tsx"
+          "src/lib/analysis/sst-analyzer.ts"
+          "src/lib/analysis/comprehensive-analyzer.ts"
+        )
+        
+        for file in "${CRITICAL_FILES[@]}"; do
+          if grep -q ": any" "$file"; then
+            echo "❌ Found 'any' type in $file"
+            exit 1
+          fi
+        done
+        
+        echo "✅ No 'any' types in critical files!"
+    
+    - name: Generate type coverage report
+      run: |
+        npx type-coverage --detail --strict > type-coverage.txt || true
+        cat type-coverage.txt
+      continue-on-error: true
