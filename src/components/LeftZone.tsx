@@ -20,7 +20,7 @@ import {
 import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
 import ContoursLayer from '@/components/layers/ContoursLayer';
-import CHLEdgesLayer from '@/components/layers/CHLEdgesLayer';
+// Removed CHLEdgesLayer import - edge detection button removed
 import { Tooltip } from '@/components/ui/Tooltip';
 
 interface LeftZoneProps {
@@ -74,7 +74,7 @@ export default function LeftZone({
   const [chlContrast, setChlContrast] = useState(50);
   const [chlSaturation, setChlSaturation] = useState(50);
   const [chlHue, setChlHue] = useState(0);  // Color tint adjustment (-30 to +30)
-  const [chlEdges, setChlEdges] = useState(false);  // Chlorophyll edge detection
+  // Removed chlEdges state - edge detection feature removed
   const [sstContours, setSstContours] = useState(false);  // Temperature contour lines
   const [showOceanOpacity, setShowOceanOpacity] = useState(false);
   const [showSstEnhance, setShowSstEnhance] = useState(false);
@@ -255,6 +255,22 @@ export default function LeftZone({
                   )}
                 </div>
               </div>
+              
+              {/* Compact SST Temperature Legend - Only when SST is active */}
+              {sstActive && (
+                <div className="mt-2 ml-0.5">
+                  <div className="relative w-44 h-5 rounded border border-white/15 overflow-hidden"
+                       style={{
+                         background: 'linear-gradient(to right, #00008B, #0000FF, #00FFFF, #00FF00, #FFFF00, #FFA500, #FF4500, #FF0000, #8B0000)'
+                       }}>
+                  </div>
+                  <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                    <span>32°F</span>
+                    <span>59°F</span>
+                    <span>86°F</span>
+                  </div>
+                </div>
+              )}
               
               {/* SST Controls */}
               {showSstOpacity && sstActive && (
@@ -441,50 +457,38 @@ export default function LeftZone({
                       <span className="text-[10px] text-gray-400 w-8">{chlSaturation}%</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-green-400 w-16">Green Tint</span>
+                      <span className="text-[10px] text-green-400 w-16">Mid-CHL Highlight</span>
                         <input
                           type="range"
                           min="0"
-                          max="60"
+                          max="100"
                           value={chlHue || 0}
                           onChange={(e) => {
                             const val = parseInt(e.target.value);
                             setChlHue(val);
-                            localStorage.setItem('chl_hue', val.toString());
+                            localStorage.setItem('chl_highlight', val.toString());
                             if (map?.getLayer('chl-lyr')) {
-                              // Apply green tint only to high concentration areas
-                              map.setPaintProperty('chl-lyr', 'raster-hue-rotate', val);
-                              // Boost saturation for high concentrations when tinting
-                              const saturationBoost = val > 0 ? 0.2 + (val / 60) * 0.3 : 0;
+                              // No hue rotation - just contrast/saturation boost
+                              map.setPaintProperty('chl-lyr', 'raster-hue-rotate', 0);
+                              // Boost contrast for mid-range chlorophyll
+                              const contrastBoost = 0.35 + (val * 0.01);
+                              map.setPaintProperty('chl-lyr', 'raster-contrast', contrastBoost);
+                              // Gentle saturation boost
+                              const saturationBoost = 0.4 + (val * 0.006);
                               map.setPaintProperty('chl-lyr', 'raster-saturation', saturationBoost);
+                              // Adjust opacity to fade extremes if supported
+                              // For now, keep full opacity
+                              map.setPaintProperty('chl-lyr', 'raster-opacity', chlOpacity / 100);
                             }
                           }}
                           className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
                           style={{
-                            background: `linear-gradient(to right, #3b82f6 0%, #10b981 50%, #22c55e 100%)`
+                            background: `linear-gradient(to right, #064e3b 0%, #10b981 50%, #34d399 100%)`
                           }}
                         />
-                      <span className="text-[10px] text-green-400 w-8">{chlHue || 0}°</span>
+                      <span className="text-[10px] text-green-400 w-8">{chlHue || 0}%</span>
                     </div>
-                    {/* CHL Edge Detection */}
-                    <div className="pt-2 mt-2 border-t border-slate-700/50">
-                      <button
-                        onClick={() => setChlEdges(!chlEdges)}
-                        className={`w-full px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-2 ${
-                          chlEdges
-                            ? 'bg-green-500/30 text-green-300 border border-green-500/40'
-                            : 'bg-slate-700/50 text-slate-400 border border-slate-600/30 hover:border-green-500/30'
-                        }`}
-                      >
-                        <Activity size={12} />
-                        {chlEdges ? 'Edges ON' : 'Show CHL Edges'}
-                      </button>
-                      {chlEdges && (
-                        <p className="text-[9px] text-green-400/70 mt-1 text-center">
-                          Highlighting chlorophyll concentration breaks
-                        </p>
-                      )}
-                    </div>
+                    {/* Removed non-functional CHL Edge Detection button */}
                   </div>
                 </div>
               )}
@@ -649,7 +653,7 @@ export default function LeftZone({
       
       {/* Render edge detection layers */}
       {sstContours && map && <ContoursLayer map={map} enabled={sstContours} />}
-      {chlEdges && map && <CHLEdgesLayer map={map} enabled={chlEdges} />}
+      {/* Removed CHLEdgesLayer - edge detection feature removed */}
     </div>
   );
 }
