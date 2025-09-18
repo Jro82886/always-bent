@@ -43,7 +43,7 @@ export async function saveUserProfile(
 
     if (error) throw error;
 
-    return { data, error: null };
+    return { data: data as UserProfile, error: null };
   } catch (error) {
     console.error('Error saving profile:', error);
     return { data: null, error };
@@ -63,7 +63,7 @@ export async function getUserProfile(userId: string): Promise<{ data: UserProfil
 
     if (error) throw error;
 
-    return { data, error: null };
+    return { data: data as UserProfile, error: null };
   } catch (error) {
     console.error('Error fetching profile:', error);
     return { data: null, error };

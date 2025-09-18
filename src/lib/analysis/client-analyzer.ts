@@ -33,8 +33,8 @@ export async function analyzeAreaWithRealData(
       const point = map.project([lng, lat]);
       
       // Query SST layer if visible
-      let sstValue = null;
-      let chlValue = null;
+      let sstValue: number | null = null;
+      let chlValue: number | null = null;
       
       try {
         // Check if SST layer exists and is visible
@@ -103,13 +103,13 @@ export async function analyzeAreaWithRealData(
                 score: sstValue ? confidence : 0,
                 weight: 0.6,
                 value: sstValue,
-                note: sstValue ? `${sstValue.toFixed(1)}°F` : 'No data'
+                note: sstValue !== null ? `${(sstValue as number).toFixed(1)}°F` : 'No data'
               },
               chl: {
                 score: chlValue ? 0.5 : 0,
                 weight: 0.4,
                 value: chlValue,
-                note: chlValue ? `${chlValue.toFixed(2)} mg/m³` : 'No data'
+                note: chlValue !== null ? `${(chlValue as number).toFixed(2)} mg/m³` : 'No data'
               }
             }
           }
@@ -125,8 +125,8 @@ export async function analyzeAreaWithRealData(
   const centerLng = (west + east) / 2;
   const centerLat = (south + north) / 2;
   const temps = hotspots
-    .filter(h => h.properties.sst)
-    .map(h => h.properties.sst);
+    .filter(h => h.properties.sst !== null)
+    .map(h => h.properties.sst as number);
   
   const report = {
     boxCenter: { lng: centerLng, lat: centerLat },

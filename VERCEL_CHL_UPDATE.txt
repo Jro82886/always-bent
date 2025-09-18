@@ -1,0 +1,27 @@
+# URGENT: Add this Chlorophyll endpoint to Vercel NOW!
+
+## Add this environment variable to Vercel Dashboard:
+
+```
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts/OCEANCOLOUR_ATL_BGC_L4_MY_009_118/cmems_obs-oc_atl_bgc-plankton_my_l4-multi-1km_P1D/CHL-SURF/{TIME}/{z}/{x}/{y}.png
+```
+
+## Steps:
+1. Go to: https://vercel.com/jro82886s-projects/always-bent/settings/environment-variables
+2. Click "Add Variable"
+3. Name: `CMEMS_CHL_WMTS_TEMPLATE`
+4. Value: `https://wmts.marine.copernicus.eu/teroWmts/OCEANCOLOUR_ATL_BGC_L4_MY_009_118/cmems_obs-oc_atl_bgc-plankton_my_l4-multi-1km_P1D/CHL-SURF/{TIME}/{z}/{x}/{y}.png`
+5. Select "Production" environment
+6. Click "Save"
+
+## What This Does:
+- Replaces the old chlorophyll endpoint with the new OCEANCOLOUR dataset
+- Uses real ocean color data at 1km resolution
+- Much better quality than the previous biogeochemical model
+
+## The chlorophyll button will now show:
+- Deep Blue: Low chlorophyll (open ocean)
+- Green/Yellow: High chlorophyll (productive waters, upwellings, coastal areas)
+- Real plankton concentrations that fish follow!
+
+DEPLOY THIS NOW for real chlorophyll data! 🌊

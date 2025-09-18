@@ -35,8 +35,11 @@ export default function OfflineManager() {
       setIsOffline(false);
       // Trigger background sync when back online
       if (swRegistration && 'sync' in swRegistration) {
-        swRegistration.sync.register('sync-reports');
-        swRegistration.sync.register('sync-positions');
+        const syncManager = (swRegistration as any).sync;
+        if (syncManager && typeof syncManager.register === 'function') {
+          syncManager.register('sync-reports');
+          syncManager.register('sync-positions');
+        }
       }
     };
 
