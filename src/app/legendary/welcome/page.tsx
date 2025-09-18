@@ -64,35 +64,17 @@ export default function LegendaryWelcomePage() {
     setError('');
     
     try {
-      // Save profile using the new function (with fallback)
-      const { error: profileError } = await upsertProfileDirect({
-        id: userId,
-        captain_name: captainName.trim(),
-        boat_name: boatName.trim(),
-        email: userEmail || undefined
-      });
-      
-      if (profileError) {
-        console.error('Profile save error:', profileError);
-        throw profileError;
-      }
-      
-      // Save to localStorage for quick access
+      // External developer handling auth - just use localStorage for now
       localStorage.setItem('abfi_captain_name', captainName.trim());
       localStorage.setItem('abfi_boat_name', boatName.trim());
-      localStorage.setItem('abfi_user_id', userId);
+      localStorage.setItem('abfi_user_id', userId || `local-${Date.now()}`);
       
       // Move to location permission step
       setStep(2);
       setLoading(false);
     } catch (error: any) {
-      console.error('Profile error (bypassing):', error);
-      // BYPASS: Skip profile save error and use localStorage
-      localStorage.setItem('abfi_captain_name', captainName.trim());
-      localStorage.setItem('abfi_boat_name', boatName.trim());
-      localStorage.setItem('abfi_user_id', userId || `local-${Date.now()}`);
-      
-      // Move to location permission step anyway
+      console.error('Storage error:', error);
+      // Still proceed even if localStorage fails
       setStep(2);
       setLoading(false);
     }
