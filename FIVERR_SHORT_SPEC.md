@@ -29,17 +29,19 @@ Build a single-page SaaS landing with Memberstack authentication that redirects 
 **Authentication Flow:**
 ```
 User clicks "Start Free Beta" →
-├─ If logged in → Redirect to app
-└─ If not → Show signup modal → Create account → Redirect to app
+├─ If logged in → Redirect to app with member ID
+└─ If not → Show signup modal → Create account → Redirect to app with member ID
 ```
 
-**Data Handoff:** 
-Before redirect, pass member data via localStorage:
+**Data Handoff via URL:** 
+After successful auth, redirect with member data as URL parameters:
 ```javascript
-localStorage.setItem('abfi_authenticated', 'true');
-localStorage.setItem('abfi_member_id', member.id);
-localStorage.setItem('abfi_member_email', member.email);
+// After successful signup/login:
+const redirectUrl = `https://always-bent.vercel.app/legendary?memberId=${member.id}&email=${member.email}&authenticated=true`;
+window.location.href = redirectUrl;
 ```
+
+**Note:** The app will read these URL params and store them locally on its own domain.
 
 ## Content
 
