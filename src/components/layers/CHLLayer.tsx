@@ -79,14 +79,14 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
       console.log('CHL layer added successfully with proper ordering');
       
       // Debug: Check if tiles are loading
-      map.on('data', (e) => {
+      map.on('data', (e: any) => {
         if (e.sourceId === 'chl-src' && e.isSourceLoaded) {
           console.log('CHL tiles loading...', e);
         }
       });
       
       // Debug: Check for tile errors
-      map.on('error', (e) => {
+      map.on('error', (e: any) => {
         if (e.sourceId === 'chl-src') {
           console.error('CHL tile error:', e.error);
         }
