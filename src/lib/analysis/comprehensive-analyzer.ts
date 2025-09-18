@@ -1,5 +1,6 @@
 import * as turf from '@turf/turf';
 import { getCachedMarineData, analyzeFishingConditions, formatTideStage, formatMoonPhase, getNextTide } from '@/lib/services/marineData';
+import { generateWaterAnalysis, extractAnalysisData } from './water-analysis-generator';
 
 interface ComprehensiveAnalysis {
   summary: string;
@@ -160,7 +161,19 @@ export async function generateComprehensiveAnalysis(
   }
   
   // GENERATE COMPREHENSIVE WRITTEN ANALYSIS
-  const summary = await generateAnalysisSummary(
+  // Use the new water analysis generator for consistent, informative output
+  const analysisData = extractAnalysisData(
+    analysis,
+    vesselData,
+    { moonPhase: marineData?.moon?.phaseText, tide: marineData?.tide },
+    [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
+  );
+  
+  // Generate the new robust analysis
+  const waterAnalysis = generateWaterAnalysis(analysisData);
+  
+  // For now, keep the old summary format but prepend the new analysis
+  const oldSummary = await generateAnalysisSummary(
     sstFactors,
     commercialTracks.length,
     recreationalTracks.length,
@@ -170,6 +183,9 @@ export async function generateComprehensiveAnalysis(
     marineData,
     marineAnalysis
   );
+  
+  // Combine both for a comprehensive view
+  const summary = waterAnalysis + '\n\n---\n\n' + oldSummary;
   
   // GENERATE FISHING RECOMMENDATION
   const recommendation = generateRecommendation(
