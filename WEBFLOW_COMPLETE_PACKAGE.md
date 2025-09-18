@@ -254,39 +254,25 @@ Tagline: Fish Smarter. Not Harder.
 --font-extrabold: 800;
 ```
 
-### **LOGO FILES READY TO USE**
+### **LOGO USAGE (Keep it Clean!)**
 
-**Available Logos (in /public/logos/):**
-1. **abfi-logo-primary.svg** - Main logo with cyan accent (120x40)
-2. **abfi-logo-white.svg** - White version for dark backgrounds (120x40)
-3. **abfi-icon.svg** - Square icon for favicon/mobile (32x32)
-4. **abfi-logo-full.svg** - Full company name version (320x60)
-5. **abfi-logo-dark.svg** - Badge with dark background (120x40)
+**You have professional logos ready - use them strategically:**
 
-**How to Upload to Webflow:**
-1. In Webflow Designer → Assets Panel (left sidebar)
-2. Click "Upload" → Select all SVG files
-3. Once uploaded, drag into navbar/footer/etc.
+**Primary Placements:**
+1. **Navbar:** Use the horizontal ABFI logo (image #7 or #8) - clean, not too large
+2. **Footer:** Can use full "Always Bent Fishing Intelligence" text (image #1) - subtle
+3. **Favicon:** Use the globe icon portion only
 
-**Recommended Usage:**
-- **Navbar:** Use `abfi-logo-primary.svg` (top left, 120px wide)
-- **Footer:** Use `abfi-logo-full.svg` (centered or left, 320px wide)
-- **Favicon:** Use `abfi-icon.svg` (Project Settings → SEO → Favicon)
-- **Loading screens:** Use `abfi-logo-white.svg` on dark background
-- **Email/Social:** Use `abfi-logo-dark.svg` (self-contained)
+**Logo Upload to Webflow:**
+1. Export the logos you want as PNG/SVG
+2. In Webflow Designer → Assets Panel 
+3. Upload 2-3 versions max (don't overdo it)
+4. Keep logos modest in size
 
-**Logo HTML for Webflow:**
-```html
-<!-- Navbar Logo -->
-<a href="/" class="navbar-brand">
-  <img src="abfi-logo-primary.svg" alt="ABFI" height="40">
-</a>
-
-<!-- Footer Logo -->
-<div class="footer-logo">
-  <img src="abfi-logo-full.svg" alt="Always Bent Fishing Intelligence" height="60">
-</div>
-```
+**Best Practice:**
+- ONE logo in navbar (left side, ~120px wide)
+- ONE in footer (can be text version)
+- That's it! Let the content shine, not logos everywhere
 
 ---
 
