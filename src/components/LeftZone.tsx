@@ -189,23 +189,21 @@ export default function LeftZone({
             <h2 className="text-sm font-bold text-cyan-300 tracking-wider uppercase">OCEAN INTELLIGENCE</h2>
           </div>
           
-          {/* Data Layers Section */}
-          <button
-            onClick={() => setShowLayers(!showLayers)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-cyan-500/10 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Layers size={14} className="text-cyan-400" />
-              <span className="text-sm font-medium text-cyan-300">Data Layers</span>
+          {/* Data Layers Section - MOVED TO UNIFIED OCEAN CONDITIONS */}
+          {/* All layer controls are now in the right panel for better UX */}
+          <div className="px-4 py-3">
+            <div className="text-xs text-gray-400 text-center">
+              <div className="mb-1">Layer controls moved to</div>
+              <div className="flex items-center justify-center gap-1">
+                <span>Ocean Conditions panel</span>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </div>
             </div>
-            {showLayers ? (
-              <ChevronUp size={14} className="text-cyan-400" />
-            ) : (
-              <ChevronDown size={14} className="text-cyan-400" />
-            )}
-          </button>
+          </div>
           
-          {showLayers && (
+          {false && showLayers && (
             <div className="px-4 pb-3 space-y-2">
               {/* SST Layer */}
               <div className="flex items-center gap-2">
