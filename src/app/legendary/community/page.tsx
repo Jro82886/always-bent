@@ -2,9 +2,9 @@
 
 import dynamic from 'next/dynamic';
 
-// Dynamically import CommunityMode to ensure complete isolation from map code
-const CommunityMode = dynamic(
-  () => import('@/components/community/CommunityMode'),
+// Dynamically import the fixed CommunityMode without any map dependencies
+const CommunityModeFixed = dynamic(
+  () => import('@/components/community/CommunityModeFixed'),
   { 
     ssr: false,
     loading: () => (
@@ -16,5 +16,5 @@ const CommunityMode = dynamic(
 );
 
 export default function CommunityPage() {
-  return <CommunityMode />;
+  return <CommunityModeFixed />;
 }

@@ -1,30 +1,116 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import AuthGuard from '@/components/AuthGuard';
 import BetaBanner from '@/components/BetaBanner';
 import FirstTimeSetup from '@/components/FirstTimeSetup';
 
-// Dynamically import modes
-const AnalysisMode = dynamic(() => import('./analysis/page'), { ssr: false });
-const TrackingMode = dynamic(() => import('./tracking/page'), { ssr: false });
-const CommunityMode = dynamic(() => import('./community/page'), { ssr: false });
-const TrendsMode = dynamic(() => import('./trends/page'), { ssr: false });
-const WelcomeMode = dynamic(() => import('./welcome/page'), { ssr: false });
+// Dynamically import modes with proper isolation
+const AnalysisMode = dynamic(
+  () => import('./analysis/page'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Loading Analysis...</div>
+      </div>
+    )
+  }
+);
+
+const TrackingMode = dynamic(
+  () => import('./tracking/page'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Loading Tracking...</div>
+      </div>
+    )
+  }
+);
+
+const CommunityMode = dynamic(
+  () => import('@/components/community/CommunityModeFixed').then(mod => ({
+    default: mod.default
+  })),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Loading Community...</div>
+      </div>
+    )
+  }
+);
+
+const TrendsMode = dynamic(
+  () => import('@/components/trends/TrendsModeFixed').then(mod => ({
+    default: mod.default
+  })),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Loading Trends...</div>
+      </div>
+    )
+  }
+);
+
+const WelcomeMode = dynamic(
+  () => import('./welcome/page'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Loading Welcome...</div>
+      </div>
+    )
+  }
+);
 
 function ABFICore() {
   const searchParams = useSearchParams();
-  const mode = searchParams.get('mode');
+  const router = useRouter();
+  const mode = searchParams.get('mode') || 'analysis';
+  const [currentMode, setCurrentMode] = useState(mode);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
-  // No mode = default to analysis (skip welcome for logged-in users)
-  if (!mode) {
-    return <AnalysisMode />;
+  // Handle mode changes with proper cleanup
+  useEffect(() => {
+    if (mode !== currentMode) {
+      setIsTransitioning(true);
+      
+      // Clean up any existing map instances
+      if (typeof window !== 'undefined') {
+        const mapContainer = document.querySelector('.mapboxgl-map');
+        if (mapContainer) {
+          mapContainer.remove();
+        }
+      }
+      
+      // Small delay to ensure cleanup
+      setTimeout(() => {
+        setCurrentMode(mode);
+        setIsTransitioning(false);
+      }, 100);
+    }
+  }, [mode, currentMode]);
+  
+  // Show transition screen during mode switch
+  if (isTransitioning) {
+    return (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Switching mode...</div>
+      </div>
+    );
   }
   
-  // Each branch accessed equally via ?mode=
-  switch(mode) {
+  // Render the appropriate mode
+  switch(currentMode) {
     case 'analysis':
       return <AnalysisMode />;
     case 'tracking':
@@ -36,7 +122,7 @@ function ABFICore() {
     case 'welcome':
       return <WelcomeMode />;
     default:
-      return <AnalysisMode />; // Unknown mode = analysis
+      return <AnalysisMode />;
   }
 }
 
@@ -46,8 +132,8 @@ export default function LegendaryPage() {
       <BetaBanner />
       <FirstTimeSetup />
       <Suspense fallback={
-        <div className="w-full h-screen bg-black flex items-center justify-center">
-          <div className="text-cyan-400">Loading...</div>
+        <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+          <div className="text-cyan-400 animate-pulse">Loading platform...</div>
         </div>
       }>
         <ABFICore />
