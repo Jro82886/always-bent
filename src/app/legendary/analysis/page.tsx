@@ -18,6 +18,7 @@ import InteractiveTutorial from '@/components/InteractiveTutorial';
 import NetworkStatusIndicator from '@/components/NetworkStatusIndicator';
 // Weather now integrated into UnifiedCommandCenter
 import OfflineManager from '@/components/OfflineManager';
+import SettingsPanel from '@/components/SettingsPanel';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
@@ -433,6 +434,9 @@ function AnalysisModeContent() {
           {!showingTutorial && (
             <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
           )}
+          
+          {/* Settings Panel - Bottom right corner */}
+          <SettingsPanel />
           
           {/* Network Status Indicator - Shows online/offline status */}
           <NetworkStatusIndicator />
