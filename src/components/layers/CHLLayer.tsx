@@ -15,6 +15,12 @@ export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerP
     if (!map) return;
 
     const addCHLLayer = () => {
+      // Wait for map to be ready (like SST does)
+      if (!map.loaded() || !map.getStyle()) {
+        setTimeout(addCHLLayer, 100);
+        return;
+      }
+
       // Remove existing layer if present
       if (map.getLayer('chl-lyr')) {
         map.removeLayer('chl-lyr');
@@ -94,12 +100,8 @@ export default function CHLLayer({ map, on, selectedDate = 'latest' }: CHLLayerP
       });
     };
 
-    // Wait for map to be loaded
-    if (map.loaded()) {
-      addCHLLayer();
-    } else {
-      map.once('load', addCHLLayer);
-    }
+    // Start the process
+    addCHLLayer();
 
     // Cleanup
     return () => {
