@@ -1,6 +1,6 @@
 import * as turf from '@turf/turf';
 import { getCachedMarineData, analyzeFishingConditions, formatTideStage, formatMoonPhase, getNextTide } from '@/lib/services/marineData';
-import { generateWaterAnalysis, extractAnalysisData } from './water-analysis-generator';
+import { generateSmartAnalysis, buildAnalysisContext, canGenerateAnalysis } from './smart-water-analysis';
 
 interface ComprehensiveAnalysis {
   summary: string;
@@ -161,31 +161,38 @@ export async function generateComprehensiveAnalysis(
   }
   
   // GENERATE COMPREHENSIVE WRITTEN ANALYSIS
-  // Use the new water analysis generator for consistent, informative output
-  const analysisData = extractAnalysisData(
+  // Build context for smart analysis
+  const activeLayers = {
+    sst: analysis.layerAnalysis?.sst?.active || false,
+    chl: analysis.layerAnalysis?.chl?.active || false,
+    vessels: vesselData.tracks && vesselData.tracks.length > 0
+  };
+  
+  const center = {
+    lat: (bounds[1] + bounds[3]) / 2,
+    lng: (bounds[0] + bounds[2]) / 2
+  };
+  
+  const analysisContext = buildAnalysisContext(
     analysis,
     vesselData,
-    { moonPhase: marineData?.moon?.phaseText, tide: marineData?.tide },
-    [[bounds[0], bounds[1]], [bounds[2], bounds[3]]]
+    {
+      inlet: null, // TODO: Get inlet weather
+      offshore: null, // TODO: Get offshore weather
+      moon: marineData?.moon?.phaseText,
+      tide: marineData?.tide ? formatTideStage(marineData.tide.stage, marineData.tide.rateCmPerHr) : undefined
+    },
+    activeLayers,
+    center
   );
   
-  // Generate the new robust analysis
-  const waterAnalysis = generateWaterAnalysis(analysisData);
+  // Validate we can generate analysis (at least one layer must be active)
+  if (!canGenerateAnalysis(analysisContext)) {
+    throw new Error('Please enable SST or CHL layer to generate analysis');
+  }
   
-  // For now, keep the old summary format but prepend the new analysis
-  const oldSummary = await generateAnalysisSummary(
-    sstFactors,
-    commercialTracks.length,
-    recreationalTracks.length,
-    vesselData.reports,
-    hotspot,
-    bounds,
-    marineData,
-    marineAnalysis
-  );
-  
-  // Combine both for a comprehensive view
-  const summary = waterAnalysis + '\n\n---\n\n' + oldSummary;
+  // Generate the smart, user-controlled analysis
+  const summary = generateSmartAnalysis(analysisContext);
   
   // GENERATE FISHING RECOMMENDATION
   const recommendation = generateRecommendation(
