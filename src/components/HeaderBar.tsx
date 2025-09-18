@@ -32,7 +32,7 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
   } = useAppState();
 
   const pathname = usePathname();
-  const showInletSelect = Boolean(pathname && (pathname.startsWith("/tracking") || pathname.startsWith("/v2/tracking")));
+  const showInletSelect = Boolean(pathname && (pathname.startsWith("/tracking") || pathname.startsWith("/v2/tracking") || pathname.startsWith("/legendary/tracking") || pathname === "/legendary"));
   const onRawImagery = Boolean(pathname && (pathname.startsWith("/imagery") || pathname.startsWith("/v2/imagery")));
   const onAnalysis   = Boolean(pathname && (pathname.startsWith("/analysis") || pathname.startsWith("/v2/analysis")));
   const showRawTime = onRawImagery;

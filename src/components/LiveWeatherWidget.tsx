@@ -41,31 +41,48 @@ export default function LiveWeatherWidget() {
       
       setLoading(true);
       try {
-        // For now, use mock data - replace with actual API call
-        const mockData: WeatherData = {
+        // Fetch real weather data from API
+        const response = await fetch(`/api/weather?lat=${inlet.center[1]}&lon=${inlet.center[0]}`);
+        
+        if (!response.ok) {
+          throw new Error('Weather API error');
+        }
+        
+        const data = await response.json();
+        
+        // Parse the API response into our format
+        const weatherData: WeatherData = {
           waves: {
-            height: 3.0,
-            period: 11,
-            direction: 36
+            height: data.waves?.height || 2.5,
+            period: data.waves?.period || 10,
+            direction: data.waves?.direction || 0
           },
           water: {
-            temp: 85
-          },
-          conditions: {
-            rating: 'EXCELLENT',
-            description: 'Light chop • Good water temp'
+            temp: data.water?.temperature || 75
           },
           wind: {
-            speed: 8,
-            direction: 45
+            speed: data.wind?.speed || 10,
+            direction: data.wind?.direction || 0
+          },
+          conditions: {
+            rating: determineRating(data),
+            description: generateDescription(data)
           },
           lastUpdate: new Date()
         };
         
-        setWeatherData(mockData);
+        setWeatherData(weatherData);
         setOnline(true);
       } catch (error) {
         console.error('Weather fetch error:', error);
+        // Use fallback data if API fails
+        setWeatherData({
+          waves: { height: 2.5, period: 10, direction: 0 },
+          water: { temp: 75 },
+          wind: { speed: 10, direction: 0 },
+          conditions: { rating: 'FAIR', description: 'Weather data unavailable' },
+          lastUpdate: new Date()
+        });
         setOnline(false);
       } finally {
         setLoading(false);
@@ -77,6 +94,34 @@ export default function LiveWeatherWidget() {
     const interval = setInterval(fetchWeather, 30 * 60 * 1000);
     return () => clearInterval(interval);
   }, [inlet]);
+  
+  // Helper functions for weather conditions
+  const determineRating = (data: any): 'POOR' | 'FAIR' | 'GOOD' | 'EXCELLENT' => {
+    const waveHeight = data.waves?.height || 0;
+    const windSpeed = data.wind?.speed || 0;
+    
+    if (waveHeight < 2 && windSpeed < 10) return 'EXCELLENT';
+    if (waveHeight < 4 && windSpeed < 15) return 'GOOD';
+    if (waveHeight < 6 && windSpeed < 20) return 'FAIR';
+    return 'POOR';
+  };
+  
+  const generateDescription = (data: any): string => {
+    const conditions = [];
+    const waveHeight = data.waves?.height || 0;
+    const windSpeed = data.wind?.speed || 0;
+    
+    if (waveHeight < 2) conditions.push('Calm seas');
+    else if (waveHeight < 4) conditions.push('Light chop');
+    else if (waveHeight < 6) conditions.push('Moderate seas');
+    else conditions.push('Rough conditions');
+    
+    if (data.water?.temperature > 80) conditions.push('Warm water');
+    else if (data.water?.temperature > 70) conditions.push('Good water temp');
+    else conditions.push('Cool water');
+    
+    return conditions.join(' • ');
+  };
 
   // Monitor online status
   useEffect(() => {
