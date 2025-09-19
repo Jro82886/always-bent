@@ -9,12 +9,11 @@ import SSTLayer from '@/components/layers/SSTLayer';
 import CHLLayer from '@/components/layers/CHLLayer';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
 import InletRegions from '@/components/InletRegions';
-import TutorialOverlay from '@/components/TutorialOverlay';
+import NewUserTutorial from '@/components/NewUserTutorial';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
 import ReportCatchButton from '@/components/ReportCatchButton';
-import InteractiveTutorial from '@/components/InteractiveTutorial';
 // Weather now integrated into UnifiedCommandCenter
 import OfflineManager from '@/components/OfflineManager';
 import SettingsPanel from '@/components/SettingsPanel';
@@ -32,7 +31,6 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 function AnalysisModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const tutorialTriggerRef = useRef<(() => void) | null>(null);
   
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
@@ -52,18 +50,18 @@ function AnalysisModeContent() {
   
   useEffect(() => {
     // Check tutorial status on client side
-    const seen = localStorage.getItem('abfi_tutorial_seen');
-    const skip = localStorage.getItem('abfi_skip_tutorial');
+    const completed = localStorage.getItem('abfi_tutorial_completed');
+    const neverShow = localStorage.getItem('abfi_tutorial_never_show');
     const shouldShow = localStorage.getItem('abfi_show_tutorial');
     
-    // Show tutorial if explicitly requested from setup OR if not seen yet
+    // Show tutorial if explicitly requested from setup OR if not completed yet
     if (shouldShow === 'true') {
       setShowingTutorial(true);
       localStorage.removeItem('abfi_show_tutorial'); // Clear the flag
     } else {
-      setShowingTutorial(!seen && skip !== 'true');
+      setShowingTutorial(!completed && neverShow !== 'true');
     }
-    setTutorialCompleted(seen === 'true');
+    setTutorialCompleted(completed === 'true');
   }, []);
   
   // Watch for inlet changes and fly to selected inlet with Gulf Stream view
@@ -395,7 +393,6 @@ function AnalysisModeContent() {
           <RightZone 
             map={map.current} 
             onModalStateChange={setIsAnalysisModalOpen}
-            onStartTutorial={() => tutorialTriggerRef.current?.()}
           />
           
           {/* Inlet Regions - Subtle colored boundaries for each inlet */}
@@ -410,18 +407,12 @@ function AnalysisModeContent() {
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
-          {/* Tutorial Overlay - First tutorial for new users - ONLY show after map loads */}
-          {!tutorialCompleted && map.current && (
-            <TutorialOverlay onComplete={() => {
+          {/* New User Tutorial - Shows once after welcome */}
+          {showingTutorial && !tutorialCompleted && map.current && (
+            <NewUserTutorial onComplete={() => {
               setShowingTutorial(false);
               setTutorialCompleted(true);
             }} />
-          )}
-          
-          
-          {/* Interactive Tutorial - Second tutorial, only after first is complete */}
-          {tutorialCompleted && (
-            <InteractiveTutorial triggerRef={tutorialTriggerRef} />
           )}
           
           {/* ABFI Button - Hidden during tutorial, only on Analysis tab */}

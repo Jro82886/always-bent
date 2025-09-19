@@ -13,7 +13,6 @@ interface UnifiedCommandCenterProps {
   isTracking?: boolean;
   onStartTracking?: () => void;
   onStopTracking?: () => void;
-  onStartTutorial?: () => void;
 }
 
 export default function UnifiedCommandCenter({ 
@@ -21,8 +20,7 @@ export default function UnifiedCommandCenter({
   currentMode,
   isTracking = false,
   onStartTracking,
-  onStopTracking,
-  onStartTutorial
+  onStopTracking
 }: UnifiedCommandCenterProps) {
   const { selectedInletId } = useAppState();
   const [weather, setWeather] = useState<InletWeather | null>(null);
@@ -221,19 +219,6 @@ export default function UnifiedCommandCenter({
           </div>
         </div>
 
-        {/* TUTORIAL BUTTON */}
-        <div className="px-4 pb-3">
-          <button
-            onClick={onStartTutorial}
-            className="w-full px-3 py-2 bg-slate-800/50 hover:bg-slate-800/70 
-                     text-slate-400 hover:text-slate-300 text-xs font-medium rounded-lg 
-                     border border-slate-700/50 transition-all duration-200
-                     flex items-center justify-center gap-2"
-          >
-            <GraduationCap size={12} />
-            <span>Learn Snip Tool</span>
-          </button>
-        </div>
 
         {/* LEGEND SECTION - Collapsible */}
         <div className="border-t border-slate-700/50">

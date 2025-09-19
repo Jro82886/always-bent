@@ -6,10 +6,9 @@ import UnifiedCommandCenter from '@/components/UnifiedCommandCenter';
 interface RightZoneProps {
   map: mapboxgl.Map | null;
   onModalStateChange?: (isOpen: boolean) => void;
-  onStartTutorial?: () => void;
 }
 
-export default function RightZone({ map, onModalStateChange, onStartTutorial }: RightZoneProps) {
+export default function RightZone({ map, onModalStateChange }: RightZoneProps) {
   const [snipControllerRef, setSnipControllerRef] = useState<any>(null);
   
   const handleModalStateChange = (isOpen: boolean) => {
@@ -42,7 +41,6 @@ export default function RightZone({ map, onModalStateChange, onStartTutorial }: 
       <UnifiedCommandCenter 
         onAnalyze={handleAnalyze}
         currentMode="analysis"
-        onStartTutorial={onStartTutorial}
       />
     </>
   );
