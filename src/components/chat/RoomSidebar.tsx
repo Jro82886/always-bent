@@ -2,6 +2,8 @@
 
 import { MOCK_ROOMS } from '@/mocks/chat';
 import { Users } from 'lucide-react';
+import { useAppState } from '@/store/appState';
+import { getInletById } from '@/lib/inlets';
 
 interface RoomSidebarProps {
   selectedRoom: string;
@@ -9,6 +11,20 @@ interface RoomSidebarProps {
 }
 
 export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarProps) {
+  const { selectedInletId } = useAppState();
+  const inlet = getInletById(selectedInletId);
+  
+  // Update room list with dynamic inlet name
+  const rooms = MOCK_ROOMS.map(room => {
+    if (room.id === 'inlet' && inlet) {
+      return {
+        ...room,
+        name: `${inlet.name} Chat`
+      };
+    }
+    return room;
+  });
+  
   return (
     <div className="w-64 bg-slate-900 border-r border-cyan-500/20 flex flex-col">
       <div className="p-4 border-b border-cyan-500/20">
@@ -16,7 +32,7 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
       </div>
       
       <div className="flex-1 overflow-y-auto">
-        {MOCK_ROOMS.map(room => (
+        {rooms.map(room => (
           <button
             key={room.id}
             onClick={() => onSelectRoom(room.id)}

@@ -51,7 +51,7 @@ export default function CommunityLayout({
 
       {/* Mobile Bottom Tabs */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-cyan-500/20 z-50">
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-2">
           <Link
             href="/community/chat"
             className={`py-3 text-center ${
@@ -67,12 +67,6 @@ export default function CommunityLayout({
             }`}
           >
             <div className="text-xs font-medium">Reports</div>
-          </Link>
-          <Link
-            href="/abfi"
-            className="py-3 text-center text-slate-400"
-          >
-            <div className="text-xs font-medium">ABFI</div>
           </Link>
         </div>
       </div>

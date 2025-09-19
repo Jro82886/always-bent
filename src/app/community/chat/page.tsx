@@ -7,8 +7,10 @@ import ContextPanel from '@/components/chat/ContextPanel';
 import WeatherHeader from '@/components/chat/WeatherHeader';
 import { MOCK_ROOMS } from '@/mocks/chat';
 import { ChevronLeft } from 'lucide-react';
+import { useAppState } from '@/store/appState';
 
 export default function ChatPage() {
+  const { selectedInletId } = useAppState();
   const [selectedRoom, setSelectedRoom] = useState('inlet');
   const [showMobileRoom, setShowMobileRoom] = useState(false);
   
@@ -36,7 +38,7 @@ export default function ChatPage() {
         </div>
         <ContextPanel 
           roomId={selectedRoom}
-          inletId="ny-montauk"
+          inletId={selectedInletId || 'ny-montauk'}
         />
       </div>
 
