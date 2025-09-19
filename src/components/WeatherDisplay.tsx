@@ -59,7 +59,7 @@ export default function WeatherDisplay({ className = '' }: { className?: string 
   const assessment = assessFishingConditions(conditions);
   
   // Color coding for conditions
-  const ratingColors = {
+  const ratingColors: Record<string, string> = {
     excellent: 'text-green-400',
     good: 'text-cyan-400',
     fair: 'text-yellow-400',
@@ -78,37 +78,31 @@ export default function WeatherDisplay({ className = '' }: { className?: string 
             Live Weather
           </h3>
         </div>
-        {conditions.is_recent && (
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <span className="text-[10px] text-white/50">LIVE</span>
-          </div>
-        )}
       </div>
 
       {/* Primary conditions */}
       <div className="grid grid-cols-2 gap-2 mb-2">
         {/* Wind */}
-        {conditions.wind_speed_kt !== undefined && (
+        {conditions.wind_speed !== null && (
           <div className="bg-white/5 rounded p-2">
             <div className="text-[10px] text-white/50 uppercase tracking-wide mb-1">Wind</div>
             <div className="text-sm font-medium text-white">
-              {formatWind(conditions.wind_speed_kt, conditions.wind_direction)}
+              {formatWind(conditions.wind_speed, conditions.wind_direction)}
             </div>
-            {conditions.wind_gust_kt && (
+            {conditions.wind_gust && (
               <div className="text-[10px] text-orange-400 mt-0.5">
-                Gusts {Math.round(conditions.wind_gust_kt)} kts
+                Gusts {Math.round(conditions.wind_gust)} kts
               </div>
             )}
           </div>
         )}
 
         {/* Waves */}
-        {conditions.wave_height_ft !== undefined && (
+        {conditions.wave_height !== null && (
           <div className="bg-white/5 rounded p-2">
             <div className="text-[10px] text-white/50 uppercase tracking-wide mb-1">Waves</div>
             <div className="text-sm font-medium text-white">
-              {formatWaves(conditions.wave_height_ft, conditions.wave_period_sec)}
+              {formatWaves(conditions.wave_height, conditions.dominant_wave_period)}
             </div>
             {conditions.wave_direction && (
               <div className="text-[10px] text-white/40 mt-0.5">
@@ -121,29 +115,24 @@ export default function WeatherDisplay({ className = '' }: { className?: string 
 
       {/* Secondary conditions */}
       <div className="flex items-center gap-3 text-[11px] text-white/70 mb-2">
-        {conditions.water_temp_f && (
+        {conditions.water_temp && (
           <div className="flex items-center gap-1">
             <span className="text-white/40">Water:</span>
             <span className="text-cyan-400 font-medium">
-              {Math.round(conditions.water_temp_f)}°F
+              {Math.round(conditions.water_temp)}°F
             </span>
           </div>
         )}
-        {conditions.air_temp_f && (
+        {conditions.air_temp && (
           <div className="flex items-center gap-1">
             <span className="text-white/40">Air:</span>
-            <span>{Math.round(conditions.air_temp_f)}°F</span>
+            <span>{Math.round(conditions.air_temp)}°F</span>
           </div>
         )}
-        {conditions.pressure_mb && (
+        {conditions.sea_pressure && (
           <div className="flex items-center gap-1">
             <span className="text-white/40">Baro:</span>
-            <span>{Math.round(conditions.pressure_mb)} mb</span>
-            {conditions.pressure_tendency && (
-              <span className="text-[9px] ml-0.5">
-                {conditions.pressure_tendency === 'rising' ? '↑' : '↓'}
-              </span>
-            )}
+            <span>{Math.round(conditions.sea_pressure)} mb</span>
           </div>
         )}
       </div>
@@ -158,20 +147,15 @@ export default function WeatherDisplay({ className = '' }: { className?: string 
             {assessment.rating.toUpperCase()}
           </span>
         </div>
-        {assessment.factors.length > 0 && (
-          <div className="mt-1 text-[10px] text-white/60">
-            {assessment.factors.join(' • ')}
-          </div>
-        )}
       </div>
 
       {/* Data source */}
       <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
         <span className="text-[9px] text-white/30">
-          {weather.buoy_station} • {weather.distance_nm > 0 ? `${Math.round(weather.distance_nm)} nm` : 'Nearby'}
+          {weather.station} • NOAA Buoy
         </span>
         <span className="text-[9px] text-white/30">
-          {new Date(conditions.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(conditions.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
     </div>

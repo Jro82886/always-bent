@@ -17,6 +17,7 @@
     "type-check:watch": "tsc --noEmit --watch",
     "type-check:quick": "node scripts/type-check-quick.js",
     "lint:inlet": "bash scripts/lint-inlet.sh",
+    "lint:contracts": "bash scripts/lint-contracts.sh",
     "prebuild": "node scripts/type-check-quick.js"
   },
   "dependencies": {

@@ -92,19 +92,19 @@ export default function UnifiedCommandCenter({
                   <div className="flex items-center gap-1">
                     <Thermometer size={12} className="text-orange-400" />
                     <span className="text-white font-medium">
-                      {weather.conditions.water_temp_f ? `${Math.round(weather.conditions.water_temp_f)}°` : '--'}
+                      {weather.conditions.water_temp ? `${Math.round(weather.conditions.water_temp)}°` : '--'}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Wind size={12} className="text-blue-400" />
                     <span className="text-white font-medium">
-                      {formatWind(weather.conditions.wind_speed_kt, weather.conditions.wind_direction).split(' ')[0]}
+                      {formatWind(weather.conditions.wind_speed, weather.conditions.wind_direction).split(' ')[0]}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Waves size={12} className="text-teal-400" />
                     <span className="text-white font-medium">
-                      {formatWaves(weather.conditions.wave_height_ft, weather.conditions.wave_period_sec).split(' ')[0]}
+                      {formatWaves(weather.conditions.wave_height, weather.conditions.dominant_wave_period).split(' ')[0]}
                     </span>
                   </div>
                 </div>
@@ -146,19 +146,19 @@ export default function UnifiedCommandCenter({
               <div className="text-center">
                 <div className="text-gray-500 text-[10px] uppercase">Water</div>
                 <div className="text-white font-bold text-sm">
-                  {weather.conditions.water_temp_f ? `${Math.round(weather.conditions.water_temp_f)}°F` : '--'}
+                  {weather.conditions.water_temp ? `${Math.round(weather.conditions.water_temp)}°F` : '--'}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-gray-500 text-[10px] uppercase">Wind</div>
                 <div className="text-white font-bold text-sm">
-                  {formatWind(weather.conditions.wind_speed_kt, weather.conditions.wind_direction)}
+                  {formatWind(weather.conditions.wind_speed, weather.conditions.wind_direction)}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-gray-500 text-[10px] uppercase">Waves</div>
                 <div className="text-white font-bold text-sm">
-                  {formatWaves(weather.conditions.wave_height_ft, weather.conditions.wave_period_sec)}
+                  {formatWaves(weather.conditions.wave_height, weather.conditions.dominant_wave_period)}
                 </div>
               </div>
             </div>
@@ -169,14 +169,14 @@ export default function UnifiedCommandCenter({
                 <Eye size={10} className="text-gray-500" />
                 <span className="text-gray-400">Visibility:</span>
                 <span className="text-white">
-                  {weather.conditions.visibility_nm ? `${weather.conditions.visibility_nm} nm` : '--'}
+                  {weather.conditions.visibility ? `${weather.conditions.visibility} nm` : '--'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Compass size={10} className="text-gray-500" />
                 <span className="text-gray-400">Pressure:</span>
                 <span className="text-white">
-                  {weather.conditions.pressure_mb ? `${weather.conditions.pressure_mb.toFixed(1)} mb` : '--'}
+                  {weather.conditions.sea_pressure ? `${weather.conditions.sea_pressure.toFixed(1)} mb` : '--'}
                 </span>
               </div>
             </div>

@@ -69,13 +69,13 @@ export default function WeatherPanel() {
                 <div className="flex items-center gap-1">
                   <span className="text-gray-400">Wind:</span>
                   <span className="text-white font-bold">
-                    {weather?.conditions ? formatWind(weather.conditions.wind_speed_kt, weather.conditions.wind_direction) : '--'}
+                    {weather?.conditions ? formatWind(weather.conditions.wind_speed, weather.conditions.wind_direction) : '--'}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-gray-400">Waves:</span>
                   <span className="text-white font-bold">
-                    {weather?.conditions ? formatWaves(weather.conditions.wave_height_ft, weather.conditions.wave_period_sec) : '--'}
+                    {weather?.conditions ? formatWaves(weather.conditions.wave_height, weather.conditions.dominant_wave_period) : '--'}
                   </span>
                 </div>
               </div>
@@ -120,25 +120,25 @@ export default function WeatherPanel() {
                   <div>
                     <span className="text-gray-500">Air Temp:</span>
                     <span className="text-white ml-1">
-                      {weather.conditions.air_temp_f ? `${Math.round(weather.conditions.air_temp_f)}°F` : '--'}
+                      {weather.conditions.air_temp ? `${Math.round(weather.conditions.air_temp)}°F` : '--'}
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-500">Pressure:</span>
                     <span className="text-white ml-1">
-                      {weather.conditions.pressure_mb ? `${weather.conditions.pressure_mb.toFixed(1)} mb` : '--'}
+                      {weather.conditions.sea_pressure ? `${weather.conditions.sea_pressure.toFixed(1)} mb` : '--'}
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-500">Visibility:</span>
                     <span className="text-white ml-1">
-                      {weather.conditions.visibility_nm ? `${weather.conditions.visibility_nm} nm` : '--'}
+                      {weather.conditions.visibility ? `${weather.conditions.visibility} nm` : '--'}
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-500">Wind Gust:</span>
                     <span className="text-white ml-1">
-                      {weather.conditions.wind_gust_kt ? `${Math.round(weather.conditions.wind_gust_kt)} kts` : '--'}
+                      {weather.conditions.wind_gust ? `${Math.round(weather.conditions.wind_gust)} kts` : '--'}
                     </span>
                   </div>
                 </div>

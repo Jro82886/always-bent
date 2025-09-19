@@ -226,3 +226,49 @@ function getCompassDirection(degrees: number): string {
   const index = Math.round(degrees / 22.5) % 16;
   return directions[index];
 }
+
+// Type alias for compatibility
+export type InletWeather = {
+  conditions: NOAABuoyData;
+  station: string;
+};
+
+// Export helper functions for formatting
+export function formatWind(speedKt: number | null, direction: number | null): string {
+  if (speedKt === null || speedKt === undefined) return '--';
+  const directionText = direction !== null ? getCompassDirection(direction) : '';
+  return `${Math.round(speedKt)}kt ${directionText}`.trim();
+}
+
+export function formatWaves(heightFt: number | null, periodSec: number | null): string {
+  if (heightFt === null || heightFt === undefined) return '--';
+  const periodText = periodSec !== null ? ` @ ${Math.round(periodSec)}s` : '';
+  return `${heightFt.toFixed(1)}ft${periodText}`;
+}
+
+export function assessFishingConditions(conditions: NOAABuoyData) {
+  const { wind_speed, wave_height } = conditions;
+  
+  let rating: 'excellent' | 'good' | 'fair' | 'poor';
+  let description: string;
+  
+  // Handle null values
+  const windSpeed = wind_speed || 0;
+  const waveHeight = wave_height || 0;
+  
+  if (windSpeed <= 10 && waveHeight <= 3) {
+    rating = 'excellent';
+    description = 'Perfect conditions';
+  } else if (windSpeed <= 15 && waveHeight <= 5) {
+    rating = 'good';
+    description = 'Good fishing weather';
+  } else if (windSpeed <= 20 && waveHeight <= 7) {
+    rating = 'fair';
+    description = 'Fishable conditions';
+  } else {
+    rating = 'poor';
+    description = 'Challenging conditions';
+  }
+  
+  return { rating, description };
+}
