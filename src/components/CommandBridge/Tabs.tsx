@@ -16,26 +16,51 @@ export default function Tabs({ activeMode }: TabsProps) {
 
   return (
     <div className="flex items-center h-full">
-      {tabs.map((tab) => (
-        <Link
-          key={tab.id}
-          href={tab.href}
-          className={`
-            px-6 h-full flex items-center relative
-            text-sm font-semibold transition-all
-            hover:bg-cyan-500/5
-            ${activeMode === tab.id 
-              ? 'text-cyan-300' 
-              : 'text-gray-400 hover:text-gray-300'
-            }
-          `}
-        >
-          {tab.label}
-          {activeMode === tab.id && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.6)]" />
-          )}
-        </Link>
-      ))}
+      {tabs.map((tab) => {
+        const active = activeMode === tab.id;
+        
+        return (
+          <Link
+            key={tab.id}
+            href={tab.href}
+            className={[
+              "group relative px-6 h-full flex items-center",
+              "text-sm font-semibold",
+              "transition-colors duration-150",
+              "hover:bg-cyan-500/5",
+              active
+                ? "text-cyan-300"
+                : "text-gray-400 hover:text-gray-300 focus:text-gray-300",
+            ].join(" ")}
+          >
+            {/* Larger tap target on mobile without moving layout */}
+            <span className="relative z-[1]">{tab.label}</span>
+
+            {/* Animated underline: always mounted; we animate width + opacity */}
+            <span
+              aria-hidden
+              className={[
+                "pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-0",
+                "h-[2px] rounded-full",
+                // gradient + glow for tapered ends
+                "bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent",
+                "shadow-[0_0_4px_rgba(34,211,238,0.3)]",
+                // animation: width + opacity with very subtle timing
+                "transition-[width,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+                active ? "w-10 opacity-90" : "w-0 opacity-0",
+              ].join(" ")}
+            />
+
+            {/* Optional: a super-subtle hover shimmer for inactive tabs */}
+            {!active && (
+              <span
+                aria-hidden
+                className="absolute inset-x-6 bottom-0 h-px opacity-0 group-hover:opacity-30 transition-opacity duration-150 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              />
+            )}
+          </Link>
+        );
+      })}
     </div>
   );
 }
