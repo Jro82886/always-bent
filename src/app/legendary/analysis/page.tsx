@@ -1,3 +1,5 @@
+'use client';
+
 // DO NOT touch window/mapbox here
 import dynamic from 'next/dynamic';
 
