@@ -1,0 +1,32 @@
+# EXACT Environment Variable for GREEN Chlorophyll Display
+
+## Copy this EXACTLY into Vercel:
+
+**Variable Name:** 
+```
+CMEMS_CHL_WMTS_TEMPLATE
+```
+
+**Value (copy this entire line):**
+```
+https://wmts.marine.copernicus.eu/teroWmts/OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL/{TIME}/{z}/{x}/{y}.png?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&STYLE=cmap:jet&FORMAT=image/png&TILEMATRIXSET=EPSG:3857
+```
+
+## Steps:
+1. Go to: https://vercel.com/jro82886s-projects/always-bent/settings/environment-variables
+2. Find `CMEMS_CHL_WMTS_TEMPLATE`
+3. Click the three dots → Edit
+4. DELETE everything in the value field
+5. PASTE the value above (the whole long URL)
+6. Click Save
+7. Go to Deployments tab → Redeploy
+
+## What you'll see:
+- 🔵 BLUE = Open ocean (low chlorophyll)
+- 🟢 GREEN = Productive waters (fish are here!)
+- 🟡 YELLOW = Plankton blooms (lots of bait!)
+
+This uses `cmap:jet` which is the standard oceanography colormap - you'll definitely see green!
+
+Trust the process - this will work! 💚🌊
+

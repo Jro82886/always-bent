@@ -29,3 +29,4 @@ CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&
 - This uses the GLOBAL dataset (GLO) instead of Atlantic (ATL)
 - 4km resolution but covers more area reliably
 - The jet colormap is the standard for ocean chlorophyll visualization
+

@@ -89,3 +89,4 @@ window.syncCHLButton = () => {
 
 console.log('\n✅ Button check complete!');
 console.log('Use syncCHLButton() to manually sync button state');
+

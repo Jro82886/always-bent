@@ -225,3 +225,4 @@ console.log('✅ Fix applied! Use toggleCHL() to toggle');`);
     window.chlDiagnostics = diagnostics;
     console.log('\nDiagnostics saved to: window.chlDiagnostics');
   });
+

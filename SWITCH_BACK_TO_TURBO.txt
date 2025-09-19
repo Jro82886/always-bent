@@ -1,0 +1,38 @@
+# Switch CHL Back to Turbo (Blue-Green-Yellow)
+
+## Current Issue:
+- You have viridis (purple-green-yellow) but want turbo (blue-green-yellow)
+- Turbo was working before and shows chlorophyll better!
+
+## Quick Fix in Vercel:
+
+**Find:** `CMEMS_CHL_WMTS_TEMPLATE`
+
+**Change:** Look for `cmap:viridis` in the URL
+
+**Replace with:** `cmap:turbo`
+
+## The corrected URL should have:
+```
+STYLE=cmap:turbo
+```
+
+## Color Comparison:
+- **Viridis**: Purple → Green → Yellow (less ocean-like)
+- **Turbo**: Blue → Cyan → Green → Yellow (perfect for ocean!)
+
+## Why Turbo is Better for Chlorophyll:
+- Blue = Clear ocean water (low chlorophyll)
+- Cyan/Light Green = Transitional waters
+- Green = Productive waters (medium chlorophyll)
+- Yellow = Plankton blooms (high chlorophyll)
+
+This matches what fishermen see - "green water" means bait!
+
+## After changing to turbo:
+1. Save in Vercel
+2. Redeploy
+3. The CHL button should show proper ocean colors again!
+
+You were right to want more green - turbo gives you that natural blue-to-green-to-yellow progression that makes sense for ocean data! 🌊
+

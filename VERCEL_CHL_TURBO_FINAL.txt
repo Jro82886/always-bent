@@ -14,3 +14,4 @@ After adding to Vercel:
 1. Save and redeploy
 2. Run fix-chl-display-now.js in browser console
 3. CHL should display with blue palette
+

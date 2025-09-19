@@ -74,3 +74,4 @@ map.flyTo({
 console.log('\n✅ CHL layer should now be visible!');
 console.log('If you see green/yellow colors, the chlorophyll is working!');
 console.log('If not, check the Network tab for failed tile requests.');
+

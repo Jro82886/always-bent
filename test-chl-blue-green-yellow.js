@@ -104,3 +104,4 @@ console.log('\n🔧 Debug commands:');
 console.log('- Check visibility: map.getLayoutProperty("chl-lyr", "visibility")');
 console.log('- Check opacity: map.getPaintProperty("chl-lyr", "raster-opacity")');
 console.log('- Force refresh: map.getSource("chl-src").setTiles(["/api/tiles/chl/{z}/{x}/{y}.png?time=latest&t=" + Date.now()])');
+

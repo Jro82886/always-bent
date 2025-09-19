@@ -1,0 +1,28 @@
+# FINAL CHL Format - Matching Working SST
+
+## Use this EXACT format (matching the working SST):
+
+**Variable Name:** `CMEMS_CHL_WMTS_TEMPLATE`
+
+**Value:**
+```
+https://wmts.marine.copernicus.eu/teroWmts/OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL/{TIME}/{z}/{x}/{y}.png
+```
+
+## This matches the SST format exactly:
+- Base URL: `https://wmts.marine.copernicus.eu/teroWmts/`
+- Layer path
+- `/{TIME}/{z}/{x}/{y}.png`
+- NO query parameters needed!
+
+## To get the JET colormap (blue-green-yellow):
+The API route (line 80-81) will add the style parameter automatically!
+It replaces 'cmap:turbo' with 'cmap:jet' when needed.
+
+## Steps:
+1. Copy the value above
+2. Update CMEMS_CHL_WMTS_TEMPLATE in Vercel
+3. Save and redeploy
+
+This is the EXACT same format as your working SST - it will work!
+

@@ -66,3 +66,4 @@ fetch('/api/tiles/chl/5/9/12?time=latest&style=jet')
       console.log('✅ Tile loaded successfully, size:', blob.size, 'bytes');
     }
   });
+

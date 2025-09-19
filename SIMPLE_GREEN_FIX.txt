@@ -1,0 +1,23 @@
+# SIMPLE FIX - Just Change to a GREEN Colormap!
+
+## In Vercel, change CMEMS_CHL_WMTS_TEMPLATE:
+
+Find: `STYLE=cmap:turbo` or `STYLE=cmap:viridis`
+
+Replace with ONE of these GREEN options:
+
+1. **`STYLE=cmap:jet`** - Classic blue→green→yellow (BEST for chlorophyll!)
+2. **`STYLE=cmap:rainbow`** - Blue→green→yellow→red
+3. **`STYLE=cmap:cool`** - Blue→cyan→green
+
+## That's it! Just change that one word in the URL.
+
+## Why jet is perfect:
+- BLUE = Low chlorophyll (open ocean)
+- GREEN = Medium chlorophyll (where fish are!)
+- YELLOW = High chlorophyll (plankton blooms)
+
+No more red/bright blue confusion - just natural ocean colors!
+
+Change it, redeploy, done! 🌊💚
+

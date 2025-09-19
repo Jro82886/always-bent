@@ -1,0 +1,27 @@
+# FIXED CHL Environment Variable
+
+## The Problem:
+The URL is getting cut off - it's trying to fetch "/teroWmts/..." instead of "https://wmts.marine.copernicus.eu/teroWmts/..."
+
+## CORRECT Format for Vercel:
+
+**Variable Name:** `CMEMS_CHL_WMTS_TEMPLATE`
+
+**Value (use WMTS parameters format):**
+```
+https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:jet&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+```
+
+## What's Different:
+- Uses TILEMATRIX={z} TILEROW={y} TILECOL={x} (WMTS standard)
+- Parameters come AFTER the base URL
+- TIME={TIME} at the end
+
+## Steps:
+1. Go to Vercel environment variables
+2. Edit CMEMS_CHL_WMTS_TEMPLATE
+3. Replace with the value above
+4. Save and redeploy
+
+This format matches how the SST endpoint works!
+

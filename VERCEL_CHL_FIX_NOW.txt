@@ -1,0 +1,36 @@
+# URGENT FIX: Update CHL Environment Variable in Vercel
+
+## The Problem:
+The current CMEMS_CHL_WMTS_TEMPLATE has a URL parsing error.
+
+## The Fix:
+Update this environment variable in Vercel:
+
+**Variable Name:** `CMEMS_CHL_WMTS_TEMPLATE`
+
+**CORRECT Value (copy this exactly):**
+```
+https://wmts.marine.copernicus.eu/teroWmts/OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL/{TIME}/{z}/{x}/{y}.png?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&STYLE=cmap:turbo&FORMAT=image/png&TILEMATRIXSET=EPSG:3857
+```
+
+## What Changed:
+- Moved the layer path BEFORE the parameters
+- Put {TIME}/{z}/{x}/{y} in the correct position
+- Added turbo colormap for blue-green-yellow
+- Fixed the URL structure to match what Copernicus expects
+
+## Steps:
+1. Go to: https://vercel.com/jro82886s-projects/always-bent/settings/environment-variables
+2. Find `CMEMS_CHL_WMTS_TEMPLATE`
+3. Click the "..." menu → Edit
+4. Replace with the value above (copy exactly)
+5. Click Save
+6. Redeploy the application
+
+## This will give you:
+- 🔵 Blue = Low chlorophyll
+- 🟢 Green = Medium chlorophyll  
+- 🟡 Yellow = High chlorophyll
+
+The URL parsing error was because the query parameters were in the wrong place!
+

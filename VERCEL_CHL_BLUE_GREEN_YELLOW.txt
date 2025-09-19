@@ -28,3 +28,4 @@ https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=
 - Proper WMTS format that Copernicus expects
 
 The turbo colormap is perfect for chlorophyll - it shows the natural progression from nutrient-poor blue waters to nutrient-rich green/yellow waters where the fish are!
+

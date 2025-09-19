@@ -13,7 +13,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const base = process.env.CMEMS_CHL_WMTS_TEMPLATE;
   
   // Debug logging
-  
+  console.log('[CHL ENV CHECK]', {
+    envPresent: !!process.env.CMEMS_CHL_WMTS_TEMPLATE,
+    envLength: process.env.CMEMS_CHL_WMTS_TEMPLATE?.length || 0,
+    envStarts: process.env.CMEMS_CHL_WMTS_TEMPLATE?.substring(0, 50) || 'NOT SET'
+  });
 
   if (!base) {
     
