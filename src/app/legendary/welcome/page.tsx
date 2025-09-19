@@ -150,8 +150,8 @@ export default function LegendaryWelcomePage() {
             {/* Header */}
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
-                <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl backdrop-blur-sm border border-cyan-500/30">
-                  <Image src="/brand/abfi-logo.svg" alt="ABFI" width={56} height={56} className="drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]" />
+                <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl backdrop-blur-sm border border-cyan-500/30">
+                  <Image src="/brand/abfi-logo.svg" alt="ABFI" width={80} height={80} className="drop-shadow-[0_0_20px_rgba(6,182,212,0.8)]" />
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
