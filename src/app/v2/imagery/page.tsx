@@ -4,8 +4,6 @@ import { useMemo } from 'react';
 import { useUI } from '@/state/ui';
 
 const MapStage     = dynamic(()=>import('@/components/MapStage'), { ssr:false });
-const SnipOverlay  = dynamic(()=>import('@/components/SnipOverlay'), { ssr:false });
-const AnalysisCard = dynamic(()=>import('@/components/SnipAnalysisCard'), { ssr:false });
 
 export default function ImageryPage(){
   const { snipOn, setSnipOn } = useUI();
@@ -22,8 +20,6 @@ export default function ImageryPage(){
           {label}
         </button>
       </div>
-      <SnipOverlay />
-      <AnalysisCard />
     </div>
   );
 }
