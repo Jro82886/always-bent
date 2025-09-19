@@ -30,13 +30,13 @@ export default function MyReportsList({ onSelectReport }: MyReportsListProps) {
     <>
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 md:p-6">
-          <h2 className="text-sm uppercase tracking-widest text-slate-400 mb-4">My Reports</h2>
+          <h2 className="text-sm uppercase tracking-widest bg-gradient-to-r from-emerald-400/80 to-teal-400/80 bg-clip-text text-transparent font-semibold mb-4">My Reports</h2>
           
           {/* Snips Section */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-cyan-400" />
+                <MapPin className="w-4 h-4 text-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.5)]" />
                 <h3 className="text-sm font-medium text-white">Snips</h3>
                 <span className="text-xs text-slate-500">({snipReports.length})</span>
               </div>
@@ -59,7 +59,7 @@ export default function MyReportsList({ onSelectReport }: MyReportsListProps) {
                   <button
                     key={report.id}
                     onClick={() => onSelectReport(report)}
-                    className="w-full rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-sm shadow-[0_6px_20px_rgba(0,0,0,0.35)] p-4 hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)] hover:border-cyan-500/30 transition-all text-left"
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/60 backdrop-blur-md shadow-lg p-4 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-cyan-500/30 transition-all text-left"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <span className="text-xs font-medium text-cyan-400">Snip Analysis</span>
@@ -99,7 +99,7 @@ export default function MyReportsList({ onSelectReport }: MyReportsListProps) {
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Fish className="w-4 h-4 text-green-400" />
+                <Fish className="w-4 h-4 text-green-400 drop-shadow-[0_0_6px_rgba(74,222,128,0.5)]" />
                 <h3 className="text-sm font-medium text-white">ABFI Reports</h3>
                 <span className="text-xs text-slate-500">({abfiReports.length})</span>
               </div>
@@ -122,7 +122,7 @@ export default function MyReportsList({ onSelectReport }: MyReportsListProps) {
                   <button
                     key={report.id}
                     onClick={() => onSelectReport(report)}
-                    className="w-full rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-sm shadow-[0_6px_20px_rgba(0,0,0,0.35)] p-4 hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)] hover:border-cyan-500/30 transition-all text-left"
+                    className="w-full rounded-xl border border-white/10 bg-slate-900/60 backdrop-blur-md shadow-lg p-4 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-cyan-500/30 transition-all text-left"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">

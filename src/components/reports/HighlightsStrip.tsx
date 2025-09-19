@@ -16,8 +16,8 @@ export default function HighlightsStrip({ onSelectHighlight }: HighlightsStripPr
     <div className="p-4 md:p-6">
       {/* Section Header */}
       <div className="flex items-center gap-2 mb-4">
-        <Flame className="w-4 h-4 text-orange-400" />
-        <h2 className="text-sm uppercase tracking-widest text-slate-400">ABFI Highlights</h2>
+        <Flame className="w-4 h-4 text-orange-400 drop-shadow-[0_0_6px_rgba(251,146,60,0.5)]" />
+        <h2 className="text-sm uppercase tracking-widest bg-gradient-to-r from-orange-400/80 to-amber-400/80 bg-clip-text text-transparent font-semibold">ABFI Highlights</h2>
       </div>
       
       {/* Highlight Cards */}
@@ -26,7 +26,7 @@ export default function HighlightsStrip({ onSelectHighlight }: HighlightsStripPr
           <button
             key={highlight.id}
             onClick={() => onSelectHighlight(highlight)}
-            className="group rounded-xl border border-white/10 bg-slate-900/50 backdrop-blur-sm shadow-[0_6px_20px_rgba(0,0,0,0.35)] p-4 hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)] hover:border-cyan-500/30 transition-all text-left"
+            className="group rounded-xl border border-white/10 bg-slate-900/60 backdrop-blur-md shadow-lg p-4 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:border-cyan-500/30 transition-all text-left"
           >
             {/* Title and Time */}
             <div className="flex items-start justify-between mb-3">

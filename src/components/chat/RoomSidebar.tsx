@@ -26,9 +26,9 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
   });
   
   return (
-    <div className="w-64 bg-slate-900 border-r border-cyan-500/20 flex flex-col">
+    <div className="w-64 bg-slate-900/60 backdrop-blur-md border-r border-cyan-500/20 flex flex-col shadow-xl">
       <div className="p-4 border-b border-cyan-500/20">
-        <h2 className="text-lg font-semibold text-white">Channels</h2>
+        <h2 className="text-lg font-semibold text-white bg-gradient-to-r from-cyan-400/80 to-teal-400/80 bg-clip-text text-transparent">Channels</h2>
       </div>
       
       <div className="flex-1 overflow-y-auto">
