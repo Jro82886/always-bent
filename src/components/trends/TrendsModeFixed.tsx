@@ -147,8 +147,8 @@ export default function TrendsMode() {
       {/* Command Bridge Header */}
       <HeaderBar activeMode="trends" />
       
-      {/* Main content area with more breathing room */}
-      <div className="pt-28 h-full overflow-y-auto px-4 md:px-6 pb-8">
+      {/* Main content area with plenty of breathing room */}
+      <div className="pt-32 h-full overflow-y-auto px-4 md:px-6 pb-8">
         {/* Compact Ocean Intelligence Overview */}
         <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-sm px-4 py-1.5 border border-white/5 mb-6">
           <div className="flex items-center gap-3 justify-between">
