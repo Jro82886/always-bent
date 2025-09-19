@@ -4,6 +4,9 @@ import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 
+// Force this page to be rendered dynamically to avoid useSearchParams SSR issues
+export const dynamic = 'force-dynamic';
+
 // Dynamically import all components that might use searchParams
 const CommunityHeader = dynamic(() => import('@/components/community/CommunityHeader'), {
   ssr: false,
