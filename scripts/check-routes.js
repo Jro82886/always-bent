@@ -1,17 +1,17 @@
-import { readFileSync, readdirSync, statSync } from 'fs';
-import { join } from 'path';
+const fs = require('fs');
+const path = require('path');
 
-const ROOT = join(process.cwd(), 'src');
-const offenders: string[] = [];
+const ROOT = path.join(process.cwd(), 'src');
+const offenders = [];
 
-function walk(p: string) {
-  for (const f of readdirSync(p)) {
-    const fp = join(p, f);
-    const st = statSync(fp);
+function walk(p) {
+  for (const f of fs.readdirSync(p)) {
+    const fp = path.join(p, f);
+    const st = fs.statSync(fp);
     if (st.isDirectory()) {
       walk(fp);
     } else if (/\.(ts|tsx|js|jsx)$/.test(f)) {
-      const s = readFileSync(fp, 'utf8');
+      const s = fs.readFileSync(fp, 'utf8');
       
       // Check for hardcoded routes without legendary
       const bad =

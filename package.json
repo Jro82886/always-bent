@@ -18,7 +18,7 @@
     "type-check:quick": "node scripts/type-check-quick.js",
     "lint:inlet": "bash scripts/lint-inlet.sh",
     "lint:contracts": "bash scripts/lint-contracts.sh",
-    "check:routes": "ts-node --transpile-only scripts/check-routes.ts",
+    "check:routes": "node scripts/check-routes.js",
     "prebuild": "node scripts/type-check-quick.js && npm run check:routes"
   },
   "dependencies": {
