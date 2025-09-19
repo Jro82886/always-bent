@@ -212,8 +212,11 @@ export async function saveAnalysisAsReport(analysis: AnalysisData): Promise<void
       
     }
   } catch (e) {
-    
+    console.error('Error saving to Supabase:', e);
   }
+  
+  // Dispatch event for UI refresh
+  window.dispatchEvent(new Event('report-posted'));
 }
 
 import NotificationManager from '@/lib/notifications/NotificationManager';
