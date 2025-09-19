@@ -80,7 +80,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
             },
             properties: {
               type: track.type,
-              vessel_name: track.vessel_name || 'Unknown'
+              vessel_name: track.vesselName || 'Unknown'
             }
           }
         });
