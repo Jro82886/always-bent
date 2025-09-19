@@ -7,38 +7,9 @@ export const dynamic = 'force-dynamic';
 const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 30 * 1000; // 30 seconds
 
-interface StormioResponse {
-  tides: {
-    events: Array<{
-      type: 'high' | 'low';
-      time: string;
-      height: number;
-    }>;
-    curve: Array<{ time: string; height: number }>;
-    next: {
-      type: 'high' | 'low';
-      time: string;
-      height: number;
-    };
-  };
-  moon: {
-    phase: string;
-    illumPct: number;
-  };
-  sun: {
-    sunriseIso: string;
-    sunsetIso: string;
-  };
-  weather: {
-    sstC: number;
-    windKt: number;
-    windDir: string;
-    swellFt: number;
-    swellPeriodS: number;
-    pressureHpa: number;
-    pressureTrend: 'rising' | 'falling' | 'stable';
-  };
-  lastIso: string;
+import type { StormioSnapshot } from '@/types/stormio';
+
+interface StormioResponse extends StormioSnapshot {
   sources: Array<{
     id: string;
     status: 'ok' | 'stale' | 'error';
@@ -144,15 +115,18 @@ export async function GET(req: NextRequest) {
       return directions[index];
     };
     
-    // Process tide data
+    // Process tide data to normalized format
     const tides = tideData?.data ? {
+      next: tideData.data[0] ? {
+        type: tideData.data[0].type as 'high' | 'low',
+        timeIso: tideData.data[0].time,
+        heightM: tideData.data[0].height
+      } : { type: 'high' as const, timeIso: new Date().toISOString(), heightM: 1.5 },
       events: tideData.data.slice(0, 4).map((tide: any) => ({
-        type: tide.type,
-        time: tide.time,
-        height: tide.height
-      })),
-      curve: [], // Stormglass doesn't provide curve data
-      next: tideData.data[0] || { type: 'high', time: new Date().toISOString(), height: 1.5 }
+        type: tide.type as 'high' | 'low',
+        timeIso: tide.time,
+        heightM: tide.height
+      }))
     } : generateMockTides();
     
     // Process astronomy data
@@ -167,11 +141,8 @@ export async function GET(req: NextRequest) {
       sunsetIso: astroData.sunset
     } : calculateSunTimes(parseFloat(lat), parseFloat(lng));
     
-    // Normalize to our format
+    // Normalize to exact StormioSnapshot format
     const normalized: StormioResponse = {
-      tides,
-      moon: moonPhase,
-      sun,
       weather: {
         sstC: waterTemp,
         windKt: windSpeed * 1.94384, // m/s to knots
@@ -179,8 +150,11 @@ export async function GET(req: NextRequest) {
         swellFt: waveHeight * 3.28084, // meters to feet
         swellPeriodS: wavePeriod,
         pressureHpa: pressure,
-        pressureTrend: 'stable' // Would need historical data to determine trend
+        pressureTrend: 'steady' // Would need historical data
       },
+      moon: moonPhase,
+      tides,
+      sun,
       lastIso: new Date().toISOString(),
       sources: [{
         id: 'stormglass',
@@ -224,7 +198,7 @@ function generateMockStormioData(lat: number, lng: number): StormioResponse {
       swellFt: 2 + Math.random() * 4,
       swellPeriodS: 6 + Math.random() * 6,
       pressureHpa: 1008 + Math.random() * 10,
-      pressureTrend: ['rising', 'falling', 'stable'][Math.floor(Math.random() * 3)] as any
+      pressureTrend: ['rising', 'falling', 'steady'][Math.floor(Math.random() * 3)] as 'rising' | 'falling' | 'steady'
     },
     lastIso: now.toISOString(),
     sources: [{
@@ -238,7 +212,6 @@ function generateMockStormioData(lat: number, lng: number): StormioResponse {
 function generateMockTides() {
   const now = new Date();
   const events = [];
-  const curve = [];
   
   // Generate 4 tide events
   for (let i = 0; i < 4; i++) {
@@ -246,25 +219,14 @@ function generateMockTides() {
     time.setHours(6 + i * 6, Math.floor(Math.random() * 60));
     events.push({
       type: (i % 2 === 0 ? 'high' : 'low') as 'high' | 'low',
-      time: time.toISOString(),
-      height: i % 2 === 0 ? 3.5 + Math.random() * 2 : 0.5 + Math.random()
-    });
-  }
-  
-  // Generate tide curve (24 points)
-  for (let i = 0; i < 24; i++) {
-    const time = new Date(now);
-    time.setHours(i);
-    curve.push({
-      time: time.toISOString(),
-      height: 2 + Math.sin(i * Math.PI / 6) * 1.5
+      timeIso: time.toISOString(),
+      heightM: i % 2 === 0 ? 1.0 + Math.random() * 0.5 : 0.2 + Math.random() * 0.3
     });
   }
   
   return {
-    events,
-    curve,
-    next: events[0]
+    next: events[0],
+    events
   };
 }
 
