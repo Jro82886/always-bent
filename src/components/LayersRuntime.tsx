@@ -94,7 +94,7 @@ export default function LayersRuntime() {
   useEffect(() => {
     if (!map) return;
     // Polygons only on analysis page per request
-    const onAnalysis = Boolean(pathname && (pathname.startsWith('/analysis') || pathname.startsWith('/v2/analysis')));
+    const onAnalysis = Boolean(pathname && pathname.startsWith('/legendary/analysis'));
     ensureOverviewAreas(onAnalysis && selectedInletId === 'overview');
     // If nothing is active, hide all rasters
     if (!active) {
@@ -177,7 +177,7 @@ export default function LayersRuntime() {
 
   return (
     <>
-      {showLegend && pathname && (pathname.startsWith('/analysis') || pathname.startsWith('/v2/analysis')) && (
+      {showLegend && pathname && pathname.startsWith('/legendary/analysis') && (
         <div
           style={{
             position: 'fixed',
@@ -211,10 +211,10 @@ export default function LayersRuntime() {
           ))}
         </div>
       )}
-      {selectedInletId === 'overview' && pathname && (pathname.startsWith('/analysis') || pathname.startsWith('/v2/analysis')) && <OverviewPanel />}
+      {selectedInletId === 'overview' && pathname && pathname.startsWith('/legendary/analysis') && <OverviewPanel />}
       
       {/* Demo Data Badge - Shows when using demo ocean features */}
-      {usingDemoData && selectedInletId === 'overview' && pathname && (pathname.startsWith('/analysis') || pathname.startsWith('/v2/analysis') || pathname.startsWith('/legendary/analysis')) && (
+      {usingDemoData && selectedInletId === 'overview' && pathname && pathname.startsWith('/legendary/analysis') && (
         <div className="fixed top-32 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
           <div className="bg-orange-500/10 backdrop-blur-xl border border-orange-400/30 rounded-lg px-4 py-2 shadow-2xl">
             <div className="flex items-center gap-2">

@@ -33,7 +33,7 @@ const TrackingMode = dynamic(
 );
 
 const CommunityMode = dynamic(
-  () => import('./community/page'),
+  () => import('./community/CommunityPage'),
   { 
     ssr: false,
     loading: () => (

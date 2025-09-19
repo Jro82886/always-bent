@@ -32,9 +32,9 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
   } = useAppState();
 
   const pathname = usePathname();
-  const showInletSelect = Boolean(pathname && (pathname.startsWith("/tracking") || pathname.startsWith("/v2/tracking") || pathname.startsWith("/legendary/tracking") || pathname === "/legendary"));
-  const onRawImagery = Boolean(pathname && (pathname.startsWith("/imagery") || pathname.startsWith("/v2/imagery")));
-  const onAnalysis   = Boolean(pathname && (pathname.startsWith("/analysis") || pathname.startsWith("/v2/analysis")));
+  const showInletSelect = Boolean(pathname && (pathname.startsWith("/legendary/tracking") || pathname === "/legendary"));
+  const onRawImagery = Boolean(pathname && (pathname.startsWith("/legendary/imagery")));
+  const onAnalysis   = Boolean(pathname && (pathname.startsWith("/legendary/analysis")));
   const showRawTime = onRawImagery;
   const showColors = showInletSelect; // Colors legend only on Tracking
   const [indexTimestamps, setIndexTimestamps] = useState<string[]>([]);

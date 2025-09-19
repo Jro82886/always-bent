@@ -85,7 +85,7 @@ export function MapShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const isTracking = Boolean(pathname && (pathname.startsWith('/tracking') || pathname.startsWith('/v2/tracking')));
+    const isTracking = Boolean(pathname && pathname.startsWith('/legendary/tracking'));
     const isLegendary = Boolean(pathname && pathname.startsWith('/legendary'));
     const shouldUseInlet = isTracking || isLegendary;
     const inlet = shouldUseInlet ? (getInletById(selectedInletId) || DEFAULT_INLET) : DEFAULT_INLET;
