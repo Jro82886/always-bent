@@ -58,8 +58,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       duration: 1000
     });
     
-    // Add vessel tracks visualization if any found
-    if (vesselData.tracks && vesselData.tracks.length > 0) {
+    // Wait for zoom to complete before adding tracks
+    setTimeout(() => {
+      // Add vessel tracks visualization if any found
+      if (vesselData.tracks && vesselData.tracks.length > 0) {
+        console.log(`Adding ${vesselData.tracks.length} vessel tracks to visualization`);
       // Add vessel tracks to map
       vesselData.tracks.forEach((track, idx) => {
         const sourceId = `vessel-track-${idx}`;
@@ -91,8 +94,13 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           source: sourceId,
           paint: {
             'line-color': track.type === 'gfw' ? '#3B82F6' : '#10B981', // Blue for commercial, green for recreational
-            'line-width': track.type === 'gfw' ? 3 : 2,
-            'line-opacity': 0.8
+            'line-width': track.type === 'gfw' ? 4 : 3,
+            'line-opacity': 0.9,
+            'line-blur': 0.5
+          },
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
           }
         });
       });
@@ -113,7 +121,8 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         </div>
       `;
       document.body.appendChild(legendDiv);
-    }
+      }
+    }, 1100); // Wait for zoom to complete (1000ms) + buffer
     
     // Wait for user to inspect the visualization
     setTimeout(() => {
