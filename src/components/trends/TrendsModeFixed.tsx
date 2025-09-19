@@ -34,7 +34,7 @@ function MetricPill({ icon: Icon, label, value }: {
 }) {
   return (
     <div className="flex items-center gap-1.5 rounded-md bg-white/5 px-2 py-1">
-      <Icon className="h-3.5 w-3.5 opacity-70" />
+      <Icon className="h-3.5 w-3.5 text-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.35)]" />
       <span className="text-[11px] uppercase tracking-wide text-slate-400">{label}</span>
       <span className="text-xs font-medium text-slate-100">{value}</span>
     </div>
@@ -146,7 +146,9 @@ export default function TrendsMode() {
         <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-sm px-4 py-2 border border-white/5 mb-3">
           <div className="flex items-center gap-3 justify-between">
             <Tooltip content="Live ocean snapshot for your inlet: moon, tides, SST, wind, pressure, sun.">
-              <h2 className="text-sm font-semibold tracking-wide uppercase text-slate-200 cursor-help">
+              <h2 className="text-sm font-semibold tracking-wide uppercase cursor-help
+                         bg-gradient-to-r from-cyan-400/80 to-teal-400/80
+                         bg-clip-text text-transparent drop-shadow">
                 Ocean Intelligence Overview
               </h2>
             </Tooltip>
@@ -283,10 +285,10 @@ export default function TrendsMode() {
         {!loading && !error && trendsData && (
           <>
             {/* Top row - Tide and Bite Prediction */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Tide Schedule */}
-              <div className="rounded-xl bg-slate-900/60 border border-white/5 p-3 h-[220px]">
-                <h3 className="text-sm font-semibold text-slate-200 mb-3">Tide Schedule</h3>
+              <div className="rounded-xl bg-slate-900/60 border border-white/5 p-5 h-[260px]">
+                <h3 className="text-sm font-semibold text-teal-300/90 mb-3">Tide Schedule</h3>
                 {trendsData.tideChart.events.length > 0 ? (
                   <div className="h-[calc(100%-2rem)]">
                     {/* Tide chart would go here */}
@@ -306,10 +308,10 @@ export default function TrendsMode() {
               </div>
               
               {/* Bite Prediction */}
-              <div className="rounded-xl bg-slate-900/60 border border-white/5 p-3 h-[220px]">
+              <div className="rounded-xl bg-slate-900/60 border border-white/5 p-5 h-[260px]">
                 <div className="flex items-center justify-between mb-1">
                   <Tooltip content="Score combines tide phase, wind, pressure trend, SST vs season, time of day.">
-                    <h3 className="text-sm font-semibold text-slate-200 cursor-help">Bite Prediction</h3>
+                    <h3 className="text-sm font-semibold text-amber-300/90 cursor-help">Bite Prediction</h3>
                   </Tooltip>
                   <span className="text-[10px] text-slate-400">Based on Stormio + ABFI heuristic</span>
                 </div>
@@ -337,11 +339,7 @@ export default function TrendsMode() {
                         <div className="text-xs text-slate-400 w-16">{period}</div>
                         <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
                           <div 
-                            className={`h-full transition-all ${
-                              pct >= 70 ? 'bg-cyan-400' : 
-                              pct >= 50 ? 'bg-yellow-400' : 
-                              'bg-blue-400'
-                            }`}
+                            className="h-full transition-all bg-gradient-to-r from-cyan-400 to-amber-300"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -354,10 +352,10 @@ export default function TrendsMode() {
             </div>
             
             {/* Bottom row - Activity Charts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
               {/* Today's Activity */}
-              <div className="rounded-xl bg-slate-900/60 border border-white/5 p-4">
-                <h3 className="text-sm font-semibold text-slate-200 mb-3">
+              <div className="rounded-xl bg-slate-900/60 border border-white/5 p-5 h-[220px]">
+                <h3 className="text-sm font-semibold text-emerald-300/90 mb-3">
                   {timeRange === '1d' ? "Today's" : timeRange === '7d' ? 'Weekly' : '2-Week'} ABFI Community Activity
                 </h3>
                 {trendsData.activitySeries.length > 0 ? (
@@ -373,8 +371,8 @@ export default function TrendsMode() {
               </div>
               
               {/* Species Distribution */}
-              <div className="rounded-xl bg-slate-900/60 border border-white/5 p-4">
-                <h3 className="text-sm font-semibold text-slate-200 mb-3">
+              <div className="rounded-xl bg-slate-900/60 border border-white/5 p-5 h-[220px]">
+                <h3 className="text-sm font-semibold text-emerald-300/90 mb-3">
                   ABFI Community Species Activity
                 </h3>
                 {trendsData.speciesDistribution.length > 0 ? (
