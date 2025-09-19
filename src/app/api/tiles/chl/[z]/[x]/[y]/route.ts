@@ -86,7 +86,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     }
     
     // Attempt to fetch from Copernicus
-    
+    console.log('[CHL FETCH ATTEMPT]', {
+      targetUrl: target,
+      tryTime: tryTime,
+      z, x, y
+    });
     
     try {
       const response = await fetch(target, {
@@ -120,6 +124,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       }
     } catch (e: any) {
       lastError = e?.message || String(e);
+      console.error('[CHL FETCH ERROR]', {
+        error: lastError,
+        targetUrl: target,
+        baseTemplate: base?.substring(0, 100)
+      });
       if (datesToTry.indexOf(tryTime) === datesToTry.length - 1) {
         // Last attempt failed
         break;
