@@ -150,7 +150,7 @@ export default function TrendsMode() {
       {/* Main content area */}
       <div className="pt-24 h-full overflow-y-auto px-4 md:px-6 pb-8">
         {/* Compact Ocean Intelligence Overview */}
-        <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-sm px-4 py-2 border border-white/5 mb-3">
+        <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-sm px-4 py-1.5 border border-white/5 mb-6">
           <div className="flex items-center gap-3 justify-between">
             <div className="flex items-center gap-4">
               <Tooltip content="Live ocean snapshot for your inlet: moon, tides, SST, wind, pressure, sun.">
