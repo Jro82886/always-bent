@@ -13,6 +13,7 @@ import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import { loadTrends } from '@/lib/trends/loadTrends';
 import type { TrendsData, TimeRange } from '@/types/trends';
+import Tooltip from '@/components/ui/Tooltip';
 
 // Helper functions
 const toF = (c: number) => Math.round((c * 9) / 5 + 32);
@@ -51,10 +52,11 @@ function SourceBadge({ id, status, label }: {
                                      'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30';
   const text = status === 'ok' ? 'Live' : status === 'stale' ? 'Stale' : 'Error';
   return (
-    <div title={`${label}: ${text}`}
-         className={`text-[10px] px-2 py-[2px] rounded-full ${styles}`}>
-      {label}
-    </div>
+    <Tooltip content="Data source status. Live = fresh; Stale = cached; Error = temporarily unavailable.">
+      <div className={`text-[10px] px-2 py-[2px] rounded-full cursor-help ${styles}`}>
+        {label}
+      </div>
+    </Tooltip>
   );
 }
 
@@ -143,9 +145,11 @@ export default function TrendsMode() {
         {/* Compact Ocean Intelligence Overview */}
         <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-sm px-4 py-2 border border-white/5 mb-3">
           <div className="flex items-center gap-3 justify-between">
-            <h2 className="text-sm font-semibold tracking-wide uppercase text-slate-200">
-              Ocean Intelligence Overview
-            </h2>
+            <Tooltip content="Live ocean snapshot for your inlet: moon, tides, SST, wind, pressure, sun.">
+              <h2 className="text-sm font-semibold tracking-wide uppercase text-slate-200 cursor-help">
+                Ocean Intelligence Overview
+              </h2>
+            </Tooltip>
 
             {/* Source status badges */}
             <div className="flex items-center gap-2">
@@ -191,42 +195,66 @@ export default function TrendsMode() {
           {/* Metrics row */}
           {trendsData?.envBar && (
             <div className="flex items-center gap-2 mt-2 overflow-x-auto pb-1">
-              <MetricPill 
-                icon={Moon} 
-                label="Moon" 
-                value={`${getMoonPhaseIcon(trendsData.envBar.moon.phase)} ${trendsData.envBar.moon.illumPct}%`} 
-              />
-              <MetricPill 
-                icon={Waves} 
-                label="Next Tide" 
-                value={`${trendsData.envBar.nextTide.type} · ${fmt(trendsData.envBar.nextTide.timeIso)}`} 
-              />
+              <Tooltip content="Moon phase and illumination. Major phases boost tidal movement.">
+                <div>
+                  <MetricPill 
+                    icon={Moon} 
+                    label="Moon" 
+                    value={`${getMoonPhaseIcon(trendsData.envBar.moon.phase)} ${trendsData.envBar.moon.illumPct}%`} 
+                  />
+                </div>
+              </Tooltip>
+              <Tooltip content="Next tide event at local time. Bite windows often bracket tide changes.">
+                <div>
+                  <MetricPill 
+                    icon={Waves} 
+                    label="Next Tide" 
+                    value={`${trendsData.envBar.nextTide.type} · ${fmt(trendsData.envBar.nextTide.timeIso)}`} 
+                  />
+                </div>
+              </Tooltip>
               {trendsData.envBar.weather?.sstC !== undefined && (
-                <MetricPill 
-                  icon={Thermometer} 
-                  label="SST" 
-                  value={`${toF(trendsData.envBar.weather.sstC)}°F`} 
-                />
+                <Tooltip content="Sea surface temperature in °F from Stormio. Converted from °C.">
+                  <div>
+                    <MetricPill 
+                      icon={Thermometer} 
+                      label="SST" 
+                      value={`${toF(trendsData.envBar.weather.sstC)}°F`} 
+                    />
+                  </div>
+                </Tooltip>
               )}
               {trendsData.envBar.weather?.windKt !== undefined && (
-                <MetricPill 
-                  icon={Wind} 
-                  label="Wind" 
-                  value={`${trendsData.envBar.weather.windKt} kt ${trendsData.envBar.weather.windDir || ''}`} 
-                />
+                <Tooltip content="Wind speed in knots and cardinal direction.">
+                  <div>
+                    <MetricPill 
+                      icon={Wind} 
+                      label="Wind" 
+                      value={`${trendsData.envBar.weather.windKt} kt ${trendsData.envBar.weather.windDir || ''}`} 
+                    />
+                  </div>
+                </Tooltip>
               )}
               {trendsData.envBar.weather?.pressureHpa !== undefined && (
-                <MetricPill 
-                  icon={Gauge} 
-                  label="Pressure" 
-                  value={`${trendsData.envBar.weather.pressureHpa} mb ${trendArrow(trendsData.envBar.weather.pressureTrend || 'steady')}`} 
-                />
+                <Tooltip content="Barometric pressure (mb). ↑ rising, ↓ falling, → steady.">
+                  <div>
+                    <MetricPill 
+                      icon={Gauge} 
+                      label="Pressure" 
+                      value={`${trendsData.envBar.weather.pressureHpa} mb ${trendArrow(trendsData.envBar.weather.pressureTrend || 'steady')}`} 
+                    />
+                  </div>
+                </Tooltip>
               )}
-              <MetricPill 
-                icon={Sun} 
-                label="Sun" 
-                value={`↑${fmt(trendsData.envBar.sun.sunriseIso)} / ↓${fmt(trendsData.envBar.sun.sunsetIso)}`} 
-              />
+              <Tooltip content="Sunrise / Sunset for today at your selected inlet.">
+                <div>
+                  <MetricPill 
+                    icon={Sun} 
+                    label="Sun" 
+                    value={`↑${fmt(trendsData.envBar.sun.sunriseIso)} / ↓${fmt(trendsData.envBar.sun.sunsetIso)}`} 
+                  />
+                </div>
+              </Tooltip>
             </div>
           )}
         </div>
@@ -280,7 +308,9 @@ export default function TrendsMode() {
               {/* Bite Prediction */}
               <div className="rounded-xl bg-slate-900/60 border border-white/5 p-3 h-[220px]">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-sm font-semibold text-slate-200">Bite Prediction</h3>
+                  <Tooltip content="Score combines tide phase, wind, pressure trend, SST vs season, time of day.">
+                    <h3 className="text-sm font-semibold text-slate-200 cursor-help">Bite Prediction</h3>
+                  </Tooltip>
                   <span className="text-[10px] text-slate-400">Based on Stormio + ABFI heuristic</span>
                 </div>
                 
@@ -294,7 +324,9 @@ export default function TrendsMode() {
                 )}
                 
                 <div className="space-y-2">
-                  <div className="text-xs text-slate-400 uppercase tracking-wide mb-1">Activity by Period</div>
+                  <Tooltip content="Relative bite likelihood for each period today.">
+                    <div className="text-xs text-slate-400 uppercase tracking-wide mb-1 cursor-help">Activity by Period</div>
+                  </Tooltip>
                   {['Morning', 'Midday', 'Afternoon', 'Evening'].map((period) => {
                     const data = trendsData.bitePrediction.periods.find(p => p.label === period);
                     const score = data?.score || 0;
