@@ -1,13 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-import RoomSidebar from '@/components/chat/RoomSidebar';
-import ChatWindow from '@/components/chat/ChatWindow';
-import ContextPanel from '@/components/chat/ContextPanel';
-import WeatherHeader from '@/components/chat/WeatherHeader';
+import dynamicImport from 'next/dynamic';
 import { MOCK_ROOMS } from '@/mocks/chat';
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/store/appState';
+
+// Force dynamic rendering to avoid SSR issues with useSearchParams
+export const dynamic = 'force-dynamic';
+
+// Dynamically import components that might use navigation hooks
+const RoomSidebar = dynamicImport(() => import('@/components/chat/RoomSidebar'), {
+  ssr: false,
+  loading: () => <div className="w-64 bg-slate-900 animate-pulse" />
+});
+
+const ChatWindow = dynamicImport(() => import('@/components/chat/ChatWindow'), {
+  ssr: false,
+  loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
+});
+
+const ContextPanel = dynamicImport(() => import('@/components/chat/ContextPanel'), {
+  ssr: false,
+  loading: () => <div className="w-80 bg-slate-900 animate-pulse" />
+});
+
+const WeatherHeader = dynamicImport(() => import('@/components/chat/WeatherHeader'), {
+  ssr: false
+});
 
 export default function ChatPage() {
   const { selectedInletId } = useAppState();

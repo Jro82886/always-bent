@@ -5,6 +5,9 @@ import HighlightsStrip from '@/components/reports/HighlightsStrip';
 import MyReportsList from '@/components/reports/MyReportsList';
 import WrittenAnalysisModal from '@/components/reports/WrittenAnalysisModal';
 
+// Force dynamic rendering to avoid potential SSR issues
+export const dynamic = 'force-dynamic';
+
 export default function ReportsPage() {
   const [selectedReport, setSelectedReport] = useState<any>(null);
 

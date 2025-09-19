@@ -4,6 +4,9 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import CommunityWrapper from './CommunityWrapper';
 
+// Force dynamic rendering for the entire community section
+export const dynamic = 'force-dynamic';
+
 export default function CommunityLayout({
   children,
 }: {
