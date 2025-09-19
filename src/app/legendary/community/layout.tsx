@@ -17,7 +17,7 @@ export default function CommunityLayout({
       {/* Desktop Tab Bar */}
       <div className="hidden md:flex bg-slate-900 border-b border-cyan-500/20">
         <Link
-          href="/community/chat"
+          href="/legendary/community/chat"
           className={`px-6 py-3 text-sm font-medium transition-colors relative ${
             isChat
               ? 'text-cyan-400 bg-slate-800/50'
@@ -30,7 +30,7 @@ export default function CommunityLayout({
           )}
         </Link>
         <Link
-          href="/community/reports"
+          href="/legendary/community/reports"
           className={`px-6 py-3 text-sm font-medium transition-colors relative ${
             isReports
               ? 'text-cyan-400 bg-slate-800/50'
@@ -53,7 +53,7 @@ export default function CommunityLayout({
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-cyan-500/20 z-50">
         <div className="grid grid-cols-2">
           <Link
-            href="/community/chat"
+            href="/legendary/community/chat"
             className={`py-3 text-center ${
               isChat ? 'text-cyan-400' : 'text-slate-400'
             }`}
@@ -61,7 +61,7 @@ export default function CommunityLayout({
             <div className="text-xs font-medium">Chat</div>
           </Link>
           <Link
-            href="/community/reports"
+            href="/legendary/community/reports"
             className={`py-3 text-center ${
               isReports ? 'text-cyan-400' : 'text-slate-400'
             }`}
