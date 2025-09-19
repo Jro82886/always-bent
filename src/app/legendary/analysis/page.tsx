@@ -469,7 +469,9 @@ function AnalysisModeContent() {
           {/* Commercial Vessel Layer */}
           <CommercialVesselLayer 
             map={map.current} 
-            showCommercial={showCommercial} 
+            showCommercial={showCommercial}
+            showTracks={false}
+            selectedInletId={selectedInletId || ''}
           />
 
           {/* Commercial Vessel Legend - Now integrated into LeftZone */}

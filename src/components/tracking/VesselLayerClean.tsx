@@ -291,8 +291,8 @@ export default function VesselLayerClean({
           if (minutesAgo > 5) return;
           
           // Skip our own vessel
-          const user = supabase.auth.getUser();
-          if (vessel.user_id === user.data?.user?.id) return;
+          const currentUser = await supabase.auth.getUser();
+          if (vessel.user_id === currentUser.data?.user?.id) return;
           
           // Create fleet marker
           const el = document.createElement('div');
@@ -370,6 +370,7 @@ export default function VesselLayerClean({
         if (showTracks && userTrack && userTrack.points) {
           const userTrackData = {
             type: 'Feature' as const,
+            properties: {},
             geometry: {
               type: 'LineString' as const,
               coordinates: Array.isArray(userTrack.points) 

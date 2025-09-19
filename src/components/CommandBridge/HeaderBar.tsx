@@ -12,6 +12,9 @@ import { useInletFromURL } from '@/hooks/useInletFromURL';
 
 interface HeaderBarProps {
   activeMode?: string;
+  showInletSelector?: boolean;
+  showWeather?: boolean;
+  showChat?: boolean;
 }
 
 const TAB_MODES = {

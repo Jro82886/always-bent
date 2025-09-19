@@ -6,6 +6,10 @@ export interface Inlet {
   zoom: number;
   isOverview?: boolean;
   color?: string; // Bright masculine color for each inlet
+  // Convenience properties
+  lng?: number;
+  lat?: number;
+  glowColor?: string;
 }
 
 export const INLETS: Inlet[] = [
@@ -77,7 +81,16 @@ export const DEFAULT_INLET = INLETS[0];
 
 export function getInletById(id: string | null): Inlet | null {
   if (!id) return null;
-  return INLETS.find(i => i.id === id) ?? null;
+  const inlet = INLETS.find(i => i.id === id);
+  if (!inlet) return null;
+  
+  // Add convenience properties
+  return {
+    ...inlet,
+    lng: inlet.center[0],
+    lat: inlet.center[1],
+    glowColor: inlet.color || '#00DDEB'
+  };
 }
 
 // Find nearest inlet to a given lat/lng position

@@ -181,7 +181,7 @@ export default function CommercialVesselLayer({
           coordinates: vessel.positions.map(pos => [pos.lng, pos.lat])
         }
       };
-    }).filter(Boolean);
+    }).filter((feature): feature is GeoJSON.Feature => feature !== null);
 
     const trackData = {
       type: 'FeatureCollection' as const,
