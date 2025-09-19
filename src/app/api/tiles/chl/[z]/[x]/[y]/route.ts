@@ -35,9 +35,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     return dd.toISOString(); // Returns YYYY-MM-DDTHH:mm:ss.sssZ format
   };
   
-  // Generate fallback dates: yesterday and 2 days ago (same as SST)
+  // Generate fallback dates: CHL needs more fallback days than SST
+  // NRT chlorophyll data can be delayed by several days
   const fallbackDates: string[] = [];
-  for (let daysAgo = 1; daysAgo <= 2; daysAgo++) {
+  for (let daysAgo = 1; daysAgo <= 7; daysAgo++) {
     const date = new Date();
     date.setDate(date.getDate() - daysAgo);
     fallbackDates.push(buildDailyIso(date));
@@ -96,19 +97,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       if (response.ok) {
         upstream = response;
         successfulTime = tryTime;
+        console.log(`[CHL] Success with date: ${tryTime.split('T')[0]}`);
         break;
-      } else if (response.status === 400 && datesToTry.length > 1) {
-        // Try next date
+      } else if ((response.status === 400 || response.status === 500) && datesToTry.indexOf(tryTime) < datesToTry.length - 1) {
+        // Try next date for both 400 and 500 errors (empty iterator)
         lastError = await response.text();
+        console.log(`[CHL] Date ${tryTime.split('T')[0]} failed (${response.status}), trying next...`);
         continue;
       } else {
-        // Non-400 error or last attempt
+        // Non-400/500 error or last attempt
         const text = await response.text();
+        console.error(`[CHL] Final failure: ${response.status}`, text.substring(0, 100));
         return new Response(text || `Copernicus ${response.status}`, {
           status: response.status,
           headers: { 
             'x-upstream-url': target,
-            'x-chl-date-tried': tryTime.split('T')[0]
+            'x-chl-date-tried': tryTime.split('T')[0],
+            'x-chl-dates-attempted': datesToTry.map(d => d.split('T')[0]).join(', ')
           }
         });
       }

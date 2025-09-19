@@ -69,13 +69,9 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
         type: 'raster',
         source: 'chl-src',
         paint: {
-          'raster-opacity': 0.9,  // High visibility
+          'raster-opacity': 0.85,  // Good visibility without overpowering
           'raster-opacity-transition': { duration: 300 },
-          'raster-saturation': 0.3,    // Some color boost
-          'raster-contrast': 0.2,      // Slight contrast
-          'raster-brightness-min': 0.1, // Compress range for better visibility
-          'raster-brightness-max': 0.9,  // Compress range
-          'raster-hue-rotate': 15      // Slight green tint
+          'raster-resampling': 'linear'  // Sharp rendering, no blur
         }
       });
 
