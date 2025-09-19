@@ -151,46 +151,19 @@ export async function getVesselTracksInArea(
     console.error('Failed to fetch commercial vessel data:', error);
   }
   
-  // Continue with mock individual tracks for now
-  // In production, query Supabase for real user tracks
-  
-  // Add some individual user tracks (recreational boats) - BRIGHT CYAN
-  tracks.push({
-    id: 'user-1',
-    type: 'individual',
-    vesselName: 'Sea Hunter',
-    points: generateTrackThroughArea(bounds, 15),
-    color: '#06b6d4', // cyan-500 - bright and visible
-    timestamp: '2 hours ago'
-  });
-  
-  tracks.push({
-    id: 'user-2',
-    type: 'individual',
-    vesselName: 'Blue Marlin',
-    points: generateTrackThroughArea(bounds, 12),
-    color: '#06b6d4', // cyan-500
-    timestamp: '5 hours ago'
-  });
-  
-  // Add some GFW commercial vessel tracks - BRIGHT ORANGE
-  tracks.push({
-    id: 'gfw-1',
-    type: 'gfw',
-    vesselName: 'FV Atlantic Dream',
-    points: generateTrackThroughArea(bounds, 20),
-    color: '#fb923c', // orange-400 - bright and visible
-    timestamp: '1 hour ago'
-  });
-  
-  tracks.push({
-    id: 'gfw-2',
-    type: 'gfw',
-    vesselName: 'FV Ocean Harvest',
-    points: generateTrackThroughArea(bounds, 18),
-    color: '#fb923c', // orange-400
-    timestamp: '3 hours ago'
-  });
+  // Fetch fleet tracks if visible
+  try {
+    // Check if fleet tracks are visible in tracking mode
+    const fleetTracksVisible = map.getLayer('fleet-tracks') && 
+                              map.getLayoutProperty('fleet-tracks', 'visibility') !== 'none';
+    
+    if (fleetTracksVisible) {
+      // TODO: Fetch real fleet tracks from vessel_positions table
+      // For now, no mock data - only real commercial vessels from GFW
+    }
+  } catch (error) {
+    console.error('Failed to fetch fleet tracks:', error);
+  }
   
   // Draw tracks on the map
   drawTracksOnMap(tracks, map);
