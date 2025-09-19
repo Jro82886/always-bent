@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import WelcomeChip from './WelcomeChip';
 import InletChip from './InletChip';
 import Tabs from './Tabs';
@@ -27,18 +28,13 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
   // Sync inlet from URL on mount
   useInletFromURL();
   
+  // Logo contrast check - header is always dark, so ABFI logo should work
+  const okContrast = true; // Header has dark background, logo has cyan/light colors
+  const logoSrc = okContrast ? '/brand/abfi-logo.svg' : '/brand/globe.svg';
+  
   // Find current tab based on mode
   const currentTab = Object.entries(TAB_MODES).find(([_, mode]) => mode === activeMode)?.[0] || 'Analysis';
   
-  const handleBrandClick = () => {
-    // Brand always returns to Analysis
-    const params = new URLSearchParams();
-    params.set('mode', 'analysis');
-    if (selectedInletId) {
-      params.set('inlet', selectedInletId);
-    }
-    router.push(`/legendary?${params.toString()}`);
-  };
   
   const handleTabChange = (tab: string) => {
     const mode = TAB_MODES[tab as keyof typeof TAB_MODES];
@@ -62,24 +58,19 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
         {/* Desktop Layout ≥1024px */}
         <div className="hidden lg:flex items-center h-16">
           {/* Brand (clickable → Analysis) */}
-          <button 
-            onClick={handleBrandClick}
-            className="px-6 flex items-center gap-2 h-full hover:bg-cyan-500/5 transition-colors cursor-pointer"
+          <Link 
+            href="/legendary?mode=analysis"
+            aria-label="ABFI Home"
+            className="px-6 flex items-center h-full hover:bg-cyan-500/5 transition-colors"
           >
-            <Image src="/brand/globe.svg" alt="ABFI" width={28} height={28} className="drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-            <div className="flex flex-col">
-              <div className="text-xs font-bold text-cyan-100"
-                   style={{ 
-                     textShadow: '0 0 20px rgba(0, 200, 255, 0.5)',
-                     letterSpacing: '0.15em'
-                   }}>
-                ALWAYS BENT
-              </div>
-              <div className="text-[10px] text-cyan-400/70 tracking-widest uppercase">
-                Command Bridge
-              </div>
-            </div>
-          </button>
+            <img
+              src={logoSrc}
+              alt="ABFI — Always Bent Fishing Intelligence"
+              className="h-7 md:h-8 w-auto"
+              loading="eager"
+              decoding="async"
+            />
+          </Link>
           
           <div className="h-full w-px bg-cyan-500/10" />
           
@@ -108,15 +99,19 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
         <div className="hidden sm:flex lg:hidden flex-col">
           {/* Top Row: Brand + Inlet */}
           <div className="flex items-center justify-between h-14 px-4">
-            <button 
-              onClick={handleBrandClick}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            <Link 
+              href="/legendary?mode=analysis"
+              aria-label="ABFI Home"
+              className="flex items-center hover:opacity-80 transition-opacity"
             >
-              <Image src="/brand/globe.svg" alt="ABFI" width={24} height={24} className="drop-shadow-[0_0_6px_rgba(59,130,246,0.4)]" />
-              <span className="text-xs font-bold text-cyan-100" style={{ letterSpacing: '0.1em' }}>
-                ALWAYS BENT
-              </span>
-            </button>
+              <img
+                src={logoSrc}
+                alt="ABFI — Always Bent Fishing Intelligence"
+                className="h-6 w-auto"
+                loading="eager"
+                decoding="async"
+              />
+            </Link>
             <InletChip />
           </div>
           
@@ -151,13 +146,19 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
         <div className="flex sm:hidden flex-col">
           {/* Top Row: Brand + Inlet (compact) */}
           <div className="flex items-center justify-between h-12 px-3">
-            <button 
-              onClick={handleBrandClick}
-              className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
+            <Link 
+              href="/legendary?mode=analysis"
+              aria-label="ABFI Home"
+              className="flex items-center hover:opacity-80 transition-opacity"
             >
-              <Image src="/brand/globe.svg" alt="ABFI" width={24} height={24} className="drop-shadow-[0_0_6px_rgba(59,130,246,0.4)]" />
-              <span className="text-[11px] font-bold text-cyan-100">ABFI</span>
-            </button>
+              <img
+                src={logoSrc}
+                alt="ABFI — Always Bent Fishing Intelligence"
+                className="h-5 w-auto"
+                loading="eager"
+                decoding="async"
+              />
+            </Link>
             <InletChip compact />
           </div>
           
