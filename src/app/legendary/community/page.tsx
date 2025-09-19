@@ -7,12 +7,9 @@ import ReportComposer from '@/components/community/ReportComposer';
 import ReportsFeed from '@/components/community/ReportsFeed';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 
-export default function CommunityPage() {
+function CommunityContent() {
   return (
-    <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 overflow-hidden">
-      {/* Command Bridge Header */}
-      <HeaderBar activeMode="community" />
-      
+    <>
       {/* Main content area with proper spacing */}
       <div className="pt-24 h-full flex flex-col">
         <Suspense fallback={<div className="h-20 bg-black/40 animate-pulse" />}>
@@ -34,6 +31,23 @@ export default function CommunityPage() {
           </Suspense>
         </div>
       </div>
+    </>
+  );
+}
+
+export default function CommunityPage() {
+  return (
+    <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 overflow-hidden">
+      {/* Command Bridge Header */}
+      <HeaderBar activeMode="community" />
+      
+      <Suspense fallback={
+        <div className="pt-24 h-full flex items-center justify-center">
+          <div className="text-cyan-400 animate-pulse">Loading community...</div>
+        </div>
+      }>
+        <CommunityContent />
+      </Suspense>
     </div>
   );
 }
