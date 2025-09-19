@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { getInletById } from '@/lib/inlets';
 import { shouldEnableTracking, getTrackingStatus } from '@/lib/tracking/landDetection';
+import { landGuardCheck, oncePerSession } from '@/lib/tracking/landGuard';
 import { supabase } from '@/lib/supabaseClient';
 
 interface VesselLayerProps {
@@ -270,22 +271,8 @@ export default function VesselLayer({
       // Don't return here - we need to check if visibility changed
     }
 
-    // ⚠️ PRODUCTION REMINDER: SET TO FALSE BEFORE GOING LIVE! ⚠️
-    // TESTING MODE: Show location always for testing
-    // This is ONLY for development testing to verify GPS and real-time tracking work
-    // Privacy features are FULLY IMPLEMENTED and ready - just temporarily bypassed
-    const TESTING_MODE = true; // 🚨 MUST SET TO false FOR PRODUCTION! 🚨
-    
-    // PRIVACY CHECK: Only show location if user is within inlet bounds
-    // This prevents showing home/land locations to other users
-    // These privacy rules are ACTIVE in production and protect user privacy
+    // Land Guard implementation per MVP Contract
     const isWithinInletBounds = () => {
-      // TESTING: Temporarily bypass privacy for development testing only
-      // This lets you test from home while someone is on a boat
-      if (TESTING_MODE) {
-        
-        return true;
-      }
       
       const lat = userPosition.coords.latitude;
       const lng = userPosition.coords.longitude;
@@ -329,7 +316,35 @@ export default function VesselLayer({
       return true;
     };
 
-    const isVisible = showYou && isWithinInletBounds();
+    // Land Guard implementation per MVP Contract
+    const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+    const landGuard = landGuardCheck(
+      { lat: userPosition.coords.latitude, lng: userPosition.coords.longitude },
+      inlet
+    );
+
+    const isVisible = showYou && landGuard.showMarker;
+    
+    // Show once-per-session toast if on land outside inlet
+    if (!landGuard.showMarker && landGuard.reason && showYou) {
+      oncePerSession('land-guard', () => {
+        // Create a small toast notification
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 bg-gray-900/95 backdrop-blur-sm border border-gray-700 rounded-lg px-4 py-2 shadow-lg';
+        toast.innerHTML = `
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+            <span class="text-sm text-gray-300">${landGuard.reason}</span>
+          </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transition = 'opacity 0.3s';
+          setTimeout(() => toast.remove(), 300);
+        }, 4000);
+      });
+    }
     
     // Show notification when entering/leaving inlet bounds
     if (isVisible && !wasVisibleLastCheck) {

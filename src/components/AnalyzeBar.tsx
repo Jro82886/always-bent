@@ -152,15 +152,13 @@ export default function AnalyzeBar() {
 
   function reset() {
     const map: any = (globalThis as any).abfiMap;
-    // Source of truth for non-tracking pages is East Coast overview
-    const isTracking = Boolean(pathname && (pathname.startsWith('/tracking') || pathname.startsWith('/v2/tracking')));
-    const inlet = isTracking ? (getInletById(selectedInletId) ?? DEFAULT_INLET) : DEFAULT_INLET;
     setBbox(null);
     if (map) {
       try {
         const src: any = map.getSource('hotspots');
         src?.setData?.({ type: 'FeatureCollection', features: [] });
-        map.flyTo({ center: inlet.center, zoom: inlet.zoom, essential: true });
+        // User-initiated Reset View: always go to East Coast overview
+        map.fitBounds([[-83,24],[-65,45]], { padding: 64, duration: 0 });
       } catch {}
     }
   }

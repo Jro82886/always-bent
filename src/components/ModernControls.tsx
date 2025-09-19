@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { INLETS } from '@/lib/inlets';
 import { getBathymetrySources, getBathymetryLayers, type BathymetryConfig } from '@/lib/services/bathymetry';
-import { flyToInlet60nm } from '@/lib/inletBounds';
 
 interface ModernControlsProps {
   // Layer states
@@ -275,10 +274,7 @@ export default function ModernControls({
                           setShowInletDropdown(false);
                           // Store in localStorage for persistence
                           localStorage.setItem('abfi_selected_inlet', inlet.id);
-                          // Fly to inlet with 60nm view
-                          if (map) {
-                            flyToInlet60nm(map, inlet);
-                          }
+                          // Inlet Contract vFinal: never move camera on inlet changes (data scope only)
                         }}
                         className={`w-full px-3 py-2.5 text-left text-sm rounded-md hover:bg-cyan-500/20 transition-all flex items-center gap-2 ${
                           selectedInletId === inlet.id 

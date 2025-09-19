@@ -3,7 +3,6 @@
 import * as React from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { INLETS } from "@/lib/inlets";
-import { flyToInlet60nm } from "@/lib/inletBounds";
 import { ChevronDown } from "lucide-react";
 import { useAppState } from "@/store/appState";
 
@@ -76,11 +75,7 @@ export function InletSelect({ value, onChange, label }: Props) {
                 onChange(inlet.id);
                 setSelectedInletId(inlet.id);
                 setIsOpen(false);
-                // Zoom to the selected inlet with Gulf Stream view
-                const map = (window as any).abfiMap;
-                if (map && inlet) {
-                  flyToInlet60nm(map, inlet);
-                }
+                // Inlet Contract vFinal: never move camera on inlet changes (data scope only)
               }}
               className={`w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-cyan-500/10 transition-all ${
                 value === inlet.id ? 'bg-cyan-500/20 text-cyan-300' : 'text-white'

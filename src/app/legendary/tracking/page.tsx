@@ -14,7 +14,6 @@ import InletRegions from '@/components/InletRegions';
 import TrackingErrorBoundary from '@/components/tracking/TrackingErrorBoundary';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
-import { autoSelectInlet } from '@/lib/findClosestInlet';
 
 // Mapbox token
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
@@ -23,9 +22,7 @@ function TrackingModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [activeTab, setActiveTab] = useState('tracking');
-  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [mapFullyReady, setMapFullyReady] = useState(false);
-  const [hasAutoSelected, setHasAutoSelected] = useState(false);
   
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
@@ -52,85 +49,7 @@ function TrackingModeContent() {
     setUserSpeed(position.speed * 1.94384); // Convert m/s to knots
     setTrackingActive(true);
     
-    // Only auto-select inlet if user has explicitly shown their location
-    if (!hasAutoSelected && mapFullyReady && !selectedInletId && showYou) {
-      const autoSelect = autoSelectInlet(
-        { lat: position.lat, lng: position.lng },
-        selectedInletId
-      );
-      
-      if (autoSelect.shouldAutoSelect && autoSelect.inlet) {
-        // Auto-selected inlet based on location
-        
-        // Update global state
-        const { setSelectedInletId } = useAppState.getState();
-        setSelectedInletId(autoSelect.inlet.id);
-      
-        // Show notification
-        const toastId = 'auto-select-toast';
-      // Remove any existing toast first
-      const existingToast = document.getElementById(toastId);
-      if (existingToast) {
-        existingToast.remove();
-      }
-      
-      const toast = document.createElement('div');
-      toast.id = toastId;
-      toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] animate-slide-down';
-      toast.innerHTML = `
-        <div class="bg-slate-900/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg px-6 py-4 shadow-2xl">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
-              <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              </svg>
-            </div>
-            <div>
-              <div class="text-white font-semibold">Auto-Selected Inlet</div>
-              <div class="text-gray-400 text-sm mt-1">Using ${autoSelect.inlet.name} as your home waters (closest to you)</div>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(toast);
-      
-      // Add animation style if needed
-      if (!document.getElementById('slide-down-animation')) {
-        const style = document.createElement('style');
-        style.id = 'slide-down-animation';
-        style.textContent = `
-          @keyframes slide-down {
-            from { transform: translate(-50%, -100%); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-          }
-          .animate-slide-down {
-            animation: slide-down 0.3s ease-out;
-          }
-        `;
-        document.head.appendChild(style);
-      }
-      
-      // Clear any existing timeout
-      if (toastTimeoutRef.current) {
-        clearTimeout(toastTimeoutRef.current);
-      }
-      
-      toastTimeoutRef.current = setTimeout(() => {
-        // Safely remove toast if it still exists
-        const toastElement = document.getElementById(toastId);
-        if (toastElement) {
-          toastElement.remove();
-        }
-        toastTimeoutRef.current = null;
-      }, 5000);
-      
-      // Mark that we've auto-selected
-      setHasAutoSelected(true);
-      }
-      
-      // Don't auto-fly anymore - let the inlet change effect handle it
-    }
+    // Inlet Contract vFinal: never auto-select inlet from GPS
   };
 
   // Get captain and boat names and check location permission
@@ -162,11 +81,6 @@ function TrackingModeContent() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // Clear any pending toast timeouts
-      if (toastTimeoutRef.current) {
-        clearTimeout(toastTimeoutRef.current);
-        toastTimeoutRef.current = null;
-      }
       // Remove any lingering toasts
       const toast = document.getElementById('auto-select-toast');
       if (toast) {

@@ -6,7 +6,6 @@ import { MapCtx } from "@/lib/MapCtx";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useAppState } from "@/store/appState";
 import { DEFAULT_INLET, getInletById } from "@/lib/inlets";
-import { flyToInlet60nm } from "@/lib/inletBounds";
 import { PersistentLayerManager } from "@/lib/persistLayers";
 import { overviewBundle } from "@/lib/persistentBundles";
 import { usePathname } from "next/navigation";
@@ -91,8 +90,7 @@ export function MapShell({ children }: { children: React.ReactNode }) {
     const shouldUseInlet = isTracking || isLegendary;
     const inlet = shouldUseInlet ? (getInletById(selectedInletId) || DEFAULT_INLET) : DEFAULT_INLET;
     
-    // Use consistent 60nm Gulf Stream view for all inlet selections
-    flyToInlet60nm(map, inlet);
+    // Inlet Contract vFinal: never move camera on inlet changes (data scope only)
   }, [selectedInletId, pathname]);
 
   // Update SST tiles when the selected date changes

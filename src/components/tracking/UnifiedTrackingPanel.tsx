@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { MapPin, Anchor, Users, Activity, Navigation, ChevronDown, Settings } from 'lucide-react';
 import { getInletById, INLETS } from '@/lib/inlets';
-import { flyToInlet60nm } from '@/lib/inletBounds';
 
 interface UnifiedTrackingPanelProps {
   map: mapboxgl.Map | null;
@@ -52,12 +51,7 @@ export default function UnifiedTrackingPanel({
     setInletDropdownOpen(false);
     
     // Fly to inlet if map is available
-    if (map) {
-      const selectedInlet = getInletById(inletId);
-      if (selectedInlet) {
-        flyToInlet60nm(map, selectedInlet);
-      }
-    }
+    // Inlet Contract vFinal: never move camera on inlet changes (data scope only)
   };
 
   return (
