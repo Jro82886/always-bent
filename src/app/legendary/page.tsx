@@ -33,9 +33,7 @@ const TrackingMode = dynamic(
 );
 
 const CommunityMode = dynamic(
-  () => import('@/components/community/CommunityModeFixed').then(mod => ({
-    default: mod.default
-  })),
+  () => import('./community/page'),
   { 
     ssr: false,
     loading: () => (
@@ -47,9 +45,7 @@ const CommunityMode = dynamic(
 );
 
 const TrendsMode = dynamic(
-  () => import('@/components/trends/TrendsModeFixed').then(mod => ({
-    default: mod.default
-  })),
+  () => import('./trends/page'),
   { 
     ssr: false,
     loading: () => (
