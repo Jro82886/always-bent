@@ -4,7 +4,8 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import CommunityWrapper from './CommunityWrapper';
 
-// Force dynamic rendering for the entire community section
+// Force dynamic ONLY for community section due to nested searchParams usage
+// TODO: Refactor community components to remove searchParams dependency
 export const dynamic = 'force-dynamic';
 
 export default function CommunityLayout({

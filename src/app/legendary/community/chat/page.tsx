@@ -1,31 +1,30 @@
 'use client';
 
 import { useState } from 'react';
-import dynamicImport from 'next/dynamic';
+import dynamic from 'next/dynamic';
 import { MOCK_ROOMS } from '@/mocks/chat';
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 
-// Force dynamic rendering to avoid SSR issues with useSearchParams
-export const dynamic = 'force-dynamic';
+// Components are dynamically imported with ssr: false to handle client-side rendering
 
 // Dynamically import components that might use navigation hooks
-const RoomSidebar = dynamicImport(() => import('@/components/chat/RoomSidebar'), {
+const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
   ssr: false,
   loading: () => <div className="w-64 bg-slate-900 animate-pulse" />
 });
 
-const ChatWindow = dynamicImport(() => import('@/components/chat/ChatWindow'), {
+const ChatWindow = dynamic(() => import('@/components/chat/ChatWindow'), {
   ssr: false,
   loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
 });
 
-const ContextPanel = dynamicImport(() => import('@/components/chat/ContextPanel'), {
+const ContextPanel = dynamic(() => import('@/components/chat/ContextPanel'), {
   ssr: false,
   loading: () => <div className="w-80 bg-slate-900 animate-pulse" />
 });
 
-const WeatherHeader = dynamicImport(() => import('@/components/chat/WeatherHeader'), {
+const WeatherHeader = dynamic(() => import('@/components/chat/WeatherHeader'), {
   ssr: false
 });
 
