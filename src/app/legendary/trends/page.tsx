@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 
 // Dynamically import the Trends component
 const TrendsMode = dynamic(
-  () => import('@/components/trends/TrendsMode'),
+  () => import('@/components/trends/TrendsModeFixed'),
   { 
     ssr: false,
     loading: () => (
