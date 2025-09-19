@@ -10,6 +10,7 @@ import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
+import { calculateBitePrediction, getCurrentSeason, getCurrentTidePhase, type BiteFactors } from '@/lib/analysis/bite-predictor';
 
 interface TideData {
   type: 'high' | 'low';
@@ -37,6 +38,111 @@ interface EnvironmentalData {
   cloudCover: number;
 }
 
+// Helper functions for environmental calculations
+function calculateMoonPhase(date: Date): MoonPhase {
+  // Simple moon phase calculation
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  
+  // Calculate days since new moon (Jan 6, 2000)
+  const julianDate = Math.floor((date.getTime() / 86400000) - (date.getTimezoneOffset() / 1440) + 2440587.5);
+  const daysSinceNew = (julianDate - 2451549.5) % 29.53059;
+  const phase = daysSinceNew / 29.53059;
+  
+  let phaseName: string;
+  let icon: string;
+  
+  if (phase < 0.0625) {
+    phaseName = 'New Moon';
+    icon = '🌑';
+  } else if (phase < 0.1875) {
+    phaseName = 'Waxing Crescent';
+    icon = '🌒';
+  } else if (phase < 0.3125) {
+    phaseName = 'First Quarter';
+    icon = '🌓';
+  } else if (phase < 0.4375) {
+    phaseName = 'Waxing Gibbous';
+    icon = '🌔';
+  } else if (phase < 0.5625) {
+    phaseName = 'Full Moon';
+    icon = '🌕';
+  } else if (phase < 0.6875) {
+    phaseName = 'Waning Gibbous';
+    icon = '🌖';
+  } else if (phase < 0.8125) {
+    phaseName = 'Last Quarter';
+    icon = '🌗';
+  } else if (phase < 0.9375) {
+    phaseName = 'Waning Crescent';
+    icon = '🌘';
+  } else {
+    phaseName = 'New Moon';
+    icon = '🌑';
+  }
+  
+  return {
+    phase: phaseName,
+    illumination: Math.round(Math.abs(0.5 - phase) * 200),
+    icon
+  };
+}
+
+function calculateSunTimes(lat: number, lon: number): { sunrise: string; sunset: string } {
+  // Simple sunrise/sunset calculation
+  const now = new Date();
+  const julianDay = Math.floor((now.getTime() / 86400000) + 2440587.5);
+  const n = julianDay - 2451545.0 + 0.0008;
+  const meanAnomaly = (357.5291 + 0.98560028 * n) % 360;
+  const center = 1.9148 * Math.sin(meanAnomaly * Math.PI / 180);
+  const lambda = (280.46 + 0.98565 * n + center) % 360;
+  const declination = Math.asin(0.39779 * Math.sin(lambda * Math.PI / 180));
+  
+  const hourAngle = Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(declination));
+  const sunrise = 12 - hourAngle * 12 / Math.PI - lon / 15;
+  const sunset = 12 + hourAngle * 12 / Math.PI - lon / 15;
+  
+  const formatTime = (hours: number) => {
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${displayHour}:${m.toString().padStart(2, '0')} ${period}`;
+  };
+  
+  return {
+    sunrise: formatTime(sunrise),
+    sunset: formatTime(sunset)
+  };
+}
+
+function generateTidePredictions(): TideData[] {
+  // Placeholder tide predictions - would be replaced with NOAA tide API
+  const now = new Date();
+  const tides: TideData[] = [];
+  
+  // Generate 4 tides for the day (roughly 6 hours apart)
+  for (let i = 0; i < 4; i++) {
+    const time = new Date(now);
+    time.setHours(6 + i * 6, Math.floor(Math.random() * 60));
+    
+    tides.push({
+      type: i % 2 === 0 ? 'high' : 'low',
+      time: time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      height: i % 2 === 0 ? 3.5 + Math.random() * 2 : 0.5 + Math.random()
+    });
+  }
+  
+  return tides;
+}
+
+function getCompassDirection(degrees: number): string {
+  const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  const index = Math.round(degrees / 22.5) % 16;
+  return directions[index];
+}
+
 export default function TrendsModeFixed() {
   const { selectedInletId } = useAppState();
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
@@ -47,63 +153,82 @@ export default function TrendsModeFixed() {
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
   const [environmentalData, setEnvironmentalData] = useState<EnvironmentalData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bitePrediction, setBitePrediction] = useState<any>(null);
   
-  // Fetch Storm Glass data for tides and moon phases
+  // Fetch real weather data and calculate moon phase
   useEffect(() => {
     const fetchEnvironmentalData = async () => {
       if (!inlet) return;
       
       try {
-        // Call Storm Glass API through your backend
-        const response = await fetch(`/api/stormglass?lat=${inlet.center[1]}&lon=${inlet.center[0]}`);
+        // Fetch real NOAA weather data
+        const weatherResponse = await fetch(`/api/weather?inlet=${selectedInletId}`);
+        let weatherData = null;
         
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Parse Storm Glass response
-          setEnvironmentalData({
-            tides: data.tides || [
-              { type: 'high', time: '06:23 AM', height: 4.2 },
-              { type: 'low', time: '12:45 PM', height: 0.8 },
-              { type: 'high', time: '06:52 PM', height: 4.5 },
-              { type: 'low', time: '01:10 AM', height: 0.6 }
-            ],
-            moonPhase: data.moonPhase || {
-              phase: 'Waxing Gibbous',
-              illumination: 78,
-              icon: '🌔'
-            },
-            sunrise: data.sunrise || '06:42 AM',
-            sunset: data.sunset || '07:15 PM',
-            waterTemp: data.waterTemp || 72,
-            airTemp: data.airTemp || 78,
-            windSpeed: data.windSpeed || 12,
-            windDirection: data.windDirection || 'NE',
-            pressure: data.pressure || 1013,
-            visibility: data.visibility || 10,
-            cloudCover: data.cloudCover || 25
-          });
-        } else {
-          // Use fallback data if API fails
-          setEnvironmentalData({
-            tides: [
-              { type: 'high', time: '06:23 AM', height: 4.2 },
-              { type: 'low', time: '12:45 PM', height: 0.8 },
-              { type: 'high', time: '06:52 PM', height: 4.5 },
-              { type: 'low', time: '01:10 AM', height: 0.6 }
-            ],
-            moonPhase: { phase: 'Waxing Gibbous', illumination: 78, icon: '🌔' },
-            sunrise: '06:42 AM',
-            sunset: '07:15 PM',
-            waterTemp: 72,
-            airTemp: 78,
-            windSpeed: 12,
-            windDirection: 'NE',
-            pressure: 1013,
-            visibility: 10,
-            cloudCover: 25
-          });
+        if (weatherResponse.ok) {
+          weatherData = await weatherResponse.json();
         }
+        
+        // Calculate current moon phase
+        const moonData = calculateMoonPhase(new Date());
+        
+        // Calculate sunrise/sunset (basic calculation - can be improved with library)
+        const { sunrise, sunset } = calculateSunTimes(inlet.center[1], inlet.center[0]);
+        
+        // Generate tide predictions (placeholder until NOAA tide API)
+        const tides = generateTidePredictions();
+        
+        setEnvironmentalData({
+          tides,
+          moonPhase: moonData,
+          sunrise,
+          sunset,
+          waterTemp: weatherData?.water_temp || 72,
+          airTemp: weatherData?.air_temp || 78,
+          windSpeed: weatherData?.wind_speed || 12,
+          windDirection: weatherData?.wind_direction ? getCompassDirection(weatherData.wind_direction) : 'NE',
+          pressure: weatherData?.sea_pressure ? weatherData.sea_pressure * 33.864 : 1013, // inHg to mb
+          visibility: weatherData?.visibility || 10,
+          cloudCover: 25 // Placeholder - would need weather API
+        });
+        
+        // Calculate bite prediction
+        if (weatherData) {
+          const factors: BiteFactors = {
+            moonPhase: moonData.illumination / 100,
+            tidePhase: getCurrentTidePhase(tides),
+            waterTemp: weatherData.water_temp || 72,
+            windSpeed: weatherData.wind_speed || 12,
+            pressure: weatherData.sea_pressure ? weatherData.sea_pressure * 33.864 : 1013,
+            pressureTrend: 'stable', // Would need historical data
+            timeOfDay: new Date().getHours(),
+            season: getCurrentSeason()
+          };
+          
+          const prediction = calculateBitePrediction(factors);
+          setBitePrediction(prediction);
+        }
+      } catch (error) {
+        console.error('Failed to fetch environmental data:', error);
+        // Use fallback data if API fails
+        setEnvironmentalData({
+          tides: [
+            { type: 'high', time: '06:23 AM', height: 4.2 },
+            { type: 'low', time: '12:45 PM', height: 0.8 },
+            { type: 'high', time: '06:52 PM', height: 4.5 },
+            { type: 'low', time: '01:10 AM', height: 0.6 }
+          ],
+          moonPhase: { phase: 'Waxing Gibbous', illumination: 78, icon: '🌔' },
+          sunrise: '06:42 AM',
+          sunset: '07:15 PM',
+          waterTemp: 72,
+          airTemp: 78,
+          windSpeed: 12,
+          windDirection: 'NE',
+          pressure: 1013,
+          visibility: 10,
+          cloudCover: 25
+        });
       } catch (error) {
         console.error('Failed to fetch environmental data:', error);
       } finally {
@@ -313,57 +438,63 @@ export default function TrendsModeFixed() {
           {/* Activity Prediction */}
           <div className="bg-black/40 backdrop-blur-md rounded-xl border border-cyan-500/20 p-6">
             <h2 className="text-lg font-semibold text-white mb-4">Bite Prediction</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
-                <div>
-                  <div className="text-sm text-white font-medium">Best Time Today</div>
-                  <div className="text-xs text-gray-400">Based on conditions</div>
+            {bitePrediction ? (
+              <div className="space-y-3">
+                <div className={`flex items-center justify-between p-3 rounded-lg border ${
+                  bitePrediction.rating === 'excellent' ? 'bg-emerald-500/10 border-emerald-500/30' :
+                  bitePrediction.rating === 'good' ? 'bg-blue-500/10 border-blue-500/30' :
+                  bitePrediction.rating === 'fair' ? 'bg-yellow-500/10 border-yellow-500/30' :
+                  'bg-red-500/10 border-red-500/30'
+                }`}>
+                  <div>
+                    <div className="text-sm text-white font-medium">Current Conditions</div>
+                    <div className="text-xs text-gray-400">{bitePrediction.rating.charAt(0).toUpperCase() + bitePrediction.rating.slice(1)} for fishing</div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-2xl font-bold ${
+                      bitePrediction.rating === 'excellent' ? 'text-emerald-400' :
+                      bitePrediction.rating === 'good' ? 'text-blue-400' :
+                      bitePrediction.rating === 'fair' ? 'text-yellow-400' :
+                      'text-red-400'
+                    }`}>{bitePrediction.score}%</div>
+                    <div className="text-xs text-gray-400">Activity Score</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg text-emerald-400 font-bold">4-6 PM</div>
-                  <div className="text-xs text-emerald-400">High Activity</div>
+                
+                {/* Best Times */}
+                <div className="space-y-2">
+                  <div className="text-xs text-gray-400 uppercase tracking-wide">Best Times</div>
+                  {bitePrediction.bestTimes.map((time: string, i: number) => (
+                    <div key={i} className="text-sm text-cyan-400 pl-2">• {time}</div>
+                  ))}
                 </div>
+                
+                {/* Positive Factors */}
+                {bitePrediction.factors.positive.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400 uppercase tracking-wide">Positive Factors</div>
+                    {bitePrediction.factors.positive.map((factor: string, i: number) => (
+                      <div key={i} className="text-sm text-emerald-400 pl-2">✓ {factor}</div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Negative Factors */}
+                {bitePrediction.factors.negative.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-400 uppercase tracking-wide">Challenges</div>
+                    {bitePrediction.factors.negative.map((factor: string, i: number) => (
+                      <div key={i} className="text-sm text-orange-400 pl-2">• {factor}</div>
+                    ))}
+                  </div>
+                )}
               </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Morning (6-10am)</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
-                      <div className="h-full w-[60%] bg-yellow-500/50" />
-                    </div>
-                    <span className="text-xs text-yellow-400">60%</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Midday (10-2pm)</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
-                      <div className="h-full w-[40%] bg-orange-500/50" />
-                    </div>
-                    <span className="text-xs text-orange-400">40%</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Afternoon (2-6pm)</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
-                      <div className="h-full w-[85%] bg-emerald-500/50" />
-                    </div>
-                    <span className="text-xs text-emerald-400">85%</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Evening (6-10pm)</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 h-2 bg-gray-800 rounded-full overflow-hidden">
-                      <div className="h-full w-[55%] bg-blue-500/50" />
-                    </div>
-                    <span className="text-xs text-blue-400">55%</span>
-                  </div>
-                </div>
+            ) : (
+              <div className="animate-pulse space-y-3">
+                <div className="h-20 bg-gray-800 rounded-lg" />
+                <div className="h-32 bg-gray-800 rounded-lg" />
               </div>
-            </div>
+            )}
           </div>
         </div>
 
