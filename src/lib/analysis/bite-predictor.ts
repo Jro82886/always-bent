@@ -118,7 +118,7 @@ function calculateTideScore(tidePhase: string): { adjustment: number; positive: 
 
 function calculateTempScore(waterTemp: number, season: string): { adjustment: number; positive: boolean; reason: string } {
   // Optimal temps vary by season
-  const optimalRanges = {
+  const optimalRanges: Record<string, { min: number; max: number }> = {
     spring: { min: 50, max: 65 },
     summer: { min: 68, max: 78 },
     fall: { min: 55, max: 70 },
