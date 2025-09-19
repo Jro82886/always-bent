@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  TrendingUp, Calendar, BarChart3, Activity, Fish, Thermometer, Wind, 
+  TrendingUp, Calendar, BarChart3, Activity, Fish, Thermometer, Wind,
   Moon, Waves, MapPin, Sunrise, Sunset, Navigation, Cloud, Droplets,
-  AlertCircle, Info, ChevronRight, Clock, Anchor, RefreshCw, CheckCircle, XCircle,
-  Sun, Gauge
+  AlertCircle, Info, ChevronRight, Clock, Anchor, RefreshCw, CheckCircle, XCircle, Gauge, Sun
 } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
@@ -26,36 +25,74 @@ const fmt = (iso: string) => {
 };
 const trendArrow = (t: 'rising' | 'falling' | 'steady') => t === 'rising' ? '↑' : t === 'falling' ? '↓' : '→';
 
-// Enhanced metric pill component with color-specific glows
-function MetricPill({ icon: Icon, label, value, glowClass }: { 
+// Reusable components matching the design system
+function PillsBar({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap py-3 px-4 md:px-6">
+      {children}
+    </div>
+  );
+}
+
+function MoonPill({ icon: Icon, label, value, tooltip }: { 
   icon: React.ComponentType<any>, 
   label: string, 
   value: string,
-  glowClass: string
+  tooltip?: string 
+}) {
+  const content = (
+    <div className="abfi-card-bg abfi-glow abfi-glow-hover rounded-full px-3 py-1.5 text-sm flex items-center gap-2 cursor-default">
+      <Icon className="h-4 w-4 text-cyan-300" />
+      <span className="text-[11px] uppercase tracking-wide text-slate-400">{label}</span>
+      <span className="font-medium text-cyan-200">{value}</span>
+    </div>
+  );
+
+  if (tooltip) {
+    return <Tooltip content={tooltip}>{content}</Tooltip>;
+  }
+  return content;
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div className="px-4 md:px-6 mt-2 mb-4">
+      <h2 className="text-xl font-bold abfi-header-glow text-cyan-300">
+        {title}
+      </h2>
+    </div>
+  );
+}
+
+function Card({ children, className = "" }: { children: React.ReactNode, className?: string }) {
+  return (
+    <div className={`abfi-card-bg abfi-glow abfi-glow-hover rounded-xl p-5 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+function CardHeader({ title, right, color = "text-cyan-300" }: { 
+  title: string; 
+  right?: React.ReactNode;
+  color?: string;
 }) {
   return (
-    <div className={`flex items-center gap-2 rounded-md bg-white/5 px-3 py-1.5
-                    text-sm font-medium text-slate-100
-                    transition duration-200 ease-out
-                    ${glowClass}
-                    hover:brightness-125 hover:shadow-[0_0_8px_currentColor]
-                    focus-visible:brightness-125 focus-visible:shadow-[0_0_8px_currentColor]
-                    cursor-default`}>
-      <Icon className="h-5 w-5 opacity-90" />
-      <span className="text-[11px] uppercase tracking-wide text-slate-400 mr-1">{label}</span>
-      <span>{value}</span>
+    <div className="flex items-center justify-between pb-3 mb-4 abfi-underline">
+      <h3 className={`text-base font-semibold abfi-header-glow ${color}`}>{title}</h3>
+      {right}
     </div>
   );
 }
 
 // Source status badge
-function SourceBadge({ id, status, label }: {
-  id: 'stormio' | 'db', 
-  status: 'ok' | 'stale' | 'error', 
+function SourceBadge({ id, status, label }: { 
+  id: 'stormio' | 'db',
+  status: 'ok' | 'stale' | 'error',
   label: string
 }) {
-  const styles = status === 'ok' ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30' :
-                 status === 'stale' ? 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30' :
+  const styles = status === 'ok' ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30' : 
+                 status === 'stale' ? 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30' : 
                                      'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30';
   const text = status === 'ok' ? 'Live' : status === 'stale' ? 'Stale' : 'Error';
   return (
@@ -71,22 +108,15 @@ function SourceBadge({ id, status, label }: {
 function EmptyCard({ label }: { label: string }) {
   return (
     <div className="h-full flex items-center justify-center text-center text-sm text-slate-400/80">
-      No {label.toLowerCase()} available yet
+      No {label.toLowerCase()} available yet.
     </div>
   );
 }
 
-// Helper to get moon phase icon
 const getMoonPhaseIcon = (phase: string) => {
   const phases: Record<string, string> = {
-    'New Moon': '🌑',
-    'Waxing Crescent': '🌒',
-    'First Quarter': '🌓',
-    'Waxing Gibbous': '🌔',
-    'Full Moon': '🌕',
-    'Waning Gibbous': '🌖',
-    'Last Quarter': '🌗',
-    'Waning Crescent': '🌘'
+    'New Moon': '🌑', 'Waxing Crescent': '🌒', 'First Quarter': '🌓', 'Waxing Gibbous': '🌔',
+    'Full Moon': '🌕', 'Waning Gibbous': '🌖', 'Last Quarter': '🌗', 'Waning Crescent': '🌘'
   };
   return phases[phase] || '🌔';
 };
@@ -95,7 +125,6 @@ export default function TrendsMode() {
   const { selectedInletId } = useAppState();
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
   
-  // Sync inlet from URL on mount
   useInletFromURL();
   
   const [timeRange, setTimeRange] = useState<TimeRange>('1d');
@@ -103,7 +132,6 @@ export default function TrendsMode() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Fetch trends data
   const fetchTrendsData = async () => {
     if (!selectedInletId) return;
     
@@ -126,12 +154,10 @@ export default function TrendsMode() {
     }
   };
   
-  // Fetch on mount and when dependencies change
   useEffect(() => {
     fetchTrendsData();
   }, [selectedInletId, timeRange]);
   
-  // Listen for report-posted events
   useEffect(() => {
     const handleReportPosted = () => {
       console.log('[Trends] Refreshing on report-posted event');
@@ -148,133 +174,101 @@ export default function TrendsMode() {
       <HeaderBar activeMode="trends" />
       
       {/* Main content area with plenty of breathing room */}
-      <div className="pt-32 h-full overflow-y-auto px-4 md:px-6 pb-8">
-        {/* Compact Ocean Intelligence Overview */}
-        <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-sm px-4 py-1.5 border border-white/5 mb-6">
-          <div className="flex items-center gap-3 justify-between">
-            <div className="flex items-center gap-4">
-              <Tooltip content="Live ocean snapshot for your inlet: moon, tides, SST, wind, pressure, sun.">
-                <h2 className="text-sm font-semibold tracking-wide uppercase cursor-help
-                           bg-gradient-to-r from-cyan-400/80 to-teal-400/80
-                           bg-clip-text text-transparent drop-shadow">
-                  Ocean Intelligence Overview
-                </h2>
-              </Tooltip>
-
-              {/* Time range selector - now left-aligned */}
-              <div className="flex items-center gap-1">
-                {(['1d', '7d', '14d'] as TimeRange[]).map((range) => (
-                  <button
-                    key={range}
-                    onClick={() => setTimeRange(range)}
-                    className={`px-2.5 py-1 text-xs rounded-md transition-all ${
-                      timeRange === range
-                        ? 'bg-cyan-400/20 text-cyan-300 ring-1 ring-cyan-400/30'
-                        : 'text-slate-300/70 hover:text-white'
-                    }`}
-                  >
-                    {range === '1d' ? 'Today' : range === '7d' ? '7 Days' : '14 Days'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Source status badges */}
-              <SourceBadge 
-                id="stormio" 
-                status={trendsData?.sources?.find(s => s.id === 'stormio')?.status || 'error'} 
-                label="Stormio" 
-              />
-              <SourceBadge 
-                id="db" 
-                status={trendsData?.sources?.find(s => s.id === 'db')?.status || 'error'} 
-                label="ABFI DB" 
-              />
-
-              {/* Refresh button */}
-              <button
-                onClick={fetchTrendsData}
-                disabled={loading}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
-              >
-                <RefreshCw className={`h-4 w-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-          </div>
-
-          {/* Metrics row */}
+      <div className="pt-32 h-full overflow-y-auto">
+        {/* Pills Bar - directly under command tabs */}
+        <PillsBar>
           {trendsData?.envBar && (
-            <div className="flex items-center gap-2 mt-2 overflow-x-auto pb-1">
-              <Tooltip content="Moon phase and illumination. Major phases boost tidal movement.">
-                <div>
-                  <MetricPill 
-                    icon={Moon} 
-                    label="Moon" 
-                    value={`${getMoonPhaseIcon(trendsData.envBar.moon.phase)} ${trendsData.envBar.moon.illumPct}%`} 
-                    glowClass="text-blue-300 shadow-[0_0_6px_rgba(147,197,253,0.35)]"
-                  />
-                </div>
-              </Tooltip>
-              <Tooltip content="Next tide event at local time. Bite windows often bracket tide changes.">
-                <div>
-                  <MetricPill 
-                    icon={Waves} 
-                    label="Next Tide" 
-                    value={`${trendsData.envBar.nextTide.type} · ${fmt(trendsData.envBar.nextTide.timeIso)}`} 
-                    glowClass="text-cyan-300 shadow-[0_0_6px_rgba(34,211,238,0.35)]"
-                  />
-                </div>
-              </Tooltip>
+            <>
+              <MoonPill 
+                icon={Moon} 
+                label="Moon" 
+                value={`${getMoonPhaseIcon(trendsData.envBar.moon.phase)} ${trendsData.envBar.moon.illumPct}%`}
+                tooltip="Moon phase and illumination. Major phases boost tidal movement."
+              />
+              <MoonPill 
+                icon={Waves} 
+                label="Next Tide" 
+                value={`${trendsData.envBar.nextTide.type} · ${fmt(trendsData.envBar.nextTide.timeIso)}`}
+                tooltip="Next tide event at local time. Bite windows often bracket tide changes."
+              />
               {trendsData.envBar.weather?.sstC !== undefined && (
-                <Tooltip content="Sea surface temperature in °F from Stormio. Converted from °C.">
-                  <div>
-                    <MetricPill 
-                      icon={Thermometer} 
-                      label="SST" 
-                      value={`${toF(trendsData.envBar.weather.sstC)}°F`} 
-                      glowClass="text-teal-300 shadow-[0_0_6px_rgba(20,184,166,0.35)]"
-                    />
-                  </div>
-                </Tooltip>
+                <MoonPill 
+                  icon={Thermometer} 
+                  label="SST" 
+                  value={`${toF(trendsData.envBar.weather.sstC)}°F`}
+                  tooltip="Sea surface temperature in °F from Stormio. Converted from °C."
+                />
               )}
               {trendsData.envBar.weather?.windKt !== undefined && (
-                <Tooltip content="Wind speed in knots and cardinal direction.">
-                  <div>
-                    <MetricPill 
-                      icon={Wind} 
-                      label="Wind" 
-                      value={`${trendsData.envBar.weather.windKt} kt ${trendsData.envBar.weather.windDir || ''}`} 
-                      glowClass="text-yellow-300 shadow-[0_0_6px_rgba(250,204,21,0.35)]"
-                    />
-                  </div>
-                </Tooltip>
+                <MoonPill 
+                  icon={Wind} 
+                  label="Wind" 
+                  value={`${trendsData.envBar.weather.windKt} kt ${trendsData.envBar.weather.windDir || ''}`}
+                  tooltip="Wind speed in knots and cardinal direction."
+                />
               )}
               {trendsData.envBar.weather?.pressureHpa !== undefined && (
-                <Tooltip content="Barometric pressure (mb). ↑ rising, ↓ falling, → steady.">
-                  <div>
-                    <MetricPill 
-                      icon={Gauge} 
-                      label="Pressure" 
-                      value={`${trendsData.envBar.weather.pressureHpa} mb ${trendArrow(trendsData.envBar.weather.pressureTrend || 'steady')}`} 
-                      glowClass="text-green-300 shadow-[0_0_6px_rgba(134,239,172,0.35)]"
-                    />
-                  </div>
-                </Tooltip>
+                <MoonPill 
+                  icon={Gauge} 
+                  label="Pressure" 
+                  value={`${trendsData.envBar.weather.pressureHpa} mb ${trendArrow(trendsData.envBar.weather.pressureTrend || 'steady')}`}
+                  tooltip="Barometric pressure (mb). ↑ rising, ↓ falling, → steady."
+                />
               )}
-              <Tooltip content="Sunrise / Sunset for today at your selected inlet.">
-                <div>
-                  <MetricPill 
-                    icon={Sun} 
-                    label="Sun" 
-                    value={`↑${fmt(trendsData.envBar.sun.sunriseIso)} / ↓${fmt(trendsData.envBar.sun.sunsetIso)}`} 
-                    glowClass="text-amber-300 shadow-[0_0_6px_rgba(251,191,36,0.35)]"
-                  />
-                </div>
-              </Tooltip>
-            </div>
+              <MoonPill 
+                icon={Sun} 
+                label="Sun" 
+                value={`↑${fmt(trendsData.envBar.sun.sunriseIso)} / ↓${fmt(trendsData.envBar.sun.sunsetIso)}`}
+                tooltip="Sunrise / Sunset for today at your selected inlet."
+              />
+            </>
           )}
-        </div>
+          
+          {/* Time range selector and source badges */}
+          <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {(['1d', '7d', '14d'] as TimeRange[]).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={`px-2.5 py-1 text-xs rounded-md transition-all ${
+                    timeRange === range
+                      ? 'bg-cyan-400/20 text-cyan-300 ring-1 ring-cyan-400/30'
+                      : 'text-slate-300/70 hover:text-white'
+                  }`}
+                >
+                  {range === '1d' ? 'Today' : range === '7d' ? '7 Days' : '14 Days'}
+                </button>
+              ))}
+            </div>
+            
+            {trendsData && (
+              <>
+                <SourceBadge 
+                  id="stormio" 
+                  status={trendsData?.sources?.find(s => s.id === 'stormio')?.status || 'error'} 
+                  label="Stormio" 
+                />
+                <SourceBadge 
+                  id="db" 
+                  status={trendsData?.sources?.find(s => s.id === 'db')?.status || 'error'} 
+                  label="ABFI DB" 
+                />
+              </>
+            )}
+            
+            <button
+              onClick={fetchTrendsData}
+              disabled={loading}
+              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </PillsBar>
+        
+        {/* Section Header - separated from pills */}
+        <SectionHeader title="OCEAN INTELLIGENCE OVERVIEW" />
         
         {/* Loading state */}
         {loading && (
@@ -285,28 +279,28 @@ export default function TrendsMode() {
         
         {/* Error state */}
         {error && (
-          <div className="rounded-xl bg-red-900/20 border border-red-500/20 p-4 mb-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-red-300">Error Loading Data</h3>
-                <p className="text-sm text-red-300/70 mt-1">{error}</p>
+          <div className="px-4 md:px-6">
+            <div className="rounded-xl bg-red-900/20 border border-red-500/20 p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-red-300">Error Loading Data</h3>
+                  <p className="text-sm text-red-300/70 mt-1">{error}</p>
+                </div>
               </div>
             </div>
           </div>
         )}
         
-        {/* Main content grid */}
+        {/* Cards Grid */}
         {!loading && !error && trendsData && (
-          <>
-            {/* Top row - Tide and Bite Prediction */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="px-4 md:px-6 pb-8">
+            <div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2">
               {/* Tide Schedule */}
-              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[260px] hover:shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all duration-200">
-                <h3 className="text-sm font-semibold text-teal-300/90 mb-3">Tide Schedule</h3>
+              <Card className="h-[260px]">
+                <CardHeader title="Tide Schedule" color="text-teal-300" />
                 {trendsData.tideChart.events.length > 0 ? (
-                  <div className="h-[calc(100%-2rem)]">
-                    {/* Tide chart would go here */}
+                  <div className="h-[calc(100%-4rem)]">
                     <div className="grid grid-cols-2 gap-2">
                       {trendsData.tideChart.events.slice(0, 4).map((event, idx) => (
                         <div key={idx} className="rounded-lg bg-white/5 p-2">
@@ -320,16 +314,15 @@ export default function TrendsMode() {
                 ) : (
                   <EmptyCard label="tide data" />
                 )}
-              </div>
+              </Card>
               
               {/* Bite Prediction */}
-              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[260px] hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition-all duration-200">
-                <div className="flex items-center justify-between mb-1">
-                  <Tooltip content="Score combines tide phase, wind, pressure trend, SST vs season, time of day.">
-                    <h3 className="text-sm font-semibold text-amber-300/90 cursor-help">Bite Prediction</h3>
-                  </Tooltip>
-                  <span className="text-[10px] text-slate-400">Based on Stormio + ABFI heuristic</span>
-                </div>
+              <Card className="h-[260px]">
+                <CardHeader 
+                  title="Bite Prediction" 
+                  color="text-amber-300"
+                  right={<span className="text-[10px] text-slate-400">Based on Stormio + ABFI heuristic</span>}
+                />
                 
                 {trendsData.bitePrediction.best && (
                   <div className="mb-3 p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
@@ -363,19 +356,16 @@ export default function TrendsMode() {
                     );
                   })}
                 </div>
-              </div>
-            </div>
-            
-            {/* Bottom row - Activity Charts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+              </Card>
+              
               {/* Today's Activity */}
-              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[220px] hover:shadow-[0_0_20px_rgba(52,211,153,0.3)] transition-all duration-200">
-                <h3 className="text-sm font-semibold text-emerald-300/90 mb-3">
-                  {timeRange === '1d' ? "Today's" : timeRange === '7d' ? 'Weekly' : '2-Week'} ABFI Community Activity
-                </h3>
+              <Card className="h-[220px]">
+                <CardHeader 
+                  title={`${timeRange === '1d' ? "Today's" : timeRange === '7d' ? 'Weekly' : '2-Week'} ABFI Community Activity`}
+                  color="text-emerald-300"
+                />
                 {trendsData.activitySeries.length > 0 ? (
                   <div className="h-32">
-                    {/* Activity chart would go here */}
                     <div className="text-xs text-slate-400">
                       {trendsData.activitySeries.reduce((sum, d) => sum + d.reports, 0)} reports from the community
                     </div>
@@ -383,13 +373,14 @@ export default function TrendsMode() {
                 ) : (
                   <EmptyCard label="activity data" />
                 )}
-              </div>
+              </Card>
               
               {/* Species Distribution */}
-              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[220px] hover:shadow-[0_0_20px_rgba(52,211,153,0.3)] transition-all duration-200">
-                <h3 className="text-sm font-semibold text-emerald-300/90 mb-3">
-                  ABFI Community Species Activity
-                </h3>
+              <Card className="h-[220px]">
+                <CardHeader 
+                  title="ABFI Community Species Activity"
+                  color="text-emerald-300"
+                />
                 {trendsData.speciesDistribution.length > 0 ? (
                   <div className="space-y-2">
                     {trendsData.speciesDistribution.slice(0, 5).map((species) => (
@@ -398,16 +389,16 @@ export default function TrendsMode() {
                           <Fish className="h-3 w-3 text-cyan-400" />
                           <span className="text-sm text-slate-300">{species.name}</span>
                         </div>
-                        <span className="text-xs text-slate-400">{species.pct}%</span>
+                        <span className="text-sm text-slate-300">{species.pct}%</span>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <EmptyCard label="species data" />
                 )}
-              </div>
+              </Card>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

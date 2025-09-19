@@ -487,3 +487,33 @@ html, body, #__next {
 .animate-scroll-left {
   animation: scroll-left 30s linear infinite;
 }
+
+/* ABFI Trends Page Design System */
+@layer utilities {
+  .abfi-glow {
+    /* SAME as moon pill baseline */
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.7);
+  }
+  .abfi-glow-hover {
+    transition: box-shadow .25s ease, transform .25s ease;
+  }
+  .abfi-glow-hover:hover {
+    /* Intensified version of the SAME glow */
+    box-shadow: 0 0 16px rgba(34, 211, 238, 1);
+    transform: translateY(-2px);
+  }
+
+  .abfi-card-bg {
+    /* match your pill bg */
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+  }
+
+  .abfi-header-glow {
+    text-shadow: 0 0 6px rgba(34, 211, 238, 0.8);
+  }
+
+  .abfi-underline {
+    border-bottom: 1px solid rgba(34, 211, 238, 0.4);
+  }
+}
