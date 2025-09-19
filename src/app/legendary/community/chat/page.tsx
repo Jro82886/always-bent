@@ -6,8 +6,7 @@ import { MOCK_ROOMS } from '@/mocks/chat';
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 
-// Force dynamic rendering for this page
-export const runtime = 'nodejs';
+// Dynamic imports handle client-side rendering
 export const dynamic = 'force-dynamic';
 
 // Dynamically import components that might use navigation hooks

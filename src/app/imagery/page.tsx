@@ -1,7 +1,7 @@
 'use client';
 
 import { MapShell } from '@/lib/MapRef';
-import NavTabs from '@/components/NavTabs';
+import NavTabsWrapper from '@/components/NavTabsWrapper';
 import TopHUD from '@/components/TopHUD';
 import StatusPill from '@/components/StatusPill';
 import RequireUsername from '@/components/RequireUsername';
@@ -15,7 +15,7 @@ export default function ImageryPage() {
     <MapShell>
       {/* Glass overlay */}
       <div className="pointer-events-none absolute inset-0">
-        <NavTabs />
+        <NavTabsWrapper />
         <TopHUD includeAbfi={false} />
         <div className="absolute right-3 bottom-3 pointer-events-none">
           <StatusPill />

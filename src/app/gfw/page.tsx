@@ -2,7 +2,7 @@
 
 import TopHUD from '@/components/TopHUD';
 import RequireUsername from '@/components/RequireUsername';
-import NavTabs from '@/components/NavTabs';
+import NavTabsWrapper from '@/components/NavTabsWrapper';
 
 export default function GfwPage() {
   const placeholder = 'https://example.com';
@@ -10,7 +10,7 @@ export default function GfwPage() {
     <RequireUsername>
     <main className="h-screen w-screen bg-gray-950 text-white">
       <div className="pointer-events-none absolute inset-0">
-        <NavTabs />
+        <NavTabsWrapper />
         <TopHUD includeAbfi={false} />
       </div>
       <div className="absolute inset-0 top-0">
