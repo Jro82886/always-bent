@@ -1,0 +1,16 @@
+🔵 FINAL CHL TURBO ENVIRONMENT VARIABLE FOR VERCEL
+================================================
+
+Add/Update this in Vercel Dashboard:
+
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/cmems_obs-oc_glo_bgc-plankton_nrt_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:turbo&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+
+This is the CONFIRMED WORKING configuration:
+- Uses OCEANCOLOUR_GLO_BGC_L4_NRT_009_102 (Near Real Time)
+- Style: cmap:turbo (BLUE palette)
+- Format: WMTS query parameters (not REST)
+
+After adding to Vercel:
+1. Save and redeploy
+2. Run fix-chl-display-now.js in browser console
+3. CHL should display with blue palette
