@@ -18,7 +18,6 @@ import {
   Thermometer,
   Leaf
 } from 'lucide-react';
-import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
 import ContoursLayer from '@/components/layers/ContoursLayer';
 import CHLGreenTintLayer from '@/components/layers/CHLGreenTintLayer';
@@ -273,8 +272,8 @@ export default function LeftZone({
                   </div>
                   <div className="flex justify-between text-[10px] text-gray-400 mt-1">
                     <span>32°F</span>
-                    <span>59°F</span>
-                    <span>86°F</span>
+                    <span className="ml-1">59°F</span>
+                    <span className="text-red-400">86°F</span>
                   </div>
                 </div>
               )}
@@ -627,7 +626,6 @@ export default function LeftZone({
         </div>
         
         {/* SST LEGEND - Show when SST is active */}
-        {sstActive && <SSTLegend visible={true} />}
         
         {/* COMMERCIAL VESSELS TOGGLE */}
         {setShowCommercial && (
