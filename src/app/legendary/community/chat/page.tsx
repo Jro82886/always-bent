@@ -1,31 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import dynamic from 'next/dynamic';
+import dynamicLoad from 'next/dynamic';
 import { MOCK_ROOMS } from '@/mocks/chat';
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 
-// Components are dynamically imported with ssr: false to handle client-side rendering
+// Force dynamic rendering for this page
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Dynamically import components that might use navigation hooks
-const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
+const RoomSidebar = dynamicLoad(() => import('@/components/chat/RoomSidebar'), {
   ssr: false,
   loading: () => <div className="w-64 bg-slate-900 animate-pulse" />
 });
 
-const ChatWindow = dynamic(() => import('@/components/chat/ChatWindow'), {
+const ChatWindow = dynamicLoad(() => import('@/components/chat/ChatWindow'), {
   ssr: false,
   loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
 });
 
-const ContextPanel = dynamic(() => import('@/components/chat/ContextPanel'), {
+const ContextPanel = dynamicLoad(() => import('@/components/chat/ContextPanel'), {
   ssr: false,
   loading: () => <div className="w-80 bg-slate-900 animate-pulse" />
 });
 
-const WeatherHeader = dynamic(() => import('@/components/chat/WeatherHeader'), {
+const WeatherHeader = dynamicLoad(() => import('@/components/chat/WeatherHeader'), {
   ssr: false
 });
 
