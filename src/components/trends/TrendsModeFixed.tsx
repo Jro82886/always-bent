@@ -329,7 +329,7 @@ export default function TrendsMode() {
                   </Tooltip>
                   {['Morning', 'Midday', 'Afternoon', 'Evening'].map((period) => {
                     const data = trendsData.bitePrediction.periods.find(p => p.label === period);
-                    const score = data?.score || 0;
+                    const score = data?.activityPct ? data.activityPct / 100 : 0;
                     const pct = Math.round(score * 100);
                     
                     return (

@@ -23,7 +23,7 @@ import ContoursLayer from '@/components/layers/ContoursLayer';
 import CHLGreenTintLayer from '@/components/layers/CHLGreenTintLayer';
 // Removed CHLHighlightLayer import - replaced with Green Tint
 // Removed CHLEdgesLayer import - edge detection button removed
-import { Tooltip } from '@/components/ui/Tooltip';
+import Tooltip from '@/components/ui/Tooltip';
 import { ToggleCard } from '@/components/ui/ToggleCard';
 
 interface LeftZoneProps {
