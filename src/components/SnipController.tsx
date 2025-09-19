@@ -48,11 +48,92 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     // Get vessel tracks in the area
     const vesselData = await getVesselTracksInArea(polygonFeature, map);
     
+    // STEP 1: Zoom to polygon bounds for visualization
+    const bbox = turf.bbox(polygon);
+    const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]] as [[number, number], [number, number]];
     
-    // Smooth delay before showing analyzing state
+    // Fit map to polygon with padding
+    map.fitBounds(bounds, {
+      padding: { top: 100, bottom: 100, left: 100, right: 100 },
+      duration: 1000
+    });
+    
+    // Add vessel tracks visualization if any found
+    if (vesselData.tracks && vesselData.tracks.length > 0) {
+      // Add vessel tracks to map
+      vesselData.tracks.forEach((track, idx) => {
+        const sourceId = `vessel-track-${idx}`;
+        const layerId = `vessel-track-layer-${idx}`;
+        
+        // Remove if exists
+        if (map.getLayer(layerId)) map.removeLayer(layerId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+        
+        // Add track line
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: track.points
+            },
+            properties: {
+              type: track.type,
+              vessel_name: track.vessel_name || 'Unknown'
+            }
+          }
+        });
+        
+        map.addLayer({
+          id: layerId,
+          type: 'line',
+          source: sourceId,
+          paint: {
+            'line-color': track.type === 'gfw' ? '#3B82F6' : '#10B981', // Blue for commercial, green for recreational
+            'line-width': track.type === 'gfw' ? 3 : 2,
+            'line-opacity': 0.8
+          }
+        });
+      });
+      
+      // Add vessel legend
+      const legendDiv = document.createElement('div');
+      legendDiv.id = 'vessel-legend';
+      legendDiv.style.cssText = 'position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 8px; color: white; font-size: 12px; z-index: 1000;';
+      legendDiv.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 8px;">Vessel Tracks (Last 4 days)</div>
+        <div style="display: flex; align-items: center; margin-bottom: 4px;">
+          <div style="width: 20px; height: 3px; background: #3B82F6; margin-right: 8px;"></div>
+          <span>Commercial (GFW)</span>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <div style="width: 20px; height: 2px; background: #10B981; margin-right: 8px;"></div>
+          <span>Recreational</span>
+        </div>
+      `;
+      document.body.appendChild(legendDiv);
+    }
+    
+    // Wait for user to inspect the visualization
     setTimeout(() => {
       setIsAnalyzing(true);
-    }, 300); // Small delay for smooth transition
+      
+      // Clean up vessel tracks and legend after delay
+      setTimeout(() => {
+        // Remove vessel tracks
+        vesselData.tracks?.forEach((_, idx) => {
+          const layerId = `vessel-track-layer-${idx}`;
+          const sourceId = `vessel-track-${idx}`;
+          if (map.getLayer(layerId)) map.removeLayer(layerId);
+          if (map.getSource(sourceId)) map.removeSource(sourceId);
+        });
+        
+        // Remove legend
+        const legend = document.getElementById('vessel-legend');
+        if (legend) legend.remove();
+      }, 3000); // Keep visualization for 3 seconds
+    }, 2000); // Wait 2 seconds before starting analysis
     
     // Detect which layers are currently active
     const activeLayers = {
@@ -138,6 +219,57 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           const boostFactor = Math.min(1.3, 1 + (boatActivity.hotspot_weight * 0.3));
           analysis.hotspot.confidence = Math.min(0.95, analysis.hotspot.confidence * boostFactor);
         }
+      }
+      
+      // STEP 2: Show hotspot marker if detected
+      if (analysis.hotspot && analysis.hotspot.location) {
+        setHotspotPosition(analysis.hotspot.location);
+        setShowHotspot(true);
+        
+        // Add hotspot marker to map
+        const el = document.createElement('div');
+        el.className = 'hotspot-marker';
+        el.style.cssText = `
+          width: 30px;
+          height: 30px;
+          background: radial-gradient(circle, rgba(239,68,68,0.8) 0%, rgba(239,68,68,0.4) 50%, transparent 70%);
+          border-radius: 50%;
+          animation: pulse 2s infinite;
+          cursor: pointer;
+        `;
+        
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        `;
+        document.head.appendChild(style);
+        
+        new (map as any).Marker(el)
+          .setLngLat(analysis.hotspot.location)
+          .addTo(map);
+          
+        // Add confidence label
+        const confidenceEl = document.createElement('div');
+        confidenceEl.style.cssText = `
+          position: absolute;
+          top: -25px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0,0,0,0.8);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: bold;
+          white-space: nowrap;
+        `;
+        confidenceEl.textContent = `${Math.round(analysis.hotspot.confidence * 100)}% Confidence`;
+        el.appendChild(confidenceEl);
       }
       
       // Get current weather and moon phase data
