@@ -55,8 +55,16 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     // Fit map to polygon with padding
     map.fitBounds(bounds, {
       padding: { top: 100, bottom: 100, left: 100, right: 100 },
-      duration: 1000
+      duration: 1000,
+      essential: true // Ensures animation completes
     });
+    
+    // Also listen for zoom end to ensure it completes
+    const onZoomEnd = () => {
+      console.log('Zoom animation completed');
+      map.off('zoomend', onZoomEnd);
+    };
+    map.once('zoomend', onZoomEnd);
     
     // Wait for zoom to complete before adding tracks
     setTimeout(() => {
@@ -122,7 +130,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       `;
       document.body.appendChild(legendDiv);
       }
-    }, 1100); // Wait for zoom to complete (1000ms) + buffer
+    }, 1200); // Wait for zoom to complete (1000ms) + buffer
     
     // Wait for user to inspect the visualization
     setTimeout(() => {
@@ -141,8 +149,8 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         // Remove legend
         const legend = document.getElementById('vessel-legend');
         if (legend) legend.remove();
-      }, 3000); // Keep visualization for 3 seconds
-    }, 2000); // Wait 2 seconds before starting analysis
+      }, 4000); // Keep visualization for 4 seconds
+    }, 3500); // Wait 3.5 seconds before starting analysis (1.2s zoom + 2.3s viewing)
     
     // Detect which layers are currently active
     const activeLayers = {
