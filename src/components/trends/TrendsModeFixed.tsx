@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
+import HeaderBar from '@/components/CommandBridge/HeaderBar';
+import { useInletFromURL } from '@/hooks/useInletFromURL';
 
 interface TideData {
   type: 'high' | 'low';
@@ -38,6 +40,10 @@ interface EnvironmentalData {
 export default function TrendsModeFixed() {
   const { selectedInletId } = useAppState();
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+  
+  // Sync inlet from URL on mount
+  useInletFromURL();
+  
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
   const [environmentalData, setEnvironmentalData] = useState<EnvironmentalData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -147,8 +153,11 @@ export default function TrendsModeFixed() {
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 overflow-hidden">
+      {/* Command Bridge Header */}
+      <HeaderBar activeMode="trends" />
+      
       {/* Clean Header - Everything at a Glance */}
-      <div className="absolute top-20 left-0 right-0 z-40 px-6">
+      <div className="absolute top-32 left-0 right-0 z-30 px-6">
         <div className="bg-black/40 backdrop-blur-xl rounded-xl border border-cyan-500/20 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Anchor, Ship, User, MapPin, Loader2, ChevronRight, Waves, Fish } from 'lucide-react';
+import { Ship, User, MapPin, Loader2, ChevronRight, Waves, Fish } from 'lucide-react';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase/client';
 // Removed old auth - external developer handling this now
 // import { saveUserProfile, upsertProfileDirect } from '@/lib/supabase/profiles';
@@ -147,7 +148,7 @@ export default function LegendaryWelcomePage() {
             <div className="text-center mb-8">
               <div className="flex justify-center mb-4">
                 <div className="p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl backdrop-blur-sm border border-cyan-500/30">
-                  <Anchor className="w-12 h-12 text-cyan-400" />
+                  <Image src="/brand/globe.svg" alt="ABFI" width={48} height={48} className="drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">

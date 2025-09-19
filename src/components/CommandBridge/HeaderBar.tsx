@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Anchor } from 'lucide-react';
+import Image from 'next/image';
 import WelcomeChip from './WelcomeChip';
 import InletChip from './InletChip';
+import Tabs from './Tabs';
 import { useAppState } from '@/store/appState';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 
@@ -65,7 +66,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
             onClick={handleBrandClick}
             className="px-6 flex items-center gap-2 h-full hover:bg-cyan-500/5 transition-colors cursor-pointer"
           >
-            <Anchor className="w-5 h-5 text-cyan-400" />
+            <Image src="/brand/globe.svg" alt="ABFI" width={28} height={28} className="drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
             <div className="flex flex-col">
               <div className="text-xs font-bold text-cyan-100"
                    style={{ 
@@ -97,30 +98,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           <div className="h-full w-px bg-cyan-500/10" />
           
           {/* Tabs (left-aligned) */}
-          <div className="flex h-full">
-            {Object.keys(TAB_MODES).map((tab) => {
-              const isActive = tab === currentTab;
-              
-              return (
-                <button
-                  key={tab}
-                  onClick={() => handleTabChange(tab)}
-                  className={`
-                    px-6 h-full transition-all relative group
-                    ${isActive 
-                      ? 'bg-gradient-to-b from-cyan-500/10 to-transparent text-cyan-300' 
-                      : 'hover:bg-cyan-500/5 text-gray-400 hover:text-cyan-300'
-                    }
-                  `}
-                >
-                  <span className="text-sm font-medium">{tab}</span>
-                  {isActive && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          <Tabs activeMode={currentTab as 'analysis' | 'tracking' | 'community' | 'trends'} />
           
           {/* Spacer to push everything left */}
           <div className="flex-1" />
@@ -134,7 +112,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
               onClick={handleBrandClick}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <Anchor className="w-4 h-4 text-cyan-400" />
+              <Image src="/brand/globe.svg" alt="ABFI" width={24} height={24} className="drop-shadow-[0_0_6px_rgba(59,130,246,0.4)]" />
               <span className="text-xs font-bold text-cyan-100" style={{ letterSpacing: '0.1em' }}>
                 ALWAYS BENT
               </span>
@@ -177,7 +155,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
               onClick={handleBrandClick}
               className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <Anchor className="w-4 h-4 text-cyan-400" />
+              <Image src="/brand/globe.svg" alt="ABFI" width={24} height={24} className="drop-shadow-[0_0_6px_rgba(59,130,246,0.4)]" />
               <span className="text-[11px] font-bold text-cyan-100">ABFI</span>
             </button>
             <InletChip compact />
