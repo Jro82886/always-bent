@@ -14,6 +14,13 @@ interface AnalysisModalProps {
 }
 
 export default function AnalysisModal({ analysis, visible, onClose, onSave }: AnalysisModalProps) {
+  const handleClose = () => {
+    // Clean up any remaining visualization elements
+    if ((window as any).__cleanupSnipVisualization) {
+      (window as any).__cleanupSnipVisualization();
+    }
+    onClose();
+  };
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -60,7 +67,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   const modalContent = (
     <div 
       className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60"
-      onClick={onClose}
+      onClick={handleClose}
       style={{ pointerEvents: 'auto', display: 'flex' }}
       data-analysis-modal="true"
     >
@@ -462,11 +469,24 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         {/* Compact Footer Actions */}
         <div className="px-6 py-3 border-t border-cyan-500/20 flex justify-between items-center">
           <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"
+            onClick={() => {
+              handleClose();
+              // Trigger new snip after modal closes
+              setTimeout(() => {
+                const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
+                if (snipButton) {
+                  snipButton.click();
+                } else if ((window as any).startSnipping) {
+                  (window as any).startSnipping();
+                }
+              }, 300);
+            }}
+            className="px-4 py-2 text-sm bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-200 transition-all rounded-lg flex items-center gap-2 border border-cyan-500/20"
           >
-            <span>✂️</span>
-            <span>Back to Snipping</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" strokeDasharray="3 3" />
+            </svg>
+            <span>Snip Another Area</span>
           </button>
           
           <div className="flex gap-2">
@@ -480,7 +500,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               </button>
             )}
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="px-5 py-2 text-sm bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg font-semibold transition-all border border-cyan-500/30"
             >
               Done

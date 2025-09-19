@@ -136,8 +136,8 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     setTimeout(() => {
       setIsAnalyzing(true);
       
-      // Clean up vessel tracks and legend after delay
-      setTimeout(() => {
+      // Store cleanup function globally for modal to call
+      (window as any).__cleanupSnipVisualization = () => {
         // Remove vessel tracks
         vesselData.tracks?.forEach((_, idx) => {
           const layerId = `vessel-track-layer-${idx}`;
@@ -149,6 +149,17 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         // Remove legend
         const legend = document.getElementById('vessel-legend');
         if (legend) legend.remove();
+        
+        // Remove hotspot marker if exists
+        const hotspotMarkers = document.querySelectorAll('.hotspot-marker');
+        hotspotMarkers.forEach(m => m.remove());
+      };
+      
+      // Auto cleanup after delay
+      setTimeout(() => {
+        if ((window as any).__cleanupSnipVisualization) {
+          (window as any).__cleanupSnipVisualization();
+        }
       }, 4000); // Keep visualization for 4 seconds
     }, 3500); // Wait 3.5 seconds before starting analysis (1.2s zoom + 2.3s viewing)
     

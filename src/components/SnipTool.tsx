@@ -1446,15 +1446,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         transition: all 0.2s ease;
       `;
       tooltipEl.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600;">
           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke-width="2"/>
-            <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <span>🔵 Analysis Complete! 🔵</span>
+          <span style="color: #06b6d4;">Analysis Complete</span>
         </div>
         <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">
-          Click rectangle for ocean intelligence
+          Click to view ocean intelligence report
         </div>
       `;
       
@@ -1488,46 +1487,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       (window as any).__snippingTooltip = tooltipMarker;
     }
     
-    // Also show the temporary success banner
-    const hint = document.createElement('div');
-    hint.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 z-[99999] pointer-events-none';
-    hint.innerHTML = `
-      <div class="bg-gradient-to-r from-green-600/95 to-cyan-600/95 backdrop-blur-xl rounded-lg px-6 py-3 border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.5)] animate-[fadeInDown_0.4s_ease-out]">
-        <div class="flex items-center gap-3">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <div>
-            <p class="text-white font-semibold text-sm">Analysis Complete!</p>
-            <p class="text-green-100/80 text-xs">Click rectangle for ocean intelligence</p>
-          </div>
-        </div>
-      </div>
-    `;
+    // Skip duplicate banner - we already have the tooltip
     
-    // Add animation styles
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes fadeInDown {
-        0% { transform: translate(-50%, -100%); opacity: 0; }
-        100% { transform: translate(-50%, 0); opacity: 1; }
-      }
-      @keyframes fadeOutUp {
-        0% { transform: translate(-50%, 0); opacity: 1; }
-        100% { transform: translate(-50%, -100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-    document.body.appendChild(hint);
-    
-    // Auto remove after 3 seconds with fade out
-    setTimeout(() => {
-      hint.firstElementChild?.classList.remove('animate-[fadeInDown_0.4s_ease-out]');
-      hint.firstElementChild?.classList.add('animate-[fadeOutUp_0.3s_ease-out_forwards]');
-      setTimeout(() => {
-        hint.remove();
-      }, 300);
-    }, 3000);
   };
 
   return (
