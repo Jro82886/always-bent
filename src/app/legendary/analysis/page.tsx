@@ -25,8 +25,7 @@ import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import '@/styles/mapSmoothing.css';
 
-// Set Mapbox token
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
+// Mapbox token will be set in useEffect to avoid SSR issues
 
 function AnalysisModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -95,6 +94,9 @@ function AnalysisModeContent() {
   // Initialize map with cleanup
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
+
+    // Set Mapbox token here to avoid SSR issues
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
     // Clean up any existing map instances first
     const existingCanvas = mapContainer.current.querySelector('.mapboxgl-canvas');
