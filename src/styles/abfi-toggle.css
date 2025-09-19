@@ -1,0 +1,144 @@
+/* ABFI Toggle Card - Unified size contract for all toggles */
+
+.abfi-toggle {
+  /* Size contract — matches SST/CHL */
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 600;
+  background: var(--tone-bg);
+  border: 1px solid var(--tone-border);
+  color: var(--tone-fg);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.abfi-toggle .icon {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.abfi-toggle .label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.abfi-toggle .right {
+  margin-left: 8px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+/* Active/hover states */
+.abfi-toggle:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.abfi-toggle.is-active {
+  background: var(--tone-bg-active);
+  border-color: var(--tone-border-active);
+  color: var(--tone-fg-active);
+  box-shadow: 
+    0 0 0 2px var(--tone-glow) inset, 
+    0 0 16px var(--tone-glow),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Tone definitions */
+.tone-sst {
+  --tone-bg: #1f2937;
+  --tone-border: rgba(255, 255, 255, 0.08);
+  --tone-fg: #9ca3af;
+  --tone-bg-active: rgba(249, 115, 22, 0.1);
+  --tone-border-active: rgba(249, 115, 22, 0.3);
+  --tone-fg-active: #fb923c;
+  --tone-glow: rgba(249, 115, 22, 0.4);
+}
+
+.tone-chl {
+  --tone-bg: #1f2937;
+  --tone-border: rgba(255, 255, 255, 0.08);
+  --tone-fg: #9ca3af;
+  --tone-bg-active: rgba(34, 197, 94, 0.1);
+  --tone-border-active: rgba(34, 197, 94, 0.3);
+  --tone-fg-active: #4ade80;
+  --tone-glow: rgba(34, 197, 94, 0.4);
+}
+
+.tone-ocean {
+  --tone-bg: #1f2937;
+  --tone-border: rgba(255, 255, 255, 0.08);
+  --tone-fg: #9ca3af;
+  --tone-bg-active: rgba(139, 92, 246, 0.1);
+  --tone-border-active: rgba(139, 92, 246, 0.3);
+  --tone-fg-active: #a78bfa;
+  --tone-glow: rgba(139, 92, 246, 0.4);
+}
+
+.tone-orange {
+  --tone-bg: #1f2937;
+  --tone-border: rgba(255, 255, 255, 0.08);
+  --tone-fg: #9ca3af;
+  --tone-bg-active: rgba(251, 146, 60, 0.1);
+  --tone-border-active: rgba(251, 146, 60, 0.3);
+  --tone-fg-active: #fdba74;
+  --tone-glow: rgba(251, 146, 60, 0.4);
+}
+
+.tone-teal {
+  --tone-bg: #1f2937;
+  --tone-border: rgba(255, 255, 255, 0.08);
+  --tone-fg: #9ca3af;
+  --tone-bg-active: rgba(20, 184, 166, 0.1);
+  --tone-border-active: rgba(20, 184, 166, 0.3);
+  --tone-fg-active: #5eead4;
+  --tone-glow: rgba(20, 184, 166, 0.4);
+}
+
+.tone-cyan {
+  --tone-bg: #1f2937;
+  --tone-border: rgba(255, 255, 255, 0.08);
+  --tone-fg: #9ca3af;
+  --tone-bg-active: rgba(6, 182, 212, 0.1);
+  --tone-border-active: rgba(6, 182, 212, 0.3);
+  --tone-fg-active: #67e8f9;
+  --tone-glow: rgba(6, 182, 212, 0.4);
+}
+
+.tone-lime {
+  --tone-bg: #1f2937;
+  --tone-border: rgba(255, 255, 255, 0.08);
+  --tone-fg: #9ca3af;
+  --tone-bg-active: rgba(132, 204, 22, 0.1);
+  --tone-border-active: rgba(132, 204, 22, 0.3);
+  --tone-fg-active: #bef264;
+  --tone-glow: rgba(132, 204, 22, 0.4);
+}
+
+/* Mobile responsive */
+@media (max-width: 420px) {
+  .abfi-toggle {
+    height: 42px;
+    font-size: 14px;
+    padding: 0 12px;
+  }
+  
+  .abfi-toggle .icon {
+    width: 16px;
+    height: 16px;
+  }
+}

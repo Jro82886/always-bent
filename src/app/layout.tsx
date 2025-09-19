@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import '@/styles/abfi-toggle.css';
 import { Geist, Geist_Mono } from 'next/font/google';
 import GuardsClient from '@/components/GuardsClient';
 import BiteSyncInitializer from '@/components/BiteSyncInitializer';

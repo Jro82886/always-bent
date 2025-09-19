@@ -15,14 +15,17 @@ import {
   Activity,
   MapPin,
   Waves,
-  Thermometer
+  Thermometer,
+  Leaf
 } from 'lucide-react';
 import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
 import ContoursLayer from '@/components/layers/ContoursLayer';
-import CHLHighlightLayer from '@/components/layers/CHLHighlightLayer';
+import CHLGreenTintLayer from '@/components/layers/CHLGreenTintLayer';
+// Removed CHLHighlightLayer import - replaced with Green Tint
 // Removed CHLEdgesLayer import - edge detection button removed
 import { Tooltip } from '@/components/ui/Tooltip';
+import { ToggleCard } from '@/components/ui/ToggleCard';
 
 interface LeftZoneProps {
   // Layer states
@@ -74,7 +77,7 @@ export default function LeftZone({
   const [showChlEnhance, setShowChlEnhance] = useState(false);
   const [chlContrast, setChlContrast] = useState(50);
   const [chlSaturation, setChlSaturation] = useState(50);
-  const [chlHue, setChlHue] = useState(0);  // Color tint adjustment (-30 to +30)
+  const [chlHue, setChlHue] = useState(0);  // Green tint intensity (0-100)
   // Removed chlEdges state - edge detection feature removed
   const [sstContours, setSstContours] = useState(false);  // Temperature contour lines
   const [showOceanOpacity, setShowOceanOpacity] = useState(false);
@@ -90,6 +93,14 @@ export default function LeftZone({
   const oceanOpacityRef = useRef<HTMLDivElement>(null);
   const dateSelectorRef = useRef<HTMLDivElement>(null);
   const layersPanelRef = useRef<HTMLDivElement>(null);
+  
+  // Initialize green tint from localStorage
+  useEffect(() => {
+    const savedTint = localStorage.getItem('chl_green_tint');
+    if (savedTint) {
+      setChlHue(parseInt(savedTint));
+    }
+  }, []);
   
   // Click outside handler - Smart closing for better UX
   useEffect(() => {
@@ -225,36 +236,31 @@ export default function LeftZone({
             <div className="px-4 pb-3 space-y-2">
               {/* SST Layer */}
               <div className="flex items-center gap-2">
-                <button
+                <ToggleCard
+                  icon={<Thermometer size={18} className="text-orange-300 drop-shadow-[0_0_6px_rgba(251,146,60,0.8)]" />}
+                  label="SST"
+                  active={sstActive}
+                  tone="sst"
                   onClick={() => toggleLayer('sst')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                    sstActive
-                      ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-                      : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Thermometer size={16} className="text-orange-300 drop-shadow-[0_0_6px_rgba(251,146,60,0.8)]" />
-                    SST
-                  </span>
-                </button>
-                <div className="flex gap-1 w-[40px] justify-end">
-                  {sstActive && (
-                    <Tooltip content="Enhancements" position="bottom">
-                      <button
-                        onClick={() => {
-                          setShowSstEnhance(!showSstEnhance);
-                          setShowSstOpacity(false);
-                          setShowChlOpacity(false);
-                          setShowChlEnhance(false);
-                        }}
-                        className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-teal-600/60 rounded hover:from-cyan-500/60 hover:to-teal-500/60 transition-colors"
-                      >
-                        <Sparkles size={12} className="text-white" />
-                      </button>
-                    </Tooltip>
-                  )}
-                </div>
+                  rightSlot={
+                    sstActive && (
+                      <Tooltip content="Enhancements" position="bottom">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSstEnhance(!showSstEnhance);
+                            setShowSstOpacity(false);
+                            setShowChlOpacity(false);
+                            setShowChlEnhance(false);
+                          }}
+                          className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-teal-600/60 rounded hover:from-cyan-500/60 hover:to-teal-500/60 transition-colors"
+                        >
+                          <Sparkles size={12} className="text-white" />
+                        </button>
+                      </Tooltip>
+                    )
+                  }
+                />
               </div>
               
               {/* Compact SST Temperature Legend - Only when SST is active */}
@@ -353,33 +359,31 @@ export default function LeftZone({
               
               {/* CHL Layer */}
               <div className="flex items-center gap-2">
-                <button
+                <ToggleCard
+                  icon={<Leaf size={18} className="text-green-300 drop-shadow-[0_0_6px_rgba(34,197,94,0.8)]" />}
+                  label="CHL"
+                  active={chlActive}
+                  tone="chl"
                   onClick={() => toggleLayer('chl')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                    chlActive
-                      ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                      : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
-                  }`}
-                >
-                  <span>🌿 CHL</span>
-                </button>
-                <div className="flex gap-1 w-[40px] justify-end">
-                  {chlActive && (
-                    <Tooltip content="Enhancements" position="bottom">
-                      <button
-                        onClick={() => {
-                          setShowChlEnhance(!showChlEnhance);
-                          setShowChlOpacity(false);
-                          setShowSstOpacity(false);
-                          setShowSstEnhance(false);
-                        }}
-                        className="p-1.5 bg-gradient-to-r from-green-600/60 to-teal-600/60 rounded hover:from-green-500/60 hover:to-teal-500/60 transition-colors"
-                      >
-                        <Sparkles size={12} className="text-white" />
-                      </button>
-                    </Tooltip>
-                  )}
-                </div>
+                  rightSlot={
+                    chlActive && (
+                      <Tooltip content="Enhancements" position="bottom">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowChlEnhance(!showChlEnhance);
+                            setShowChlOpacity(false);
+                            setShowSstOpacity(false);
+                            setShowSstEnhance(false);
+                          }}
+                          className="p-1.5 bg-gradient-to-r from-green-600/60 to-teal-600/60 rounded hover:from-green-500/60 hover:to-teal-500/60 transition-colors"
+                        >
+                          <Sparkles size={12} className="text-white" />
+                        </button>
+                      </Tooltip>
+                    )
+                  }
+                />
               </div>
               
               {/* CHL Opacity */}
@@ -458,8 +462,8 @@ export default function LeftZone({
                       <span className="text-[10px] text-gray-400 w-8">{chlSaturation}%</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Tooltip content="Highlights mid-range chlorophyll plumes (green). Does not affect base clarity." position="top">
-                        <span className="text-[10px] text-green-400 w-16 cursor-help">Mid-CHL Highlight</span>
+                      <Tooltip content="Adds a green tint proportional to chlorophyll. Keeps the base layer clear—just makes CHL easier to see." position="top">
+                        <span className="text-[10px] text-green-400 w-16 cursor-help">Green Tint</span>
                       </Tooltip>
                         <input
                           type="range"
@@ -469,15 +473,7 @@ export default function LeftZone({
                           onChange={(e) => {
                             const val = parseInt(e.target.value);
                             setChlHue(val);
-                            localStorage.setItem('chl_highlight', val.toString());
-                            // Reset base layer to normal appearance
-                            if (map?.getLayer('chl-lyr')) {
-                              map.setPaintProperty('chl-lyr', 'raster-hue-rotate', 0);
-                              map.setPaintProperty('chl-lyr', 'raster-contrast', 0.2);
-                              map.setPaintProperty('chl-lyr', 'raster-saturation', 0.3);
-                              map.setPaintProperty('chl-lyr', 'raster-opacity', chlOpacity / 100);
-                            }
-                            // Highlight is now handled by CHLHighlightLayer component
+                            localStorage.setItem('chl_green_tint', val.toString());
                           }}
                           className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
                           style={{
@@ -493,36 +489,31 @@ export default function LeftZone({
               
               {/* Ocean Basemap */}
               <div className="flex items-center gap-2">
-                <button
+                <ToggleCard
+                  icon={<Waves size={18} className="text-purple-300 drop-shadow-[0_0_6px_rgba(196,181,253,0.8)]" />}
+                  label="Ocean Floor"
+                  active={oceanActive}
+                  tone="ocean"
                   onClick={() => toggleLayer('ocean')}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                    oceanActive
-                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                      : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Waves size={16} className="text-purple-300 drop-shadow-[0_0_6px_rgba(196,181,253,0.8)]" />
-                    Ocean Floor
-                  </span>
-                </button>
-                <div className="flex gap-1 w-[76px] justify-end">
-                  {oceanActive && (
-                    <Tooltip content="Adjust opacity" position="bottom">
-                      <button
-                        onClick={() => {
-                          setShowOceanOpacity(!showOceanOpacity);
-                          setShowSstOpacity(false);
-                          setShowChlOpacity(false);
-                          setShowSstEnhance(false);
-                        }}
-                        className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
-                      >
-                        <Sliders size={12} className="text-cyan-400" />
-                      </button>
-                    </Tooltip>
-                  )}
-                </div>
+                  rightSlot={
+                    oceanActive && (
+                      <Tooltip content="Adjust opacity" position="bottom">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowOceanOpacity(!showOceanOpacity);
+                            setShowSstOpacity(false);
+                            setShowChlOpacity(false);
+                            setShowSstEnhance(false);
+                          }}
+                          className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
+                        >
+                          <Sliders size={12} className="text-cyan-400" />
+                        </button>
+                      </Tooltip>
+                    )
+                  }
+                />
               </div>
               
               {/* Ocean Opacity */}
@@ -611,56 +602,52 @@ export default function LeftZone({
         
         {/* COMMERCIAL VESSELS TOGGLE */}
         {setShowCommercial && (
-          <div className="bg-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-3">
-            <button
-              onClick={() => setShowCommercial(!showCommercial)}
-              className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-between ${
-                showCommercial
-                  ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-                  : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 hover:bg-gray-800/70 border border-gray-700/50'
-              }`}
-            >
-              <div className="flex items-center gap-2">
+          <div className="bg-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-3 space-y-2">
+            <ToggleCard
+              icon={
                 <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-sm">Commercial Vessels</span>
-              </div>
-              {showCommercial && (
-                <span className="text-xs text-orange-400">GFW</span>
-              )}
-            </button>
+              }
+              label="Commercial Vessels"
+              active={showCommercial}
+              tone="orange"
+              onClick={() => setShowCommercial(!showCommercial)}
+              rightSlot={showCommercial && <span className="text-xs text-orange-400">GFW</span>}
+            />
             
-            {/* Commercial Vessels Legend - Integrated into left panel */}
+            {/* Commercial Vessels Legend - Using ToggleCard for consistency */}
             {showCommercial && (
-              <div className="mt-2 pt-2 border-t border-orange-500/20">
-                <div className="space-y-1.5">
-                  {/* Trawlers */}
-                  <div className="flex items-center gap-2 pl-2">
-                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-orange-500" />
-                    <span className="text-[11px] text-cyan-100/80">Trawlers</span>
-                  </div>
-                  
-                  {/* Longliners */}
-                  <div className="flex items-center gap-2 pl-2">
-                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-purple-500" />
-                    <span className="text-[11px] text-cyan-100/80">Longliners</span>
-                  </div>
-                  
-                  {/* Drifting Gear */}
-                  <div className="flex items-center gap-2 pl-2">
-                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-yellow-500" />
-                    <span className="text-[11px] text-cyan-100/80">Drifting Gear</span>
-                  </div>
-                </div>
+              <div className="space-y-2 pl-2">
+                {/* Trawlers */}
+                <ToggleCard
+                  icon={<div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-orange-500" />}
+                  label="Trawlers"
+                  tone="orange"
+                  disabled
+                />
+                
+                {/* Longliners */}
+                <ToggleCard
+                  icon={<div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-purple-500" />}
+                  label="Longliners"
+                  tone="orange"
+                  disabled
+                />
+                
+                {/* Drifting Gear */}
+                <ToggleCard
+                  icon={<div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-yellow-500" />}
+                  label="Drifting Gear"
+                  tone="orange"
+                  disabled
+                />
                 
                 {/* Info */}
-                <div className="mt-2 pt-1">
-                  <p className="text-[10px] text-orange-300/70 pl-2">
-                    Global Fishing Watch data
-                  </p>
-                </div>
+                <p className="text-[10px] text-orange-300/70 pl-4 pt-1">
+                  Global Fishing Watch data
+                </p>
               </div>
             )}
           </div>
@@ -683,8 +670,8 @@ export default function LeftZone({
       
       {/* Render edge detection layers */}
       {sstContours && map && <ContoursLayer map={map} enabled={sstContours} />}
-      {/* CHL Highlight Layer - Crisp green plume highlighting */}
-      {chlActive && map && <CHLHighlightLayer map={map} enabled={chlHue > 0} intensity={chlHue} />}
+      {/* CHL Green Tint Layer - Value-weighted green overlay */}
+      {chlActive && map && <CHLGreenTintLayer map={map} enabled={chlHue > 0} intensity={chlHue} />}
     </div>
   );
 }
