@@ -52,11 +52,14 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     const bbox = turf.bbox(polygon);
     const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]] as [[number, number], [number, number]];
     
+    console.log('[SNIP] Starting zoom to bounds:', bounds);
+    
     // Fit map to polygon with padding
     map.fitBounds(bounds, {
       padding: { top: 100, bottom: 100, left: 100, right: 100 },
-      duration: 1000,
-      essential: true // Ensures animation completes
+      duration: 1500, // Increased duration
+      essential: true, // Ensures animation completes
+      animate: true // Force animation
     });
     
     // Also listen for zoom end to ensure it completes
@@ -130,10 +133,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       `;
       document.body.appendChild(legendDiv);
       }
-    }, 1200); // Wait for zoom to complete (1000ms) + buffer
+    }, 1700); // Wait for zoom to complete (1500ms) + buffer
     
     // Wait for user to inspect the visualization
     setTimeout(() => {
+      console.log('[SNIP] Starting analysis phase');
       setIsAnalyzing(true);
       
       // Store cleanup function globally for modal to call
@@ -160,8 +164,8 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         if ((window as any).__cleanupSnipVisualization) {
           (window as any).__cleanupSnipVisualization();
         }
-      }, 4000); // Keep visualization for 4 seconds
-    }, 3500); // Wait 3.5 seconds before starting analysis (1.2s zoom + 2.3s viewing)
+      }, 5000); // Keep visualization for 5 seconds
+    }, 4000); // Wait 4 seconds before starting analysis (1.5s zoom + 2.5s viewing)
     
     // Detect which layers are currently active
     const activeLayers = {
