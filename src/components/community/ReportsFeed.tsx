@@ -71,6 +71,12 @@ export default function ReportsFeed() {
   const { selectedInletId } = useAppState();
   const supabase = createClient();
   
+  // Get filter params from URL
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const activeTab = searchParams?.get('tab') || 'all';
+  const speciesFilter = searchParams?.get('species') || 'all';
+  const dateFilter = searchParams?.get('date') || 'week';
+  
   useEffect(() => {
     loadReports();
     
