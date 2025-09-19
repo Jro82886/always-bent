@@ -1,0 +1,17 @@
+🚨 RESTORE WORKING TURBO CHL - ADD TO VERCEL IMMEDIATELY
+
+Environment Variable to Add/Update in Vercel:
+============================================
+
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/cmems_obs-oc_glo_bgc-plankton_nrt_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:turbo&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+
+This is the WORKING turbo (blue) CHL layer that was stable before.
+
+Steps:
+1. Go to Vercel Dashboard
+2. Settings → Environment Variables
+3. Find CMEMS_CHL_WMTS_TEMPLATE
+4. Replace with the value above
+5. Save and redeploy
+
+This will restore the blue CHL layer that was working.
