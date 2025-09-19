@@ -243,7 +243,7 @@ export default function LeftZone({
                   onClick={() => toggleLayer('sst')}
                   rightSlot={
                     sstActive && (
-                      <Tooltip content="Enhancements" position="bottom">
+                      <Tooltip content="Enhancements" side="bottom">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -366,7 +366,7 @@ export default function LeftZone({
                   onClick={() => toggleLayer('chl')}
                   rightSlot={
                     chlActive && (
-                      <Tooltip content="Enhancements" position="bottom">
+                      <Tooltip content="Enhancements" side="bottom">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -461,7 +461,7 @@ export default function LeftZone({
                       <span className="text-[10px] text-gray-400 w-8">{chlSaturation}%</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Tooltip content="Adds a green tint proportional to chlorophyll. Keeps the base layer clear—just makes CHL easier to see." position="top">
+                      <Tooltip content="Adds a green tint proportional to chlorophyll. Keeps the base layer clear—just makes CHL easier to see." side="top">
                         <span className="text-[10px] text-green-400 w-16 cursor-help">Green Tint</span>
                       </Tooltip>
                         <input
@@ -525,7 +525,7 @@ export default function LeftZone({
                   onClick={() => toggleLayer('ocean')}
                   rightSlot={
                     oceanActive && (
-                      <Tooltip content="Adjust opacity" position="bottom">
+                      <Tooltip content="Adjust opacity" side="bottom">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
