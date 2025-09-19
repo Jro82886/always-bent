@@ -93,57 +93,33 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
   }, [showModal, onModalStateChange]);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
-    console.log('[SNIP DEBUG] handleAnalyze called');
-    if (!map || polygon.geometry.type !== 'Polygon') {
-      console.log('[SNIP DEBUG] Early return - map:', !!map, 'polygon type:', polygon.geometry.type);
-      return;
-    }
+    if (!map || polygon.geometry.type !== 'Polygon') return;
     
     // New run: cancel any prior timeouts
     const runId = ++snipRunId;
     clearSnipTimers();
-    console.log('[SNIP DEBUG] New run ID:', runId);
     
     // Type-safe cast to Polygon feature for vessel tracking
     const polygonFeature = polygon as GeoJSON.Feature<GeoJSON.Polygon>;
     
     // Get vessel tracks in the area
-    console.log('[SNIP DEBUG] Getting vessel tracks...');
     const vesselData = await getVesselTracksInArea(polygonFeature, map);
-    console.log('[SNIP DEBUG] Vessel data received:', vesselData.tracks?.length || 0, 'tracks');
     
     // STEP 1: Zoom to polygon bounds for visualization
     const bbox = turf.bbox(polygon);
     const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]] as [[number, number], [number, number]];
     
-    console.log('[SNIP] Starting zoom to bounds:', bounds);
-    console.log('[SNIP DEBUG] Current zoom:', map.getZoom(), 'Center:', map.getCenter());
-    
-    try {
-      await zoomToBounds(map, bounds, {
-        padding: { top: 100, bottom: 100, left: 100, right: 100 },
-        duration: 1500,
-        bearing: 0,
-        pitch: 0,
-      });
-      console.log('[SNIP] Zoom animation completed');
-    } catch (e) {
-      console.warn('[SNIP] Zoom failed, using jumpTo fallback:', e);
-      const b = (mapboxgl as any).LngLatBounds.convert(bounds);
-      const center = b.getCenter();
-      map.stop();
-      map.jumpTo({ center, zoom: Math.max(map.getZoom(), 8), bearing: 0, pitch: 0 });
-    }
+    // 🔥 Always await zoom before showing viz
+    await zoomToBounds(map, bounds);
     
     if (runId !== snipRunId) return; // aborted during await
     
     // VISUALIZATION strictly after zoom
     snipTimers.push(window.setTimeout(() => {
       if (runId !== snipRunId) return;
-      console.log('[SNIP] Showing vessel visualization');
+      
       // Add vessel tracks visualization if any found
       if (vesselData.tracks && vesselData.tracks.length > 0) {
-        console.log(`Adding ${vesselData.tracks.length} vessel tracks to visualization`);
       // Add vessel tracks to map
       vesselData.tracks.forEach((track, idx) => {
         const sourceId = `vessel-track-source-${idx}`;
@@ -208,7 +184,6 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     // ANALYSIS strictly after viz
     snipTimers.push(window.setTimeout(() => {
       if (runId !== snipRunId) return;
-      console.log('[SNIP] Starting analysis phase');
       setIsAnalyzing(true);
       
       // Store cleanup function globally for modal to call

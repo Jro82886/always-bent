@@ -1,65 +1,47 @@
-import type { Map as MapboxMap, LngLatBoundsLike } from 'mapbox-gl';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { Map as MapboxMap, LngLatBoundsLike } from 'mapbox-gl';
 
-// tiny event waiter
-const waitFor = (evt: 'idle' | 'moveend', map: MapboxMap) =>
-  new Promise<void>((resolve) => {
-    const once = () => { map.off(evt, once); resolve(); };
-    map.on(evt, once);
+// Promise that resolves on moveend or times out
+function waitForMove(map: MapboxMap, timeoutMs = 2000): Promise<void> {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(); } };
+    map.once('moveend', finish);
+    setTimeout(finish, timeoutMs);
   });
+}
 
 export async function zoomToBounds(
   map: MapboxMap,
   rawBounds: LngLatBoundsLike,
-  opts: {
+  opts?: {
     padding?: number | { top: number; bottom: number; left: number; right: number };
     duration?: number;
-    bearing?: number;
-    pitch?: number;
-  } = {}
+  }
 ) {
-  console.log('[ZOOM DEBUG] zoomToBounds called with bounds:', rawBounds);
-  map.resize(); // in case drawers/layout changed
+  if (!map) throw new Error('zoomToBounds: no map');
 
-  // normalize/epsilon
-  const b = (mapboxgl as any).LngLatBounds.convert(rawBounds);
-  const sw = b.getSouthWest(); const ne = b.getNorthEast();
-  const minSpan = 0.0005;
-  if (Math.abs(ne.lng - sw.lng) < minSpan && Math.abs(ne.lat - sw.lat) < minSpan) {
-    b.extend([sw.lng + minSpan, sw.lat + minSpan]);
-  }
-  
-  console.log('[ZOOM DEBUG] Normalized bounds:', b.toArray());
+  // normalize bounds, make sure it's not degenerate
+  const b = mapboxgl.LngLatBounds.convert(rawBounds);
+  const sw = b.getSouthWest(), ne = b.getNorthEast();
+  if (Math.abs(ne.lng - sw.lng) < 0.0005) b.extend([sw.lng + 0.0005, sw.lat]);
+  if (Math.abs(ne.lat - sw.lat) < 0.0005) b.extend([sw.lng, sw.lat + 0.0005]);
 
+  // clear any in-flight animation
   map.stop();
-  if (!map.isStyleLoaded()) {
-    console.log('[ZOOM DEBUG] Waiting for style to load...');
-    await waitFor('idle', map);
-  }
+  // force layout recalc
+  map.resize();
 
-  const pad = typeof opts.padding === 'number'
-    ? { top: opts.padding, bottom: opts.padding, left: opts.padding, right: opts.padding }
-    : (opts.padding ?? { top: 100, bottom: 100, left: 100, right: 100 });
+  console.log('[SNIP] zoomToBounds →', b.toArray());
 
-  console.log('[ZOOM DEBUG] Calling fitBounds with options:', {
-    padding: pad,
-    duration: opts.duration ?? 1500,
-    essential: true,
-    animate: true,
-    bearing: opts.bearing ?? 0,
-    pitch: opts.pitch ?? 0
-  });
-  
   map.fitBounds(b, {
-    padding: pad,
-    duration: opts.duration ?? 1500,
-    essential: true,
+    padding: opts?.padding ?? { top: 100, bottom: 100, left: 100, right: 100 },
+    duration: opts?.duration ?? 1500,
     animate: true,
-    bearing: opts.bearing ?? 0,
-    pitch: opts.pitch ?? 0
+    essential: true,
+    bearing: 0,
+    pitch: 0,
   });
-  
-  console.log('[ZOOM DEBUG] fitBounds called, waiting for moveend...');
-  await waitFor('moveend', map);
-  console.log('[ZOOM DEBUG] moveend received!');
+
+  await waitForMove(map, (opts?.duration ?? 1500) + 500);
+  console.log('[SNIP] Zoom animation complete');
 }
