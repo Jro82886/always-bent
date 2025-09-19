@@ -147,8 +147,8 @@ export default function TrendsMode() {
       {/* Command Bridge Header */}
       <HeaderBar activeMode="trends" />
       
-      {/* Main content area */}
-      <div className="pt-24 h-full overflow-y-auto px-4 md:px-6 pb-8">
+      {/* Main content area with more breathing room */}
+      <div className="pt-28 h-full overflow-y-auto px-4 md:px-6 pb-8">
         {/* Compact Ocean Intelligence Overview */}
         <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-sm px-4 py-1.5 border border-white/5 mb-6">
           <div className="flex items-center gap-3 justify-between">
@@ -302,7 +302,7 @@ export default function TrendsMode() {
             {/* Top row - Tide and Bite Prediction */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Tide Schedule */}
-              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[260px]">
+              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[260px] hover:shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all duration-200">
                 <h3 className="text-sm font-semibold text-teal-300/90 mb-3">Tide Schedule</h3>
                 {trendsData.tideChart.events.length > 0 ? (
                   <div className="h-[calc(100%-2rem)]">
@@ -323,7 +323,7 @@ export default function TrendsMode() {
               </div>
               
               {/* Bite Prediction */}
-              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[260px]">
+              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[260px] hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition-all duration-200">
                 <div className="flex items-center justify-between mb-1">
                   <Tooltip content="Score combines tide phase, wind, pressure trend, SST vs season, time of day.">
                     <h3 className="text-sm font-semibold text-amber-300/90 cursor-help">Bite Prediction</h3>
@@ -369,7 +369,7 @@ export default function TrendsMode() {
             {/* Bottom row - Activity Charts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
               {/* Today's Activity */}
-              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[220px]">
+              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[220px] hover:shadow-[0_0_20px_rgba(52,211,153,0.3)] transition-all duration-200">
                 <h3 className="text-sm font-semibold text-emerald-300/90 mb-3">
                   {timeRange === '1d' ? "Today's" : timeRange === '7d' ? 'Weekly' : '2-Week'} ABFI Community Activity
                 </h3>
@@ -386,7 +386,7 @@ export default function TrendsMode() {
               </div>
               
               {/* Species Distribution */}
-              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[220px]">
+              <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-lg border border-white/5 p-5 h-[220px] hover:shadow-[0_0_20px_rgba(52,211,153,0.3)] transition-all duration-200">
                 <h3 className="text-sm font-semibold text-emerald-300/90 mb-3">
                   ABFI Community Species Activity
                 </h3>
