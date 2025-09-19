@@ -60,10 +60,10 @@ export default function CommercialVesselLayer({
         // Calculate bbox with some padding
         const padding = 1.0; // degrees
         const bbox = [
-          inlet.lng - padding,
-          inlet.lat - padding,
-          inlet.lng + padding,
-          inlet.lat + padding
+          inlet.lng! - padding,
+          inlet.lat! - padding,
+          inlet.lng! + padding,
+          inlet.lat! + padding
         ].join(',');
 
         const response = await fetch(`/api/gfw/vessels?bbox=${bbox}&inletId=${selectedInletId}&days=4`);
@@ -181,7 +181,7 @@ export default function CommercialVesselLayer({
           coordinates: vessel.positions.map(pos => [pos.lng, pos.lat])
         }
       };
-    }).filter((feature): feature is GeoJSON.Feature => feature !== null);
+    }).filter(feature => feature !== null) as GeoJSON.Feature[];
 
     const trackData = {
       type: 'FeatureCollection' as const,

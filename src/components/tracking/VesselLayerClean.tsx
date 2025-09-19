@@ -281,6 +281,10 @@ export default function VesselLayerClean({
         fleetMarkersRef.current.forEach(marker => marker.remove());
         fleetMarkersRef.current.clear();
         
+        // Get current user ID before the loop
+        const currentUser = await supabase.auth.getUser();
+        const currentUserId = currentUser.data?.user?.id;
+        
         // Add fleet markers
         vessels.forEach((vessel: any) => {
           // Only show vessels with positions from last 5 minutes
@@ -291,8 +295,7 @@ export default function VesselLayerClean({
           if (minutesAgo > 5) return;
           
           // Skip our own vessel
-          const currentUser = await supabase.auth.getUser();
-          if (vessel.user_id === currentUser.data?.user?.id) return;
+          if (vessel.user_id === currentUserId) return;
           
           // Create fleet marker
           const el = document.createElement('div');

@@ -56,7 +56,7 @@ function TrackingModeContent() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: inlet ? [inlet.lng, inlet.lat] : [-73.5, 40.5], // Default to NY area
+      center: inlet ? [inlet.lng!, inlet.lat!] : [-73.5, 40.5], // Default to NY area
       zoom: inlet ? inlet.zoom : 7,
       projection: 'globe' as any,
     });
@@ -88,7 +88,7 @@ function TrackingModeContent() {
     if (!map.current || !mapFullyReady || !inlet) return;
     
     map.current.flyTo({
-      center: [inlet.lng, inlet.lat],
+      center: [inlet.lng!, inlet.lat!],
       zoom: inlet.zoom,
       duration: 2000
     });
@@ -99,7 +99,7 @@ function TrackingModeContent() {
     if (!map.current || !inlet) return;
     
     map.current.flyTo({
-      center: [inlet.lng, inlet.lat],
+      center: [inlet.lng!, inlet.lat!],
       zoom: inlet.zoom,
       duration: 2000
     });
