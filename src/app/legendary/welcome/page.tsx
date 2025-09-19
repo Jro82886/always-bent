@@ -88,15 +88,18 @@ export default function LegendaryWelcomePage() {
       
       if (permission.state === 'granted') {
         setLocationEnabled(true);
+        localStorage.setItem('abfi_location_permission', 'granted');
         completeOnboarding();
       } else {
         navigator.geolocation.getCurrentPosition(
           () => {
             setLocationEnabled(true);
+            localStorage.setItem('abfi_location_permission', 'granted');
             completeOnboarding();
           },
           () => {
             // User denied, but let them continue
+            localStorage.setItem('abfi_location_permission', 'denied');
             completeOnboarding();
           }
         );
@@ -106,9 +109,11 @@ export default function LegendaryWelcomePage() {
       navigator.geolocation.getCurrentPosition(
         () => {
           setLocationEnabled(true);
+          localStorage.setItem('abfi_location_permission', 'granted');
           completeOnboarding();
         },
         () => {
+          localStorage.setItem('abfi_location_permission', 'denied');
           completeOnboarding();
         }
       );
