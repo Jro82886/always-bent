@@ -31,9 +31,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
   // Sync inlet from URL on mount
   useInletFromURL();
   
-  // Logo contrast check - header is always dark, so ABFI logo should work
-  const okContrast = true; // Header has dark background, logo has cyan/light colors
-  const logoSrc = okContrast ? '/brand/abfi-logo.svg' : '/brand/globe.svg';
+  // We'll use the globe icon with the text branding
   
   // Find current tab based on mode
   const currentTab = Object.entries(TAB_MODES).find(([_, mode]) => mode === activeMode)?.[0] || 'Analysis';
@@ -63,16 +61,20 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           {/* Brand (clickable → Analysis) */}
           <Link 
             href="/legendary?mode=analysis"
-            aria-label="ABFI Home"
-            className="px-6 flex items-center h-full hover:bg-cyan-500/5 transition-colors"
+            aria-label="Always Bent Home"
+            className="px-6 flex items-center gap-3 h-full hover:bg-cyan-500/5 transition-colors group"
           >
             <img
-              src={logoSrc}
-              alt="ABFI — Always Bent Fishing Intelligence"
-              className="h-7 md:h-8 w-auto"
+              src="/brand/globe.svg"
+              alt="Always Bent"
+              className="h-10 w-10 drop-shadow-[0_0_10px_rgba(34,211,238,0.6)] group-hover:drop-shadow-[0_0_15px_rgba(34,211,238,0.8)] transition-all"
               loading="eager"
               decoding="async"
             />
+            <div className="flex flex-col">
+              <span className="text-lg font-bold tracking-wide bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">ALWAYS BENT</span>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-cyan-300/70 font-medium">Command Bridge</span>
+            </div>
           </Link>
           
           <div className="h-full w-px bg-cyan-500/10" />
@@ -104,16 +106,20 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           <div className="flex items-center justify-between h-14 px-4">
             <Link 
               href="/legendary?mode=analysis"
-              aria-label="ABFI Home"
-              className="flex items-center hover:opacity-80 transition-opacity"
+              aria-label="Always Bent Home"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               <img
-                src={logoSrc}
-                alt="ABFI — Always Bent Fishing Intelligence"
-                className="h-6 w-auto"
+                src="/brand/globe.svg"
+                alt="Always Bent"
+                className="h-8 w-8 drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]"
                 loading="eager"
                 decoding="async"
               />
+              <div className="flex flex-col">
+                <span className="text-sm font-bold tracking-wide bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">ALWAYS BENT</span>
+                <span className="text-[8px] uppercase tracking-wider text-cyan-300/70">Command Bridge</span>
+              </div>
             </Link>
             <InletChip />
           </div>
@@ -151,16 +157,17 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           <div className="flex items-center justify-between h-12 px-3">
             <Link 
               href="/legendary?mode=analysis"
-              aria-label="ABFI Home"
-              className="flex items-center hover:opacity-80 transition-opacity"
+              aria-label="Always Bent Home"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               <img
-                src={logoSrc}
-                alt="ABFI — Always Bent Fishing Intelligence"
-                className="h-5 w-auto"
+                src="/brand/globe.svg"
+                alt="Always Bent"
+                className="h-6 w-6 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]"
                 loading="eager"
                 decoding="async"
               />
+              <span className="text-xs font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">ALWAYS BENT</span>
             </Link>
             <InletChip compact />
           </div>

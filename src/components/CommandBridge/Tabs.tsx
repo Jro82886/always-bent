@@ -26,11 +26,11 @@ export default function Tabs({ activeMode }: TabsProps) {
             className={[
               "group relative px-6 h-full flex items-center",
               "text-sm font-semibold",
-              "transition-colors duration-150",
-              "hover:bg-cyan-500/5",
+              "transition-all duration-200",
+              "hover:bg-cyan-500/10",
               active
-                ? "text-cyan-300"
-                : "text-gray-400 hover:text-gray-300 focus:text-gray-300",
+                ? "text-cyan-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]"
+                : "text-gray-400 hover:text-cyan-200 focus:text-cyan-200",
             ].join(" ")}
           >
             {/* Larger tap target on mobile without moving layout */}
@@ -44,10 +44,10 @@ export default function Tabs({ activeMode }: TabsProps) {
                 "h-[2px] rounded-full",
                 // gradient + glow for tapered ends
                 "bg-gradient-to-r from-transparent via-cyan-400 to-transparent",
-                "shadow-[0_0_8px_rgba(34,211,238,0.6)]",
+                "shadow-[0_0_12px_rgba(34,211,238,0.8),0_0_24px_rgba(34,211,238,0.4)]",
                 // animation: width + opacity with very subtle timing
                 "transition-[width,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-                active ? "w-10 opacity-100" : "w-0 opacity-0",
+                active ? "w-12 opacity-100" : "w-0 opacity-0",
               ].join(" ")}
             />
 
