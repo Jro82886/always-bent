@@ -227,7 +227,7 @@ function getCompassDirection(degrees: number): string {
   return directions[index];
 }
 
-// Type alias for compatibility
+// Type alias for compatibility with weather components
 export type InletWeather = {
   conditions: NOAABuoyData;
   station: string;
