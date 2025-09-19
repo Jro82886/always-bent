@@ -1458,8 +1458,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       const bounds = turf.bbox(currentPolygon.current);
       const center = [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2];
       
+      // Remove any existing tooltip first
+      const existingTooltip = document.getElementById('snip-analysis-tooltip');
+      if (existingTooltip) existingTooltip.remove();
+      
       // Create a persistent tooltip that stays visible
       const tooltipEl = document.createElement('div');
+      tooltipEl.id = 'snip-analysis-tooltip';
       tooltipEl.className = 'snip-tooltip';
       tooltipEl.style.cssText = `
         position: absolute;
