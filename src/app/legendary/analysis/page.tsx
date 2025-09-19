@@ -424,8 +424,8 @@ function AnalysisModeContent() {
                 
                 // Dramatic spin and zoom to East Coast
                 map.current.flyTo({
-                  center: [-73.5, 35.5], // Center between Maine and Florida
-                  zoom: 5.5,
+                  center: [-75, 35], // Center of East Coast
+                  zoom: 4.8, // Wider view to show Maine to Florida Keys
                   bearing: -15, // Slight angle for drama
                   pitch: 25, // Tilt for 3D effect
                   duration: 3000, // 3 second animation
@@ -441,8 +441,8 @@ function AnalysisModeContent() {
                 // After initial zoom, settle into perfect view
                 setTimeout(() => {
                   map.current?.flyTo({
-                    center: [-74, 37], // Slightly north for better inlet visibility
-                    zoom: 6,
+                    center: [-76, 36], // Perfect center for full East Coast view
+                    zoom: 5.2, // Show entire coast from Maine to Florida Keys
                     bearing: 0,
                     pitch: 0,
                     duration: 2000,

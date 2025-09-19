@@ -120,6 +120,9 @@ export default function LegendaryWelcomePage() {
     localStorage.setItem('abfi_setup_complete', 'true');
     localStorage.setItem('abfi_location_setup', 'true');
     
+    // Set flag to show tutorial on analysis page
+    localStorage.setItem('abfi_show_tutorial', 'true');
+    
     // Navigate to command bridge (analysis mode)
     setTimeout(() => {
       router.replace('/legendary?mode=analysis');
