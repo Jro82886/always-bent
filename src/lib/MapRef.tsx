@@ -10,8 +10,7 @@ import { PersistentLayerManager } from "@/lib/persistLayers";
 import { overviewBundle } from "@/lib/persistentBundles";
 import { usePathname } from "next/navigation";
 
-// Set Mapbox token
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
+// Mapbox token will be set in useEffect to avoid SSR issues
 
 const BASE_STYLES = [
   { id: "satellite", url: "mapbox://styles/mapbox/satellite-v9", label: "Satellite" },
@@ -41,7 +40,10 @@ export function MapShell({ children }: { children: React.ReactNode }) {
 
 
   useEffect(() => {
-    if (mapRef.current || !divRef.current || !mapboxgl.accessToken) return;
+    if (mapRef.current || !divRef.current) return;
+
+    // Set Mapbox token here to avoid SSR issues
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
     // Start at the default overview inlet
     const map = new mapboxgl.Map({
