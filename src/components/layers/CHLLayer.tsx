@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 interface CHLLayerProps {
@@ -10,6 +10,39 @@ interface CHLLayerProps {
 }
 
 export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerProps) {
+  const [viridisTestEnabled, setViridisTestEnabled] = useState(false);
+  const [viridisProbeOk, setViridisProbeOk] = useState<boolean | null>(null);
+  
+  // Probe viridis palette availability
+  useEffect(() => {
+    async function probeViridis() {
+      try {
+        // Get current date for probe
+        const now = new Date();
+        now.setDate(now.getDate() - 1); // Yesterday (most likely available)
+        const timeStr = now.toISOString().split('T')[0];
+        
+        // Build probe URL with viridis style
+        const probeUrl = `/api/tiles/chl/3/2/3?time=${timeStr}&style=viridis`;
+        
+        console.log('[CHL] Probing viridis palette:', probeUrl);
+        const res = await fetch(probeUrl);
+        const ok = res.ok && res.headers.get('content-type')?.includes('image/png');
+        
+        setViridisProbeOk(ok || false);
+        console.log('[CHL] Viridis probe result:', ok ? '✅ Available' : '❌ Not available');
+        
+        if (!ok) {
+          console.warn('[CHL] Viridis palette test failed — NOT enabling test layer');
+        }
+      } catch (err) {
+        console.error('[CHL] Viridis probe error:', err);
+        setViridisProbeOk(false);
+      }
+    }
+    
+    probeViridis();
+  }, []);
   
   useEffect(() => {
     if (!map) return;
@@ -77,6 +110,37 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
           'raster-hue-rotate': 15      // Slight green tint
         }
       });
+      
+      // Add viridis test layer if probe succeeded
+      if (viridisProbeOk === true) {
+        // Remove existing test layer if present
+        if (map.getLayer('chl-test-layer')) {
+          map.removeLayer('chl-test-layer');
+        }
+        if (map.getSource('chl-wmts-test')) {
+          map.removeSource('chl-wmts-test');
+        }
+        
+        // Add test source with viridis style
+        map.addSource('chl-wmts-test', {
+          type: 'raster',
+          tiles: [
+            `/api/tiles/chl/{z}/{x}/{y}${dateParam}&style=viridis`
+          ],
+          tileSize: 256
+        });
+        
+        // Add test layer (hidden by default)
+        map.addLayer({
+          id: 'chl-test-layer',
+          type: 'raster',
+          source: 'chl-wmts-test',
+          paint: { 'raster-opacity': 1.0 },
+          layout: { 'visibility': 'none' }
+        }, 'chl-lyr'); // Place below production CHL
+        
+        console.log('[CHL] ✅ Viridis test layer ready (hidden by default)');
+      }
 
       // CRITICAL LAYER ORDERING - CHL must be visible above water!
       const layers = map.getStyle().layers;
@@ -160,9 +224,15 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
         if (map.getSource('chl-src')) {
           map.removeSource('chl-src');
         }
+        if (map.getLayer('chl-test-layer')) {
+          map.removeLayer('chl-test-layer');
+        }
+        if (map.getSource('chl-wmts-test')) {
+          map.removeSource('chl-wmts-test');
+        }
       }
     };
-  }, [map, on, selectedDate]);
+  }, [map, on, selectedDate, viridisProbeOk]);
 
   // Separate effect to handle date changes when layer is already on
   useEffect(() => {

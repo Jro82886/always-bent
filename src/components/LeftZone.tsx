@@ -482,7 +482,36 @@ export default function LeftZone({
                         />
                       <span className="text-[10px] text-green-400 w-8">{chlHue || 0}%</span>
                     </div>
-                    {/* Removed non-functional CHL Edge Detection button */}
+                    
+                    {/* DEV ONLY: Viridis Palette Test */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <div className="mt-3 pt-3 border-t border-green-500/20">
+                        <div className="text-[10px] text-yellow-400 mb-1">⚠️ DEV TEST</div>
+                        <button
+                          onClick={() => {
+                            if (map) {
+                              const testLayer = map.getLayer('chl-test-layer');
+                              const prodLayer = map.getLayer('chl-lyr');
+                              
+                              if (testLayer && prodLayer) {
+                                const testVisible = map.getLayoutProperty('chl-test-layer', 'visibility') === 'visible';
+                                
+                                // Toggle visibility
+                                map.setLayoutProperty('chl-test-layer', 'visibility', testVisible ? 'none' : 'visible');
+                                map.setLayoutProperty('chl-lyr', 'visibility', testVisible ? 'visible' : 'none');
+                                
+                                console.log('[CHL] Viridis test:', testVisible ? 'OFF' : 'ON');
+                              } else {
+                                console.warn('[CHL] Test layer not available - probe may have failed');
+                              }
+                            }
+                          }}
+                          className="w-full px-3 py-1.5 bg-gradient-to-r from-blue-600/40 to-green-600/40 rounded text-xs font-medium text-white hover:from-blue-600/60 hover:to-green-600/60 transition-colors"
+                        >
+                          CHL (viridis test)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

@@ -29,6 +29,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
 
   // Build TIME for Copernicus (expects ISO8601 with milliseconds)
   const qTime = req.nextUrl.searchParams.get('time');
+  const qStyle = req.nextUrl.searchParams.get('style'); // Support style override
   const buildDailyIso = (d: Date) => {
     const dd = new Date(d);
     dd.setUTCHours(0, 0, 0, 0);
@@ -69,11 +70,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     [timeParam]; // Only try the specific date requested
 
   for (const tryTime of datesToTry) {
-    const target = base
+    let target = base
       .replace('{z}', z)
       .replace('{x}', x)
       .replace('{y}', y)
       .replace('{TIME}', tryTime);
+    
+    // Support style override (e.g., viridis test)
+    if (qStyle && qStyle !== 'turbo') {
+      target = target.replace('cmap:turbo', `cmap:${qStyle}`);
+    }
     
     // Attempt to fetch from Copernicus
     
