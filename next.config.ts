@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
     // Allow production builds to complete even if there are ESLint errors.
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    // This helps with useSearchParams issues in Next.js 15
+    missingSuspenseWithCSRBailout: false,
+  },
   async redirects() {
     return [
       { source: "/imagery", destination: "/analysis", permanent: false },
