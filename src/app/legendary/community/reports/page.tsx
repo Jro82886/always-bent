@@ -1,18 +1,27 @@
 'use client';
 
-import { useState } from 'react';
-import HighlightsStrip from '@/components/reports/HighlightsStrip';
-import MyReportsList from '@/components/reports/MyReportsList';
-import WrittenAnalysisModal from '@/components/reports/WrittenAnalysisModal';
+import { useState, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 
-// Static page with client-side data fetching for optimal performance
-export const dynamic = 'force-dynamic';
+// Dynamically import components to avoid SSR issues
+const HighlightsStrip = dynamic(() => import('@/components/reports/HighlightsStrip'), {
+  ssr: false
+});
+
+const MyReportsList = dynamic(() => import('@/components/reports/MyReportsList'), {
+  ssr: false
+});
+
+const WrittenAnalysisModal = dynamic(() => import('@/components/reports/WrittenAnalysisModal'), {
+  ssr: false
+});
 
 export default function ReportsPage() {
   const [selectedReport, setSelectedReport] = useState<any>(null);
 
   return (
-    <>
+    <Suspense fallback={<div className="p-6 text-slate-400 animate-pulse">Loading reports...</div>}>
+      <>
       <div className="h-full flex flex-col bg-black relative">
         {/* Highlights Section */}
         <div className="border-b border-white/10 bg-slate-950">
@@ -33,5 +42,6 @@ export default function ReportsPage() {
         />
       )}
     </>
+    </Suspense>
   );
 }

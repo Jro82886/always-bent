@@ -5,6 +5,7 @@ import Link from 'next/link';
 import CommunityWrapper from './CommunityWrapper';
 
 // Community components no longer use searchParams - static optimization enabled!
+// No force-dynamic needed - we fixed the root cause!
 
 export default function CommunityLayout({
   children,

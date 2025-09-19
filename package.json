@@ -19,7 +19,8 @@
     "lint:inlet": "bash scripts/lint-inlet.sh",
     "lint:contracts": "bash scripts/lint-contracts.sh",
     "check:routes": "node scripts/check-routes.js",
-    "prebuild": "node scripts/type-check-quick.js && npm run check:routes"
+    "check:guardrails": "node scripts/check-guardrails.js",
+    "prebuild": "node scripts/type-check-quick.js && npm run check:routes && npm run check:guardrails"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

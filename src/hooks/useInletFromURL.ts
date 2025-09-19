@@ -1,18 +1,19 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useAppState } from '@/store/appState';
 
 export function useInletFromURL() {
-  const searchParams = useSearchParams();
   const { setSelectedInletId } = useAppState();
   
   useEffect(() => {
-    // Read inlet from URL on mount
-    const inletFromURL = searchParams.get('inlet');
-    if (inletFromURL) {
-      setSelectedInletId(inletFromURL);
+    // Read inlet from URL on mount - client side only
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const inletFromURL = params.get('inlet');
+      if (inletFromURL) {
+        setSelectedInletId(inletFromURL);
+      }
     }
-  }, [searchParams, setSelectedInletId]);
+  }, [setSelectedInletId]);
 }
