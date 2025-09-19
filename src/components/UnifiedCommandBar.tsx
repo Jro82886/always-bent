@@ -204,7 +204,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                     
                     {/* Inlet Dropdown - Compact Dark Style */}
                     {inletDropdownOpen && (
-                      <div className="absolute top-full mt-2 right-0 w-72 bg-gray-950/98 backdrop-blur-xl border border-cyan-500/40 rounded-xl shadow-2xl overflow-hidden">
+                      <div className="absolute top-full mt-2 right-0 w-72 bg-gray-950/98 backdrop-blur-xl border border-cyan-500/40 rounded-xl shadow-2xl overflow-hidden z-[100]">
                         <div className="px-3 py-2.5 bg-gradient-to-r from-cyan-950/80 to-blue-950/80 border-b border-cyan-500/30">
                           <div className="text-xs text-cyan-400 font-bold uppercase tracking-wider">SELECT FISHING AREA</div>
                         </div>

@@ -1,427 +1,228 @@
 /**
- * NOAA Buoy Data API Integration
- * Real-time marine weather conditions from NOAA buoys
+ * NOAA Buoy Data Integration
+ * Free weather data from NOAA buoys for community features
  */
 
-export interface BuoyData {
-  station_id: string;
-  station_name: string;
-  lat: number;
-  lon: number;
-  timestamp: Date;
-  // Wind
-  wind_speed_kt?: number;
-  wind_direction?: number;
-  wind_gust_kt?: number;
-  // Waves
-  wave_height_ft?: number;
-  wave_period_sec?: number;
-  wave_direction?: number;
-  dominant_wave_period?: number;
-  // Water
-  water_temp_f?: number;
-  // Atmosphere
-  air_temp_f?: number;
-  pressure_mb?: number;
-  pressure_tendency?: string;
-  // Visibility
-  visibility_nm?: number;
-  // Status
-  data_age_minutes?: number;
-  is_recent: boolean;
-}
-
-export interface InletWeather {
-  inlet_id: string;
-  inlet_name: string;
-  buoy_station: string;
-  distance_nm: number;
-  conditions: BuoyData | null;
-  forecast?: any; // Future: add forecast data
-  last_updated: Date;
-}
-
-// Map inlets to their nearest NOAA buoy stations
-// East Coast primary buoys with good data coverage
-export const INLET_BUOY_MAP: Record<string, { primary: string; backup?: string; name: string }> = {
-  // Florida Atlantic Coast
-  'jupiter-inlet': { 
-    primary: '41114', // Fort Pierce buoy (20nm north)
-    backup: 'LKWF1',  // Lake Worth station
-    name: 'Fort Pierce Buoy'
-  },
-  'palm-beach-inlet': { 
-    primary: 'LKWF1', // Lake Worth Pier
-    backup: '41114',
-    name: 'Lake Worth Station'
-  },
-  'boynton-inlet': { 
-    primary: 'LKWF1', // Lake Worth Pier
-    backup: '41114',
-    name: 'Lake Worth Station'
-  },
-  'boca-inlet': { 
-    primary: '41114', // Fort Pierce buoy
-    backup: 'LKWF1',
-    name: 'Fort Pierce Buoy'
-  },
-  'port-everglades': { 
-    primary: 'PVGF1', // Port Everglades station
-    backup: '41114',
-    name: 'Port Everglades Station'
-  },
-  'government-cut': { 
-    primary: 'VAKF1', // Virginia Key station
-    backup: 'PVGF1',
-    name: 'Virginia Key Station'
-  },
-  'st-lucie-inlet': { 
-    primary: '41114', // Fort Pierce buoy
-    name: 'Fort Pierce Buoy'
-  },
-  'fort-pierce-inlet': { 
-    primary: '41114', // Fort Pierce buoy (closest)
-    name: 'Fort Pierce Buoy'
-  },
-  'sebastian-inlet': { 
-    primary: '41113', // Cape Canaveral buoy
-    backup: '41114',
-    name: 'Cape Canaveral Buoy'
-  },
-  'ponce-inlet': { 
-    primary: 'PCLF1', // Ponce de Leon Inlet
-    backup: '41113',
-    name: 'Ponce Inlet Station'
-  },
-  'port-canaveral': { 
-    primary: '41113', // Cape Canaveral buoy
-    name: 'Cape Canaveral Buoy'
-  },
+// Map inlet IDs to nearest NOAA buoy stations
+export const INLET_BUOY_MAP: { [key: string]: { primary: string; backup?: string; name: string } } = {
+  // Maine
+  'me-casco-bay': { primary: '44007', name: 'Portland Buoy' },
   
-  // Georgia/South Carolina
-  'st-marys-entrance': { 
-    primary: '41112', // Fernandina Beach buoy
-    name: 'Fernandina Beach Buoy'
-  },
-  'st-simons-sound': { 
-    primary: '41112', // Fernandina Beach buoy
-    backup: '41008',  // Grays Reef buoy
-    name: 'Fernandina Beach Buoy'
-  },
-  'savannah-river': { 
-    primary: '41008', // Grays Reef buoy
-    name: 'Grays Reef Buoy'
-  },
-  'port-royal-sound': { 
-    primary: '41004', // EDISTO buoy
-    name: 'Edisto Buoy'
-  },
-  'charleston-harbor': { 
-    primary: '41004', // EDISTO buoy
-    backup: 'CHTS1',  // Charleston station
-    name: 'Edisto Buoy'
-  },
+  // Massachusetts  
+  'ma-cape-cod-canal': { primary: '44018', name: 'Cape Cod Bay' },
+  'ma-stellwagen-bank': { primary: '44013', name: 'Boston Buoy' },
   
-  // North Carolina
-  'georgetown-entrance': { 
-    primary: '41013', // Frying Pan Shoals buoy
-    name: 'Frying Pan Shoals Buoy'
-  },
-  'cape-fear-river': { 
-    primary: '41013', // Frying Pan Shoals buoy
-    name: 'Frying Pan Shoals Buoy'
-  },
-  'beaufort-inlet': { 
-    primary: '41013', // Frying Pan Shoals buoy
-    backup: '41025',  // Diamond Shoals
-    name: 'Frying Pan Shoals Buoy'
-  },
-  'ocracoke-inlet': { 
-    primary: '41025', // Diamond Shoals buoy
-    name: 'Diamond Shoals Buoy'
-  },
-  'oregon-inlet': { 
-    primary: '41025', // Diamond Shoals buoy
-    name: 'Diamond Shoals Buoy'
-  },
-  
-  // Virginia/Maryland
-  'chesapeake-bay': { 
-    primary: '44014', // Virginia Beach buoy
-    backup: 'CBBV2',  // Chesapeake Bay Bridge
-    name: 'Virginia Beach Buoy'
-  },
-  'ocean-city-inlet': { 
-    primary: '44009', // Delaware Bay buoy
-    name: 'Delaware Bay Buoy'
-  },
-  
-  // New Jersey
-  'cape-may-inlet': { 
-    primary: '44009', // Delaware Bay buoy
-    name: 'Delaware Bay Buoy'
-  },
-  'atlantic-city': { 
-    primary: '44091', // Barnegat buoy
-    name: 'Barnegat Buoy'
-  },
-  'barnegat-inlet': { 
-    primary: '44091', // Barnegat buoy
-    name: 'Barnegat Buoy'
-  },
-  'manasquan-inlet': { 
-    primary: '44025', // Long Island buoy
-    backup: '44091',
-    name: 'Long Island Buoy'
-  },
+  // Rhode Island
+  'ri-block-island': { primary: '44097', name: 'Block Island' },
   
   // New York
-  'fire-island-inlet': { 
-    primary: '44025', // Long Island buoy
-    name: 'Long Island Buoy'
-  },
-  'shinnecock-inlet': { 
-    primary: '44025', // Long Island buoy
-    backup: '44017',  // Montauk Point
-    name: 'Long Island Buoy'
-  },
-  'montauk-point': { 
-    primary: '44017', // Montauk Point buoy
-    name: 'Montauk Point Buoy'
-  },
+  'ny-montauk': { primary: '44017', name: 'Montauk Point' },
+  'ny-fire-island': { primary: '44025', backup: '44065', name: 'Long Island Buoy' },
   
-  // Default for unknown inlets
-  'default': { 
-    primary: '41114', // Fort Pierce (central East Coast)
-    name: 'Fort Pierce Buoy'
-  }
+  // New Jersey
+  'nj-barnegat': { primary: '44091', backup: '44065', name: 'Barnegat Bay' },
+  'nj-cape-may': { primary: '44009', name: 'Delaware Bay' },
+  
+  // Delaware
+  'de-indian-river': { primary: '44009', name: 'Delaware Bay' },
+  
+  // Maryland
+  'md-ocean-city': { primary: '44009', backup: '44014', name: 'Delaware Bay' },
+  
+  // Virginia
+  'va-rudee': { primary: '44014', backup: '44099', name: 'Virginia Beach' },
+  'va-lynnhaven': { primary: '44014', name: 'Virginia Beach' },
+  
+  // North Carolina
+  'nc-oregon-inlet': { primary: '44095', backup: '44100', name: 'Oregon Inlet' },
+  'nc-hatteras': { primary: '41025', name: 'Diamond Shoals' },
+  'nc-ocracoke': { primary: '41025', backup: '44095', name: 'Diamond Shoals' },
+  'nc-beaufort': { primary: '41013', name: 'Frying Pan Shoals' },
+  'nc-morehead': { primary: '41013', backup: '41035', name: 'Frying Pan Shoals' },
+  
+  // South Carolina
+  'sc-murrells': { primary: '41004', name: 'EDISTO' },
+  'sc-charleston': { primary: '41004', backup: '41008', name: 'EDISTO' },
+  
+  // Georgia
+  'ga-savannah': { primary: '41008', name: 'Grays Reef' },
+  
+  // Florida
+  'fl-mayport': { primary: '41112', backup: '41008', name: 'Offshore Fernandina Beach' },
+  'fl-ponce': { primary: '41113', name: 'Cape Canaveral Nearshore' },
+  
+  // Default
+  'default': { primary: '44025', name: 'Long Island Buoy' }
 };
 
-/**
- * Fetch real-time data from NOAA buoy
- */
-export async function fetchBuoyData(stationId: string): Promise<BuoyData | null> {
-  try {
-    // NOAA's National Data Buoy Center API
-    // Latest observation endpoint
-    const response = await fetch(
-      `https://www.ndbc.noaa.gov/data/realtime2/${stationId}.txt`,
-      { 
-        next: { revalidate: 600 }, // Cache for 10 minutes
-        headers: {
-          'User-Agent': 'AlwaysBent/1.0 (Fishing App)'
-        }
-      }
-    );
+export interface NOAABuoyData {
+  station_id: string;
+  station_name: string;
+  time: Date;
+  wind_direction: number | null;
+  wind_speed: number | null;
+  wind_gust: number | null;
+  wave_height: number | null;
+  dominant_wave_period: number | null;
+  average_wave_period: number | null;
+  wave_direction: number | null;
+  sea_pressure: number | null;
+  air_temp: number | null;
+  water_temp: number | null;
+  dewpoint: number | null;
+  visibility: number | null;
+  tide: number | null;
+}
 
+/**
+ * Parse NOAA buoy data from their text format
+ */
+function parseBuoyData(text: string, stationId: string, stationName: string): NOAABuoyData | null {
+  const lines = text.split('\n').filter(line => line.trim());
+  if (lines.length < 3) return null;
+
+  // First line is header with column names
+  const headers = lines[0].replace('#', '').trim().split(/\s+/);
+  
+  // Second line is units (skip)
+  // Third line is the most recent data
+  const data = lines[2].trim().split(/\s+/);
+  
+  // Map headers to data
+  const getValue = (header: string): number | null => {
+    const index = headers.indexOf(header);
+    if (index === -1 || !data[index] || data[index] === 'MM') return null;
+    return parseFloat(data[index]);
+  };
+
+  // Parse date/time
+  const year = getValue('YY');
+  const month = getValue('MM');
+  const day = getValue('DD');
+  const hour = getValue('hh');
+  const minute = getValue('mm');
+  
+  if (!year || !month || !day || !hour) return null;
+  
+  const time = new Date(Date.UTC(
+    year < 100 ? 2000 + year : year,
+    month - 1,
+    day,
+    hour,
+    minute || 0
+  ));
+
+  return {
+    station_id: stationId,
+    station_name: stationName,
+    time,
+    wind_direction: getValue('WDIR'),
+    wind_speed: getValue('WSPD') ? getValue('WSPD')! * 1.94384 : null, // m/s to knots
+    wind_gust: getValue('GST') ? getValue('GST')! * 1.94384 : null, // m/s to knots
+    wave_height: getValue('WVHT') ? getValue('WVHT')! * 3.28084 : null, // m to ft
+    dominant_wave_period: getValue('DPD'),
+    average_wave_period: getValue('APD'),
+    wave_direction: getValue('MWD'),
+    sea_pressure: getValue('PRES') ? getValue('PRES')! * 0.02953 : null, // mb to inHg
+    air_temp: getValue('ATMP') ? getValue('ATMP')! * 9/5 + 32 : null, // C to F
+    water_temp: getValue('WTMP') ? getValue('WTMP')! * 9/5 + 32 : null, // C to F
+    dewpoint: getValue('DEWP') ? getValue('DEWP')! * 9/5 + 32 : null, // C to F
+    visibility: getValue('VIS') ? getValue('VIS')! * 0.621371 : null, // km to miles
+    tide: getValue('TIDE')
+  };
+}
+
+/**
+ * Fetch data from a NOAA buoy
+ */
+export async function fetchBuoyData(stationId: string): Promise<NOAABuoyData | null> {
+  try {
+    const url = `https://www.ndbc.noaa.gov/data/realtime2/${stationId}.txt`;
+    const response = await fetch(url);
+    
     if (!response.ok) {
-      
+      console.error(`[NOAA] Failed to fetch buoy ${stationId}:`, response.status);
       return null;
     }
 
     const text = await response.text();
-    const lines = text.split('\n').filter(l => l.trim());
+    const stationName = INLET_BUOY_MAP[stationId]?.name || stationId;
     
-    if (lines.length < 3) {
-      
-      return null;
-    }
-
-    // Parse header to find column indices
-    const header = lines[0].split(/\s+/);
-    const units = lines[1].split(/\s+/);
-    const data = lines[2].split(/\s+/); // Most recent observation
-
-    // Helper to get value by column name
-    const getValue = (colName: string): number | undefined => {
-      const idx = header.indexOf(colName);
-      if (idx === -1 || !data[idx] || data[idx] === 'MM') return undefined;
-      return parseFloat(data[idx]);
-    };
-
-    // Parse date/time
-    const year = getValue('YY') || getValue('#YY');
-    const month = getValue('MM');
-    const day = getValue('DD');
-    const hour = getValue('hh');
-    const minute = getValue('mm');
-    
-    const timestamp = year && month && day 
-      ? new Date(Date.UTC(2000 + year, month - 1, day, hour || 0, minute || 0))
-      : new Date();
-
-    // Convert units
-    const windSpeedMs = getValue('WSPD');
-    const windSpeedKt = windSpeedMs ? windSpeedMs * 1.94384 : undefined;
-    
-    const waveHeightM = getValue('WVHT');
-    const waveHeightFt = waveHeightM ? waveHeightM * 3.28084 : undefined;
-    
-    const waterTempC = getValue('WTMP');
-    const waterTempF = waterTempC ? (waterTempC * 9/5) + 32 : undefined;
-    
-    const airTempC = getValue('ATMP');
-    const airTempF = airTempC ? (airTempC * 9/5) + 32 : undefined;
-
-    const dataAge = Date.now() - timestamp.getTime();
-    const dataAgeMinutes = Math.floor(dataAge / 60000);
-
-    return {
-      station_id: stationId,
-      station_name: INLET_BUOY_MAP[stationId]?.name || stationId,
-      lat: getValue('LAT') || 0,
-      lon: getValue('LON') || 0,
-      timestamp,
-      
-      // Wind
-      wind_speed_kt: windSpeedKt,
-      wind_direction: getValue('WDIR') || getValue('WD'),
-      wind_gust_kt: getValue('GST') ? getValue('GST')! * 1.94384 : undefined,
-      
-      // Waves
-      wave_height_ft: waveHeightFt,
-      wave_period_sec: getValue('DPD') || getValue('APD'),
-      wave_direction: getValue('MWD'),
-      dominant_wave_period: getValue('DPD'),
-      
-      // Water/Air
-      water_temp_f: waterTempF,
-      air_temp_f: airTempF,
-      pressure_mb: getValue('PRES') || getValue('BARO'),
-      pressure_tendency: getValue('PTDY') ? 
-        (getValue('PTDY')! > 0 ? 'rising' : 'falling') : undefined,
-      
-      // Visibility
-      visibility_nm: getValue('VIS') ? getValue('VIS')! * 0.539957 : undefined,
-      
-      // Metadata
-      data_age_minutes: dataAgeMinutes,
-      is_recent: dataAgeMinutes < 120 // Data less than 2 hours old
-    };
-
+    return parseBuoyData(text, stationId, stationName);
   } catch (error) {
-    
+    console.error(`[NOAA] Error fetching buoy ${stationId}:`, error);
     return null;
   }
 }
 
 /**
- * Get weather for a specific inlet
+ * Get weather data for an inlet
  */
-export async function getInletWeather(inletId: string): Promise<InletWeather> {
-  const buoyConfig = INLET_BUOY_MAP[inletId] || INLET_BUOY_MAP['default'];
+export async function getInletWeather(inletId: string): Promise<NOAABuoyData | null> {
+  const buoyConfig = INLET_BUOY_MAP[inletId] || INLET_BUOY_MAP.default;
   
   // Try primary buoy first
-  let conditions = await fetchBuoyData(buoyConfig.primary);
+  let data = await fetchBuoyData(buoyConfig.primary);
   
-  // Fall back to backup if available
-  if (!conditions && buoyConfig.backup) {
-    
-    conditions = await fetchBuoyData(buoyConfig.backup);
+  // If primary fails and backup exists, try backup
+  if (!data && buoyConfig.backup) {
+    console.log(`[NOAA] Primary buoy ${buoyConfig.primary} failed, trying backup ${buoyConfig.backup}`);
+    data = await fetchBuoyData(buoyConfig.backup);
   }
   
+  return data;
+}
+
+/**
+ * Format NOAA data for display
+ */
+export function formatNOAAData(data: NOAABuoyData) {
+  const formatWind = () => {
+    if (!data.wind_speed) return 'No data';
+    const speed = Math.round(data.wind_speed);
+    const gust = data.wind_gust ? ` G${Math.round(data.wind_gust)}` : '';
+    const dir = data.wind_direction ? ` ${getCompassDirection(data.wind_direction)}` : '';
+    return `${speed}${gust} kts${dir}`;
+  };
+
+  const formatWaves = () => {
+    if (!data.wave_height) return 'No data';
+    const height = data.wave_height.toFixed(1);
+    const period = data.dominant_wave_period ? ` @ ${Math.round(data.dominant_wave_period)}s` : '';
+    const dir = data.wave_direction ? ` ${getCompassDirection(data.wave_direction)}` : '';
+    return `${height} ft${period}${dir}`;
+  };
+
+  const formatTemp = (temp: number | null, label: string) => {
+    if (!temp) return `${label}: --`;
+    return `${label}: ${Math.round(temp)}°F`;
+  };
+
+  const formatTime = () => {
+    const now = new Date();
+    const age = Math.round((now.getTime() - data.time.getTime()) / (1000 * 60));
+    if (age < 60) return `${age} min ago`;
+    if (age < 120) return '1 hour ago';
+    return `${Math.floor(age / 60)} hours ago`;
+  };
+
   return {
-    inlet_id: inletId,
-    inlet_name: inletId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-    buoy_station: conditions?.station_id || buoyConfig.primary,
-    distance_nm: 0, // Distance calculated on client side
-    conditions,
-    last_updated: new Date()
+    wind: formatWind(),
+    waves: formatWaves(),
+    airTemp: formatTemp(data.air_temp, 'Air'),
+    waterTemp: formatTemp(data.water_temp, 'Water'),
+    pressure: data.sea_pressure ? `${data.sea_pressure.toFixed(2)} inHg` : '--',
+    visibility: data.visibility ? `${Math.round(data.visibility)} mi` : '--',
+    time: formatTime(),
+    raw: data
   };
 }
 
 /**
- * Format wind for display
- */
-export function formatWind(speed?: number, direction?: number): string {
-  if (!speed) return 'Calm';
-  
-  const directionText = direction ? getCompassDirection(direction) : '';
-  return `${Math.round(speed)} kts ${directionText}`.trim();
-}
-
-/**
- * Format waves for display
- */
-export function formatWaves(height?: number, period?: number): string {
-  if (!height) return 'Flat';
-  
-  const heightText = `${height.toFixed(1)} ft`;
-  const periodText = period ? `@ ${Math.round(period)}s` : '';
-  return `${heightText} ${periodText}`.trim();
-}
-
-/**
- * Convert degrees to compass direction
+ * Get compass direction from degrees
  */
 function getCompassDirection(degrees: number): string {
-  const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-                     'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
   const index = Math.round(degrees / 22.5) % 16;
   return directions[index];
-}
-
-/**
- * Get fishing conditions assessment
- */
-export function assessFishingConditions(data: BuoyData): {
-  rating: 'excellent' | 'good' | 'fair' | 'poor';
-  factors: string[];
-} {
-  const factors: string[] = [];
-  let score = 100;
-  
-  // Wind conditions
-  if (data.wind_speed_kt) {
-    if (data.wind_speed_kt < 10) {
-      factors.push('Light winds');
-    } else if (data.wind_speed_kt < 15) {
-      factors.push('Moderate winds');
-      score -= 10;
-    } else if (data.wind_speed_kt < 20) {
-      factors.push('Fresh winds');
-      score -= 20;
-    } else {
-      factors.push('Strong winds');
-      score -= 40;
-    }
-  }
-  
-  // Wave conditions
-  if (data.wave_height_ft) {
-    if (data.wave_height_ft < 2) {
-      factors.push('Calm seas');
-    } else if (data.wave_height_ft < 4) {
-      factors.push('Light chop');
-      score -= 10;
-    } else if (data.wave_height_ft < 6) {
-      factors.push('Moderate seas');
-      score -= 25;
-    } else {
-      factors.push('Rough seas');
-      score -= 40;
-    }
-  }
-  
-  // Water temperature (optimal 68-78°F for most species)
-  if (data.water_temp_f) {
-    if (data.water_temp_f >= 68 && data.water_temp_f <= 78) {
-      factors.push('Ideal water temp');
-    } else if (data.water_temp_f >= 60 && data.water_temp_f <= 85) {
-      factors.push('Good water temp');
-      score -= 10;
-    } else {
-      factors.push('Challenging water temp');
-      score -= 20;
-    }
-  }
-  
-  // Determine rating
-  let rating: 'excellent' | 'good' | 'fair' | 'poor';
-  if (score >= 80) rating = 'excellent';
-  else if (score >= 60) rating = 'good';
-  else if (score >= 40) rating = 'fair';
-  else rating = 'poor';
-  
-  return { rating, factors };
 }
