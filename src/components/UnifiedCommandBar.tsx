@@ -26,6 +26,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   const [captainName, setCaptainName] = useState('');
   const [boatName, setBoatName] = useState('');
   const [inletDropdownOpen, setInletDropdownOpen] = useState(false);
+  const [inletSearchQuery, setInletSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { selectedInletId, setSelectedInletId } = useAppState();
   const [locationEnabled, setLocationEnabled] = useState(true);
@@ -65,6 +66,7 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setInletDropdownOpen(false);
+        setInletSearchQuery('');
       }
     };
     
@@ -75,17 +77,9 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
   const handleInletChange = (inletId: string) => {
     setSelectedInletId(inletId);
     setInletDropdownOpen(false);
+    setInletSearchQuery('');
     
-    // Get the selected inlet
-    const inlet = inlets.find(i => i.id === inletId);
-    if (inlet && map) {
-      // Zoom to inlet
-      map.flyTo({
-        center: inlet.center,
-        zoom: inlet.zoom,
-        duration: 2000
-      });
-    }
+    // Update inlet data only - no camera moves per spec
   };
 
   const handleTabClick = (tab: string) => {
@@ -202,16 +196,27 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                       </span>
                     </button>
                     
-                    {/* Inlet Dropdown - Compact Dark Style */}
+                    {/* Inlet Dropdown - Dark Glow Style */}
                     {inletDropdownOpen && (
-                      <div className="absolute top-full mt-2 right-0 w-72 bg-gray-950/98 backdrop-blur-xl border border-cyan-500/40 rounded-xl shadow-2xl overflow-hidden z-[100]">
+                      <div className="absolute top-full mt-2 right-0 w-72 bg-gray-950/98 backdrop-blur-xl border border-cyan-500/40 rounded-xl shadow-[0_0_30px_rgba(6,182,212,0.3)] overflow-hidden z-[9999]">
                         <div className="px-3 py-2.5 bg-gradient-to-r from-cyan-950/80 to-blue-950/80 border-b border-cyan-500/30">
                           <div className="text-xs text-cyan-400 font-bold uppercase tracking-wider">SELECT FISHING AREA</div>
+                          <input
+                            type="text"
+                            placeholder="Search inlets..."
+                            value={inletSearchQuery}
+                            onChange={(e) => setInletSearchQuery(e.target.value)}
+                            className="w-full mt-2 px-3 py-1.5 bg-black/40 border border-cyan-500/20 rounded-lg text-sm text-cyan-100 placeholder-cyan-500/50 focus:outline-none focus:border-cyan-400/40"
+                            onClick={(e) => e.stopPropagation()}
+                          />
                         </div>
                         <div className="max-h-80 overflow-y-auto bg-black/40">
                           {/* Group by state - ALL states with inlets */}
                           {['ME', 'MA', 'RI', 'NY', 'NJ', 'DE', 'MD', 'VA', 'NC', 'SC', 'GA', 'GA/FL', 'FL', 'FL Keys'].map(state => {
-                            const stateInlets = inlets.filter(i => i.state === state);
+                            const stateInlets = inlets.filter(i => 
+                              i.state === state && 
+                              (!inletSearchQuery || i.name.toLowerCase().includes(inletSearchQuery.toLowerCase()))
+                            );
                             if (stateInlets.length === 0) return null;
                             
                             return (
@@ -229,21 +234,24 @@ export default function UnifiedCommandBar({ map, activeTab, onTabChange }: Unifi
                                       key={inlet.id}
                                       onClick={() => handleInletChange(inlet.id)}
                                       className={`
-                                        w-full px-3 py-2 text-left transition-all flex items-center gap-2
+                                        w-full px-3 py-2.5 text-left transition-all flex items-center gap-3 group
                                         ${isSelected 
-                                          ? 'bg-cyan-500/20' 
-                                          : 'hover:bg-cyan-500/10'
+                                          ? 'bg-gradient-to-r from-cyan-500/20 to-transparent' 
+                                          : 'hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-transparent'
                                         }
                                       `}
-                                      style={{
-                                        borderLeft: `3px solid ${inletColor}`,
-                                        borderLeftColor: isSelected ? inletColor : `${inletColor}66`
-                                      }}
                                     >
+                                      {/* Glowing Color Chip */}
+                                      <div 
+                                        className={`w-3 h-3 rounded-sm transition-all ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}
+                                        style={{
+                                          backgroundColor: inletColor,
+                                          boxShadow: isSelected ? `0 0 12px ${inletColor}` : `0 0 6px ${inletColor}66`
+                                        }}
+                                      />
                                       <div className="flex-1">
                                         <div 
-                                          className={`text-sm font-medium ${isSelected ? 'text-cyan-300' : 'text-gray-200'}`}
-                                          style={{ color: isSelected ? inletColor : undefined }}
+                                          className={`text-sm font-semibold ${isSelected ? 'text-cyan-300' : 'text-gray-200 group-hover:text-cyan-100'}`}
                                         >
                                           {inlet.name}
                                         </div>

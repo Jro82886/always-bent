@@ -6,6 +6,7 @@ import { useAppState } from '@/store/appState';
 import { INLETS, getInletById } from '@/lib/inlets';
 import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
 import ReportsFeed from './ReportsFeed';
+import BuoyWeatherWidget from './BuoyWeatherWidget';
 
 interface WeatherData {
   wind: { speed: number; direction: string };
@@ -32,7 +33,6 @@ export default function CommunityModeFixed() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [onlineCaptains, setOnlineCaptains] = useState<OnlineCaptain[]>([]);
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [activePanel, setActivePanel] = useState<'chat' | 'dm' | 'reports'>('chat');
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
@@ -59,15 +59,6 @@ export default function CommunityModeFixed() {
       setMessages(recent);
     });
     
-    // Mock weather data for now
-    setWeatherData({
-      wind: { speed: 12, direction: 'NE' },
-      waves: { height: 3, period: 8 },
-      waterTemp: 72,
-      tide: { type: 'Rising', time: '2:45 PM' },
-      visibility: 10,
-      location: 'inlet'
-    });
     
     // Mock online captains
     setOnlineCaptains([
@@ -133,35 +124,8 @@ export default function CommunityModeFixed() {
       <div className="pt-32 h-full flex">
         {/* Left Sidebar - Weather & Stats */}
         <div className="w-80 bg-black/40 backdrop-blur-md border-r border-cyan-500/20 p-4 overflow-y-auto">
-          {/* Weather Widget */}
-          {weatherData && (
-            <div className="mb-4 p-4 bg-gray-800/50 rounded-lg border border-cyan-500/20">
-              <h3 className="text-sm font-semibold text-cyan-400 mb-3">Current Conditions</h3>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Wind className="w-4 h-4" />
-                    <span>Wind</span>
-                  </div>
-                  <span className="text-white">{weatherData.wind.speed} kts {weatherData.wind.direction}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Waves className="w-4 h-4" />
-                    <span>Waves</span>
-                  </div>
-                  <span className="text-white">{weatherData.waves.height}ft @ {weatherData.waves.period}s</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Thermometer className="w-4 h-4" />
-                    <span>Water</span>
-                  </div>
-                  <span className="text-white">{weatherData.waterTemp}°F</span>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Weather Widget - Using real NOAA buoy data */}
+          <BuoyWeatherWidget inletId={selectedInletId} />
 
           {/* Online Captains */}
           <div className="p-4 bg-gray-800/50 rounded-lg border border-cyan-500/20">

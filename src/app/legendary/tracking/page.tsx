@@ -14,7 +14,6 @@ import InletRegions from '@/components/InletRegions';
 import TrackingErrorBoundary from '@/components/tracking/TrackingErrorBoundary';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
-import { flyToInlet60nm } from '@/lib/inletBounds';
 import { autoSelectInlet } from '@/lib/findClosestInlet';
 
 // Mapbox token
@@ -248,8 +247,7 @@ function TrackingModeContent() {
         
       });
       
-      // Use proper Gulf Stream view for each inlet
-      flyToInlet60nm(map.current, inlet);
+      // No camera moves on inlet change per spec
       
     }
   }, [selectedInletId, mapFullyReady]);
@@ -258,13 +256,7 @@ function TrackingModeContent() {
   useEffect(() => {
     if (!map.current) return;
     
-    if (selectedInletId) {
-      // Zoom to inlet view
-      const inlet = getInletById(selectedInletId);
-      if (inlet) {
-        flyToInlet60nm(map.current, inlet);
-      }
-    }
+    // No camera moves on inlet change per spec
   }, [selectedInletId]);
 
   // Check if tracking is ready (inlet selected)

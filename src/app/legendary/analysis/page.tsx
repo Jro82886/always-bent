@@ -23,7 +23,6 @@ import CommercialVesselLegend from '@/components/analysis/CommercialVesselLegend
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
-import { flyToInlet60nm } from '@/lib/inletBounds';
 import '@/styles/mapSmoothing.css';
 
 // Set Mapbox token
@@ -68,12 +67,7 @@ function AnalysisModeContent() {
   useEffect(() => {
     if (!map.current || !selectedInletId) return;
     
-    const inlet = getInletById(selectedInletId);
-    if (inlet) {
-      // Use proper Gulf Stream view for each inlet
-      flyToInlet60nm(map.current, inlet);
-      
-    }
+    // No camera moves on inlet change per spec
   }, [selectedInletId]);
   
   // Get boat name from localStorage
