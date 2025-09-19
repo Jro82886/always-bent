@@ -43,11 +43,11 @@ export default function Tabs({ activeMode }: TabsProps) {
                 "pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-0",
                 "h-[2px] rounded-full",
                 // gradient + glow for tapered ends
-                "bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent",
-                "shadow-[0_0_4px_rgba(34,211,238,0.3)]",
+                "bg-gradient-to-r from-transparent via-cyan-400 to-transparent",
+                "shadow-[0_0_8px_rgba(34,211,238,0.6)]",
                 // animation: width + opacity with very subtle timing
                 "transition-[width,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-                active ? "w-10 opacity-90" : "w-0 opacity-0",
+                active ? "w-10 opacity-100" : "w-0 opacity-0",
               ].join(" ")}
             />
 
