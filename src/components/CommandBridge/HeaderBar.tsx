@@ -6,6 +6,7 @@ import { Anchor } from 'lucide-react';
 import WelcomeChip from './WelcomeChip';
 import InletChip from './InletChip';
 import { useAppState } from '@/store/appState';
+import { useInletFromURL } from '@/hooks/useInletFromURL';
 
 interface HeaderBarProps {
   activeMode?: string;
@@ -21,6 +22,9 @@ const TAB_MODES = {
 export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
   const router = useRouter();
   const { selectedInletId } = useAppState();
+  
+  // Sync inlet from URL on mount
+  useInletFromURL();
   
   // Find current tab based on mode
   const currentTab = Object.entries(TAB_MODES).find(([_, mode]) => mode === activeMode)?.[0] || 'Analysis';

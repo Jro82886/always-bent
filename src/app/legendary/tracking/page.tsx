@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import UnifiedCommandBar from '@/components/UnifiedCommandBar';
+import HeaderBar from '@/components/CommandBridge/HeaderBar';
+import { useInletFromURL } from '@/hooks/useInletFromURL';
 import VesselLayer from '@/components/tracking/VesselLayer';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import UnifiedTrackingPanelLeft from '@/components/tracking/UnifiedTrackingPanelLeft';
@@ -27,6 +28,9 @@ function TrackingModeContent() {
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+  
+  // Sync inlet from URL on mount
+  useInletFromURL();
   
   // Vessel visibility states
   // Enable key tracking features by default for better user experience
@@ -196,11 +200,7 @@ function TrackingModeContent() {
       )}
       
       {/* Unified Command Bar - Navigation + Boat Info + Inlet Selector */}
-      <UnifiedCommandBar 
-        map={map.current} 
-        activeTab="tracking"
-        onTabChange={() => {}}
-      />
+      <HeaderBar activeMode="tracking" />
       
       {/* Tracking Panel - Left Side */}
       <UnifiedTrackingPanelLeft 

@@ -23,6 +23,7 @@ import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
+import { useInletFromURL } from '@/hooks/useInletFromURL';
 import '@/styles/mapSmoothing.css';
 
 // Set Mapbox token
@@ -36,6 +37,8 @@ function AnalysisModeContent() {
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
   
+  // Sync inlet from URL on mount
+  useInletFromURL();
   
   // Track if analysis modal is open to hide BITE button
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);

@@ -7,6 +7,8 @@ import { INLETS, getInletById } from '@/lib/inlets';
 import ChatClient, { ChatMessage } from '@/lib/chat/ChatClient';
 import ReportsFeed from './ReportsFeed';
 import BuoyWeatherWidget from './BuoyWeatherWidget';
+import HeaderBar from '@/components/CommandBridge/HeaderBar';
+import { useInletFromURL } from '@/hooks/useInletFromURL';
 
 interface WeatherData {
   wind: { speed: number; direction: string };
@@ -30,6 +32,10 @@ interface OnlineCaptain {
 export default function CommunityModeFixed() {
   const { selectedInletId } = useAppState();
   const inlet = getInletById(selectedInletId) || INLETS[0];
+  
+  // Sync inlet from URL on mount
+  useInletFromURL();
+  
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [onlineCaptains, setOnlineCaptains] = useState<OnlineCaptain[]>([]);
@@ -97,8 +103,11 @@ export default function CommunityModeFixed() {
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 overflow-hidden">
-      {/* Header with proper spacing from top */}
-      <div className="absolute top-16 left-0 right-0 z-50 bg-black/40 backdrop-blur-md border-b border-cyan-500/20">
+      {/* Command Bridge Header */}
+      <HeaderBar activeMode="community" />
+      
+      {/* Community Header with proper spacing from top */}
+      <div className="absolute top-32 left-0 right-0 z-40 bg-black/40 backdrop-blur-md border-b border-cyan-500/20">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
