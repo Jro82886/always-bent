@@ -1,0 +1,31 @@
+# Fix CHL to show Blue-Green-Yellow colors
+
+## UPDATE THIS IN VERCEL NOW:
+
+```
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:jet&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+```
+
+## What this gives you:
+- **BLUE**: Low chlorophyll (open ocean)
+- **GREEN**: Medium chlorophyll (transitional waters)  
+- **YELLOW**: High chlorophyll (productive coastal waters)
+- Uses the "jet" colormap which is the classic blue-green-yellow oceanography color scheme
+
+## Alternative if you want more vibrant colors:
+
+```
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:rainbow&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+```
+
+## Steps:
+1. Go to: https://vercel.com/jro82886s-projects/always-bent/settings/environment-variables
+2. Find `CMEMS_CHL_WMTS_TEMPLATE`
+3. Click edit
+4. Replace with the value above
+5. Save and redeploy
+
+## Note:
+- This uses the GLOBAL dataset (GLO) instead of Atlantic (ATL)
+- 4km resolution but covers more area reliably
+- The jet colormap is the standard for ocean chlorophyll visualization

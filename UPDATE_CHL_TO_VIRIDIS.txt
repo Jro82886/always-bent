@@ -1,0 +1,25 @@
+# UPDATE REQUIRED: Change CHL to Viridis colormap
+
+## Update this environment variable in Vercel:
+
+```
+CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_ATL_BGC_L4_MY_009_118/cmems_obs-oc_atl_bgc-plankton_my_l4-multi-1km_P1D/CHL-SURF&STYLE=cmap:viridis&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+```
+
+## What this changes:
+- Adds proper WMTS parameters
+- Sets STYLE=cmap:viridis for the green color scheme
+- This will show chlorophyll with the viridis colormap:
+  - Dark purple/blue: Low chlorophyll (open ocean)
+  - Green: Medium chlorophyll 
+  - Yellow/bright green: High chlorophyll (productive waters)
+
+## Steps to update:
+1. Go to: https://vercel.com/jro82886s-projects/always-bent/settings/environment-variables
+2. Find `CMEMS_CHL_WMTS_TEMPLATE`
+3. Click the three dots menu and select "Edit"
+4. Replace the value with the one above
+5. Click "Save"
+6. Redeploy the application
+
+The viridis colormap is much better for chlorophyll visualization as it emphasizes the green productive areas!

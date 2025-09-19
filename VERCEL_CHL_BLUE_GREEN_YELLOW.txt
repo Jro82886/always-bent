@@ -1,0 +1,30 @@
+# URGENT: Update CHL in Vercel for Blue-Green-Yellow Display
+
+## Environment Variable to Update:
+
+**Variable Name:** `CMEMS_CHL_WMTS_TEMPLATE`
+
+**New Value:**
+```
+https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:turbo&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}
+```
+
+## This will give you:
+- 🔵 **BLUE**: Low chlorophyll (deep ocean)
+- 🟢 **GREEN**: Medium chlorophyll (transitional waters)
+- 🟡 **YELLOW**: High chlorophyll (productive coastal areas)
+
+## Quick Deploy Steps:
+1. Go to: https://vercel.com/jro82886s-projects/always-bent/settings/environment-variables
+2. Find `CMEMS_CHL_WMTS_TEMPLATE` 
+3. Click the "..." menu → Edit
+4. Replace with the value above
+5. Click Save
+6. Go to Deployments tab and click "Redeploy" on the latest deployment
+
+## What's Different:
+- Uses `cmap:turbo` colormap (blue → green → yellow progression)
+- Global dataset for better coverage
+- Proper WMTS format that Copernicus expects
+
+The turbo colormap is perfect for chlorophyll - it shows the natural progression from nutrient-poor blue waters to nutrient-rich green/yellow waters where the fish are!
