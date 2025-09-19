@@ -93,23 +93,31 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
   }, [showModal, onModalStateChange]);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
-    if (!map || polygon.geometry.type !== 'Polygon') return;
+    console.log('[SNIP DEBUG] handleAnalyze called');
+    if (!map || polygon.geometry.type !== 'Polygon') {
+      console.log('[SNIP DEBUG] Early return - map:', !!map, 'polygon type:', polygon.geometry.type);
+      return;
+    }
     
     // New run: cancel any prior timeouts
     const runId = ++snipRunId;
     clearSnipTimers();
+    console.log('[SNIP DEBUG] New run ID:', runId);
     
     // Type-safe cast to Polygon feature for vessel tracking
     const polygonFeature = polygon as GeoJSON.Feature<GeoJSON.Polygon>;
     
     // Get vessel tracks in the area
+    console.log('[SNIP DEBUG] Getting vessel tracks...');
     const vesselData = await getVesselTracksInArea(polygonFeature, map);
+    console.log('[SNIP DEBUG] Vessel data received:', vesselData.tracks?.length || 0, 'tracks');
     
     // STEP 1: Zoom to polygon bounds for visualization
     const bbox = turf.bbox(polygon);
     const bounds = [[bbox[0], bbox[1]], [bbox[2], bbox[3]]] as [[number, number], [number, number]];
     
     console.log('[SNIP] Starting zoom to bounds:', bounds);
+    console.log('[SNIP DEBUG] Current zoom:', map.getZoom(), 'Center:', map.getCenter());
     
     try {
       await zoomToBounds(map, bounds, {

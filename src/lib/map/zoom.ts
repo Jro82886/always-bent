@@ -18,6 +18,7 @@ export async function zoomToBounds(
     pitch?: number;
   } = {}
 ) {
+  console.log('[ZOOM DEBUG] zoomToBounds called with bounds:', rawBounds);
   map.resize(); // in case drawers/layout changed
 
   // normalize/epsilon
@@ -27,14 +28,28 @@ export async function zoomToBounds(
   if (Math.abs(ne.lng - sw.lng) < minSpan && Math.abs(ne.lat - sw.lat) < minSpan) {
     b.extend([sw.lng + minSpan, sw.lat + minSpan]);
   }
+  
+  console.log('[ZOOM DEBUG] Normalized bounds:', b.toArray());
 
   map.stop();
-  if (!map.isStyleLoaded()) await waitFor('idle', map);
+  if (!map.isStyleLoaded()) {
+    console.log('[ZOOM DEBUG] Waiting for style to load...');
+    await waitFor('idle', map);
+  }
 
   const pad = typeof opts.padding === 'number'
     ? { top: opts.padding, bottom: opts.padding, left: opts.padding, right: opts.padding }
     : (opts.padding ?? { top: 100, bottom: 100, left: 100, right: 100 });
 
+  console.log('[ZOOM DEBUG] Calling fitBounds with options:', {
+    padding: pad,
+    duration: opts.duration ?? 1500,
+    essential: true,
+    animate: true,
+    bearing: opts.bearing ?? 0,
+    pitch: opts.pitch ?? 0
+  });
+  
   map.fitBounds(b, {
     padding: pad,
     duration: opts.duration ?? 1500,
@@ -43,6 +58,8 @@ export async function zoomToBounds(
     bearing: opts.bearing ?? 0,
     pitch: opts.pitch ?? 0
   });
-
+  
+  console.log('[ZOOM DEBUG] fitBounds called, waiting for moveend...');
   await waitFor('moveend', map);
+  console.log('[ZOOM DEBUG] moveend received!');
 }
