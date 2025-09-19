@@ -26,9 +26,9 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
   });
   
   return (
-    <div className="w-64 bg-slate-900/60 backdrop-blur-md border-r border-cyan-500/20 flex flex-col shadow-xl">
-      <div className="p-4 border-b border-cyan-500/20">
-        <h2 className="text-lg font-semibold text-white bg-gradient-to-r from-cyan-400/80 to-teal-400/80 bg-clip-text text-transparent">Channels</h2>
+    <div className="w-72 bg-slate-900/40 backdrop-blur-xl border-r border-white/10 flex flex-col shadow-2xl">
+      <div className="p-5 border-b border-white/10">
+        <h2 className="text-lg font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">Channels</h2>
       </div>
       
       <div className="flex-1 overflow-y-auto">
@@ -36,14 +36,14 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
           <button
             key={room.id}
             onClick={() => onSelectRoom(room.id)}
-            className={`w-full px-4 py-3 flex items-center justify-between hover:bg-slate-800/50 transition-colors ${
-              selectedRoom === room.id ? 'bg-slate-800/50 border-l-2 border-cyan-400' : ''
+            className={`w-full px-4 py-3.5 mx-2 my-1 rounded-lg flex items-center justify-between hover:bg-slate-800/50 transition-all duration-200 ${
+              selectedRoom === room.id ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-l-4 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]'
             }`}
           >
             <div className="flex items-center gap-3">
               <span className="text-white font-medium">{room.name}</span>
               {room.unread > 0 && (
-                <span className="px-2 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 rounded-full">
+                <span className="px-2.5 py-1 text-xs bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-300 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)] font-medium">
                   {room.unread}
                 </span>
               )}
@@ -56,9 +56,9 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
         ))}
       </div>
       
-      <div className="p-4 border-t border-cyan-500/20">
-        <div className="text-xs text-slate-500">Direct Messages</div>
-        <div className="mt-2 text-sm text-slate-400">Coming soon...</div>
+      <div className="p-5 border-t border-white/10 bg-gradient-to-b from-slate-900/20 to-slate-900/40">
+        <div className="text-xs uppercase tracking-wider font-semibold bg-gradient-to-r from-purple-400/80 to-pink-400/80 bg-clip-text text-transparent mb-3">Direct Messages</div>
+        <div className="text-sm text-slate-400/80 italic">Coming soon...</div>
       </div>
     </div>
   );
