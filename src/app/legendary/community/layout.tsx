@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import CommunityWrapper from './CommunityWrapper';
 
 export default function CommunityLayout({
   children,
@@ -13,7 +14,8 @@ export default function CommunityLayout({
   const isReports = pathname.includes('/reports');
 
   return (
-    <div className="flex flex-col h-full">
+    <CommunityWrapper>
+      <div className="flex flex-col h-full">
       {/* Desktop Tab Bar */}
       <div className="hidden md:flex bg-slate-900 border-b border-cyan-500/20">
         <Link
@@ -71,5 +73,6 @@ export default function CommunityLayout({
         </div>
       </div>
     </div>
+    </CommunityWrapper>
   );
 }

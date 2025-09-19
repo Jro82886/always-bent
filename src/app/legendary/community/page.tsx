@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 
 export default function CommunityPage() {
-  redirect('/legendary/community/chat');
+  // Default to reports tab when visiting /legendary/community
+  redirect('/legendary/community/reports');
 }
