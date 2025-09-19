@@ -3,7 +3,7 @@ import { getInletWeather, fetchBuoyData, INLET_BUOY_MAP } from '@/lib/weather/no
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
+    const searchParams = req.nextUrl.searchParams;
     const inletId = searchParams.get('inlet');
     const stationId = searchParams.get('station');
     

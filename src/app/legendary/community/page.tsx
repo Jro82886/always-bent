@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 import CommunityHeader from '@/components/community/CommunityHeader';
-import ReportsFilters from '@/components/community/ReportsFilters';
+import ReportsFiltersWrapper from '@/components/community/ReportsFiltersWrapper';
 import ReportComposer from '@/components/community/ReportComposer';
 import ReportsFeed from '@/components/community/ReportsFeed';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
@@ -19,9 +19,7 @@ export default function CommunityPage() {
           <CommunityHeader />
         </Suspense>
         
-        <Suspense fallback={<div className="h-14 bg-black/40 animate-pulse" />}>
-          <ReportsFilters />
-        </Suspense>
+        <ReportsFiltersWrapper />
         
         <ReportComposer />
         

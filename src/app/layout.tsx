@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@/styles/abfi-toggle.css';
 import { Geist, Geist_Mono } from 'next/font/google';
@@ -14,13 +14,19 @@ export const metadata: Metadata = {
   title: 'ABFI - Always Bent Fishing Intelligence',
   description: 'Real-time fishing intelligence and bite tracking',
   manifest: '/manifest.json',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
-  themeColor: '#00DDEB',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'ABFI'
   }
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#00DDEB'
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
