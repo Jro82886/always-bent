@@ -412,6 +412,44 @@ function AnalysisModeContent() {
             <NewUserTutorial onComplete={() => {
               setShowingTutorial(false);
               setTutorialCompleted(true);
+              
+              // Dramatic East Coast overview zoom after tutorial
+              if (map.current) {
+                // First, ensure inlet regions are visible
+                const inletLayer = map.current.getLayer('inlet-regions-glow');
+                if (inletLayer) {
+                  map.current.setPaintProperty('inlet-regions-glow', 'circle-opacity', 0.09);
+                  map.current.setPaintProperty('inlet-regions-core', 'circle-opacity', 0.15);
+                }
+                
+                // Dramatic spin and zoom to East Coast
+                map.current.flyTo({
+                  center: [-73.5, 35.5], // Center between Maine and Florida
+                  zoom: 5.5,
+                  bearing: -15, // Slight angle for drama
+                  pitch: 25, // Tilt for 3D effect
+                  duration: 3000, // 3 second animation
+                  essential: true,
+                  easing: (t: number) => {
+                    // Custom easing for dramatic effect
+                    return t < 0.5 
+                      ? 4 * t * t * t 
+                      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                  }
+                });
+                
+                // After initial zoom, settle into perfect view
+                setTimeout(() => {
+                  map.current?.flyTo({
+                    center: [-74, 37], // Slightly north for better inlet visibility
+                    zoom: 6,
+                    bearing: 0,
+                    pitch: 0,
+                    duration: 2000,
+                    essential: true
+                  });
+                }, 3000);
+              }
             }} />
           )}
           
