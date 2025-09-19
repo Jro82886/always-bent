@@ -239,8 +239,6 @@ export default function TrendsModeFixed() {
           visibility: 10,
           cloudCover: 25
         });
-      } catch (error) {
-        console.error('Failed to fetch environmental data:', error);
       } finally {
         setLoading(false);
       }
