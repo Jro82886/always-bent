@@ -26,17 +26,24 @@ const fmt = (iso: string) => {
 };
 const trendArrow = (t: 'rising' | 'falling' | 'steady') => t === 'rising' ? '↑' : t === 'falling' ? '↓' : '→';
 
-// Compact metric pill component
-function MetricPill({ icon: Icon, label, value }: { 
+// Enhanced metric pill component with color-specific glows
+function MetricPill({ icon: Icon, label, value, glowClass }: { 
   icon: React.ComponentType<any>, 
   label: string, 
-  value: string 
+  value: string,
+  glowClass: string
 }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-md bg-white/5 px-2 py-1">
-      <Icon className="h-3.5 w-3.5 text-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.35)]" />
-      <span className="text-[11px] uppercase tracking-wide text-slate-400">{label}</span>
-      <span className="text-xs font-medium text-slate-100">{value}</span>
+    <div className={`flex items-center gap-2 rounded-md bg-white/5 px-3 py-1.5
+                    text-sm font-medium text-slate-100
+                    transition duration-200 ease-out
+                    ${glowClass}
+                    hover:brightness-125 hover:shadow-[0_0_8px_currentColor]
+                    focus-visible:brightness-125 focus-visible:shadow-[0_0_8px_currentColor]
+                    cursor-default`}>
+      <Icon className="h-5 w-5 opacity-90" />
+      <span className="text-[11px] uppercase tracking-wide text-slate-400 mr-1">{label}</span>
+      <span>{value}</span>
     </div>
   );
 }
@@ -145,16 +152,35 @@ export default function TrendsMode() {
         {/* Compact Ocean Intelligence Overview */}
         <div className="rounded-xl bg-slate-900/60 backdrop-blur-md shadow-sm px-4 py-2 border border-white/5 mb-3">
           <div className="flex items-center gap-3 justify-between">
-            <Tooltip content="Live ocean snapshot for your inlet: moon, tides, SST, wind, pressure, sun.">
-              <h2 className="text-sm font-semibold tracking-wide uppercase cursor-help
-                         bg-gradient-to-r from-cyan-400/80 to-teal-400/80
-                         bg-clip-text text-transparent drop-shadow">
-                Ocean Intelligence Overview
-              </h2>
-            </Tooltip>
+            <div className="flex items-center gap-4">
+              <Tooltip content="Live ocean snapshot for your inlet: moon, tides, SST, wind, pressure, sun.">
+                <h2 className="text-sm font-semibold tracking-wide uppercase cursor-help
+                           bg-gradient-to-r from-cyan-400/80 to-teal-400/80
+                           bg-clip-text text-transparent drop-shadow">
+                  Ocean Intelligence Overview
+                </h2>
+              </Tooltip>
 
-            {/* Source status badges */}
+              {/* Time range selector - now left-aligned */}
+              <div className="flex items-center gap-1">
+                {(['1d', '7d', '14d'] as TimeRange[]).map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className={`px-2.5 py-1 text-xs rounded-md transition-all ${
+                      timeRange === range
+                        ? 'bg-cyan-400/20 text-cyan-300 ring-1 ring-cyan-400/30'
+                        : 'text-slate-300/70 hover:text-white'
+                    }`}
+                  >
+                    {range === '1d' ? 'Today' : range === '7d' ? '7 Days' : '14 Days'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
+              {/* Source status badges */}
               <SourceBadge 
                 id="stormio" 
                 status={trendsData?.sources?.find(s => s.id === 'stormio')?.status || 'error'} 
@@ -165,33 +191,16 @@ export default function TrendsMode() {
                 status={trendsData?.sources?.find(s => s.id === 'db')?.status || 'error'} 
                 label="ABFI DB" 
               />
-            </div>
 
-            {/* Time range selector */}
-            <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
-              {(['1d', '7d', '14d'] as TimeRange[]).map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-3 py-1 text-xs rounded-md transition-all ${
-                    timeRange === range
-                      ? 'bg-cyan-500/20 text-cyan-300'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {range === '1d' ? 'Today' : range === '7d' ? '7 Days' : '14 Days'}
-                </button>
-              ))}
+              {/* Refresh button */}
+              <button
+                onClick={fetchTrendsData}
+                disabled={loading}
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
-
-            {/* Refresh button */}
-            <button
-              onClick={fetchTrendsData}
-              disabled={loading}
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
-            </button>
           </div>
 
           {/* Metrics row */}
@@ -203,6 +212,7 @@ export default function TrendsMode() {
                     icon={Moon} 
                     label="Moon" 
                     value={`${getMoonPhaseIcon(trendsData.envBar.moon.phase)} ${trendsData.envBar.moon.illumPct}%`} 
+                    glowClass="text-blue-300 shadow-[0_0_6px_rgba(147,197,253,0.35)]"
                   />
                 </div>
               </Tooltip>
@@ -212,6 +222,7 @@ export default function TrendsMode() {
                     icon={Waves} 
                     label="Next Tide" 
                     value={`${trendsData.envBar.nextTide.type} · ${fmt(trendsData.envBar.nextTide.timeIso)}`} 
+                    glowClass="text-cyan-300 shadow-[0_0_6px_rgba(34,211,238,0.35)]"
                   />
                 </div>
               </Tooltip>
@@ -222,6 +233,7 @@ export default function TrendsMode() {
                       icon={Thermometer} 
                       label="SST" 
                       value={`${toF(trendsData.envBar.weather.sstC)}°F`} 
+                      glowClass="text-teal-300 shadow-[0_0_6px_rgba(20,184,166,0.35)]"
                     />
                   </div>
                 </Tooltip>
@@ -233,6 +245,7 @@ export default function TrendsMode() {
                       icon={Wind} 
                       label="Wind" 
                       value={`${trendsData.envBar.weather.windKt} kt ${trendsData.envBar.weather.windDir || ''}`} 
+                      glowClass="text-yellow-300 shadow-[0_0_6px_rgba(250,204,21,0.35)]"
                     />
                   </div>
                 </Tooltip>
@@ -244,6 +257,7 @@ export default function TrendsMode() {
                       icon={Gauge} 
                       label="Pressure" 
                       value={`${trendsData.envBar.weather.pressureHpa} mb ${trendArrow(trendsData.envBar.weather.pressureTrend || 'steady')}`} 
+                      glowClass="text-green-300 shadow-[0_0_6px_rgba(134,239,172,0.35)]"
                     />
                   </div>
                 </Tooltip>
@@ -254,6 +268,7 @@ export default function TrendsMode() {
                     icon={Sun} 
                     label="Sun" 
                     value={`↑${fmt(trendsData.envBar.sun.sunriseIso)} / ↓${fmt(trendsData.envBar.sun.sunsetIso)}`} 
+                    glowClass="text-amber-300 shadow-[0_0_6px_rgba(251,191,36,0.35)]"
                   />
                 </div>
               </Tooltip>
