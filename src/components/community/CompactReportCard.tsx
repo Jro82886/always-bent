@@ -153,7 +153,10 @@ export default function CompactReportCard({ report }: { report: BiteReport }) {
           {/* ABFI Highlight Reason - Inline */}
           {isHighlight && report.highlight_reason && (
             <div className="mt-1 text-[10px] text-orange-300/80 pl-5">
-              ⚡ {report.highlight_reason}
+              <span className="flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                {report.highlight_reason}
+              </span>
             </div>
           )}
         </div>
@@ -229,7 +232,10 @@ export default function CompactReportCard({ report }: { report: BiteReport }) {
             
             {/* Exact Coordinates */}
             <div className="flex items-center justify-between text-[10px] text-gray-400">
-              <span>📍 {report.lat.toFixed(4)}°N, {report.lon.toFixed(4)}°W</span>
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {report.lat.toFixed(4)}°N, {report.lon.toFixed(4)}°W
+              </span>
               <span>{new Date(report.created_at).toLocaleString()}</span>
             </div>
           </div>
