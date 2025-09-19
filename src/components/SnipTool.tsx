@@ -539,6 +539,9 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     // Add visual feedback class to canvas
     canvas.classList.add('snipping-active');
     
+    // Expose stop function for hard reset
+    (window as any).__abfiStopDrawing = () => stopDrawing();
+    
     // Add CSS for enhanced cursor if not already present
     if (!document.getElementById('snip-cursor-styles')) {
       const style = document.createElement('style');
@@ -583,6 +586,33 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Store original text for restoration
       (window as any).__originalButtonText = originalText;
     }
+  }, [map]);
+
+  // Stop drawing mode (for external use)
+  const stopDrawing = useCallback(() => {
+    if (!map) return;
+    
+    setIsDrawing(false);
+    startPoint.current = null;
+    
+    // Reset cursor
+    const canvas = map.getCanvas();
+    canvas.style.cursor = '';
+    canvas.classList.remove('snipping-active');
+    
+    // Remove rectangle layers/source if present
+    try {
+      if (map.getLayer('snip-rectangle-outline')) map.removeLayer('snip-rectangle-outline');
+      if (map.getLayer('snip-rectangle-fill')) map.removeLayer('snip-rectangle-fill');
+      if (map.getSource('snip-rectangle')) map.removeSource('snip-rectangle');
+    } catch {}
+    
+    // Re-enable map interactions
+    map.dragPan.enable();
+    map.dragRotate.enable();
+    map.doubleClickZoom.enable();
+    map.scrollZoom.enable();
+    map.boxZoom.enable();
   }, [map]);
 
   // Clear drawing

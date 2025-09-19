@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { X, Target, Waves, Thermometer, Activity, Save } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { getAnalysisQuote } from '@/lib/philosophy';
+import { hardResetSnip } from '@/components/SnipController';
 import '@/styles/analysis-glow.css';
 
 interface AnalysisModalProps {
@@ -14,13 +15,34 @@ interface AnalysisModalProps {
 }
 
 export default function AnalysisModal({ analysis, visible, onClose, onSave }: AnalysisModalProps) {
-  const handleClose = () => {
-    // Clean up any remaining visualization elements
-    if ((window as any).__cleanupSnipVisualization) {
-      (window as any).__cleanupSnipVisualization();
-    }
-    onClose();
+  const mapRef = (window as any).abfiMap || (window as any).map;
+  
+  const onDone = () => {
+    hardResetSnip(mapRef); // clean + idle
+    onClose?.();
   };
+  
+  const onSaveReport = () => {
+    if (onSave) onSave(); // persist report
+    hardResetSnip(mapRef); // clean + idle
+    onClose?.();
+  };
+  
+  const onSnipAnother = () => {
+    hardResetSnip(mapRef); // clean
+    onClose?.();
+    // Re-enter draw mode
+    setTimeout(() => {
+      const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
+      if (snipButton) {
+        snipButton.click();
+      } else if ((window as any).startSnipping) {
+        (window as any).startSnipping();
+      }
+    }, 300);
+  };
+  
+  const handleClose = onDone; // Default close is "Done"
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -469,18 +491,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         {/* Compact Footer Actions */}
         <div className="px-6 py-3 border-t border-cyan-500/20 flex justify-between items-center">
           <button
-            onClick={() => {
-              handleClose();
-              // Trigger new snip after modal closes
-              setTimeout(() => {
-                const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
-                if (snipButton) {
-                  snipButton.click();
-                } else if ((window as any).startSnipping) {
-                  (window as any).startSnipping();
-                }
-              }, 300);
-            }}
+            onClick={onSnipAnother}
             className="px-4 py-2 text-sm bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-cyan-200 transition-all rounded-lg flex items-center gap-2 border border-cyan-500/20"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -492,11 +503,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           <div className="flex gap-2">
             {onSave && (
               <button
-                onClick={onSave}
+                onClick={onSaveReport}
                 className="px-5 py-2 text-sm bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-2"
               >
                 <Save size={14} className="text-white drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]" />
-                <span>Save</span>
+                <span>Save as Report</span>
               </button>
             )}
             <button

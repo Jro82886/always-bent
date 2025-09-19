@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback, useEffect } from 'react';
-import type mapboxgl from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 import SnipTool from './SnipTool';
 import HotspotMarker from './HotspotMarker';
 import AnalysisModal from './AnalysisModal';
@@ -9,6 +9,71 @@ import { saveSnipAnalysis } from '@/lib/supabase/ml-queries';
 import * as turf from '@turf/turf';
 import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 import { saveAnalysisAsReport } from '@/lib/reports/analysis-to-report';
+import { zoomToBounds } from '@/lib/map/zoom';
+
+// --- Snip sequencing guards ---
+let snipRunId = 0;
+let snipTimers: number[] = [];
+
+function clearSnipTimers() {
+  snipTimers.forEach(t => window.clearTimeout(t));
+  snipTimers = [];
+}
+
+function killLayerIf(map: mapboxgl.Map, id: string) {
+  try { if (map.getLayer(id)) map.removeLayer(id); } catch {}
+}
+function killSourceIf(map: mapboxgl.Map, id: string) {
+  try { if (map.getSource(id)) map.removeSource(id); } catch {}
+}
+function killElIf(id: string) {
+  const el = document.getElementById(id);
+  if (el?.parentElement) el.parentElement.removeChild(el);
+}
+
+function sweepDynamicVessel(map: mapboxgl.Map) {
+  const style = map.getStyle();
+  if (!style) return;
+  style.layers?.forEach(l => {
+    if (l.id.startsWith('vessel-track-layer-')) {
+      try { map.removeLayer(l.id); } catch {}
+    }
+  });
+  Object.keys(style.sources || {}).forEach(id => {
+    if (id.startsWith('vessel-track-source-')) {
+      try { map.removeSource(id); } catch {}
+    }
+  });
+}
+
+/** Full wipe: timers, dynamic vessel layers, hotspot, rect, legend, tooltip, draw mode, cursor */
+export function hardResetSnip(map?: mapboxgl.Map) {
+  // 1) invalidate this run & cancel queued work
+  snipRunId++;
+  clearSnipTimers();
+
+  // 2) call existing viz cleanup defensively (your function)
+  try { (window as any).__cleanupSnipVisualization?.(); } catch {}
+
+  if (map) {
+    // 3) remove any dynamic vessel artifacts
+    sweepDynamicVessel(map);
+
+    // 4) remove hotspot + rectangle if present (use your actual ids)
+    killLayerIf(map, 'snip-hotspot-lyr');
+    killSourceIf(map, 'snip-hotspot-src');
+    killLayerIf(map, 'snip-rect-lyr');
+    killSourceIf(map, 'snip-rect-src');
+  }
+
+  // 5) remove UI elements we inject during snip
+  killElIf('vessel-legend');
+  killElIf('snip-analysis-tooltip');
+
+  // 6) exit our custom draw mode and restore cursor
+  try { (window as any).__abfiStopDrawing?.(); } catch {}
+  try { map?.getCanvas()?.style && (map.getCanvas().style.cursor = ''); } catch {}
+}
 
 interface SnipControllerProps {
   map: mapboxgl.Map | null;
@@ -28,19 +93,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
   }, [showModal, onModalStateChange]);
 
   const handleAnalyze = useCallback(async (polygon: GeoJSON.Feature) => {
+    if (!map || polygon.geometry.type !== 'Polygon') return;
     
-    
-    if (polygon.geometry.type === 'Polygon') {
-      const polyGeom = polygon.geometry as GeoJSON.Polygon;
-      
-    }
-    
-    if (!map) {
-      
-      return;
-    }
-    
-    
+    // New run: cancel any prior timeouts
+    const runId = ++snipRunId;
+    clearSnipTimers();
     
     // Type-safe cast to Polygon feature for vessel tracking
     const polygonFeature = polygon as GeoJSON.Feature<GeoJSON.Polygon>;
@@ -54,29 +111,34 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
     
     console.log('[SNIP] Starting zoom to bounds:', bounds);
     
-    // Fit map to polygon with padding
-    map.fitBounds(bounds, {
-      padding: { top: 100, bottom: 100, left: 100, right: 100 },
-      duration: 1500, // Increased duration
-      essential: true, // Ensures animation completes
-      animate: true // Force animation
-    });
+    try {
+      await zoomToBounds(map, bounds, {
+        padding: { top: 100, bottom: 100, left: 100, right: 100 },
+        duration: 1500,
+        bearing: 0,
+        pitch: 0,
+      });
+      console.log('[SNIP] Zoom animation completed');
+    } catch (e) {
+      console.warn('[SNIP] Zoom failed, using jumpTo fallback:', e);
+      const b = (mapboxgl as any).LngLatBounds.convert(bounds);
+      const center = b.getCenter();
+      map.stop();
+      map.jumpTo({ center, zoom: Math.max(map.getZoom(), 8), bearing: 0, pitch: 0 });
+    }
     
-    // Also listen for zoom end to ensure it completes
-    const onZoomEnd = () => {
-      console.log('Zoom animation completed');
-      map.off('zoomend', onZoomEnd);
-    };
-    map.once('zoomend', onZoomEnd);
+    if (runId !== snipRunId) return; // aborted during await
     
-    // Wait for zoom to complete before adding tracks
-    setTimeout(() => {
+    // VISUALIZATION strictly after zoom
+    snipTimers.push(window.setTimeout(() => {
+      if (runId !== snipRunId) return;
+      console.log('[SNIP] Showing vessel visualization');
       // Add vessel tracks visualization if any found
       if (vesselData.tracks && vesselData.tracks.length > 0) {
         console.log(`Adding ${vesselData.tracks.length} vessel tracks to visualization`);
       // Add vessel tracks to map
       vesselData.tracks.forEach((track, idx) => {
-        const sourceId = `vessel-track-${idx}`;
+        const sourceId = `vessel-track-source-${idx}`;
         const layerId = `vessel-track-layer-${idx}`;
         
         // Remove if exists
@@ -133,10 +195,11 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       `;
       document.body.appendChild(legendDiv);
       }
-    }, 1700); // Wait for zoom to complete (1500ms) + buffer
+    }, 200)); // small buffer after moveend
     
-    // Wait for user to inspect the visualization
-    setTimeout(() => {
+    // ANALYSIS strictly after viz
+    snipTimers.push(window.setTimeout(() => {
+      if (runId !== snipRunId) return;
       console.log('[SNIP] Starting analysis phase');
       setIsAnalyzing(true);
       
@@ -145,7 +208,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         // Remove vessel tracks
         vesselData.tracks?.forEach((_, idx) => {
           const layerId = `vessel-track-layer-${idx}`;
-          const sourceId = `vessel-track-${idx}`;
+          const sourceId = `vessel-track-source-${idx}`;
           if (map.getLayer(layerId)) map.removeLayer(layerId);
           if (map.getSource(sourceId)) map.removeSource(sourceId);
         });
@@ -165,7 +228,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
           (window as any).__cleanupSnipVisualization();
         }
       }, 5000); // Keep visualization for 5 seconds
-    }, 4000); // Wait 4 seconds before starting analysis (1.5s zoom + 2.5s viewing)
+    }, 200 + 2500)); // keep 2.5s window
     
     // Detect which layers are currently active
     const activeLayers = {
