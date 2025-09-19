@@ -338,20 +338,133 @@ export default function VesselLayerClean({
 
   // Handle track rendering
   useEffect(() => {
-    if (!map || (!showTracks && !showFleetTracks)) {
-      // Remove track layers if they exist
-      if (map.getLayer('user-track')) map.removeLayer('user-track');
-      if (map.getSource('user-track')) map.removeSource('user-track');
-      if (map.getLayer('fleet-tracks')) map.removeLayer('fleet-tracks');
-      if (map.getSource('fleet-tracks')) map.removeSource('fleet-tracks');
-      return;
-    }
-
-    // TODO: Implement track fetching and rendering
-    // This will fetch 4-day track data and render as Mapbox GL line layers
-    // with simplification based on zoom level
+    if (!map) return;
     
-  }, [map, showTracks, showFleetTracks]);
+    const updateTracks = async () => {
+      // Remove existing tracks if toggled off
+      if (!showTracks && !showFleetTracks) {
+        if (map.getLayer('user-track')) map.removeLayer('user-track');
+        if (map.getSource('user-track')) map.removeSource('user-track');
+        if (map.getLayer('fleet-tracks')) map.removeLayer('fleet-tracks');
+        if (map.getSource('fleet-tracks')) map.removeSource('fleet-tracks');
+        return;
+      }
+
+      try {
+        // Fetch track data
+        const response = await fetch(`/api/tracking/tracks?inlet_id=${selectedInletId}&hours=96`);
+        if (!response.ok) throw new Error('Failed to fetch tracks');
+        
+        const data = await response.json();
+        const tracks = data.tracks || [];
+        
+        // Get current user ID
+        const user = await supabase.auth.getUser();
+        const currentUserId = user.data.user?.id;
+        
+        // Separate user and fleet tracks
+        const userTrack = tracks.find((t: any) => t.user_id === currentUserId);
+        const fleetTracks = tracks.filter((t: any) => t.user_id !== currentUserId);
+        
+        // Render user track
+        if (showTracks && userTrack && userTrack.points) {
+          const userTrackData = {
+            type: 'Feature' as const,
+            geometry: {
+              type: 'LineString' as const,
+              coordinates: Array.isArray(userTrack.points) 
+                ? userTrack.points.map((p: any) => [p.lng, p.lat])
+                : []
+            }
+          };
+          
+          if (map.getSource('user-track')) {
+            (map.getSource('user-track') as mapboxgl.GeoJSONSource).setData(userTrackData);
+          } else {
+            map.addSource('user-track', {
+              type: 'geojson',
+              data: userTrackData
+            });
+          }
+          
+          if (!map.getLayer('user-track')) {
+            map.addLayer({
+              id: 'user-track',
+              type: 'line',
+              source: 'user-track',
+              layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+              },
+              paint: {
+                'line-color': '#ffffff',
+                'line-width': 3
+              }
+            });
+          }
+        } else {
+          if (map.getLayer('user-track')) map.removeLayer('user-track');
+          if (map.getSource('user-track')) map.removeSource('user-track');
+        }
+        
+        // Render fleet tracks
+        if (showFleetTracks && fleetTracks.length > 0) {
+          const fleetTrackData = {
+            type: 'FeatureCollection' as const,
+            features: fleetTracks.map((track: any) => ({
+              type: 'Feature' as const,
+              properties: {
+                userId: track.user_id,
+                username: track.username
+              },
+              geometry: {
+                type: 'LineString' as const,
+                coordinates: Array.isArray(track.points)
+                  ? track.points.map((p: any) => [p.lng, p.lat])
+                  : []
+              }
+            }))
+          };
+          
+          if (map.getSource('fleet-tracks')) {
+            (map.getSource('fleet-tracks') as mapboxgl.GeoJSONSource).setData(fleetTrackData);
+          } else {
+            map.addSource('fleet-tracks', {
+              type: 'geojson',
+              data: fleetTrackData
+            });
+          }
+          
+          if (!map.getLayer('fleet-tracks')) {
+            // Get inlet glow color
+            const inlet = await import('@/lib/inlets').then(m => m.getInletById(selectedInletId));
+            const glowColor = inlet?.glowColor || '#00DDEB';
+            
+            map.addLayer({
+              id: 'fleet-tracks',
+              type: 'line',
+              source: 'fleet-tracks',
+              layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+              },
+              paint: {
+                'line-color': glowColor,
+                'line-width': 2
+              }
+            });
+          }
+        } else {
+          if (map.getLayer('fleet-tracks')) map.removeLayer('fleet-tracks');
+          if (map.getSource('fleet-tracks')) map.removeSource('fleet-tracks');
+        }
+      } catch (error) {
+        console.error('Error fetching tracks:', error);
+      }
+    };
+    
+    updateTracks();
+  }, [map, showTracks, showFleetTracks, selectedInletId]);
 
   return null;
 }

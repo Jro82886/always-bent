@@ -95,60 +95,60 @@ export async function getVesselTracksInArea(
     console.error('Failed to fetch user reports:', error);
   }
   
-  // Fetch real GFW commercial vessel data with proper filters
+  // Fetch commercial vessel data if commercial tracks are enabled
   try {
-    // First check if commercial vessels are visible on the map
-    const commercialMarkersVisible = map.getLayoutProperty('commercial-vessel-markers', 'visibility') !== 'none';
+    // Check if commercial tracks are visible in tracking mode
+    const commercialTracksVisible = map.getLayer('commercial-tracks') && 
+                                   map.getLayoutProperty('commercial-tracks', 'visibility') !== 'none';
     
-    const gfwVessels = await getGFWVesselsInArea(
-      [minLng, minLat, maxLng, maxLat],
-      startDate.toISOString(),
-      endDate.toISOString()
-    );
-    
-    // Transform and add GFW tracks
-    const gfwTracks = transformGFWToTracks(gfwVessels);
-    
-    // Filter vessels based on type and location (matching CommercialVesselLayer filters)
-    gfwTracks.forEach(track => {
-      const vesselType = track.vesselType?.toLowerCase() || '';
+    if (commercialTracksVisible) {
+      // Use our new GFW API endpoint
+      const bbox = `${minLng},${minLat},${maxLng},${maxLat}`;
+      const response = await fetch(`/api/gfw/vessels?bbox=${bbox}&days=${daysLimit}`);
       
-      // FILTER: Only trawlers, longliners, and drifting gear (same as CommercialVesselLayer)
-      const allowedTypes = ['trawl', 'longliner', 'longline', 'drifting'];
-      const isAllowedType = allowedTypes.some(type => vesselType.includes(type));
-      
-      // Skip if not an allowed type
-      if (!isAllowedType && vesselType !== 'commercial' && vesselType !== '') {
-        return;
-      }
-      
-      // Check if track intersects the snipped polygon
-      const lineString = turf.lineString(track.coordinates);
-      if (turf.booleanIntersects(lineString, polygon)) {
-        // Color code by vessel type (matching CommercialVesselLayer)
-        const vesselColor = vesselType.includes('longliner') || vesselType.includes('longline') ? '#9B59B6' : // Purple
-                          vesselType.includes('drifting') ? '#3498DB' : // Blue
-                          vesselType.includes('trawl') ? '#FF6B35' :     // Orange
-                          '#95A5A6'; // Gray for unknown
+      if (response.ok) {
+        const data = await response.json();
+        const gfwVessels = data.vessels || [];
         
-        tracks.push({
-          id: track.id,
-          type: 'gfw',
-          vesselName: track.vesselName,
-          vesselType: track.vesselType || 'Commercial',
-          flag: track.flag,
-          mmsi: track.mmsi,
-          points: track.coordinates,
-          color: vesselColor,
-          timestamp: track.timestamps[track.timestamps.length - 1],
-          metadata: track.metadata
+        // Process each vessel
+        gfwVessels.forEach((vessel: any) => {
+          if (!vessel.positions || vessel.positions.length < 2) return;
+          
+          // Build track points
+          const trackPoints = vessel.positions.map((pos: any) => [pos.lng, pos.lat] as [number, number]);
+          
+          // Check if track intersects the snipped polygon
+          const lineString = turf.lineString(trackPoints);
+          if (turf.booleanIntersects(lineString, polygon)) {
+            // Color code by vessel type
+            const colors: Record<string, string> = {
+              longliner: '#ff9500', // orange
+              trawler: '#ffeb3b', // yellow
+              driftnetter: '#9c27b0' // purple
+            };
+            
+            tracks.push({
+              id: vessel.id,
+              type: 'gfw',
+              vesselName: vessel.name,
+              vesselType: vessel.type,
+              flag: vessel.flag,
+              mmsi: vessel.id, // Use ID as MMSI placeholder
+              points: trackPoints,
+              color: colors[vessel.type] || '#666',
+              timestamp: vessel.positions[vessel.positions.length - 1].timestamp,
+              metadata: {
+                length: vessel.length
+              }
+            });
+          }
         });
+        
+        console.log(`Found ${tracks.filter(t => t.type === 'gfw').length} commercial vessels in snipped area`);
       }
-    });
-    
-    console.log(`Found ${tracks.filter(t => t.type === 'gfw').length} GFW vessels in snipped area`);
+    }
   } catch (error) {
-    console.error('Failed to fetch GFW data:', error);
+    console.error('Failed to fetch commercial vessel data:', error);
   }
   
   // Continue with mock individual tracks for now
