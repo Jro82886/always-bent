@@ -6,6 +6,7 @@ import MyReportsList from '@/components/reports/MyReportsList';
 import WrittenAnalysisModal from '@/components/reports/WrittenAnalysisModal';
 
 // Static page with client-side data fetching for optimal performance
+export const dynamic = 'force-dynamic';
 
 export default function ReportsPage() {
   const [selectedReport, setSelectedReport] = useState<any>(null);

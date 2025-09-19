@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/store/appState';
 
 // Components are dynamically imported with ssr: false to handle client-side rendering
+export const dynamic = 'force-dynamic';
 
 // Dynamically import components that might use navigation hooks
 const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
