@@ -73,7 +73,7 @@ export default function LegendaryWelcomePage() {
       setStep(2);
       setLoading(false);
     } catch (error: any) {
-      console.error('Storage error:', error);
+      
       // Still proceed even if localStorage fails
       setStep(2);
       setLoading(false);

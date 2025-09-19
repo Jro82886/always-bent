@@ -100,7 +100,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
             temp_f: p.value,
             timestamp: p.timestamp
           }));
-          console.log(`Extracted ${sstData.length} real SST data points`);
+          
         }
         
         if (activeLayers.chl) {
@@ -111,10 +111,10 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
             lng: p.lng,
             chl_mg_m3: p.value
           }));
-          console.log(`Extracted ${chlData.length} real CHL data points`);
+          
         }
       } catch (error) {
-        console.error('Failed to extract real data, falling back to mock:', error);
+        
         // Fallback to mock data if extraction fails
         sstData = activeLayers.sst ? generateMockSSTData(bounds) : null;
         chlData = activeLayers.chl ? generateMockCHLData(bounds) : null;
@@ -155,7 +155,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         // TODO: Add moon phase from Stormglass API when ready
         moonPhase = 'Waxing Gibbous'; // Placeholder
       } catch (error) {
-        console.error('Failed to fetch weather data:', error);
+        
       }
       
       // Add all data to analysis
@@ -182,7 +182,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         
         // Auto-show modal with analysis including vessel tracks
         setTimeout(() => {
-          console.log('[ANALYSIS] Opening comprehensive analysis view...');
+          
           setShowModal(true);
           
           // Hotspot marker will be handled by HotspotMarker component

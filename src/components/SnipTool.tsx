@@ -780,7 +780,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           7 // Look back 7 days for reports
         );
       } catch (error) {
-        console.error('Error fetching vessel tracks:', error);
+        
         vesselTracksData = { tracks: [], summary: '', reports: [] };
       }
       
@@ -1029,7 +1029,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Step 6: Store analysis but DON'T show modal yet
       
       // Log temperature range for visibility
-      console.log(`🌡️ Temperature Range: ${finalAnalysis.stats.min_temp_f.toFixed(1)}°F - ${finalAnalysis.stats.max_temp_f.toFixed(1)}°F`);
+      }°F - ${finalAnalysis.stats.max_temp_f.toFixed(1)}°F`);
       
       // Store the analysis for later access when clicking
       setLastAnalysis(finalAnalysis);
@@ -1098,7 +1098,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             }
           );
           
-          console.log('[SNIP] Zooming to analysis area...');
+          
           
           // Add a visual indicator that we're analyzing this specific area
           setTimeout(() => {
@@ -1158,7 +1158,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const zoomOut = useCallback(() => {
     if (!map || !previousView) return;
     
-    console.log('[SNIP] Returning to overview...');
+    
     
     map.flyTo({
       center: previousView.center,

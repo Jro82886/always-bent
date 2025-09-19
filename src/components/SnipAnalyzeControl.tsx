@@ -15,7 +15,7 @@ export default function SnipAnalyzeControl({ map }: { map: mapboxgl.Map }) {
   const { selectedInletId } = useAppState();
 
   const handleAnalysisComplete = (analysis: AnalysisResult) => {
-    console.log('Analysis complete:', analysis);
+    
     setCurrentAnalysis(analysis);
     setShowAnalysis(true);
     setSaveSuccess(false);
@@ -44,7 +44,7 @@ export default function SnipAnalyzeControl({ map }: { map: mapboxgl.Map }) {
       
       if (result) {
         setSaveSuccess(true);
-        console.log('Report saved successfully:', result);
+        
         
         // Auto-hide after 2 seconds
         setTimeout(() => {
@@ -53,7 +53,7 @@ export default function SnipAnalyzeControl({ map }: { map: mapboxgl.Map }) {
         }, 2000);
       }
     } catch (error) {
-      console.error('Failed to save report:', error);
+      
       alert('Failed to save report. Please try again.');
     } finally {
       setIsSaving(false);

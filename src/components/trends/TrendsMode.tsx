@@ -92,7 +92,7 @@ export default function TrendsMode({}: TrendsModeProps) {
         setRecentActivity(formattedActivity);
         
       } catch (error) {
-        console.error('Failed to load trends data:', error);
+        
         // Fallback to localStorage if Supabase fails
         const catches = JSON.parse(localStorage.getItem('abfi_catches') || '[]');
         const analyses = JSON.parse(localStorage.getItem('abfi_analyses') || '[]');

@@ -13,14 +13,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const base = process.env.CMEMS_CHL_WMTS_TEMPLATE;
   
   // Debug logging
-  console.log('CHL Route - Environment check:', {
-    hasTemplate: !!base,
-    templateLength: base?.length || 0,
-    z, x, y
-  });
+  
 
   if (!base) {
-    console.error('CMEMS_CHL_WMTS_TEMPLATE not configured - please add to Vercel environment variables');
+    
     return new Response(JSON.stringify({ 
       error: 'Chlorophyll layer not configured',
       message: 'Please add CMEMS_CHL_WMTS_TEMPLATE to environment variables',
@@ -80,7 +76,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       .replace('{TIME}', tryTime);
     
     // Attempt to fetch from Copernicus
-    console.log(`CHL: Trying ${tryTime} for tile ${z}/${x}/${y}`);
+    
     
     try {
       const response = await fetch(target, {

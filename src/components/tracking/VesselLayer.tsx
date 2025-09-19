@@ -135,7 +135,7 @@ export default function VesselLayer({
                   });
                 }
               } catch (error) {
-                console.error('Failed to save track:', error);
+                
               }
               
               if (onPositionUpdate) {
@@ -150,7 +150,7 @@ export default function VesselLayer({
               showTrackingToast(getTrackingStatus(lat, lng), 'success');
             } else {
               // User is on land - disable tracking
-              console.log(trackingDecision.reason);
+              
               showTrackingToast(trackingDecision.reason, 'warning');
             }
           },

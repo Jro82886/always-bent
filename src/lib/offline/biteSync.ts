@@ -83,13 +83,13 @@ export async function syncBites(manual: boolean = false): Promise<{
       const { data } = await supabase.auth.getUser();
       user = data?.user;
     } catch (authError) {
-      console.error('Auth error during sync:', authError);
+      
       // Skip sync if auth fails
       return { synced: 0, failed: 0, expired };
     }
     
     if (!user) {
-      console.log('No authenticated user, skipping sync');
+      
       return { synced: 0, failed: 0, expired };
     }
     
@@ -120,12 +120,12 @@ export async function syncBites(manual: boolean = false): Promise<{
       const { data: { session } } = await supabase.auth.getSession();
       accessToken = session?.access_token;
     } catch (sessionError) {
-      console.error('Session error during sync:', sessionError);
+      
       return { synced: 0, failed: 0, expired };
     }
     
     if (!accessToken) {
-      console.log('No access token available, skipping sync');
+      
       return { synced: 0, failed: 0, expired };
     }
     

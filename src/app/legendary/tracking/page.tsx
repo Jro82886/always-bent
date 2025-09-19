@@ -149,7 +149,7 @@ function TrackingModeContent() {
           map.current = null;
         }
       } catch (error) {
-        console.error('Error cleaning up map:', error);
+        
       }
     };
   }, []);

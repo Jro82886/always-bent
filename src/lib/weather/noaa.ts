@@ -142,7 +142,7 @@ export async function fetchBuoyData(stationId: string): Promise<NOAABuoyData | n
     const response = await fetch(url);
     
     if (!response.ok) {
-      console.error(`[NOAA] Failed to fetch buoy ${stationId}:`, response.status);
+      
       return null;
     }
 
@@ -151,7 +151,7 @@ export async function fetchBuoyData(stationId: string): Promise<NOAABuoyData | n
     
     return parseBuoyData(text, stationId, stationName);
   } catch (error) {
-    console.error(`[NOAA] Error fetching buoy ${stationId}:`, error);
+    
     return null;
   }
 }
@@ -167,7 +167,7 @@ export async function getInletWeather(inletId: string): Promise<NOAABuoyData | n
   
   // If primary fails and backup exists, try backup
   if (!data && buoyConfig.backup) {
-    console.log(`[NOAA] Primary buoy ${buoyConfig.primary} failed, trying backup ${buoyConfig.backup}`);
+    
     data = await fetchBuoyData(buoyConfig.backup);
   }
   

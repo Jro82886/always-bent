@@ -24,15 +24,12 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   }, []);
 
   useEffect(() => {
-    console.log('AnalysisModal state:', { visible, hasAnalysis: !!analysis, mounted });
     if (visible && analysis) {
       // Show immediately when visible prop is true
-      console.log('✅ Showing modal with analysis data');
       setIsVisible(true);
       // Force animation to start immediately
       setIsAnimating(true);
     } else if (!visible) {
-      console.log('❌ Hiding modal');
       setIsAnimating(false);
       setTimeout(() => setIsVisible(false), 300);
     }

@@ -66,7 +66,7 @@ export default function VesselTrackingSystem({ map, onModeSwitch }: VesselTracki
           checkForHotspot(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
-          console.error('GPS error:', error);
+          
         },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
