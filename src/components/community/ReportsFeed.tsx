@@ -8,6 +8,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { Fish, MapPin, Thermometer, Waves, Users, Clock, TrendingUp, AlertCircle, Zap, Activity, RefreshCw } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { createClient } from '@/lib/supabase/client';
 import { useAppState } from '@/store/appState';
@@ -72,10 +73,10 @@ export default function ReportsFeed() {
   const supabase = createClient();
   
   // Get filter params from URL
-  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-  const activeTab = searchParams?.get('tab') || 'all';
-  const speciesFilter = searchParams?.get('species') || 'all';
-  const dateFilter = searchParams?.get('date') || 'week';
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'all';
+  const speciesFilter = searchParams.get('species') || 'all';
+  const dateFilter = searchParams.get('date') || 'week';
   
   useEffect(() => {
     loadReports();
