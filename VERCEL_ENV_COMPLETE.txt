@@ -44,7 +44,9 @@ GIT_AUTHOR_EMAIL=dev@alwaysbent.com
 GIT_COMMITTER_NAME=Always Bent
 GIT_COMMITTER_EMAIL=dev@alwaysbent.com
 
-# Stormglass API for tide, moon, and weather data
+# Stormglass API (PAID SERVICE - Single source of truth for all weather)
+# All weather/ocean conditions MUST come from Stormglass via /api/stormio endpoint
+# This is the authoritative weather data source for ABFI
 STORMGLASS_API_KEY=b07a-0242ac130006-ad72e440-93f3-11f0-b07a-0242ac13000
 
 # ===== HOW TO ADD TO VERCEL =====

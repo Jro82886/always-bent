@@ -47,5 +47,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 // Cache weather data for 10 minutes
 export const revalidate = 600;

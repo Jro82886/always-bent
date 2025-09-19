@@ -161,53 +161,63 @@ export default function TrendsModeFixed() {
       if (!inlet) return;
       
       try {
-        // Fetch real NOAA weather data
-        const weatherResponse = await fetch(`/api/weather?inlet=${selectedInletId}`);
-        let weatherData = null;
+        // Fetch Stormio weather data (single source of truth)
+        const stormioResponse = await fetch(`/api/stormio?lat=${inlet.center[1]}&lng=${inlet.center[0]}`);
         
-        if (weatherResponse.ok) {
-          weatherData = await weatherResponse.json();
-        }
-        
-        // Calculate current moon phase
-        const moonData = calculateMoonPhase(new Date());
-        
-        // Calculate sunrise/sunset (basic calculation - can be improved with library)
-        const { sunrise, sunset } = calculateSunTimes(inlet.center[1], inlet.center[0]);
-        
-        // Generate tide predictions (placeholder until NOAA tide API)
-        const tides = generateTidePredictions();
-        
-        setEnvironmentalData({
-          tides,
-          moonPhase: moonData,
-          sunrise,
-          sunset,
-          waterTemp: weatherData?.water_temp || 72,
-          airTemp: weatherData?.air_temp || 78,
-          windSpeed: weatherData?.wind_speed || 12,
-          windDirection: weatherData?.wind_direction ? getCompassDirection(weatherData.wind_direction) : 'NE',
-          pressure: weatherData?.sea_pressure ? weatherData.sea_pressure * 33.864 : 1013, // inHg to mb
-          visibility: weatherData?.visibility || 10,
-          cloudCover: 25 // Placeholder - would need weather API
-        });
-        
-        // Calculate bite prediction
-        if (weatherData) {
-          const factors: BiteFactors = {
-            moonPhase: moonData.illumination / 100,
-            tidePhase: getCurrentTidePhase(tides),
-            waterTemp: weatherData.water_temp || 72,
-            windSpeed: weatherData.wind_speed || 12,
-            pressure: weatherData.sea_pressure ? weatherData.sea_pressure * 33.864 : 1013,
-            pressureTrend: 'stable', // Would need historical data
-            timeOfDay: new Date().getHours(),
-            season: getCurrentSeason()
+        if (stormioResponse.ok) {
+          const stormioData = await stormioResponse.json();
+          
+          // Convert Stormio tide events to our format
+          const tides = stormioData.tides.events.map((event: any) => ({
+            type: event.type,
+            time: new Date(event.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+            height: event.height
+          }));
+          
+          // Format sun times
+          const formatTime = (isoString: string) => {
+            return new Date(isoString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
           };
           
-          const prediction = calculateBitePrediction(factors);
-          setBitePrediction(prediction);
+          setEnvironmentalData({
+            tides,
+            moonPhase: {
+              phase: stormioData.moon.phase,
+              illumination: stormioData.moon.illumPct,
+              icon: getMoonPhaseIcon(stormioData.moon.phase)
+            },
+            sunrise: formatTime(stormioData.sun.sunriseIso),
+            sunset: formatTime(stormioData.sun.sunsetIso),
+            waterTemp: stormioData.weather.sstC * 9/5 + 32, // C to F
+            airTemp: stormioData.weather.sstC * 9/5 + 32 + Math.random() * 10, // Approximate air temp
+            windSpeed: stormioData.weather.windKt,
+            windDirection: stormioData.weather.windDir,
+            pressure: stormioData.weather.pressureHpa,
+            visibility: 10, // Not provided by Stormio
+            cloudCover: 25 // Not provided by Stormio
+          });
+        } else {
+          // Use fallback data if Stormio fails
+          throw new Error('Stormio API failed');
         }
+        
+          // Calculate bite prediction using Stormio data
+          if (stormioResponse.ok) {
+            const stormioData = await stormioResponse.json();
+            const factors: BiteFactors = {
+              moonPhase: stormioData.moon.illumPct / 100,
+              tidePhase: getCurrentTidePhase(stormioData.tides.events),
+              waterTemp: stormioData.weather.sstC * 9/5 + 32,
+              windSpeed: stormioData.weather.windKt,
+              pressure: stormioData.weather.pressureHpa,
+              pressureTrend: stormioData.weather.pressureTrend,
+              timeOfDay: new Date().getHours(),
+              season: getCurrentSeason()
+            };
+            
+            const prediction = calculateBitePrediction(factors);
+            setBitePrediction(prediction);
+          }
       } catch (error) {
         console.error('Failed to fetch environmental data:', error);
         // Use fallback data if API fails

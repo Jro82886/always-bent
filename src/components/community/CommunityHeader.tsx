@@ -20,19 +20,19 @@ export default function CommunityHeader() {
     // Fetch buoy data for the inlet
     const fetchBuoyData = async () => {
       try {
-        const response = await fetch(`/api/weather?inlet=${inlet.id}`);
+        const response = await fetch(`/api/stormio?lat=${inlet.center[1]}&lng=${inlet.center[0]}`);
         const data = await response.json();
         
-        if (data.conditions) {
+        if (data.weather) {
           setBuoyData({
-            temp: Math.round(data.conditions.water_temp).toString(),
+            temp: Math.round(data.weather.sstC * 9/5 + 32).toString(), // C to F
             wind: {
-              speed: Math.round(data.conditions.wind_speed).toString(),
-              dir: data.conditions.wind_direction
+              speed: Math.round(data.weather.windKt).toString(),
+              dir: data.weather.windDir
             },
             swell: {
-              ht: data.conditions.wave_height?.toFixed(1) || '0',
-              period: Math.round(data.conditions.wave_period || 0).toString()
+              ht: data.weather.swellFt.toFixed(1),
+              period: Math.round(data.weather.swellPeriodS).toString()
             }
           });
         }
