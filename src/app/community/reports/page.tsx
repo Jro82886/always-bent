@@ -10,12 +10,16 @@ export default function ReportsPage() {
 
   return (
     <>
-      <div className="h-full overflow-y-auto bg-slate-950">
-        {/* Highlights Strip */}
-        <HighlightsStrip onSelectHighlight={setSelectedReport} />
+      <div className="h-full flex flex-col bg-black relative">
+        {/* Highlights Section */}
+        <div className="border-b border-white/10 bg-slate-950">
+          <HighlightsStrip onSelectHighlight={setSelectedReport} />
+        </div>
         
-        {/* My Reports List */}
-        <MyReportsList onSelectReport={setSelectedReport} />
+        {/* My Reports Section */}
+        <div className="flex-1 relative">
+          <MyReportsList onSelectReport={setSelectedReport} />
+        </div>
       </div>
 
       {/* Analysis Modal */}

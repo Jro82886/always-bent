@@ -51,14 +51,19 @@ export default function ChatPage() {
               <h1 className="text-lg font-semibold text-white">Channels</h1>
             </div>
             <div className="overflow-y-auto">
-              {MOCK_ROOMS.map(room => (
-                <button
-                  key={room.id}
-                  onClick={() => handleMobileRoomSelect(room.id)}
-                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors border-b border-slate-800"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-white font-medium">{room.name}</span>
+              {MOCK_ROOMS.map(room => {
+                const displayName = room.id === 'inlet' && selectedInletId 
+                  ? `${selectedInletId.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')} Chat`
+                  : room.name;
+                  
+                return (
+                  <button
+                    key={room.id}
+                    onClick={() => handleMobileRoomSelect(room.id)}
+                    className="w-full px-4 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors border-b border-slate-800"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-white font-medium">{displayName}</span>
                     {room.unread > 0 && (
                       <span className="px-2 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 rounded-full">
                         {room.unread}
@@ -67,7 +72,8 @@ export default function ChatPage() {
                   </div>
                   <span className="text-xs text-slate-500">{room.online} online</span>
                 </button>
-              ))}
+              );
+              })}
             </div>
           </div>
         ) : (
@@ -84,11 +90,6 @@ export default function ChatPage() {
                 <h2 className="text-white font-medium flex-1">{currentRoom?.name}</h2>
                 <span className="text-xs text-slate-500">{currentRoom?.online} online</span>
               </div>
-              {selectedRoom === 'inlet' && (
-                <div className="px-3 pb-3">
-                  <WeatherHeader />
-                </div>
-              )}
             </div>
             <div className="flex-1">
               <ChatWindow 

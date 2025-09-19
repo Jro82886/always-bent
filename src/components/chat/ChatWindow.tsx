@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { MOCK_MESSAGES, MOCK_PRESENCE } from '@/mocks/chat';
 import { Send, AtSign } from 'lucide-react';
+import WeatherHeader from './WeatherHeader';
+import { useAppState } from '@/store/appState';
 
 interface ChatWindowProps {
   roomId: string;
@@ -10,6 +12,7 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ roomId, showWeatherHeader }: ChatWindowProps) {
+  const { selectedInletId } = useAppState();
   const [message, setMessage] = useState('');
   const [showMentions, setShowMentions] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -17,6 +20,7 @@ export default function ChatWindow({ roomId, showWeatherHeader }: ChatWindowProp
   const inputRef = useRef<HTMLInputElement>(null);
 
   const messages = MOCK_MESSAGES.filter(m => m.roomId === roomId);
+  const isInletChat = roomId === 'inlet';
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,6 +58,9 @@ export default function ChatWindow({ roomId, showWeatherHeader }: ChatWindowProp
 
   return (
     <div className="flex flex-col h-full bg-slate-950">
+      {/* Weather Header for Inlet Chat */}
+      {isInletChat && <WeatherHeader inletId={selectedInletId || undefined} />}
+      
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg) => (
