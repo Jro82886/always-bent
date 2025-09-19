@@ -44,7 +44,7 @@ export default function MyReportsList({ onSelectReport }: MyReportsListProps) {
                 <span className="text-xs font-medium text-white">
                   {report.type === 'snip' ? 'Snip Analysis' : 'ABFI Bite'}
                 </span>
-                {report.type === 'abfi' && report.offlineCaptured && (
+                {report.type === 'abfi' && 'offlineCaptured' in report && report.offlineCaptured && (
                   <WifiOff className="w-3 h-3 text-amber-400" />
                 )}
               </div>

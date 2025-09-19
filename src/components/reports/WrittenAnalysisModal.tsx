@@ -67,7 +67,7 @@ export default function WrittenAnalysisModal({ report, onClose }: WrittenAnalysi
               <div className="flex items-center gap-2 text-sm text-slate-400">
                 <MapPin className="w-4 h-4" />
                 <span>
-                  {report.inletId ? report.inletId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Location'}
+                  {report.inletId ? report.inletId.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'Location'}
                 </span>
               </div>
             </div>
