@@ -24,17 +24,18 @@ export default function SSTLegend({ visible }: SSTLegendProps) {
           className="absolute inset-0"
           style={{
             background: `linear-gradient(to right, 
-              #00008B 0%,      /* Dark Blue - coldest */
-              #0000FF 10%,     /* Blue */
-              #00BFFF 20%,     /* Deep Sky Blue */
-              #00FFFF 30%,     /* Cyan */
-              #00FF00 40%,     /* Green */
-              #ADFF2F 50%,     /* Green Yellow */
-              #FFFF00 60%,     /* Yellow */
-              #FFA500 70%,     /* Orange */
+              #00008B 0%,      /* Dark Blue - 32°F */
+              #0000FF 12%,     /* Blue */
+              #00BFFF 24%,     /* Deep Sky Blue */
+              #00FFFF 36%,     /* Cyan */
+              #00FF00 48%,     /* Green - ~59°F */
+              #ADFF2F 56%,     /* Green Yellow */
+              #FFFF00 64%,     /* Yellow */
+              #FFA500 72%,     /* Orange */
               #FF4500 80%,     /* Orange Red */
-              #FF0000 90%,     /* Red */
-              #8B0000 100%     /* Dark Red - warmest */
+              #FF0000 88%,     /* Red */
+              #DC143C 94%,     /* Crimson */
+              #8B0000 100%     /* Dark Red - 86°F */
             )`
           }}
         />

@@ -10,7 +10,7 @@ import CHLLayer from '@/components/layers/CHLLayer';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
 import InletRegions from '@/components/InletRegions';
 import TutorialOverlay from '@/components/TutorialOverlay';
-import UnifiedCommandBar from '@/components/UnifiedCommandBar';
+import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
 import ReportCatchButton from '@/components/ReportCatchButton';
@@ -19,7 +19,7 @@ import InteractiveTutorial from '@/components/InteractiveTutorial';
 import OfflineManager from '@/components/OfflineManager';
 import SettingsPanel from '@/components/SettingsPanel';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
-import CommercialVesselLegend from '@/components/analysis/CommercialVesselLegend';
+// CommercialVesselLegend now integrated into LeftZone
 import { useAppState } from '@/store/appState';
 import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
@@ -362,11 +362,8 @@ function AnalysisModeContent() {
       />
       
       {/* Unified Command Bar - Navigation + Boat Info */}
-      <UnifiedCommandBar 
-        map={map.current} 
-        activeTab="analysis"
-        onTabChange={() => {}}
-      />
+      {/* Command Bridge Header */}
+      <HeaderBar activeMode="analysis" />
       
       {/* ANALYSIS MODE UI */}
       <>
@@ -443,8 +440,7 @@ function AnalysisModeContent() {
             showCommercial={showCommercial} 
           />
 
-          {/* Commercial Vessel Legend - Lean and attached to toggle */}
-          <CommercialVesselLegend showCommercial={showCommercial} />
+          {/* Commercial Vessel Legend - Now integrated into LeftZone */}
 
           {/* Offline Manager - Handles offline capabilities */}
           <OfflineManager />

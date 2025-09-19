@@ -164,5 +164,50 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
     };
   }, [map, on, selectedDate]);
 
+  // Separate effect to handle date changes when layer is already on
+  useEffect(() => {
+    if (!map || !on) return;
+    
+    const source = map.getSource('chl-src');
+    const layer = map.getLayer('chl-lyr');
+    
+    if (source && layer) {
+      console.log('[CHL] Date changed to:', selectedDate);
+      
+      // Calculate date parameter
+      let dateParam = '';
+      if (selectedDate === 'today') {
+        dateParam = '?time=latest';
+      } else if (selectedDate === 'yesterday') {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        dateParam = `?time=${yesterday.toISOString().split('T')[0]}`;
+      } else if (selectedDate === '2days') {
+        const twoDaysAgo = new Date();
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+        dateParam = `?time=${twoDaysAgo.toISOString().split('T')[0]}`;
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) {
+        dateParam = `?time=${selectedDate}`;
+      } else {
+        dateParam = '?time=latest';
+      }
+      
+      // Update tiles and force refresh
+      const newTiles = [`/api/tiles/chl/{z}/{x}/{y}${dateParam}`];
+      (source as any).tiles = newTiles;
+      
+      // Clear tile cache and reload
+      if ((map.style as any)._sourceCaches && (map.style as any)._sourceCaches['chl-src']) {
+        (map.style as any)._sourceCaches['chl-src'].clearTiles();
+        (map.style as any)._sourceCaches['chl-src'].reload();
+      }
+      
+      // Force a re-render
+      map.triggerRepaint();
+      
+      console.log('[CHL] Tiles refreshed for date:', dateParam);
+    }
+  }, [selectedDate]);
+
   return null;
 }

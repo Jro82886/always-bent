@@ -20,6 +20,7 @@ import {
 import SSTLegend from '@/components/SSTLegend';
 import PolygonsPanel from '@/components/PolygonsPanel';
 import ContoursLayer from '@/components/layers/ContoursLayer';
+import CHLHighlightLayer from '@/components/layers/CHLHighlightLayer';
 // Removed CHLEdgesLayer import - edge detection button removed
 import { Tooltip } from '@/components/ui/Tooltip';
 
@@ -261,7 +262,7 @@ export default function LeftZone({
                 <div className="mt-2 ml-0.5">
                   <div className="relative w-44 h-5 rounded border border-white/15 overflow-hidden"
                        style={{
-                         background: 'linear-gradient(to right, #00008B, #0000FF, #00FFFF, #00FF00, #FFFF00, #FFA500, #FF4500, #FF0000, #8B0000)'
+                         background: 'linear-gradient(to right, #00008B 0%, #0000FF 12%, #00BFFF 24%, #00FFFF 36%, #00FF00 48%, #ADFF2F 56%, #FFFF00 64%, #FFA500 72%, #FF4500 80%, #FF0000 88%, #DC143C 94%, #8B0000 100%)'
                        }}>
                   </div>
                   <div className="flex justify-between text-[10px] text-gray-400 mt-1">
@@ -457,7 +458,9 @@ export default function LeftZone({
                       <span className="text-[10px] text-gray-400 w-8">{chlSaturation}%</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-green-400 w-16">Mid-CHL Highlight</span>
+                      <Tooltip content="Highlights mid-range chlorophyll plumes (green). Does not affect base clarity." position="top">
+                        <span className="text-[10px] text-green-400 w-16 cursor-help">Mid-CHL Highlight</span>
+                      </Tooltip>
                         <input
                           type="range"
                           min="0"
@@ -467,19 +470,14 @@ export default function LeftZone({
                             const val = parseInt(e.target.value);
                             setChlHue(val);
                             localStorage.setItem('chl_highlight', val.toString());
+                            // Reset base layer to normal appearance
                             if (map?.getLayer('chl-lyr')) {
-                              // No hue rotation - just contrast/saturation boost
                               map.setPaintProperty('chl-lyr', 'raster-hue-rotate', 0);
-                              // Boost contrast for mid-range chlorophyll
-                              const contrastBoost = 0.35 + (val * 0.01);
-                              map.setPaintProperty('chl-lyr', 'raster-contrast', contrastBoost);
-                              // Gentle saturation boost
-                              const saturationBoost = 0.4 + (val * 0.006);
-                              map.setPaintProperty('chl-lyr', 'raster-saturation', saturationBoost);
-                              // Adjust opacity to fade extremes if supported
-                              // For now, keep full opacity
+                              map.setPaintProperty('chl-lyr', 'raster-contrast', 0.2);
+                              map.setPaintProperty('chl-lyr', 'raster-saturation', 0.3);
                               map.setPaintProperty('chl-lyr', 'raster-opacity', chlOpacity / 100);
                             }
+                            // Highlight is now handled by CHLHighlightLayer component
                           }}
                           className="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
                           style={{
@@ -505,7 +503,7 @@ export default function LeftZone({
                 >
                   <span className="flex items-center gap-1.5">
                     <Waves size={16} className="text-purple-300 drop-shadow-[0_0_6px_rgba(196,181,253,0.8)]" />
-                    Ocean
+                    Ocean Floor
                   </span>
                 </button>
                 <div className="flex gap-1 w-[76px] justify-end">
@@ -633,6 +631,38 @@ export default function LeftZone({
                 <span className="text-xs text-orange-400">GFW</span>
               )}
             </button>
+            
+            {/* Commercial Vessels Legend - Integrated into left panel */}
+            {showCommercial && (
+              <div className="mt-2 pt-2 border-t border-orange-500/20">
+                <div className="space-y-1.5">
+                  {/* Trawlers */}
+                  <div className="flex items-center gap-2 pl-2">
+                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-orange-500" />
+                    <span className="text-[11px] text-cyan-100/80">Trawlers</span>
+                  </div>
+                  
+                  {/* Longliners */}
+                  <div className="flex items-center gap-2 pl-2">
+                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-purple-500" />
+                    <span className="text-[11px] text-cyan-100/80">Longliners</span>
+                  </div>
+                  
+                  {/* Drifting Gear */}
+                  <div className="flex items-center gap-2 pl-2">
+                    <div className="w-0 h-0 border-l-[4px] border-r-[4px] border-b-[7px] border-l-transparent border-r-transparent border-b-yellow-500" />
+                    <span className="text-[11px] text-cyan-100/80">Drifting Gear</span>
+                  </div>
+                </div>
+                
+                {/* Info */}
+                <div className="mt-2 pt-1">
+                  <p className="text-[10px] text-orange-300/70 pl-2">
+                    Global Fishing Watch data
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
         
@@ -653,7 +683,8 @@ export default function LeftZone({
       
       {/* Render edge detection layers */}
       {sstContours && map && <ContoursLayer map={map} enabled={sstContours} />}
-      {/* Removed CHLEdgesLayer - edge detection feature removed */}
+      {/* CHL Highlight Layer - Crisp green plume highlighting */}
+      {chlActive && map && <CHLHighlightLayer map={map} enabled={chlHue > 0} intensity={chlHue} />}
     </div>
   );
 }
