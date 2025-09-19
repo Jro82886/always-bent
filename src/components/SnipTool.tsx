@@ -1028,9 +1028,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Step 6: Store analysis but DON'T show modal yet
       
-      // Log temperature range for visibility
-      }°F - ${finalAnalysis.stats.max_temp_f.toFixed(1)}°F`);
-      
       // Store the analysis for later access when clicking
       setLastAnalysis(finalAnalysis);
       setHasAnalysisResults(true);
@@ -1495,13 +1492,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     const hint = document.createElement('div');
     hint.className = 'fixed top-24 left-1/2 transform -translate-x-1/2 z-[99999] pointer-events-none';
     hint.innerHTML = `
-      <div class="bg-gradient-to-r from-green-600/95 to-cyan-600/95 backdrop-blur-xl rounded-lg px-6 py-3 
-                  border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.5)] 
-                  animate-[fadeInDown_0.4s_ease-out]">
+      <div class="bg-gradient-to-r from-green-600/95 to-cyan-600/95 backdrop-blur-xl rounded-lg px-6 py-3 border border-green-400/50 shadow-[0_0_20px_rgba(34,197,94,0.5)] animate-[fadeInDown_0.4s_ease-out]">
         <div class="flex items-center gap-3">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <div>
             <p class="text-white font-semibold text-sm">Analysis Complete!</p>

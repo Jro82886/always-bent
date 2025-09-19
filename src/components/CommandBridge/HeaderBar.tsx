@@ -29,6 +29,16 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
   // Find current tab based on mode
   const currentTab = Object.entries(TAB_MODES).find(([_, mode]) => mode === activeMode)?.[0] || 'Analysis';
   
+  const handleBrandClick = () => {
+    // Brand always returns to Analysis
+    const params = new URLSearchParams();
+    params.set('mode', 'analysis');
+    if (selectedInletId) {
+      params.set('inlet', selectedInletId);
+    }
+    router.push(`/legendary?${params.toString()}`);
+  };
+  
   const handleTabChange = (tab: string) => {
     const mode = TAB_MODES[tab as keyof typeof TAB_MODES];
     if (mode) {
@@ -49,9 +59,12 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
         <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
         
         {/* Desktop Layout ≥1024px */}
-        <div className="hidden lg:flex items-center justify-between h-16">
-          {/* Left: Brand */}
-          <div className="px-6 flex items-center gap-2 h-full">
+        <div className="hidden lg:flex items-center h-16">
+          {/* Brand (clickable → Analysis) */}
+          <button 
+            onClick={handleBrandClick}
+            className="px-6 flex items-center gap-2 h-full hover:bg-cyan-500/5 transition-colors cursor-pointer"
+          >
             <Anchor className="w-5 h-5 text-cyan-400" />
             <div className="flex flex-col">
               <div className="text-xs font-bold text-cyan-100"
@@ -65,15 +78,25 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
                 Command Bridge
               </div>
             </div>
+          </button>
+          
+          <div className="h-full w-px bg-cyan-500/10" />
+          
+          {/* Welcome */}
+          <div className="px-6">
+            <WelcomeChip />
           </div>
           
-          {/* Center: Welcome + Inlet */}
-          <div className="flex items-center gap-6">
-            <WelcomeChip />
+          <div className="h-full w-px bg-cyan-500/10" />
+          
+          {/* Inlet Selector */}
+          <div className="px-6">
             <InletChip />
           </div>
           
-          {/* Right: Tabs */}
+          <div className="h-full w-px bg-cyan-500/10" />
+          
+          {/* Tabs (left-aligned) */}
           <div className="flex h-full">
             {Object.keys(TAB_MODES).map((tab) => {
               const isActive = tab === currentTab;
@@ -83,7 +106,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
                   key={tab}
                   onClick={() => handleTabChange(tab)}
                   className={`
-                    px-6 h-full border-l border-cyan-500/10 transition-all relative group
+                    px-6 h-full transition-all relative group
                     ${isActive 
                       ? 'bg-gradient-to-b from-cyan-500/10 to-transparent text-cyan-300' 
                       : 'hover:bg-cyan-500/5 text-gray-400 hover:text-cyan-300'
@@ -98,18 +121,24 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
               );
             })}
           </div>
+          
+          {/* Spacer to push everything left */}
+          <div className="flex-1" />
         </div>
         
         {/* Tablet Layout 640px-1024px */}
         <div className="hidden sm:flex lg:hidden flex-col">
           {/* Top Row: Brand + Inlet */}
           <div className="flex items-center justify-between h-14 px-4">
-            <div className="flex items-center gap-2">
+            <button 
+              onClick={handleBrandClick}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <Anchor className="w-4 h-4 text-cyan-400" />
               <span className="text-xs font-bold text-cyan-100" style={{ letterSpacing: '0.1em' }}>
                 ALWAYS BENT
               </span>
-            </div>
+            </button>
             <InletChip />
           </div>
           
@@ -144,10 +173,13 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
         <div className="flex sm:hidden flex-col">
           {/* Top Row: Brand + Inlet (compact) */}
           <div className="flex items-center justify-between h-12 px-3">
-            <div className="flex items-center gap-1">
+            <button 
+              onClick={handleBrandClick}
+              className="flex items-center gap-1 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <Anchor className="w-4 h-4 text-cyan-400" />
               <span className="text-[11px] font-bold text-cyan-100">ABFI</span>
-            </div>
+            </button>
             <InletChip compact />
           </div>
           
