@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+
+// Force dynamic rendering for Analysis page due to Mapbox and real-time features
+export const dynamic = 'force-dynamic';
 import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';

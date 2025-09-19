@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+
+// Force dynamic rendering for Tracking page due to Mapbox
+export const dynamic = 'force-dynamic';
+
 import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,8 +19,7 @@ import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { useLocationPermission } from '@/hooks/useLocationPermission';
 
-// Mapbox token
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+// Mapbox token will be set in useEffect to avoid SSR issues
 
 function TrackingModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -52,6 +55,9 @@ function TrackingModeContent() {
   // Initialize map
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
+
+    // Set Mapbox token here to avoid SSR issues
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
