@@ -10,7 +10,7 @@ export interface Inlet {
 
 export const INLETS: Inlet[] = [
   // Overview
-  { id: 'overview', name: 'East Coast Overview', state: '', center: [-75.5, 34.5], zoom: 5.0, isOverview: true, color: '#22c55e' }, // Bright green - adjusted center and zoom for full coast view
+  { id: 'overview', name: 'East Coast Overview', state: '', center: [-74.5, 33.5], zoom: 4.5, isOverview: true, color: '#22c55e' }, // Bright green - adjusted to show full coast from Maine to Florida
   
   // Maine - 90nm view (zoom ~7.2) - Captures offshore canyons and distant Gulf Stream
   { id: 'me-portland', name: 'Portland Harbor / Casco Bay', state: 'ME', center: [-70.2460, 43.6561], zoom: 7.2, color: '#1e40af' }, // Deep blue
