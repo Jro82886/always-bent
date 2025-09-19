@@ -13,11 +13,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const base = process.env.CMEMS_CHL_WMTS_TEMPLATE;
   
   // Debug logging
-  console.log('[CHL ENV CHECK]', {
-    envPresent: !!process.env.CMEMS_CHL_WMTS_TEMPLATE,
-    envLength: process.env.CMEMS_CHL_WMTS_TEMPLATE?.length || 0,
-    envStarts: process.env.CMEMS_CHL_WMTS_TEMPLATE?.substring(0, 50) || 'NOT SET'
-  });
 
   if (!base) {
     
@@ -86,11 +81,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     }
     
     // Attempt to fetch from Copernicus
-    console.log('[CHL FETCH ATTEMPT]', {
-      targetUrl: target,
-      tryTime: tryTime,
-      z, x, y
-    });
     
     try {
       const response = await fetch(target, {
@@ -124,11 +114,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       }
     } catch (e: any) {
       lastError = e?.message || String(e);
-      console.error('[CHL FETCH ERROR]', {
-        error: lastError,
-        targetUrl: target,
-        baseTemplate: base?.substring(0, 100)
-      });
       if (datesToTry.indexOf(tryTime) === datesToTry.length - 1) {
         // Last attempt failed
         break;
