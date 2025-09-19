@@ -1,6 +1,7 @@
 /**
  * NOAA Buoy Data Integration
  * Free weather data from NOAA buoys for community features
+ * Last updated: 2025-09-19 - Force Vercel rebuild
  */
 
 // Map inlet IDs to nearest NOAA buoy stations
@@ -228,6 +229,7 @@ function getCompassDirection(degrees: number): string {
 }
 
 // Type alias for compatibility with weather components
+// IMPORTANT: These exports are used by UnifiedCommandCenter, UnifiedOceanConditions, WeatherDisplay
 export type InletWeather = {
   conditions: NOAABuoyData;
   station: string;
