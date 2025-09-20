@@ -8,11 +8,13 @@ import { useAppState } from '@/store/appState';
 import { INLETS } from '@/lib/inlets';
 import { INLET_COLORS } from '@/lib/inletColors';
 import InletChip from '@/components/CommandBridge/InletChip';
+import ClientOnly from '@/components/ClientOnly';
 import dynamic from 'next/dynamic';
 
 // Dynamically import tutorial overlay to avoid SSR issues
 const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay'), {
-  ssr: false
+  ssr: false,
+  loading: () => null
 });
 
 export default function EnhancedWelcomePage() {
@@ -125,7 +127,8 @@ export default function EnhancedWelcomePage() {
       if (inlet) {
         params.set('inlet', inlet);
       }
-      router.replace(`/legendary?${params.toString()}`);
+      // Use window.location for a clean navigation
+      window.location.href = `/legendary?${params.toString()}`;
     }
   };
   
@@ -138,7 +141,8 @@ export default function EnhancedWelcomePage() {
   // Step 1: Inlet Selection
   if (step === 1) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#070B14] via-[#0B1220] to-[#0B1E2A] flex items-center justify-center px-4">
+      <ClientOnly>
+        <div className="min-h-screen bg-gradient-to-br from-[#070B14] via-[#0B1220] to-[#0B1E2A] flex items-center justify-center px-4">
         <div className="fixed inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-30" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-cyan-500/5 rounded-full blur-3xl" />
@@ -151,7 +155,7 @@ export default function EnhancedWelcomePage() {
             
             <div className="text-center mb-10">
               <div className="flex justify-center mb-8">
-                <div className="relative w-[74px] h-[74px] rounded-[20px] grid place-items-center bg-gradient-radial from-[rgba(18,132,255,0.25)] to-transparent border border-white/[0.08] shadow-[0_10px_28px_rgba(0,0,0,0.35),0_0_40px_rgba(18,132,255,0.25)]">
+                <div className="relative w-[74px] h-[74px] rounded-[20px] grid place-items-center bg-[radial-gradient(circle_at_center,rgba(18,132,255,0.25),transparent)] border border-white/[0.08] shadow-[0_10px_28px_rgba(0,0,0,0.35),0_0_40px_rgba(18,132,255,0.25)]">
                   <Waves className="w-10 h-10 text-cyan-400" />
                 </div>
               </div>
@@ -207,6 +211,7 @@ export default function EnhancedWelcomePage() {
           </div>
         </div>
       </div>
+      </ClientOnly>
     );
   }
   
@@ -215,7 +220,8 @@ export default function EnhancedWelcomePage() {
     const inlet = INLETS.find(i => i.id === selectedInletId);
     
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <ClientOnly>
+        <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="fixed inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-50" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
@@ -297,12 +303,14 @@ export default function EnhancedWelcomePage() {
           </div>
         </div>
       </div>
+      </ClientOnly>
     );
   }
   
   // Step 3: Tutorial Option
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <ClientOnly>
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-50" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
@@ -401,5 +409,6 @@ export default function EnhancedWelcomePage() {
         mode={selectedMode}
       />
     </div>
+    </ClientOnly>
   );
 }
