@@ -70,15 +70,15 @@ export default function ChatWindow({ roomId, showWeatherHeader }: ChatWindowProp
             </div>
             <div className="flex-1">
               <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-medium text-white">{msg.author}</span>
-                <span className="text-xs text-slate-500">
+                <span className="text-sm font-medium text-white">{msg.author}</span>
+                <span className="text-xs font-medium opacity-70 text-slate-400">
                   {new Date(msg.createdAtIso).toLocaleTimeString([], { 
                     hour: 'numeric', 
                     minute: '2-digit' 
                   })}
                 </span>
               </div>
-              <div className="text-slate-200 bg-white/5 px-4 py-2 rounded-lg inline-block border border-white/10 group-hover:border-cyan-500/20 transition-all duration-200">{msg.text}</div>
+              <div className="text-[15px] font-normal leading-6 text-slate-200 bg-white/5 px-4 py-2 rounded-lg inline-block border border-white/10 group-hover:border-cyan-500/20 transition-all duration-200">{msg.text}</div>
             </div>
           </div>
         ))}
@@ -128,7 +128,7 @@ export default function ChatWindow({ roomId, showWeatherHeader }: ChatWindowProp
           <button
             onClick={handleSend}
             disabled={!message.trim()}
-            className="px-5 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-400 hover:to-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)]"
+            className="px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-400 hover:to-teal-400 focus:from-emerald-400 focus:to-teal-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-[0_0_20px_rgba(52,211,153,0.3)] hover:shadow-[0_0_30px_rgba(52,211,153,0.5)]"
           >
             <Send className="w-4 h-4" />
           </button>

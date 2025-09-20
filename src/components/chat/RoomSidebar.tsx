@@ -29,6 +29,14 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
     <div className="w-72 bg-slate-900/40 backdrop-blur-xl border-r border-white/10 flex flex-col shadow-2xl">
       <div className="p-5 border-b border-white/10">
         <h2 className="text-lg font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">Channels</h2>
+        
+        {/* Room Info - moved from right rail */}
+        <div className="abfi-note mt-4">
+          <h3 className="text-xs font-semibold abfi-header-glow mb-1">Room Info</h3>
+          <p className="opacity-80 text-xs leading-relaxed">
+            Share fishing intel, conditions, and coordinate with other captains in your area.
+          </p>
+        </div>
       </div>
       
       <div className="flex-1 overflow-y-auto">
@@ -37,7 +45,7 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
             key={room.id}
             onClick={() => onSelectRoom(room.id)}
             className={`w-full px-4 py-3.5 mx-2 my-1 rounded-lg flex items-center justify-between hover:bg-slate-800/50 transition-all duration-200 ${
-              selectedRoom === room.id ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-l-4 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]' : 'hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+              selectedRoom === room.id ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-l-4 border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400/40' : 'hover:shadow-[0_0_15px_rgba(52,211,153,0.2)]'
             }`}
           >
             <div className="flex items-center gap-3">

@@ -2,6 +2,7 @@
 
 import WeatherHeader from './WeatherHeader';
 import PresenceBar from './PresenceBar';
+import HighlightCarousel from './HighlightCarousel';
 
 interface ContextPanelProps {
   roomId: string;
@@ -22,11 +23,10 @@ export default function ContextPanel({ roomId, inletId }: ContextPanelProps) {
       
       <PresenceBar inletId={inletId} />
       
-      <div className="flex-1 p-5">
-        <h3 className="text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-400/80 to-teal-400/80 bg-clip-text text-transparent mb-4">Room Info</h3>
-        <div className="text-sm text-slate-300/80 leading-relaxed p-4 rounded-lg bg-white/5 border border-white/10">
-          Share fishing intel, conditions, and coordinate with other captains in your area.
-        </div>
+      {/* ABFI Highlights - Desktop only */}
+      <div className="hidden md:block flex-1 p-5">
+        <h3 className="text-sm font-semibold abfi-header-glow mb-3">ABFI Highlights</h3>
+        <HighlightCarousel />
       </div>
     </div>
   );

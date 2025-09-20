@@ -13,17 +13,14 @@ export default function PresenceBar({ inletId = 'ny-montauk' }: PresenceBarProps
   
   return (
     <div className="p-5 border-b border-white/10 bg-gradient-to-r from-slate-900/20 to-slate-800/20">
-      <h3 className="text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-green-400/80 to-emerald-400/80 bg-clip-text text-transparent mb-4">Online Now</h3>
+      <h3 className="text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-4">Online Now</h3>
+      <div className="h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent mb-4"></div>
       <div className="flex gap-4 overflow-x-auto py-2 px-1">
         {MOCK_PRESENCE.filter(p => p.online).map(person => (
           <div key={person.userId} className="flex flex-col items-center gap-2 flex-shrink-0">
             <div className="relative p-1">
               <div 
-                className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-semibold text-sm ring-2 transition-all duration-200 hover:scale-110"
-                style={{ 
-                  boxShadow: `0 0 20px ${glowColor}, 0 0 40px ${glowColor}40`,
-                  borderColor: glowColor 
-                }}
+                className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-semibold text-sm abfi-avatar ring-1 ring-emerald-400/30 transition-all duration-200 hover:scale-110"
               >
                 {person.name.charAt(0)}
               </div>
