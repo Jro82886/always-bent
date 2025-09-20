@@ -54,9 +54,9 @@ function ReportsContent() {
           <div className="abfi-card-bg rounded-xl p-4 mb-3">
             <div className="text-center space-y-2">
               <div className="flex items-center justify-center gap-2 text-sm font-semibold">
-                <span className="text-cyan-400">HYPOTHESIS</span>
+                <span className="text-cyan-400">PREDICTION</span>
                 <span className="text-slate-400">→</span>
-                <span className="text-emerald-400">VALIDATION</span>
+                <span className="text-emerald-400">CONFIRMATION</span>
                 <span className="text-slate-400">→</span>
                 <span className="text-amber-400">INTELLIGENCE</span>
               </div>
