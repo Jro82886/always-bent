@@ -225,45 +225,45 @@ export default function EnhancedWelcomePage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Community Mode */}
+              {/* Community Mode - BLUE */}
               <button
                 onClick={() => handleModeSelection('community')}
                 disabled={loading}
-                className="p-6 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl hover:border-cyan-400/50 transition-all group text-left"
+                className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-xl hover:border-blue-400/50 transition-all group text-left"
               >
                 <div className="mb-4">
-                  <div className="inline-flex p-3 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/30 transition-colors mb-4">
-                    <Users className="w-8 h-8 text-cyan-400" />
+                  <div className="inline-flex p-3 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors mb-4">
+                    <Users className="w-8 h-8 text-blue-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-cyan-300">Join Community</h3>
+                  <h3 className="text-xl font-semibold text-blue-300">Join Community</h3>
                 </div>
                 <p className="text-sm text-slate-300 mb-4 leading-relaxed">
                   Share your live location with {inlet?.name}. See your fleet, vessels, and chat in real time. 
                   If you're offline offshore, your trip will sync when you're back online.
                 </p>
-                <div className="inline-flex items-center gap-2 text-cyan-400 font-medium">
+                <div className="inline-flex items-center gap-2 text-blue-400 font-medium">
                   <span>Join Community</span>
                   <ChevronRight className="w-4 h-4" />
                 </div>
               </button>
 
-              {/* Solo Mode */}
+              {/* Solo Mode - GREEN */}
               <button
                 onClick={() => handleModeSelection('solo')}
                 disabled={loading}
-                className="p-6 bg-gradient-to-br from-slate-700/20 to-slate-800/20 border border-slate-600/30 rounded-xl hover:border-slate-500/50 transition-all group text-left"
+                className="p-6 bg-gradient-to-br from-emerald-500/10 to-green-600/10 border border-emerald-500/30 rounded-xl hover:border-emerald-400/50 transition-all group text-left"
               >
                 <div className="mb-4">
-                  <div className="inline-flex p-3 bg-slate-700/30 rounded-lg group-hover:bg-slate-700/40 transition-colors mb-4">
-                    <Eye className="w-8 h-8 text-slate-400" />
+                  <div className="inline-flex p-3 bg-emerald-500/20 rounded-lg group-hover:bg-emerald-500/30 transition-colors mb-4">
+                    <Eye className="w-8 h-8 text-emerald-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-slate-300">Solo Mode</h3>
+                  <h3 className="text-xl font-semibold text-emerald-300">Solo Mode</h3>
                 </div>
                 <p className="text-sm text-slate-300 mb-4 leading-relaxed">
                   Scout conditions, hotspots, and trends privately. Perfect for planning or tournaments 
                   when you don't want to share your location.
                 </p>
-                <div className="inline-flex items-center gap-2 text-slate-400 font-medium">
+                <div className="inline-flex items-center gap-2 text-emerald-400 font-medium">
                   <span>Solo Mode</span>
                   <ChevronRight className="w-4 h-4" />
                 </div>
@@ -335,17 +335,29 @@ export default function EnhancedWelcomePage() {
               </div>
             </button>
 
-            {/* Skip Tutorial */}
+            {/* Enter ABFI - Dynamic color based on user's path */}
             <button
               onClick={() => handleTutorialChoice(false)}
-              className="w-full p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl hover:border-slate-600/50 transition-all group"
+              className={`w-full p-4 border rounded-xl transition-all group ${
+                selectedMode === 'community'
+                  ? 'bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/30 hover:border-blue-400/50'
+                  : 'bg-gradient-to-br from-emerald-500/10 to-green-600/10 border-emerald-500/30 hover:border-emerald-400/50'
+              }`}
             >
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-slate-700/30 rounded-lg group-hover:bg-slate-700/40 transition-colors">
-                  <ChevronRight className="w-6 h-6 text-slate-400" />
+                <div className={`p-3 rounded-lg transition-colors ${
+                  selectedMode === 'community'
+                    ? 'bg-blue-500/20 group-hover:bg-blue-500/30'
+                    : 'bg-emerald-500/20 group-hover:bg-emerald-500/30'
+                }`}>
+                  <ChevronRight className={`w-6 h-6 ${
+                    selectedMode === 'community' ? 'text-blue-400' : 'text-emerald-400'
+                  }`} />
                 </div>
                 <div className="flex-1 text-left">
-                  <h3 className="font-semibold text-slate-300 mb-1">Enter ABFI</h3>
+                  <h3 className={`font-semibold mb-1 ${
+                    selectedMode === 'community' ? 'text-blue-300' : 'text-emerald-300'
+                  }`}>Enter ABFI</h3>
                   <p className="text-sm text-slate-400">
                     Jump right in — you can revisit the tour anytime in settings.
                   </p>
