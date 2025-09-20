@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const TrackingContent = dynamic(() => import('./TrackingContent'), {
   ssr: false,

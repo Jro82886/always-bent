@@ -203,13 +203,14 @@ function TrackingModeContent() {
     <div className="relative h-screen overflow-hidden bg-black">
       {/* Command Bridge - inlet selector only */}
       <HeaderBar 
+        activeMode="tracking"
         showInletSelector={true}
         showWeather={false}
         showChat={false}
       />
       
-      {/* Map Container */}
-      <div ref={mapContainer} className="absolute inset-0" />
+      {/* Map Container - add explicit height and top offset for header */}
+      <div ref={mapContainer} className="absolute inset-0 top-16" style={{ height: 'calc(100vh - 64px)' }} />
       
       {/* Left Toolbar */}
       <TrackingToolbar
