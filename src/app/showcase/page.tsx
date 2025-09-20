@@ -1,11 +1,11 @@
 'use client';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 
 export const dynamic = 'force-dynamic';
 
 export default function Showcase() {
   const Panels = [
-    { name: 'TopHUD', C: dynamic(() => import('@/components/TopHUD')) },
+    { name: 'TopHUD', C: dynamicImport(() => import('@/components/TopHUD')) },
     // Add more: { name: 'SizingPanel', C: dynamic(() => import('@/components/SizingPanel')) },
     // { name: 'SnipAnalyze', C: dynamic(() => import('@/components/SnipTool')) },
   ];
