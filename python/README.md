@@ -1,32 +1,164 @@
-# ABFI Numeric Polygons Service (FastAPI)
+# Ocean Features FastAPI Backend
 
-ABFI Ocean Analysis Backend - NASA MODIS SST Foundation
+Real-time ocean feature detection for Always Bent Fishing Intelligence.
 
-Core SST Data: NASA MODIS Terra L3 SST (4km resolution, 8-day thermal composite)
-This is the FOUNDATION dataset for all water temperature analysis and fishing intelligence.
+## Features
 
-## Quickstart
+- **Thermal Front Detection**: Identifies SST gradients and temperature breaks
+- **Chlorophyll Edge Detection**: Finds productivity zones and phytoplankton blooms  
+- **Eddy Detection**: Locates mesoscale eddies using Okubo-Weiss parameter
+- **Live Features API**: Combined endpoint for all ocean features
 
-python3 -m venv .venv
-source .venv/bin/activate
+## API Endpoints
+
+- `GET /` - Health check
+- `GET /polygons` - Get ocean feature polygons (main endpoint)
+- `GET /ocean-features/fronts` - Detect thermal fronts
+- `GET /ocean-features/edges` - Detect chlorophyll edges
+- `GET /ocean-features/eddies` - Detect mesoscale eddies
+- `GET /ocean-features/live` - Get all features combined
+
+## Local Development
+
+1. Create virtual environment:
+```bash
+cd python
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+2. Install dependencies:
+```bash
 pip install -r requirements.txt
-# No environment variables needed - NASA MODIS SST is the core dataset
-uvicorn app.main:app --host 0.0.0.0 --port 8010
+```
 
-## Test
+3. Set environment variables:
+```bash
+export COPERNICUS_USER=your_username
+export COPERNICUS_PASS=your_password
+export POLYGONS_BACKEND_URL=http://localhost:8000
+export NEXT_PUBLIC_POLYGONS_URL=http://localhost:8000
+```
 
-curl "http://localhost:8010/polygons?time=2023-06-01&bbox=-77,32,-71,36" | jq '.features | length'
+4. Run the server:
+```bash
+python main.py
+```
 
-## Wire Next.js proxy
+The API will be available at http://localhost:8000
 
-Set in .env.local:
+## Docker Deployment
 
-POLYGONS_BACKEND_URL=http://localhost:8010/polygons
-NEXT_PUBLIC_SST_POLYGONS_URL=/api/polygons
+1. Build the image:
+```bash
+docker build -t abfi-ocean-features .
+```
 
-Then the frontend will call Next /api/polygons which proxies to the Python service.
+2. Run the container:
+```bash
+docker run -p 8000:8000 \
+  -e COPERNICUS_USER=your_username \
+  -e COPERNICUS_PASS=your_password \
+  abfi-ocean-features
+```
 
-## Notes
-- Uses xarray + griddap NetCDF; time matches nearest day.
-- Contour levels auto-derived from 10–90th percentile, ~8 levels.
-- Output is simplified polygons labeled { type: edge, level }.
+## Google Cloud Run Deployment
+
+1. Build and push to Google Container Registry:
+```bash
+# Configure Docker for GCR
+gcloud auth configure-docker
+
+# Build and tag
+docker build -t gcr.io/YOUR_PROJECT_ID/abfi-ocean-features .
+
+# Push to GCR
+docker push gcr.io/YOUR_PROJECT_ID/abfi-ocean-features
+```
+
+2. Deploy to Cloud Run:
+```bash
+gcloud run deploy abfi-ocean-features \
+  --image gcr.io/YOUR_PROJECT_ID/abfi-ocean-features \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars COPERNICUS_USER=$COPERNICUS_USER,COPERNICUS_PASS=$COPERNICUS_PASS
+```
+
+3. Update environment variables in Vercel:
+```
+POLYGONS_BACKEND_URL=https://abfi-ocean-features-xxxxx.a.run.app
+NEXT_PUBLIC_POLYGONS_URL=https://abfi-ocean-features-xxxxx.a.run.app
+```
+
+## Vercel Deployment (Alternative)
+
+1. Create `vercel.json` in python directory:
+```json
+{
+  "builds": [
+    {
+      "src": "main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "main.py"
+    }
+  ]
+}
+```
+
+2. Deploy:
+```bash
+vercel --prod
+```
+
+## Environment Variables
+
+- `COPERNICUS_USER` - Copernicus Marine username
+- `COPERNICUS_PASS` - Copernicus Marine password  
+- `PORT` - Server port (default: 8000)
+
+## Testing
+
+Run tests:
+```bash
+pytest
+```
+
+Test endpoints:
+```bash
+# Health check
+curl http://localhost:8000/
+
+# Get polygons for a bounding box
+curl "http://localhost:8000/polygons?bbox=-75,35,-70,40"
+
+# Detect thermal fronts
+curl "http://localhost:8000/ocean-features/fronts?bbox=-75,35,-70,40&threshold=0.5"
+
+# Get all live features
+curl "http://localhost:8000/ocean-features/live?bbox=-75,35,-70,40&features=fronts,edges,eddies"
+```
+
+## Architecture
+
+The backend uses:
+- **FastAPI** for the REST API
+- **NumPy/SciPy** for numerical computations
+- **OpenCV/scikit-image** for image processing
+- **Shapely/GeoJSON** for geospatial operations
+- **XArray** for handling NetCDF data from Copernicus
+
+## Future Enhancements
+
+- [ ] Real-time data fetching from Copernicus Marine
+- [ ] Caching layer for processed features
+- [ ] WebSocket support for live updates
+- [ ] Machine learning models for improved detection
+- [ ] Historical analysis endpoints
+- [ ] Multi-resolution processing

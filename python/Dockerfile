@@ -1,19 +1,29 @@
+# Use Python 3.11 slim image
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+# Install system dependencies for scientific computing
+RUN apt-get update && apt-get install -y \
+    libgeos-dev \
+    libproj-dev \
+    libgdal-dev \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
+# Set working directory
 WORKDIR /app
 
-COPY python/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-# COPY python/app /app/app  # Removed - now using Copernicus Marine Data directly
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# NASA MODIS SST is the core dataset - no environment variables needed
+# Copy application code
+COPY . .
 
-EXPOSE 8010
+# Expose port
+EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010"]
-
-
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
