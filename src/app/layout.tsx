@@ -8,6 +8,11 @@ import BiteSyncInitializer from '@/components/BiteSyncInitializer';
 import BetaFeedback from '@/components/BetaFeedback';
 import { Toaster } from 'sonner';
 
+// Enable debug utilities in development
+if (process.env.NODE_ENV === 'development') {
+  import('@/lib/debugUtils');
+}
+
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
