@@ -109,14 +109,7 @@ function ABFICore() {
     );
   }
   
-  // Apply mode restrictions based on appMode
-  if (appMode === 'analysis') {
-    // Solo mode - only allow analysis and trends
-    if (currentMode === 'tracking' || currentMode === 'community') {
-      router.replace('/legendary?mode=analysis');
-      return null;
-    }
-  }
+  // Mode restrictions removed - all modes accessible
   
   // Render the appropriate mode
   switch(currentMode) {
