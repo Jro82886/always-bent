@@ -17,6 +17,12 @@ import { useLocationPermission } from '@/hooks/useLocationPermission';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
+// East Coast bounding box for overview
+const EAST_COAST_BOUNDS = [
+  [-82.0, 24.0], // SW corner (Florida Keys / Gulf side buffer)
+  [-65.0, 45.0], // NE corner (Maine + offshore buffer)
+] as [[number, number], [number, number]];
+
 function TrackingModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -58,12 +64,12 @@ function TrackingModeContent() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: inlet ? [inlet.lng!, inlet.lat!] : [-73.5, 40.5], // Default to NY area
-      zoom: inlet ? inlet.zoom : 7,
       projection: 'globe' as any,
     });
 
     map.current.on('load', () => {
+      console.log('Map Loaded - Tracking Mode');
+      
       // Configure globe
       map.current!.setFog({
         color: 'rgb(0, 0, 0)',
@@ -72,8 +78,33 @@ function TrackingModeContent() {
         'space-color': 'rgb(0, 0, 0)',
         'star-intensity': 0.6
       });
+      
+      // Set initial view based on inlet selection
+      if (inlet) {
+        // Zoom to specific inlet
+        map.current!.flyTo({
+          center: [inlet.lng!, inlet.lat!],
+          zoom: inlet.zoom,
+          duration: 1500
+        });
+      } else {
+        // Show East Coast overview
+        map.current!.fitBounds(EAST_COAST_BOUNDS, {
+          padding: 40,
+          duration: 1500
+        });
+      }
 
       setMapFullyReady(true);
+    });
+    
+    // Error handling
+    map.current.on('error', (e) => {
+      console.error('Map error:', e);
+      // Don't break the UI - map should still be interactive
+      if (e.error?.status === 401) {
+        console.error('Mapbox token invalid - check NEXT_PUBLIC_MAPBOX_TOKEN');
+      }
     });
 
     return () => {
@@ -87,13 +118,22 @@ function TrackingModeContent() {
 
   // Update map view when inlet changes
   useEffect(() => {
-    if (!map.current || !mapFullyReady || !inlet) return;
+    if (!map.current || !mapFullyReady) return;
     
-    map.current.flyTo({
-      center: [inlet.lng!, inlet.lat!],
-      zoom: inlet.zoom,
-      duration: 2000
-    });
+    if (inlet) {
+      // Zoom to specific inlet
+      map.current.flyTo({
+        center: [inlet.lng!, inlet.lat!],
+        zoom: inlet.zoom,
+        duration: 2000
+      });
+    } else {
+      // Return to East Coast overview
+      map.current.fitBounds(EAST_COAST_BOUNDS, {
+        padding: 40,
+        duration: 2000
+      });
+    }
   }, [inlet, mapFullyReady]);
 
   // Handle fly to inlet zoom
