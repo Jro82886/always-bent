@@ -55,17 +55,6 @@ const TrendsMode = dynamic(
   }
 );
 
-const WelcomeMode = dynamic(
-  () => import('./welcome/page'),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
-        <div className="text-cyan-400 animate-pulse">Loading Welcome...</div>
-      </div>
-    )
-  }
-);
 
 function ABFICore() {
   const searchParams = useSearchParams();
@@ -126,8 +115,6 @@ function ABFICore() {
       return <CommunityMode />;
     case 'trends':
       return <TrendsMode />;
-    case 'welcome':
-      return <WelcomeMode />;
     default:
       return <AnalysisMode />;
   }
