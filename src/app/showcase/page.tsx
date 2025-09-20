@@ -1,6 +1,8 @@
 'use client';
 import dynamic from 'next/dynamic';
 
+export const dynamic = 'force-dynamic';
+
 export default function Showcase() {
   const Panels = [
     { name: 'TopHUD', C: dynamic(() => import('@/components/TopHUD')) },
