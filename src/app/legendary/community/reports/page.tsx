@@ -58,12 +58,12 @@ function ReportsContent() {
                 <span className="text-slate-400">→</span>
                 <span className="text-emerald-400">CONFIRMATION</span>
                 <span className="text-slate-400">→</span>
-                <span className="text-amber-400">INTELLIGENCE</span>
+                <span className="bg-gradient-to-r from-orange-400/80 to-amber-400/80 bg-clip-text text-transparent">INTELLIGENCE</span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed max-w-2xl mx-auto">
-                <span className="text-cyan-300">Snip Reports</span> capture spots that <em>look</em> fishy based on conditions.
-                <span className="text-emerald-300 ml-2">ABFI Bite Reports</span> prove where fish <em>actually</em> bit.
-                Together, they teach ABFI which conditions truly produce, building <span className="text-amber-300">collective fishing intelligence</span> that makes every captain smarter.
+                <span className="text-cyan-300">Snip Reports</span> = predictions.
+                <span className="text-emerald-300 ml-2">ABFI Bite Reports</span> = confirmations.
+                Together they train ABFI into <span className="bg-gradient-to-r from-orange-400/80 to-amber-400/80 bg-clip-text text-transparent">collective fishing intelligence</span>.
               </p>
             </div>
           </div>

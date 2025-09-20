@@ -30,16 +30,18 @@ export default function MyReportsList({ onSelectReport, month }: MyReportsListPr
     <>
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 md:p-6">
-          <h2 className="text-sm uppercase tracking-widest bg-gradient-to-r from-emerald-400/80 to-teal-400/80 bg-clip-text text-transparent font-semibold mb-4">My Reports</h2>
+          <h2 className="text-sm uppercase tracking-widest bg-gradient-to-r from-emerald-400/80 to-teal-400/80 bg-clip-text text-transparent font-semibold mb-6">My Reports</h2>
           
-          {/* Snips Section */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.5)]" />
-                <h3 className="text-sm font-medium text-white">Snips</h3>
-                <span className="text-xs text-slate-500">({snipReports.length})</span>
-              </div>
+          {/* Two Column Layout on Desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Snips Section */}
+            <div className="abfi-card-bg abfi-glow rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.5)]" />
+                  <h3 className="text-sm font-semibold text-white">My Snipped Reports</h3>
+                  <span className="text-xs text-slate-500">({snipReports.length})</span>
+                </div>
               {snipReports.length > 3 && (
                 <button
                   onClick={() => setExpandedSnips(!expandedSnips)}
@@ -102,16 +104,16 @@ export default function MyReportsList({ onSelectReport, month }: MyReportsListPr
                 ))
               )}
             </div>
-          </div>
-          
-          {/* ABFI Reports Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Fish className="w-4 h-4 text-green-400 drop-shadow-[0_0_6px_rgba(74,222,128,0.5)]" />
-                <h3 className="text-sm font-medium text-white">ABFI Reports</h3>
-                <span className="text-xs text-slate-500">({abfiReports.length})</span>
-              </div>
+            </div>
+            
+            {/* ABFI Reports Section */}
+            <div className="abfi-card-bg abfi-glow rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Fish className="w-4 h-4 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.5)]" />
+                  <h3 className="text-sm font-semibold text-white">My ABFI Bite Reports</h3>
+                  <span className="text-xs text-slate-500">({abfiReports.length})</span>
+                </div>
               {abfiReports.length > 3 && (
                 <button
                   onClick={() => setExpandedABFI(!expandedABFI)}
@@ -178,6 +180,7 @@ export default function MyReportsList({ onSelectReport, month }: MyReportsListPr
                   </button>
                 ))
               )}
+            </div>
             </div>
           </div>
         </div>

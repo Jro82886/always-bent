@@ -76,7 +76,7 @@ export default function ChatPage() {
                     <span className="text-slate-400">→</span>
                     <span className="text-emerald-400">COLLABORATION</span>
                     <span className="text-slate-400">→</span>
-                    <span className="text-amber-400">WISDOM</span>
+                    <span className="bg-gradient-to-r from-orange-400/80 to-amber-400/80 bg-clip-text text-transparent">WISDOM</span>
                   </div>
                   <p className="text-[10px] text-slate-300 leading-relaxed">
                     <span className="text-cyan-300">Local reports</span> share what's happening NOW.
