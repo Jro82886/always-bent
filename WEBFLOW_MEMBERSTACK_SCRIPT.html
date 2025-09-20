@@ -1,0 +1,123 @@
+<!-- 
+  WEBFLOW + MEMBERSTACK INTEGRATION SCRIPT
+  Add this to your Webflow site: Project Settings → Custom Code → Footer Code
+-->
+
+<script src="https://api.memberstack.io/static/memberstack.js" data-memberstack-app="app_cmfpavrtq00zb0wws6asv8xf3"></script>
+
+<script>
+// Wait for Memberstack to load
+window.$memberstackDom.onReady.then(function(memberstack) {
+  
+  // Function to sync member data to localStorage for app
+  function syncMemberData(member) {
+    if (member.data) {
+      // Store authentication state
+      localStorage.setItem('abfi_authenticated', 'true');
+      localStorage.setItem('abfi_member_id', member.data.id);
+      localStorage.setItem('abfi_member_email', member.data.auth.email);
+      
+      // Store custom fields
+      if (member.data.customFields) {
+        if (member.data.customFields.captainName) {
+          localStorage.setItem('abfi_captain_name', member.data.customFields.captainName);
+        }
+        if (member.data.customFields.boatName) {
+          localStorage.setItem('abfi_boat_name', member.data.customFields.boatName);
+        }
+        if (member.data.customFields.homePort) {
+          localStorage.setItem('abfi_home_port', member.data.customFields.homePort);
+        }
+      }
+      
+      // Set auth cookie for Next.js app
+      document.cookie = 'abfi_onboarded=1; domain=.vercel.app; path=/; max-age=2592000; SameSite=Lax';
+    }
+  }
+  
+  // Check current member status
+  memberstack.getCurrentMember().then(function(result) {
+    if (result.data) {
+      syncMemberData(result);
+    }
+  });
+  
+  // Handle Launch App button clicks
+  document.addEventListener('click', function(e) {
+    // Check if clicked element has data-launch-app attribute
+    const launchButton = e.target.closest('[data-launch-app]');
+    if (!launchButton) return;
+    
+    e.preventDefault();
+    
+    // Check if user is logged in
+    memberstack.getCurrentMember().then(function(result) {
+      if (result.data) {
+        // User is logged in - sync data and redirect to app
+        syncMemberData(result);
+        window.location.href = 'https://always-bent.vercel.app/legendary';
+      } else {
+        // Not logged in - open signup modal
+        memberstack.openModal('SIGNUP', {
+          onSuccess: function(member) {
+            // After successful signup, sync data and redirect
+            syncMemberData({ data: member });
+            window.location.href = 'https://always-bent.vercel.app/legendary/welcome';
+          }
+        });
+      }
+    });
+  });
+  
+  // Handle login success
+  memberstack.on('member:auth', function(member) {
+    syncMemberData({ data: member });
+    // Redirect to app after login
+    if (window.location.pathname.includes('login')) {
+      window.location.href = 'https://always-bent.vercel.app/legendary';
+    }
+  });
+  
+  // Handle logout
+  memberstack.on('member:signout', function() {
+    // Clear all auth data
+    localStorage.removeItem('abfi_authenticated');
+    localStorage.removeItem('abfi_member_id');
+    localStorage.removeItem('abfi_member_email');
+    localStorage.removeItem('abfi_captain_name');
+    localStorage.removeItem('abfi_boat_name');
+    localStorage.removeItem('abfi_home_port');
+    
+    // Clear auth cookie
+    document.cookie = 'abfi_onboarded=; domain=.vercel.app; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    
+    // Redirect to home
+    window.location.href = '/';
+  });
+  
+});
+</script>
+
+<!-- 
+  INSTRUCTIONS FOR WEBFLOW:
+  
+  1. Add this entire script to: Project Settings → Custom Code → Footer Code
+  
+  2. On your "Launch App" button, add this attribute:
+     - Attribute name: data-launch-app
+     - Attribute value: true
+  
+  3. For login/signup links, use Memberstack's built-in attributes:
+     - Login: ms-modal="LOGIN"
+     - Signup: ms-modal="SIGNUP"
+     - Logout: ms-logout="true"
+     - Profile: ms-profile="true"
+  
+  4. To show/hide content based on auth state:
+     - Show only to members: ms-show="member"
+     - Hide from members: ms-hide="member"
+  
+  5. Make sure your Memberstack project has these redirects set:
+     - After login: https://always-bent.vercel.app/legendary
+     - After signup: https://always-bent.vercel.app/legendary/welcome
+-->

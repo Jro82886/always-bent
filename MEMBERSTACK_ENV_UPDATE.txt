@@ -1,0 +1,9 @@
+# Add this to your .env.local and Vercel environment variables:
+
+# Memberstack Authentication
+NEXT_PUBLIC_MEMBERSTACK_APP_ID=app_cmfpavrtq00zb0wws6asv8xf3
+
+# Also add to Vercel:
+# 1. Go to https://vercel.com/amandarosenkildes-projects/always-bent/settings/environment-variables
+# 2. Add NEXT_PUBLIC_MEMBERSTACK_APP_ID with value: app_cmfpavrtq00zb0wws6asv8xf3
+# 3. Make sure it's available for all environments (Production, Preview, Development)

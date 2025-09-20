@@ -25,6 +25,8 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@mapbox/mapbox-gl-draw": "^1.5.0",
+    "@memberstack/nextjs": "^1.0.4",
+    "@memberstack/react": "^2.0.30",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/auth-ui-react": "^0.4.7",
