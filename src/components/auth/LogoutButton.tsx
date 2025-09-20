@@ -10,7 +10,8 @@ export default function LogoutButton({ className }: { className?: string }) {
   const handleLogout = async () => {
     try {
       // Logout from Memberstack
-      await memberstack.logout();
+      // @ts-ignore - Memberstack types are incomplete
+      await memberstack?.logoutMember?.();
       
       // Clear all local storage
       localStorage.removeItem('abfi_authenticated');
