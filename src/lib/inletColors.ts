@@ -25,8 +25,8 @@ export const INLET_COLORS: Record<string, { color: string; glow: string }> = {
   // Delaware - Dark Orange
   'de-indian-river': { color: '#FF8C00', glow: 'rgba(255, 140, 0, 0.3)' },
   
-  // Maryland - Red
-  'md-ocean-city': { color: '#e74c3c', glow: 'rgba(231, 76, 60, 0.3)' },
+  // Maryland - Green/Teal
+  'md-ocean-city': { color: '#059669', glow: 'rgba(5, 150, 105, 0.3)' },
   
   // Virginia - Red
   'va-chincoteague': { color: '#e74c3c', glow: 'rgba(231, 76, 60, 0.3)' },

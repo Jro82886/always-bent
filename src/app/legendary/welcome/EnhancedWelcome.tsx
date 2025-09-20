@@ -50,6 +50,7 @@ export default function EnhancedWelcomePage() {
     if (inlet) {
       localStorage.setItem('abfi_inlet_id', inlet.id);
       localStorage.setItem('abfi_inlet_name', inlet.name);
+      localStorage.setItem('abfi_selected_inlet', inlet.id);
     }
     
     // Move to mode selection
@@ -66,6 +67,7 @@ export default function EnhancedWelcomePage() {
     
     // Store mode (for Memberstack metadata later)
     localStorage.setItem('abfi_mode', mode);
+    localStorage.setItem('abfi_app_mode', appMode);
     
     if (mode === 'community') {
       // Request location permission
@@ -131,25 +133,27 @@ export default function EnhancedWelcomePage() {
   // Step 1: Inlet Selection
   if (step === 1) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#070B14] via-[#0B1220] to-[#0B1E2A] flex items-center justify-center px-4">
         <div className="fixed inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-50" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-30" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-cyan-500/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative z-10 w-full max-w-lg">
-          <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+        <div className="relative z-10 w-full max-w-2xl">
+          <div className="relative bg-gradient-to-b from-[#111827]/75 via-[#0B1220]/75 to-[#081624]/75 backdrop-blur-[20px] rounded-3xl p-12 shadow-[0_24px_60px_rgba(0,0,0,0.45)] border border-white/[0.06]">
+            {/* Inner edge glow */}
+            <div className="absolute inset-0 rounded-3xl shadow-[inset_0_0_60px_rgba(18,132,255,0.10),inset_0_0_60px_rgba(35,213,155,0.06)] pointer-events-none" />
             
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl backdrop-blur-sm border border-cyan-500/30">
-                  <Waves className="w-16 h-16 text-cyan-400" />
+            <div className="text-center mb-10">
+              <div className="flex justify-center mb-8">
+                <div className="relative w-[74px] h-[74px] rounded-[20px] grid place-items-center bg-gradient-radial from-[rgba(18,132,255,0.25)] to-transparent border border-white/[0.08] shadow-[0_10px_28px_rgba(0,0,0,0.35),0_0_40px_rgba(18,132,255,0.25)]">
+                  <Waves className="w-10 h-10 text-cyan-400" />
                 </div>
               </div>
-              <h1 className="text-3xl font-bold text-white mb-3">
+              <h1 className="text-4xl font-extrabold mb-4 leading-tight bg-gradient-to-r from-[#EAF6FF] to-[#CFF9EE] bg-clip-text text-transparent">
                 Welcome to the ABFI Ocean Intelligence Platform
               </h1>
-              <p className="text-slate-400 text-lg">
+              <p className="text-[#D8E4F0]/90 text-lg leading-relaxed max-w-lg mx-auto">
                 Every journey starts at your home inlet. Pick yours to anchor your experience. You can change it anytime.
               </p>
             </div>
@@ -160,17 +164,17 @@ export default function EnhancedWelcomePage() {
               </div>
             )}
 
-            <div className="space-y-4">
-              {/* Use the actual InletChip component */}
+            <div className="space-y-6">
+              {/* Use the actual InletChip component with ghost styling */}
               <div className="flex justify-center">
-                <div className="scale-150 transform-origin-center">
+                <div className="scale-150 transform-origin-center p-3 rounded-2xl bg-white/[0.06] border border-white/10">
                   <InletChip />
                 </div>
               </div>
               
               {/* Show selected inlet info */}
               {selectedInletId && selectedInletId !== 'overview' && (
-                <div className="flex items-center justify-center gap-3 p-3 bg-slate-800/30 rounded-lg">
+                <div className="flex items-center justify-center gap-3 p-3 bg-white/[0.03] rounded-xl">
                   <div 
                     className="w-3 h-3 rounded-full"
                     style={{
@@ -178,7 +182,7 @@ export default function EnhancedWelcomePage() {
                       boxShadow: `0 0 10px ${INLET_COLORS[selectedInletId]?.color || '#3A3F47'}88`
                     }}
                   />
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-[#D8E4F0]/70">
                     Your inlet color
                   </span>
                 </div>
@@ -187,7 +191,7 @@ export default function EnhancedWelcomePage() {
               <button
                 onClick={handleInletSelection}
                 disabled={!selectedInletId || selectedInletId === 'overview'}
-                className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-lg hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+                className="w-full py-4 px-6 bg-gradient-to-b from-[#2AA3FF] to-[#1284FF] text-[#031321] font-bold text-lg rounded-2xl transition-all shadow-[0_0_28px_rgba(18,132,255,0.35)] border border-[rgba(42,163,255,0.35)] hover:shadow-[0_0_34px_rgba(18,132,255,0.55)] active:transform active:translate-y-[1px] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="flex items-center justify-center gap-2">
                   Next → Choose How You Want to Fish
