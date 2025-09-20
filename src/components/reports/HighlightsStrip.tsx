@@ -5,9 +5,11 @@ import { Flame, Thermometer, Wind, Waves, Moon } from 'lucide-react';
 
 interface HighlightsStripProps {
   onSelectHighlight: (highlight: any) => void;
+  month?: string;
 }
 
-export default function HighlightsStrip({ onSelectHighlight }: HighlightsStripProps) {
+export default function HighlightsStrip({ onSelectHighlight, month }: HighlightsStripProps) {
+  // TODO: Filter MOCK_HIGHLIGHTS by month when connected to real API
   if (MOCK_HIGHLIGHTS.length === 0) {
     return null; // Don't show section if no highlights
   }

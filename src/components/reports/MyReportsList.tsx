@@ -6,9 +6,11 @@ import { MapPin, Fish, Thermometer, Wind, Waves, WifiOff, ChevronDown, ChevronUp
 
 interface MyReportsListProps {
   onSelectReport: (report: any) => void;
+  month?: string;
 }
 
-export default function MyReportsList({ onSelectReport }: MyReportsListProps) {
+export default function MyReportsList({ onSelectReport, month }: MyReportsListProps) {
+  // TODO: Filter reports by month when connected to real API
   const [showBiteAnimation, setShowBiteAnimation] = useState(false);
   const [expandedSnips, setExpandedSnips] = useState(false);
   const [expandedABFI, setExpandedABFI] = useState(false);
