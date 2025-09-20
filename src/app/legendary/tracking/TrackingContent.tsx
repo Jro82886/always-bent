@@ -8,6 +8,7 @@ import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import VesselLayerClean from '@/components/tracking/VesselLayerClean';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
+import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';
 import TrackingToolbar from '@/components/tracking/TrackingToolbar';
 import TrackingLegend from '@/components/tracking/TrackingLegend';
 import InletRegions from '@/components/InletRegions';
@@ -246,7 +247,16 @@ function TrackingModeContent() {
         />
       )}
       
-      {/* Vessel Layer */}
+      {/* Rec Boats Clustering - handles fleet visualization */}
+      {mapFullyReady && (
+        <RecBoatsClustering
+          map={map.current}
+          showFleet={showFleet}
+          selectedInletId={selectedInletId}
+        />
+      )}
+      
+      {/* Vessel Layer - handles individual user vessel */}
       {mapFullyReady && (
         <VesselLayerClean
           map={map.current}
