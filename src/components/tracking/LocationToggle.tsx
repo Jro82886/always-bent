@@ -280,6 +280,9 @@ export default function LocationToggle({
     };
   }, [locationEnabled]);
 
+  // Get inlet name for tooltip
+  const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+
   // Update orb visibility when showYou changes
   useEffect(() => {
     if (locationEnabled && inlet && inlet.center) {
@@ -306,9 +309,6 @@ export default function LocationToggle({
       }
     };
   }, []);
-
-  // Get inlet name for tooltip
-  const inlet = selectedInletId ? getInletById(selectedInletId) : null;
   const inletName = inlet?.name || 'your selected inlet';
 
   return (
