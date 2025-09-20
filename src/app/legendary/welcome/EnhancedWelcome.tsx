@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Loader2, ChevronRight, ChevronLeft, Waves, Fish, Eye, Users, Compass, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
@@ -10,6 +10,7 @@ import { INLET_COLORS } from '@/lib/inletColors';
 import InletChip from '@/components/CommandBridge/InletChip';
 import ClientOnly from '@/components/ClientOnly';
 import dynamic from 'next/dynamic';
+import { safeLocal } from '@/lib/safeLocal';
 
 // Dynamically import tutorial overlay to avoid SSR issues
 const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay'), {
@@ -17,7 +18,7 @@ const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay'), {
   loading: () => null
 });
 
-export default function EnhancedWelcomePage() {
+function WelcomeContent() {
   const router = useRouter();
   const { selectedInletId, setSelectedInletId, setAppMode, setUsername } = useAppState();
   
@@ -27,13 +28,22 @@ export default function EnhancedWelcomePage() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [selectedMode, setSelectedMode] = useState<'community' | 'analysis'>('community');
   
+  // Ref to prevent double redirects
+  const didRedirect = useRef(false);
+  
   useEffect(() => {
+    // Prevent redirect loops and double redirects
+    if (didRedirect.current) return;
+    
     // Check if user has already completed onboarding
-    const setupComplete = localStorage.getItem('abfi_setup_complete');
-    const hasInlet = localStorage.getItem('abfi_selected_inlet');
-    const hasMode = localStorage.getItem('abfi_app_mode');
+    const setupComplete = safeLocal.get('abfi_setup_complete');
+    const hasInlet = safeLocal.get('abfi_selected_inlet');
+    const hasMode = safeLocal.get('abfi_app_mode');
     
     if (setupComplete === 'true' && hasInlet && hasMode) {
+      // Mark that we're redirecting to prevent loops
+      didRedirect.current = true;
+      
       // User has already onboarded, redirect to app with their saved mode
       const params = new URLSearchParams();
       params.set('mode', hasMode === 'community' ? 'tracking' : 'analysis');
@@ -53,9 +63,9 @@ export default function EnhancedWelcomePage() {
     // Store inlet info (for Memberstack metadata later)
     const inlet = INLETS.find(i => i.id === selectedInletId);
     if (inlet) {
-      localStorage.setItem('abfi_inlet_id', inlet.id);
-      localStorage.setItem('abfi_inlet_name', inlet.name);
-      localStorage.setItem('abfi_selected_inlet', inlet.id);
+      safeLocal.set('abfi_inlet_id', inlet.id);
+      safeLocal.set('abfi_inlet_name', inlet.name);
+      safeLocal.set('abfi_selected_inlet', inlet.id);
     }
     
     // Move to mode selection
@@ -71,8 +81,8 @@ export default function EnhancedWelcomePage() {
     setSelectedMode(appMode);
     
     // Store mode (for Memberstack metadata later)
-    localStorage.setItem('abfi_mode', mode);
-    localStorage.setItem('abfi_app_mode', appMode);
+    safeLocal.set('abfi_mode', mode);
+    safeLocal.set('abfi_app_mode', appMode);
     
     if (mode === 'community') {
       // Request location permission
@@ -80,15 +90,15 @@ export default function EnhancedWelcomePage() {
         const permission = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
         
         if (permission.state === 'granted') {
-          localStorage.setItem('abfi_location_enabled', 'true');
+          safeLocal.set('abfi_location_enabled', 'true');
         } else {
           // Request permission
           navigator.geolocation.getCurrentPosition(
             () => {
-              localStorage.setItem('abfi_location_enabled', 'true');
+              safeLocal.set('abfi_location_enabled', 'true');
             },
             () => {
-              localStorage.setItem('abfi_location_enabled', 'false');
+              safeLocal.set('abfi_location_enabled', 'false');
             }
           );
         }
@@ -96,10 +106,10 @@ export default function EnhancedWelcomePage() {
         // Permissions API not supported, try directly
         navigator.geolocation.getCurrentPosition(
           () => {
-            localStorage.setItem('abfi_location_enabled', 'true');
+            safeLocal.set('abfi_location_enabled', 'true');
           },
           () => {
-            localStorage.setItem('abfi_location_enabled', 'false');
+            safeLocal.set('abfi_location_enabled', 'false');
           }
         );
       }
@@ -112,16 +122,16 @@ export default function EnhancedWelcomePage() {
   
   const handleTutorialChoice = (takeTour: boolean) => {
     // Mark setup as complete
-    localStorage.setItem('abfi_setup_complete', 'true');
+    safeLocal.set('abfi_setup_complete', 'true');
     
     if (takeTour) {
       // Show tutorial overlay
       setShowTutorial(true);
-      localStorage.setItem('abfi_has_seen_tutorial', 'false');
+      safeLocal.set('abfi_has_seen_tutorial', 'false');
     } else {
-      localStorage.setItem('abfi_has_seen_tutorial', 'true');
+      safeLocal.set('abfi_has_seen_tutorial', 'true');
       // Navigate based on mode with inlet param
-      const inlet = localStorage.getItem('abfi_selected_inlet');
+      const inlet = safeLocal.get('abfi_selected_inlet');
       const params = new URLSearchParams();
       params.set('mode', selectedMode === 'community' ? 'tracking' : 'analysis');
       if (inlet) {
@@ -134,15 +144,14 @@ export default function EnhancedWelcomePage() {
   
   const handleTutorialClose = () => {
     setShowTutorial(false);
-    localStorage.setItem('abfi_has_seen_tutorial', 'true');
+    safeLocal.set('abfi_has_seen_tutorial', 'true');
     // Tutorial component handles navigation
   };
   
   // Step 1: Inlet Selection
   if (step === 1) {
     return (
-      <ClientOnly>
-        <div className="min-h-screen bg-gradient-to-br from-[#070B14] via-[#0B1220] to-[#0B1E2A] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#070B14] via-[#0B1220] to-[#0B1E2A] flex items-center justify-center px-4">
         <div className="fixed inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-30" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-cyan-500/5 rounded-full blur-3xl" />
@@ -211,7 +220,6 @@ export default function EnhancedWelcomePage() {
           </div>
         </div>
       </div>
-      </ClientOnly>
     );
   }
   
@@ -220,8 +228,7 @@ export default function EnhancedWelcomePage() {
     const inlet = INLETS.find(i => i.id === selectedInletId);
     
     return (
-      <ClientOnly>
-        <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="fixed inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-50" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
@@ -303,14 +310,12 @@ export default function EnhancedWelcomePage() {
           </div>
         </div>
       </div>
-      </ClientOnly>
     );
   }
   
   // Step 3: Tutorial Option
   return (
-    <ClientOnly>
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-50" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
@@ -409,6 +414,14 @@ export default function EnhancedWelcomePage() {
         mode={selectedMode}
       />
     </div>
+  );
+}
+
+// Main export with error boundary and ClientOnly wrapper
+export default function EnhancedWelcomePage() {
+  return (
+    <ClientOnly>
+      <WelcomeContent />
     </ClientOnly>
   );
 }

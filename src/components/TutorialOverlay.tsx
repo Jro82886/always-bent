@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { communitySteps, soloSteps, type TourStep } from '@/config/TourSteps';
 import { useAppState } from '@/store/appState';
-import { useRouter } from 'next/navigation';
+import { safeLocal } from '@/lib/safeLocal';
 
 interface TutorialOverlayProps {
   isOpen: boolean;
@@ -17,7 +17,6 @@ export default function TutorialOverlay({ isOpen, onClose, mode }: TutorialOverl
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [skipLocationStep, setSkipLocationStep] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
   const { selectedInletId } = useAppState();
   
   const steps = mode === 'community' ? communitySteps : soloSteps;
@@ -74,13 +73,14 @@ export default function TutorialOverlay({ isOpen, onClose, mode }: TutorialOverl
   const handleComplete = () => {
     // Navigate to appropriate tab based on mode
     const targetMode = mode === 'community' ? 'tracking' : 'analysis';
-    const inlet = localStorage.getItem('abfi_selected_inlet');
+    const inlet = safeLocal.get('abfi_selected_inlet');
     const params = new URLSearchParams();
     params.set('mode', targetMode);
     if (inlet) {
       params.set('inlet', inlet);
     }
-    router.push(`/legendary?${params.toString()}`);
+    // Use window.location for clean navigation
+    window.location.href = `/legendary?${params.toString()}`;
     onClose();
   };
   
@@ -89,7 +89,7 @@ export default function TutorialOverlay({ isOpen, onClose, mode }: TutorialOverl
       await navigator.geolocation.getCurrentPosition(
         () => {
           setLocationEnabled(true);
-          localStorage.setItem('abfi_location_enabled', 'true');
+          safeLocal.set('abfi_location_enabled', 'true');
           handleNext();
         },
         () => {
