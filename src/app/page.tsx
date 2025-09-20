@@ -6,16 +6,8 @@ export default function Root() {
   const router = useRouter();
   
   useEffect(() => {
-    // Check if user has already set up their boat
-    const boatName = localStorage.getItem('abfi_boat_name');
-    
-    if (boatName) {
-      // Existing user - go to analysis (main app)
-      router.push('/legendary?mode=analysis');
-    } else {
-      // New user - show welcome screen (trunk entry)
-      router.push('/legendary');
-    }
+    // Always redirect to analysis mode - no more onboarding
+    router.push('/legendary?mode=analysis');
   }, [router]);
   
   return (

@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('abfi_session_start');
     
     // Redirect to welcome
-    window.location.href = '/legendary/welcome';
+    window.location.href = '/legendary?mode=analysis';
   };
 
   return (

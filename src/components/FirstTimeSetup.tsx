@@ -5,30 +5,8 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Compass, Ship, ChevronRight, CheckCircle, Sparkles } from 'lucide-react';
 
 export default function FirstTimeSetup() {
-  const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [locationEnabled, setLocationEnabled] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [captainName, setCaptainName] = useState('');
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [fadeIn, setFadeIn] = useState(false);
-
-  useEffect(() => {
-    // Check if this is first visit with our simple auth
-    const hasSeenSetup = localStorage.getItem('abfi_setup_complete');
-    const captain = localStorage.getItem('abfi_captain_name');
-    const boat = localStorage.getItem('abfi_boat_name');
-    
-    // Show setup if they have names but haven't seen setup yet
-    if (!hasSeenSetup && captain && boat) {
-      setCaptainName(captain);
-      // Smooth fade in after a brief delay
-      setTimeout(() => {
-        setIsVisible(true);
-        setTimeout(() => setFadeIn(true), 50);
-      }, 500);
-    }
-  }, []);
+  // DISABLED - No more onboarding/setup flow
+  return null;
 
   const transitionToStep = (nextStep: number) => {
     setIsTransitioning(true);

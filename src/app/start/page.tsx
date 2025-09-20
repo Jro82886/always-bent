@@ -23,7 +23,7 @@ export default function StartPage() {
   };
 
   const handleSignIn = () => {
-    router.push('/legendary/welcome');
+    router.push('/legendary?mode=analysis');
   };
 
   return (

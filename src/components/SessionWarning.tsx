@@ -64,7 +64,7 @@ export default function SessionWarning() {
   };
 
   const handleRelogin = () => {
-    router.push('/legendary/welcome');
+    router.push('/legendary?mode=analysis');
   };
 
   if (!warning.type || dismissed) return null;
