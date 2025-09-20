@@ -285,7 +285,7 @@ export default function LocationToggle({
     if (locationEnabled && inlet && inlet.center) {
       if (showYou) {
         // Show toast when orb becomes visible
-        toast('Your location is live — you're visible to your fleet.');
+        toast('Your location is live — you\'re visible to your fleet.');
         // Always start at inlet center
         updateUserOrb(inlet.center);
       }
