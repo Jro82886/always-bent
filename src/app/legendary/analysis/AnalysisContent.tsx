@@ -27,6 +27,12 @@ import '@/styles/mapSmoothing.css';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
+// East Coast bounding box for consistent zoom across app
+const EAST_COAST_BOUNDS = [
+  [-82.0, 24.0], // SW corner (Florida Keys / Gulf side buffer)
+  [-65.0, 45.0], // NE corner (Maine + offshore buffer)
+] as [[number, number], [number, number]];
+
 function AnalysisModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -63,11 +69,26 @@ function AnalysisModeContent() {
     setTutorialCompleted(completed === 'true');
   }, []);
   
-  // Watch for inlet changes and fly to selected inlet with Gulf Stream view
+  // Watch for inlet changes and fly to selected inlet
   useEffect(() => {
     if (!map.current || !selectedInletId) return;
     
-    // No camera moves on inlet change per spec
+    const inlet = getInletById(selectedInletId);
+    
+    if (inlet && inlet.lat && inlet.lng) {
+      // Fly to specific inlet when selected
+      map.current.flyTo({
+        center: [inlet.lng, inlet.lat],
+        zoom: inlet.zoom || 10,
+        duration: 2000
+      });
+    } else if (selectedInletId === 'overview') {
+      // Return to East Coast overview
+      map.current.fitBounds(EAST_COAST_BOUNDS, {
+        padding: 40,
+        duration: 2000
+      });
+    }
   }, [selectedInletId]);
   
   // Get boat name from localStorage
@@ -107,8 +128,6 @@ function AnalysisModeContent() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',  // Dark base with grey anchoring
-      center: [-40, 35],  // Start with Atlantic Ocean view (like your image)
-      zoom: 3.5,  // Zoomed out to see whole North Atlantic with Gulf Stream
       pitch: 0,  // Ensure flat map (no 3D tilt)
       bearing: 0, // Ensure north is up (no rotation)
       cooperativeGestures: false  // Allow normal scroll zoom
@@ -121,26 +140,22 @@ function AnalysisModeContent() {
 
     mapInstance.on('load', () => {
       
-      
       // Check if tutorial has been seen
       const tutorialSeen = localStorage.getItem('abfi_tutorial_seen');
       
       if (tutorialSeen === 'true') {
         // Tutorial already seen - go straight to East Coast view
-        
-        const EAST_COAST_BOUNDS = [[-82, 24], [-66, 45.5]];
-        mapInstance.fitBounds(EAST_COAST_BOUNDS as any, {
-          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+        // Use same bounds as Tracking for consistency
+        mapInstance.fitBounds(EAST_COAST_BOUNDS, {
+          padding: 40,  // Same padding as Tracking
           duration: 1500,
           essential: true
         });
-        
-        setTimeout(() => {
-          mapInstance.setMaxBounds([[-85, 23], [-64, 47]] as any);
-        }, 1600);
       } else {
-        // First time - start with Atlantic view for tutorial
-        // Tutorial will handle the zoom to East Coast
+        // First time - show tutorial with Atlantic view, then zoom to East Coast
+        // Start with wider view for tutorial
+        mapInstance.setCenter([-40, 35]);
+        mapInstance.setZoom(3.5);
       }
       
       // Ensure map stays flat
