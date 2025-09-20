@@ -69,31 +69,39 @@ export default function PolygonsPanel({ map }: Props) {
         const bbox = bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()].join(',') : '';
 
         
-        // Use LIVE polygons that update with SST/CHL data!
-        const res = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
+        // Use the new polygon backend!
+        const backendUrl = process.env.NEXT_PUBLIC_POLYGONS_URL || '';
+        let res;
+        
+        if (backendUrl) {
+          // Use the FastAPI backend
+          res = await fetch(`${backendUrl}/polygons?bbox=${bbox}&use_cached=true`);
+        } else {
+          // Fallback to local API
+          res = await fetch(`/api/polygons?bbox=${bbox}`);
+        }
         
         let data;
         if (!res.ok) {
-          
-          // Try fallback to static data
-          const fallbackRes = await fetch('/api/polygons');
-          if (!fallbackRes.ok) {
-            
-            return;
-          }
-          data = await fallbackRes.json();
-          setIsLive(false);
-        } else {
-          data = await res.json();
-          setIsLive(true); // We're using LIVE data!
+          console.error('Failed to fetch polygons:', res.status);
+          return;
         }
+        
+        data = await res.json();
+        setIsLive(data.properties?.source === 'cached' || data.properties?.source === 'on-demand');
 
-        // Count features by class (not type)
+        // Count features by type (new backend uses feature_type)
         const counts = { eddy: 0, edge: 0, filament: 0 };
         data.features?.forEach((f: any) => {
-          const featureClass = f.properties?.class; // API uses 'class' not 'type'
-          if (featureClass && counts[featureClass as keyof typeof counts] !== undefined) {
-            counts[featureClass as keyof typeof counts]++;
+          const featureType = f.properties?.feature_type || f.properties?.type || f.properties?.class;
+          
+          // Map feature types to our UI categories
+          if (featureType === 'thermal_front' || featureType === 'edge') {
+            counts.edge++;
+          } else if (featureType === 'chlorophyll_edge' || featureType === 'filament') {
+            counts.filament++;
+          } else if (featureType === 'eddy' || featureType?.includes('core')) {
+            counts.eddy++;
           }
         });
         setStats(counts);
@@ -123,7 +131,11 @@ export default function PolygonsPanel({ map }: Props) {
               id: config.fill,
               type: 'fill',
               source: SOURCE_ID,
-              filter: ['==', ['get', 'class'], type], // Changed from 'type' to 'class'
+              filter: ['any',
+                ['==', ['get', 'feature_type'], type],
+                ['==', ['get', 'type'], type],
+                ['==', ['get', 'class'], type]
+              ],
               paint: {
                 'fill-color': config.color,
                 'fill-opacity': 0.25
@@ -145,7 +157,11 @@ export default function PolygonsPanel({ map }: Props) {
               id: config.line,
               type: 'line',
               source: SOURCE_ID,
-              filter: ['==', ['get', 'class'], type], // Changed from 'type' to 'class'
+              filter: ['any',
+                ['==', ['get', 'feature_type'], type],
+                ['==', ['get', 'type'], type],
+                ['==', ['get', 'class'], type]
+              ],
               paint: {
                 'line-color': config.color,
                 'line-width': 3,
