@@ -67,6 +67,21 @@ export default function RecBoatsClustering({
 }: RecBoatsClusteringProps) {
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const sourceAddedRef = useRef(false);
+  
+  // Throttled update function to prevent UI thrash
+  const updateRecData = useRef(
+    throttle((features: VesselFeature[]) => {
+      if (!map) return;
+      
+      const source = map.getSource('rec-vessels') as mapboxgl.GeoJSONSource;
+      if (source) {
+        source.setData({
+          type: 'FeatureCollection',
+          features
+        });
+      }
+    }, 2000) // Update at most every 2 seconds
+  ).current;
 
   // Initialize clustering source and layers
   useEffect(() => {
@@ -145,7 +160,9 @@ export default function RecBoatsClustering({
           'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold']
         },
         paint: {
-          'text-color': '#ffffff'
+          'text-color': '#ffffff',
+          'text-halo-color': '#000000',
+          'text-halo-width': 0.75
         }
       });
 
@@ -194,15 +211,10 @@ export default function RecBoatsClustering({
         const popupContent = `
           <div style="padding: 8px;">
             <strong>${props.name || 'Recreational Vessel'}</strong><br/>
-            ${props.captain ? `Captain: ${props.captain}<br/>` : ''}
-            ${props.speed !== undefined ? `Speed: ${props.speed} kts<br/>` : ''}
-            ${props.course !== undefined ? `Course: ${props.course}°<br/>` : ''}
-            ${props.inlet_id ? `Inlet: ${props.inlet_id}<br/>` : ''}
-            <small style="opacity: 0.7">Last seen: ${
-              props.last_seen 
-                ? new Date(props.last_seen).toLocaleTimeString() 
-                : 'Unknown'
-            }</small>
+            ${props.speed !== undefined ? `${props.speed} kts` : '-'} · ${props.course !== undefined ? `${props.course}°` : '-'}<br/>
+            <small style="opacity: 0.7">
+              ${props.inlet_id || '-'} • ${props.last_seen ? timeAgo(props.last_seen) : 'Unknown'}
+            </small>
           </div>
         `;
         
@@ -325,19 +337,6 @@ export default function RecBoatsClustering({
 
     updateRecData(mockVessels);
     console.log(`Loaded ${mockVessels.length} mock vessels`);
-  }
-
-  // Update vessel data
-  function updateRecData(features: VesselFeature[]) {
-    if (!map) return;
-    
-    const source = map.getSource('rec-vessels') as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData({
-        type: 'FeatureCollection',
-        features
-      });
-    }
   }
 
   // In production, this would fetch real vessel data
