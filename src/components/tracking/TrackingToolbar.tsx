@@ -174,7 +174,9 @@ export default function TrackingToolbar({
         
         <div className="space-y-2">
           {/* Inlet Zoom Toggle */}
-          <label className={`flex items-center justify-between w-full rounded-md px-3 py-2 text-xs ${
+          <label 
+            data-tour="fly-to-inlet"
+            className={`flex items-center justify-between w-full rounded-md px-3 py-2 text-xs ${
             selectedInletId && selectedInletId !== 'overview' 
               ? 'bg-slate-800/50 hover:bg-slate-700/50 cursor-pointer' 
               : 'opacity-40 cursor-not-allowed'
@@ -214,6 +216,7 @@ export default function TrackingToolbar({
           <div className="h-px bg-white/10 my-2" />
           
           <button
+            data-tour="show-me-toggle"
             onClick={() => setShowYou(!showYou)}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
               showYou ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
@@ -240,7 +243,7 @@ export default function TrackingToolbar({
 
       {/* My Inlet Fleet Section - Hidden in Browse Mode */}
       {!isBrowseMode && (
-        <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
+        <div data-tour="fleet-section" className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
         <div className="flex items-center gap-2 mb-3">
           <Users className="w-4 h-4 text-cyan-400" />
           <h3 className="text-sm font-medium text-white">My Inlet Fleet</h3>
@@ -296,6 +299,7 @@ export default function TrackingToolbar({
         
         <div className="space-y-2">
           <button
+            data-tour="commercial-toggle"
             onClick={() => setShowCommercial(!showCommercial)}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
               showCommercial ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'

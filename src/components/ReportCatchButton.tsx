@@ -572,6 +572,7 @@ export default function ReportCatchButton({ map, boatName, inlet, disabled }: Re
       {/* ABFI INTELLIGENCE BUTTON - Refined Ocean Analysis Aesthetic */}
       <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[60] group pointer-events-auto">
         <button
+          data-tour="abfi-button"
           onClick={handleReportCatch}
           className="relative px-8 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
           style={{

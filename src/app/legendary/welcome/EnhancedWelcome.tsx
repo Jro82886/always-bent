@@ -2,11 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MapPin, Loader2, ChevronRight, Waves, Fish, Eye, Users, Compass, PlayCircle } from 'lucide-react';
+import { MapPin, Loader2, ChevronRight, ChevronLeft, Waves, Fish, Eye, Users, Compass, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useAppState } from '@/store/appState';
 import { INLETS } from '@/lib/inlets';
 import { INLET_COLORS } from '@/lib/inletColors';
+import dynamic from 'next/dynamic';
+
+// Dynamically import tutorial overlay to avoid SSR issues
+const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay'), {
+  ssr: false
+});
 
 export default function EnhancedWelcomePage() {
   const router = useRouter();
@@ -16,6 +22,8 @@ export default function EnhancedWelcomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(1); // 1: inlet selection, 2: mode choice, 3: tutorial option
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<'community' | 'analysis'>('community');
   
   useEffect(() => {
     // Check if user has already completed onboarding
@@ -55,7 +63,9 @@ export default function EnhancedWelcomePage() {
     setLoading(true);
     
     // Set the app mode
-    setAppMode(mode === 'solo' ? 'analysis' : 'community');
+    const appMode = mode === 'solo' ? 'analysis' : 'community';
+    setAppMode(appMode);
+    setSelectedMode(appMode);
     
     // Store mode (for Memberstack metadata later)
     localStorage.setItem('abfi_mode', mode);
@@ -101,20 +111,24 @@ export default function EnhancedWelcomePage() {
     localStorage.setItem('abfi_setup_complete', 'true');
     
     if (takeTour) {
-      // Set flag to show tutorial
-      localStorage.setItem('abfi_show_tutorial', 'true');
+      // Show tutorial overlay
+      setShowTutorial(true);
       localStorage.setItem('abfi_has_seen_tutorial', 'false');
     } else {
       localStorage.setItem('abfi_has_seen_tutorial', 'true');
+      // Navigate based on mode
+      if (selectedMode === 'community') {
+        router.replace('/legendary?mode=tracking');
+      } else {
+        router.replace('/legendary?mode=analysis');
+      }
     }
-    
-    // Navigate based on mode
-    const mode = localStorage.getItem('abfi_app_mode');
-    if (mode === 'community') {
-      router.replace('/legendary?mode=tracking');
-    } else {
-      router.replace('/legendary?mode=analysis');
-    }
+  };
+  
+  const handleTutorialClose = () => {
+    setShowTutorial(false);
+    localStorage.setItem('abfi_has_seen_tutorial', 'true');
+    // Tutorial component handles navigation
   };
   
   // Step 1: Inlet Selection
@@ -278,6 +292,15 @@ export default function EnhancedWelcomePage() {
                 <p className="text-sm text-slate-400 mt-2">Setting up your experience...</p>
               </div>
             )}
+            
+            {/* Back button */}
+            <button
+              onClick={() => setStep(1)}
+              className="mt-6 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/10 text-white/70 text-xs font-medium hover:bg-white/15 transition-colors"
+            >
+              <ChevronLeft className="w-3 h-3" />
+              Back
+            </button>
           </div>
         </div>
       </div>
@@ -346,6 +369,15 @@ export default function EnhancedWelcomePage() {
               </div>
             </button>
           </div>
+          
+          {/* Back button */}
+          <button
+            onClick={() => setStep(2)}
+            className="mt-6 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/10 text-white/70 text-xs font-medium hover:bg-white/15 transition-colors"
+          >
+            <ChevronLeft className="w-3 h-3" />
+            Back
+          </button>
 
           <div className="mt-8 text-center">
             <div className="flex items-center justify-center gap-2 text-cyan-400">
@@ -356,6 +388,13 @@ export default function EnhancedWelcomePage() {
           </div>
         </div>
       </div>
+      
+      {/* Tutorial Overlay */}
+      <TutorialOverlay 
+        isOpen={showTutorial}
+        onClose={handleTutorialClose}
+        mode={selectedMode}
+      />
     </div>
   );
 }
