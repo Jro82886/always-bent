@@ -2,18 +2,83 @@
 <html>
 <head>
     <title>Clear Welcome State</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #1a1a1a;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0284c7;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #22c55e;
+            border-radius: 6px;
+            display: none;
+        }
+        .values {
+            margin-top: 20px;
+            padding: 15px;
+            background: #333;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+    </style>
 </head>
 <body>
     <h1>Clear Welcome State</h1>
+    
+    <h3>Current Values:</h3>
+    <div class="values" id="currentValues"></div>
+    
     <button onclick="clearState()">Clear Welcome State</button>
     <div id="result"></div>
     
+    <p style="margin-top: 30px;">After clearing, go to: <a href="http://localhost:3001/legendary/welcome" style="color: #0ea5e9;">http://localhost:3001/legendary/welcome</a></p>
+    
     <script>
+    // Show current values
+    function showValues() {
+        const values = {
+            'abfi_setup_complete': localStorage.getItem('abfi_setup_complete'),
+            'abfi_welcome_completed': localStorage.getItem('abfi_welcome_completed'),
+            'abfi_has_seen_tutorial': localStorage.getItem('abfi_has_seen_tutorial'),
+            'abfi_selected_inlet': localStorage.getItem('abfi_selected_inlet'),
+            'abfi_app_mode': localStorage.getItem('abfi_app_mode')
+        };
+        document.getElementById('currentValues').innerHTML = JSON.stringify(values, null, 2);
+    }
+    
+    showValues();
+    
     function clearState() {
+        console.log('Clearing state...');
         localStorage.removeItem('abfi_setup_complete');
         localStorage.removeItem('abfi_welcome_completed');
         localStorage.removeItem('abfi_has_seen_tutorial');
-        document.getElementById('result').innerHTML = 'Welcome state cleared! You can now visit the welcome page.';
+        
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').innerHTML = '✅ Welcome state cleared! You can now visit the welcome page.';
+        
+        // Update display
+        showValues();
+        
+        // Auto redirect after 2 seconds
+        setTimeout(() => {
+            window.location.href = 'http://localhost:3001/legendary/welcome';
+        }, 2000);
     }
     </script>
 </body>

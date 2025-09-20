@@ -43,6 +43,15 @@ function WelcomeContent() {
     if (didRedirect.current) return;
     if (!pathname?.startsWith('/legendary/welcome')) return;
     
+    // DEMO MODE: Check URL params for ?demo=true to skip redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDemoMode = urlParams.get('demo') === 'true';
+    
+    if (isDemoMode) {
+      console.log('🎭 Demo mode active - showing welcome flow');
+      return; // Don't redirect in demo mode
+    }
+    
     // Check if user has already completed onboarding
     const setupComplete = safeLocal.get('abfi_setup_complete') === 'true';
     const hasInlet = safeLocal.get('abfi_selected_inlet');

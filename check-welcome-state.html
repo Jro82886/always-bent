@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check Welcome State</title>
+</head>
+<body>
+    <h1>Welcome State Check</h1>
+    <pre id="state"></pre>
+    <button onclick="clearWelcome()">Clear Welcome State</button>
+    <button onclick="window.location.href='http://localhost:3001/legendary/welcome?demo=true'">Go to Welcome (Demo Mode)</button>
+    
+    <script>
+        function checkState() {
+            const state = {
+                abfi_setup_complete: localStorage.getItem('abfi_setup_complete'),
+                abfi_selected_inlet: localStorage.getItem('abfi_selected_inlet'),
+                abfi_app_mode: localStorage.getItem('abfi_app_mode'),
+                abfi_welcome_completed: localStorage.getItem('abfi_welcome_completed'),
+                abfi_has_seen_tutorial: localStorage.getItem('abfi_has_seen_tutorial')
+            };
+            document.getElementById('state').textContent = JSON.stringify(state, null, 2);
+        }
+        
+        function clearWelcome() {
+            localStorage.removeItem('abfi_setup_complete');
+            localStorage.removeItem('abfi_welcome_completed');
+            localStorage.removeItem('abfi_has_seen_tutorial');
+            checkState();
+            alert('Welcome state cleared! You can now see the welcome screen.');
+        }
+        
+        checkState();
+    </script>
+</body>
+</html>
