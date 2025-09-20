@@ -54,7 +54,7 @@ function TrackingModeContent() {
     setUserPosition(position);
   };
   
-  // Initialize map
+  // Initialize map ONCE - no dependencies
   useEffect(() => {
     console.log('Map init effect running');
     console.log('- map.current exists:', !!map.current);
@@ -75,7 +75,7 @@ function TrackingModeContent() {
     });
 
     map.current.on('load', () => {
-      console.log('Map Loaded - Tracking Mode');
+      console.log('Map Loaded - Tracking Mode (only once!)');
       
       // Expose map for debugging
       (window as any).map = map.current;
@@ -92,16 +92,14 @@ function TrackingModeContent() {
       
       // Set initial view based on inlet selection
       if (inlet) {
-        console.log('Flying to inlet:', inlet.name, [inlet.lng, inlet.lat]);
-        // Zoom to specific inlet
+        console.log('Initial view - Flying to inlet:', inlet.name, [inlet.lng, inlet.lat]);
         map.current!.flyTo({
           center: [inlet.lng!, inlet.lat!],
           zoom: inlet.zoom,
           duration: 1500
         });
       } else {
-        console.log('Fitting to East Coast bounds');
-        // Show East Coast overview
+        console.log('Initial view - Fitting to East Coast bounds');
         map.current!.fitBounds(EAST_COAST_BOUNDS, {
           padding: 40,
           duration: 1500
@@ -115,26 +113,29 @@ function TrackingModeContent() {
     // Error handling
     map.current.on('error', (e: any) => {
       console.error('Map error:', e);
-      // Don't break the UI - map should still be interactive
       if (e.error?.status === 401) {
         console.error('Mapbox token invalid - check NEXT_PUBLIC_MAPBOX_TOKEN');
       }
     });
 
     return () => {
+      console.log('Map cleanup');
       if (map.current) {
         map.current.remove();
         map.current = null;
         setMapFullyReady(false);
       }
     };
-  }, [inlet]);
+  }, []); // Empty dependency array - only run once!
 
   // Update map view when inlet changes
   useEffect(() => {
     if (!map.current || !mapFullyReady) return;
     
+    console.log('Inlet changed, updating map view');
+    
     if (inlet) {
+      console.log('Flying to inlet:', inlet.name);
       // Zoom to specific inlet
       map.current.flyTo({
         center: [inlet.lng!, inlet.lat!],
@@ -142,6 +143,7 @@ function TrackingModeContent() {
         duration: 2000
       });
     } else {
+      console.log('Returning to East Coast overview');
       // Return to East Coast overview
       map.current.fitBounds(EAST_COAST_BOUNDS, {
         padding: 40,
