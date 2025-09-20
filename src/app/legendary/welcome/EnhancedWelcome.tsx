@@ -32,8 +32,11 @@ export default function EnhancedWelcomePage() {
     const hasMode = localStorage.getItem('abfi_app_mode');
     
     if (setupComplete === 'true' && hasInlet && hasMode) {
-      // User has already onboarded, redirect to app
-      router.replace('/legendary?mode=analysis');
+      // User has already onboarded, redirect to app with their saved mode
+      const params = new URLSearchParams();
+      params.set('mode', hasMode === 'community' ? 'tracking' : 'analysis');
+      params.set('inlet', hasInlet);
+      router.replace(`/legendary?${params.toString()}`);
     }
   }, [router]);
   
@@ -115,12 +118,14 @@ export default function EnhancedWelcomePage() {
       localStorage.setItem('abfi_has_seen_tutorial', 'false');
     } else {
       localStorage.setItem('abfi_has_seen_tutorial', 'true');
-      // Navigate based on mode
-      if (selectedMode === 'community') {
-        router.replace('/legendary?mode=tracking');
-      } else {
-        router.replace('/legendary?mode=analysis');
+      // Navigate based on mode with inlet param
+      const inlet = localStorage.getItem('abfi_selected_inlet');
+      const params = new URLSearchParams();
+      params.set('mode', selectedMode === 'community' ? 'tracking' : 'analysis');
+      if (inlet) {
+        params.set('inlet', inlet);
       }
+      router.replace(`/legendary?${params.toString()}`);
     }
   };
   

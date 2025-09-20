@@ -74,7 +74,13 @@ export default function TutorialOverlay({ isOpen, onClose, mode }: TutorialOverl
   const handleComplete = () => {
     // Navigate to appropriate tab based on mode
     const targetMode = mode === 'community' ? 'tracking' : 'analysis';
-    router.push(`/legendary?mode=${targetMode}`);
+    const inlet = localStorage.getItem('abfi_selected_inlet');
+    const params = new URLSearchParams();
+    params.set('mode', targetMode);
+    if (inlet) {
+      params.set('inlet', inlet);
+    }
+    router.push(`/legendary?${params.toString()}`);
     onClose();
   };
   
