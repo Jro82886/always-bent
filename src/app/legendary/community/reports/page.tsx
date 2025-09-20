@@ -50,6 +50,24 @@ function ReportsContent() {
             <MonthFilter />
           </div>
           
+          {/* Intelligence Vision */}
+          <div className="abfi-card-bg rounded-xl p-4 mb-3">
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center gap-2 text-sm font-semibold">
+                <span className="text-cyan-400">HYPOTHESIS</span>
+                <span className="text-slate-400">→</span>
+                <span className="text-emerald-400">VALIDATION</span>
+                <span className="text-slate-400">→</span>
+                <span className="text-amber-400">INTELLIGENCE</span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed max-w-2xl mx-auto">
+                <span className="text-cyan-300">Snip Reports</span> capture spots that <em>look</em> fishy based on conditions.
+                <span className="text-emerald-300 ml-2">ABFI Bite Reports</span> prove where fish <em>actually</em> bit.
+                Together, they teach ABFI which conditions truly produce, building <span className="text-amber-300">collective fishing intelligence</span> that makes every captain smarter.
+              </p>
+            </div>
+          </div>
+          
           {/* Quick Chips */}
           <MonthQuickChips onSelectMonth={handleMonthSelect} />
           
