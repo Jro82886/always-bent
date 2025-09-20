@@ -1,0 +1,118 @@
+name: Generate Ocean Feature Polygons
+
+on:
+  schedule:
+    # Run at 6:00 AM UTC every day
+    - cron: '0 6 * * *'
+  
+  workflow_dispatch:
+    inputs:
+      regions:
+        description: 'Specific regions to process (comma-separated, leave empty for all)'
+        required: false
+        default: ''
+
+jobs:
+  generate-polygons:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('python/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        cd python
+        pip install -r requirements.txt
+    
+    - name: Generate ocean polygons
+      env:
+        COPERNICUS_USER: ${{ secrets.COPERNICUS_USER }}
+        COPERNICUS_PASS: ${{ secrets.COPERNICUS_PASS }}
+        REGIONS: ${{ github.event.inputs.regions }}
+      run: |
+        cd python
+        # Create data directory
+        mkdir -p data/polygons
+        
+        # Run the simple scheduler
+        python scheduler_simple.py
+    
+    - name: Check generated files
+      run: |
+        echo "Generated polygon files:"
+        ls -la python/data/polygons/
+        
+        if [ -f "python/data/polygons/ocean_features_latest.geojson" ]; then
+          echo "✅ Latest polygon file generated successfully"
+          echo "File size: $(du -h python/data/polygons/ocean_features_latest.geojson | cut -f1)"
+          echo "Feature count: $(grep -c '"type": "Feature"' python/data/polygons/ocean_features_latest.geojson)"
+        else
+          echo "❌ Failed to generate polygon file"
+          exit 1
+        fi
+    
+    - name: Copy to public directory
+      run: |
+        # Ensure public data directory exists
+        mkdir -p public/data/polygons
+        
+        # Copy generated files to public directory
+        cp python/data/polygons/ocean_features_latest.geojson public/data/polygons/
+        cp python/data/polygons/ocean_features_*.geojson public/data/polygons/ 2>/dev/null || true
+        
+        # Keep only last 7 days of files
+        cd public/data/polygons
+        ls -t ocean_features_2*.geojson 2>/dev/null | tail -n +8 | xargs rm -f 2>/dev/null || true
+    
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'Ocean Polygon Bot'
+        git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+        
+        # Add the generated files
+        git add public/data/polygons/*.geojson
+        
+        # Commit with timestamp
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "🌊 Daily ocean polygon update - $(date +%Y-%m-%d)
+        
+        Generated at: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        Regions: ${REGIONS:-all}
+        
+        [skip ci]"
+          
+          git push
+        fi
+    
+    - name: Notify on failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🚨 Ocean Polygon Generation Failed',
+            body: `The daily ocean polygon generation workflow failed on ${new Date().toISOString()}.
+            
+            Please check the [workflow logs](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`,
+            labels: ['bug', 'automation']
+          })
