@@ -1,6 +1,11 @@
 'use client';
 
 import { X, Thermometer, Wind, Waves, MapPin } from 'lucide-react';
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const SpeciesBadge = dynamic(() => import('./SpeciesBadge'), { ssr: false });
+const SpeciesSelector = dynamic(() => import('./SpeciesSelector'), { ssr: false });
 
 interface WrittenAnalysisModalProps {
   report: any;
@@ -8,6 +13,8 @@ interface WrittenAnalysisModalProps {
 }
 
 export default function WrittenAnalysisModal({ report, onClose }: WrittenAnalysisModalProps) {
+  const [reportSpecies, setReportSpecies] = useState(report?.species || []);
+  
   if (!report) return null;
 
   return (
@@ -60,6 +67,27 @@ export default function WrittenAnalysisModal({ report, onClose }: WrittenAnalysi
               {report.analysisText}
             </p>
           </div>
+
+          {/* Species for ABFI reports */}
+          {report.type === 'abfi' && (
+            <div className="mt-6 pt-6 border-t border-cyan-500/20">
+              {/* Display current species */}
+              {reportSpecies.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {reportSpecies.map((s: string) => (
+                    <SpeciesBadge key={s} slug={s} size="sm" />
+                  ))}
+                </div>
+              )}
+              
+              {/* Species selector */}
+              <SpeciesSelector 
+                reportId={report.id} 
+                initial={reportSpecies}
+                onUpdate={setReportSpecies}
+              />
+            </div>
+          )}
 
           {/* Location info if available */}
           {(report.rectangleBbox || report.point) && (

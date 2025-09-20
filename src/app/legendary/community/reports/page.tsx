@@ -52,6 +52,16 @@ function ReportsContent() {
           
           {/* Quick Chips */}
           <MonthQuickChips onSelectMonth={handleMonthSelect} />
+          
+          {/* TODO: Add species filter chips here when ready
+          <div className="flex gap-2 flex-wrap mt-3">
+            {SPECIES.map(s => (
+              <button className="species-filter-chip">
+                {s.label}
+              </button>
+            ))}
+          </div>
+          */}
         </div>
 
         {/* Highlights Section */}

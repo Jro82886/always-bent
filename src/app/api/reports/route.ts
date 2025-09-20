@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
   const month = searchParams.get("month"); // "YYYY-MM"
   const type = searchParams.get("type");   // optional 'snip' | 'bite'
   const userId = searchParams.get("userId"); // optional for user-specific reports
+  const speciesParam = searchParams.get("species"); // comma-separated species
   
   const { start, end } = monthRange(month);
 
@@ -23,6 +24,12 @@ export async function GET(req: NextRequest) {
   // Apply filters
   if (type) query = query.eq("type", type);
   if (userId) query = query.eq("user_id", userId);
+  
+  // Filter by species (comma-separated)
+  if (speciesParam) {
+    const speciesArray = speciesParam.split(",").map(s => s.trim().toLowerCase());
+    query = query.contains("species", speciesArray);
+  }
 
   const { data, error } = await query;
   

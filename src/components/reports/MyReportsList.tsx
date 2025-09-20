@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import { MOCK_SNIPS, MOCK_ABFI } from '@/mocks/reports';
 import { MapPin, Fish, Thermometer, Wind, Waves, WifiOff, ChevronDown, ChevronUp } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { getInletById } from '@/lib/inlets';
+
+const SpeciesBadge = dynamic(() => import('./SpeciesBadge'), { ssr: false });
+const SpeciesSelector = dynamic(() => import('./SpeciesSelector'), { ssr: false });
 
 interface MyReportsListProps {
   onSelectReport: (report: any) => void;
@@ -91,6 +96,15 @@ export default function MyReportsList({ onSelectReport, month }: MyReportsListPr
                         <span>{report.conditions.swellFt} ft @ {report.conditions.periodS} s</span>
                       </div>
                     </div>
+                    
+                    {/* Species badges if any */}
+                    {report.species && report.species.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {report.species.map((s: string) => (
+                          <SpeciesBadge key={s} slug={s} size="xs" />
+                        ))}
+                      </div>
+                    )}
                   </button>
                 ))
               )}
@@ -159,6 +173,15 @@ export default function MyReportsList({ onSelectReport, month }: MyReportsListPr
                         <span>{report.conditions.swellFt} ft @ {report.conditions.periodS} s</span>
                       </div>
                     </div>
+                    
+                    {/* Species badges if any */}
+                    {report.species && report.species.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {report.species.map((s: string) => (
+                          <SpeciesBadge key={s} slug={s} size="xs" />
+                        ))}
+                      </div>
+                    )}
                   </button>
                 ))
               )}
