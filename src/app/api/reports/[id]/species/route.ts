@@ -4,9 +4,10 @@ import { cookies } from 'next/headers';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createRouteHandlerClient({ cookies });
     const { species } = await req.json();
     
@@ -22,7 +23,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from("reports")
       .update({ species })
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
