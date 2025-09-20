@@ -6,6 +6,7 @@ import { Flame, Thermometer, Wind, Waves, Moon } from 'lucide-react';
 interface HighlightsStripProps {
   onSelectHighlight: (highlight: any) => void;
   month?: string;
+  species?: string;
 }
 
 export default function HighlightsStrip({ onSelectHighlight, month }: HighlightsStripProps) {

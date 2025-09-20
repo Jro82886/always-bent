@@ -15,7 +15,7 @@ interface MyReportsListProps {
   species?: string;
 }
 
-export default function MyReportsList({ onSelectReport, month }: MyReportsListProps) {
+export default function MyReportsList({ onSelectReport, month, species }: MyReportsListProps) {
   // TODO: Filter reports by month when connected to real API
   const [expandedSnips, setExpandedSnips] = useState(false);
   const [expandedABFI, setExpandedABFI] = useState(false);
