@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MOCK_MESSAGES, MOCK_PRESENCE } from '@/mocks/chat';
 import { Send, AtSign } from 'lucide-react';
-import WeatherHeader from './WeatherHeader';
+import RoomBar from './RoomBar';
 import { useAppState } from '@/store/appState';
 
 interface ChatWindowProps {
@@ -20,7 +20,15 @@ export default function ChatWindow({ roomId, showWeatherHeader }: ChatWindowProp
   const inputRef = useRef<HTMLInputElement>(null);
 
   const messages = MOCK_MESSAGES.filter(m => m.roomId === roomId);
-  const isInletChat = roomId === 'inlet';
+  
+  // Get room name for RoomBar
+  const roomNames: Record<string, string> = {
+    'inlet': 'Inlet Chat',
+    'offshore': 'Offshore Chat',
+    'inshore': 'Inshore Chat', 
+    'tuna': 'Tuna Chat'
+  };
+  const roomName = roomNames[roomId] || 'Chat';
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -58,11 +66,12 @@ export default function ChatWindow({ roomId, showWeatherHeader }: ChatWindowProp
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-950 to-slate-900">
-      {/* Weather Header for Inlet Chat */}
-      {isInletChat && <WeatherHeader inletId={selectedInletId || undefined} />}
+      {/* Room Bar - Always shows current room */}
+      <RoomBar roomId={roomId} roomName={roomName} isDM={false} />
       
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-5">
+      {/* Messages Container */}
+      <div className="flex-1 m-4 abfi-card-bg rounded-xl overflow-hidden">
+        <div className="h-full overflow-y-auto p-6 space-y-5">
         {messages.map((msg) => (
           <div key={msg.id} className="flex gap-4 group">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center text-cyan-300 text-sm font-bold flex-shrink-0 ring-2 ring-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
@@ -83,6 +92,7 @@ export default function ChatWindow({ roomId, showWeatherHeader }: ChatWindowProp
           </div>
         ))}
         <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Typing indicator */}

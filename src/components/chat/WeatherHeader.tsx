@@ -11,8 +11,8 @@ export default function WeatherHeader({ inletId }: WeatherHeaderProps) {
   // In Phase 3, this will pull from Stormio based on inletId
   
   return (
-    <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border-b border-cyan-500/20 px-4 py-3">
-      <div className="flex items-center justify-center gap-6 text-sm">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-4 text-sm">
         <div className="flex items-center gap-1.5">
           <Thermometer className="w-4 h-4 text-cyan-400" />
           <span className="font-medium text-white">68.7°F</span>
@@ -27,6 +27,10 @@ export default function WeatherHeader({ inletId }: WeatherHeaderProps) {
           <Waves className="w-4 h-4 text-cyan-400" />
           <span className="text-white">3 ft @ 8 sec</span>
         </div>
+      </div>
+      {/* Inlet location */}
+      <div className="text-xs text-slate-400 text-center">
+        East Coast Overview · Your Selected Inlet
       </div>
     </div>
   );

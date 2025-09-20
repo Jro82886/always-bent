@@ -64,10 +64,6 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
         ))}
       </div>
       
-      <div className="p-5 border-t border-white/10 bg-gradient-to-b from-slate-900/20 to-slate-900/40">
-        <div className="text-xs uppercase tracking-wider font-semibold bg-gradient-to-r from-purple-400/80 to-pink-400/80 bg-clip-text text-transparent mb-3">Direct Messages</div>
-        <div className="text-sm text-slate-400/80 italic">Coming soon...</div>
-      </div>
     </div>
   );
 }

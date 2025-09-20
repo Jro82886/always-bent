@@ -12,9 +12,15 @@ export default function PresenceBar({ inletId = 'ny-montauk' }: PresenceBarProps
   const glowColor = inlet?.glowColor || '#00DDEB';
   
   return (
-    <div className="p-5 border-b border-white/10 bg-gradient-to-r from-slate-900/20 to-slate-800/20">
-      <h3 className="text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-4">Online Now</h3>
-      <div className="h-px bg-gradient-to-r from-transparent via-emerald-400/30 to-transparent mb-4"></div>
+    <div className="abfi-card-bg abfi-glow rounded-xl p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="abfi-card-bg abfi-glow rounded-full px-3 py-1.5 text-sm inline-flex items-center gap-2">
+          <span className="font-semibold text-cyan-300">Online Now</span>
+        </div>
+        <button className="abfi-card-bg abfi-glow abfi-glow-hover rounded-full px-3 py-1.5 text-xs font-medium text-emerald-300 hover:text-emerald-200 transition-colors">
+          Direct Messages
+        </button>
+      </div>
       <div className="flex gap-4 overflow-x-auto py-2 px-1">
         {MOCK_PRESENCE.filter(p => p.online).map(person => (
           <div key={person.userId} className="flex flex-col items-center gap-2 flex-shrink-0">

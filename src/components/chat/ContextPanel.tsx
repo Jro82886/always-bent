@@ -13,20 +13,28 @@ export default function ContextPanel({ roomId, inletId }: ContextPanelProps) {
   const showWeather = roomId === 'inlet';
   
   return (
-    <div className="w-80 bg-slate-900/40 backdrop-blur-xl border-l border-white/10 flex flex-col shadow-2xl">
+    <div className="w-80 bg-slate-900/40 backdrop-blur-xl border-l border-white/10 flex flex-col shadow-2xl p-5 space-y-4">
+      {/* Current Conditions Card */}
       {showWeather && (
-        <div className="p-5 border-b border-white/10 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-tl-2xl">
-          <h3 className="text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-4 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]">Current Conditions</h3>
+        <div className="abfi-card-bg abfi-glow rounded-xl p-4">
+          <div className="abfi-card-bg abfi-glow rounded-full px-3 py-1.5 text-sm inline-flex items-center gap-2 mb-3">
+            <span className="font-semibold text-cyan-300">Current Conditions</span>
+          </div>
           <WeatherHeader />
         </div>
       )}
       
+      {/* Online Now Card with DM button */}
       <PresenceBar inletId={inletId} />
       
-      {/* ABFI Highlights - Desktop only */}
-      <div className="hidden md:block flex-1 p-5">
-        <h3 className="text-sm font-semibold abfi-header-glow mb-3">ABFI Highlights</h3>
-        <HighlightCarousel />
+      {/* ABFI Highlights Card - Desktop only */}
+      <div className="hidden md:block">
+        <div className="abfi-card-bg abfi-glow rounded-xl p-4">
+          <div className="abfi-card-bg abfi-glow rounded-full px-3 py-1.5 text-sm inline-flex items-center gap-2 mb-3">
+            <span className="font-semibold text-cyan-300">ABFI Highlights</span>
+          </div>
+          <HighlightCarousel />
+        </div>
       </div>
     </div>
   );
