@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { useMemberstack } from '@memberstack/react';
 import { useRouter } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+
 export default function EditProfilePage() {
   // @ts-ignore - Memberstack types are incomplete
   const { member, updateMember, isLoading } = useMemberstack() as any;

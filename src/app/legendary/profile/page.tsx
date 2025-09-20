@@ -5,6 +5,8 @@ import { useMemberstack } from '@memberstack/react';
 import { useRouter } from 'next/navigation';
 import LogoutButton from '@/components/auth/LogoutButton';
 
+export const dynamic = 'force-dynamic';
+
 export default function ProfilePage() {
   // @ts-ignore - Memberstack types are incomplete
   const { member, isLoading } = useMemberstack() as any;
