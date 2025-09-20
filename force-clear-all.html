@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Clear All ABFI Data</title>
+    <style>
+        body { 
+            background: #000; 
+            color: #0ff; 
+            font-family: monospace; 
+            padding: 40px;
+            text-align: center;
+        }
+        button { 
+            background: #f00; 
+            color: #fff; 
+            border: none; 
+            padding: 20px 40px; 
+            font-size: 20px; 
+            cursor: pointer;
+            margin: 10px;
+        }
+        #status { 
+            margin-top: 20px; 
+            padding: 20px; 
+            background: #111; 
+            border: 1px solid #0ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 FORCE CLEAR ALL ABFI DATA 🔥</h1>
+    <button onclick="nukeEverything()">CLEAR EVERYTHING</button>
+    <button onclick="window.location.href='/legendary/welcome?demo=true'">Go to Welcome (Demo Mode)</button>
+    <button onclick="window.location.href='/legendary/welcome'">Go to Welcome (Normal)</button>
+    <div id="status"></div>
+    
+    <script>
+        function nukeEverything() {
+            // Get all localStorage keys
+            const keys = Object.keys(localStorage);
+            const abfiKeys = keys.filter(k => k.includes('abfi') || k.includes('tutorial') || k.includes('welcome'));
+            
+            // Clear each one
+            abfiKeys.forEach(key => {
+                console.log('Removing:', key, '=', localStorage.getItem(key));
+                localStorage.removeItem(key);
+            });
+            
+            // Also clear these specific ones
+            const mustClear = [
+                'abfi_setup_complete',
+                'abfi_welcome_completed', 
+                'abfi_has_seen_tutorial',
+                'abfi_selected_inlet',
+                'abfi_app_mode',
+                'abfi_tutorial_completed',
+                'abfi_tutorial_never_show',
+                'abfi_show_tutorial',
+                'abfi_captain_name',
+                'abfi_boat_name'
+            ];
+            
+            mustClear.forEach(key => localStorage.removeItem(key));
+            
+            document.getElementById('status').innerHTML = `
+                <h2>✅ CLEARED ${abfiKeys.length} KEYS</h2>
+                <p>You are now a NEW USER</p>
+                <p>Click one of the buttons above to test</p>
+            `;
+        }
+        
+        // Show current state on load
+        window.onload = () => {
+            const keys = Object.keys(localStorage).filter(k => k.includes('abfi'));
+            document.getElementById('status').innerHTML = `
+                <h3>Current ABFI Keys (${keys.length}):</h3>
+                ${keys.map(k => `${k} = ${localStorage.getItem(k)}`).join('<br>')}
+            `;
+        };
+    </script>
+</body>
+</html>

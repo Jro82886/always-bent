@@ -1,7 +1,12 @@
-'use client';
+import WelcomeShell from '@/components/welcome/WelcomeShell';     // your existing markup-only UI
+import dynamic from 'next/dynamic';
+const WelcomeHydrate = dynamic(() => import('@/components/welcome/WelcomeHydrate'), { ssr: false });
 
-import EnhancedWelcome from './EnhancedWelcome';
-
-export default function LegendaryWelcomePage() {
-  return <EnhancedWelcome />;
+export default function WelcomePage() {
+  return (
+    <>
+      <WelcomeShell />
+      <WelcomeHydrate />
+    </>
+  );
 }
