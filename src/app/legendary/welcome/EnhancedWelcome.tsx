@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useAppState } from '@/store/appState';
 import { INLETS } from '@/lib/inlets';
 import { INLET_COLORS } from '@/lib/inletColors';
+import InletChip from '@/components/CommandBridge/InletChip';
 import dynamic from 'next/dynamic';
 
 // Dynamically import tutorial overlay to avoid SSR issues
@@ -16,9 +17,8 @@ const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay'), {
 
 export default function EnhancedWelcomePage() {
   const router = useRouter();
-  const { setSelectedInletId, setAppMode, setUsername } = useAppState();
+  const { selectedInletId, setSelectedInletId, setAppMode, setUsername } = useAppState();
   
-  const [selectedInlet, setSelectedInlet] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(1); // 1: inlet selection, 2: mode choice, 3: tutorial option
@@ -38,18 +38,15 @@ export default function EnhancedWelcomePage() {
   }, [router]);
   
   const handleInletSelection = () => {
-    if (!selectedInlet) {
+    if (!selectedInletId || selectedInletId === 'overview') {
       setError('Please select your inlet');
       return;
     }
     
     setError('');
     
-    // Set the selected inlet
-    setSelectedInletId(selectedInlet);
-    
     // Store inlet info (for Memberstack metadata later)
-    const inlet = INLETS.find(i => i.id === selectedInlet);
+    const inlet = INLETS.find(i => i.id === selectedInletId);
     if (inlet) {
       localStorage.setItem('abfi_inlet_id', inlet.id);
       localStorage.setItem('abfi_inlet_name', inlet.name);
@@ -164,34 +161,21 @@ export default function EnhancedWelcomePage() {
             )}
 
             <div className="space-y-4">
-              <select
-                value={selectedInlet}
-                onChange={(e) => setSelectedInlet(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-800/50 border border-cyan-500/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all appearance-none cursor-pointer"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 0.75rem center',
-                  backgroundSize: '1.5rem',
-                  paddingRight: '3rem'
-                }}
-              >
-                <option value="">Choose your inlet...</option>
-                {INLETS.filter(inlet => !inlet.isOverview).map((inlet) => (
-                  <option key={inlet.id} value={inlet.id}>
-                    {inlet.name} - {inlet.state}
-                  </option>
-                ))}
-              </select>
+              {/* Use the actual InletChip component */}
+              <div className="flex justify-center">
+                <div className="scale-150 transform-origin-center">
+                  <InletChip />
+                </div>
+              </div>
               
-              {/* Show selected inlet color */}
-              {selectedInlet && (
+              {/* Show selected inlet info */}
+              {selectedInletId && selectedInletId !== 'overview' && (
                 <div className="flex items-center justify-center gap-3 p-3 bg-slate-800/30 rounded-lg">
                   <div 
                     className="w-3 h-3 rounded-full"
                     style={{
-                      backgroundColor: INLET_COLORS[selectedInlet]?.color || '#3A3F47',
-                      boxShadow: `0 0 10px ${INLET_COLORS[selectedInlet]?.color || '#3A3F47'}88`
+                      backgroundColor: INLET_COLORS[selectedInletId]?.color || '#3A3F47',
+                      boxShadow: `0 0 10px ${INLET_COLORS[selectedInletId]?.color || '#3A3F47'}88`
                     }}
                   />
                   <span className="text-sm text-slate-400">
@@ -202,7 +186,7 @@ export default function EnhancedWelcomePage() {
 
               <button
                 onClick={handleInletSelection}
-                disabled={!selectedInlet}
+                disabled={!selectedInletId || selectedInletId === 'overview'}
                 className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-lg hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
               >
                 <span className="flex items-center justify-center gap-2">
@@ -219,7 +203,7 @@ export default function EnhancedWelcomePage() {
   
   // Step 2: Mode Selection
   if (step === 2) {
-    const inlet = INLETS.find(i => i.id === selectedInlet);
+    const inlet = INLETS.find(i => i.id === selectedInletId);
     
     return (
       <div className="min-h-screen bg-black flex items-center justify-center px-4">
