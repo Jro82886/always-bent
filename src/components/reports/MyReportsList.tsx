@@ -16,19 +16,12 @@ interface MyReportsListProps {
 
 export default function MyReportsList({ onSelectReport, month }: MyReportsListProps) {
   // TODO: Filter reports by month when connected to real API
-  const [showBiteAnimation, setShowBiteAnimation] = useState(false);
   const [expandedSnips, setExpandedSnips] = useState(false);
   const [expandedABFI, setExpandedABFI] = useState(false);
   
   const snipReports = MOCK_SNIPS.map(s => ({ ...s, type: 'snip' }));
   const abfiReports = MOCK_ABFI.map(a => ({ ...a, type: 'abfi' }));
 
-  const handleBiteButton = () => {
-    setShowBiteAnimation(true);
-    // In Phase 2, this will save to database
-    console.log('ABFI Bite button pressed!');
-    setTimeout(() => setShowBiteAnimation(false), 1000);
-  };
 
   const displayedSnips = expandedSnips ? snipReports : snipReports.slice(0, 3);
   const displayedABFI = expandedABFI ? abfiReports : abfiReports.slice(0, 3);
@@ -188,42 +181,6 @@ export default function MyReportsList({ onSelectReport, month }: MyReportsListPr
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Mobile ABFI Button - Docked at bottom */}
-      <div className="md:hidden fixed bottom-16 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent pointer-events-none">
-        <button
-          onClick={handleBiteButton}
-          className={`pointer-events-auto w-full relative px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all transform shadow-lg ${
-            showBiteAnimation ? 'scale-95' : 'hover:scale-105'
-          }`}
-        >
-          <span className="flex items-center justify-center gap-2">
-            <Fish className="w-5 h-5" />
-            ABFI BITE
-          </span>
-          {showBiteAnimation && (
-            <div className="absolute inset-0 rounded-xl bg-green-400/50 animate-ping" />
-          )}
-        </button>
-      </div>
-      
-      {/* Desktop ABFI Button - In header */}
-      <div className="hidden md:block absolute top-4 right-4">
-        <button
-          onClick={handleBiteButton}
-          className={`relative px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-medium rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all transform ${
-            showBiteAnimation ? 'scale-95' : 'hover:scale-105'
-          }`}
-        >
-          <span className="flex items-center gap-2">
-            <Fish className="w-4 h-4" />
-            ABFI Bite
-          </span>
-          {showBiteAnimation && (
-            <div className="absolute inset-0 rounded-lg bg-green-400/50 animate-ping" />
-          )}
-        </button>
       </div>
     </>
   );
