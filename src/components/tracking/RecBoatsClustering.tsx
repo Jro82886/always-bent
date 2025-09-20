@@ -34,6 +34,32 @@ interface VesselCollection {
   features: VesselFeature[];
 }
 
+// Throttle function to prevent UI thrash
+function throttle<T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let lastCall = 0;
+  return (...args: Parameters<T>) => {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      func(...args);
+    }
+  };
+}
+
+// Time ago formatter
+function timeAgo(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return 'Just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export default function RecBoatsClustering({ 
   map, 
   showFleet,
@@ -56,7 +82,16 @@ export default function RecBoatsClustering({
     }
 
     function initializeClusteringLayers() {
+      if (!map) return;
+      
       console.log('Initializing rec boats clustering...');
+      
+      // Guard against double initialization
+      if (map.getSource('rec-vessels')) {
+        console.log('Rec vessels source already exists');
+        sourceAddedRef.current = true;
+        return;
+      }
       
       // 1) Source with clustering enabled
       map.addSource('rec-vessels', {
@@ -114,7 +149,7 @@ export default function RecBoatsClustering({
         }
       });
 
-      // 4) Individual boats layer
+      // 4) Individual boats layer (slightly bigger for easier clicking)
       map.addLayer({
         id: 'rec-unclustered',
         type: 'circle',
@@ -122,8 +157,8 @@ export default function RecBoatsClustering({
         filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': '#00C7B7',  // Teal for boats
-          'circle-radius': 5,
-          'circle-stroke-width': 1,
+          'circle-radius': 6,         // Bigger for easier clicks
+          'circle-stroke-width': 1.25,
           'circle-stroke-color': '#001015'
         }
       });
@@ -140,7 +175,7 @@ export default function RecBoatsClustering({
         const source = map.getSource('rec-vessels') as mapboxgl.GeoJSONSource;
         
         source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return;
+          if (err || zoom === null || zoom === undefined) return;
           
           map.easeTo({
             center: (features[0].geometry as any).coordinates,
@@ -171,10 +206,12 @@ export default function RecBoatsClustering({
           </div>
         `;
         
-        new mapboxgl.Popup({ offset: 12, maxWidth: '250px' })
-          .setLngLat((feature.geometry as any).coordinates)
-          .setHTML(popupContent)
-          .addTo(map);
+        if (map) {
+          new mapboxgl.Popup({ offset: 12, maxWidth: '250px' })
+            .setLngLat((feature.geometry as any).coordinates)
+            .setHTML(popupContent)
+            .addTo(map);
+        }
       });
 
       // 7) Cursor changes

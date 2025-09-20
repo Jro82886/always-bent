@@ -20,7 +20,7 @@ import SettingsPanel from '@/components/SettingsPanel';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 // CommercialVesselLegend now integrated into LeftZone
 import { useAppState } from '@/store/appState';
-import { EAST_COAST_BOUNDS, OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
+import { OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import '@/styles/mapSmoothing.css';
