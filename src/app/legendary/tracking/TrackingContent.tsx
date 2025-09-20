@@ -56,11 +56,18 @@ function TrackingModeContent() {
   
   // Initialize map
   useEffect(() => {
+    console.log('Map init effect running');
+    console.log('- map.current exists:', !!map.current);
+    console.log('- mapContainer.current exists:', !!mapContainer.current);
+    
     if (map.current || !mapContainer.current) return;
 
     // Set Mapbox token here to avoid SSR issues
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+    console.log('Mapbox token:', token ? `${token.slice(0, 10)}...` : 'MISSING');
+    mapboxgl.accessToken = token;
 
+    console.log('Creating new map instance...');
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
@@ -69,6 +76,10 @@ function TrackingModeContent() {
 
     map.current.on('load', () => {
       console.log('Map Loaded - Tracking Mode');
+      
+      // Expose map for debugging
+      (window as any).map = map.current;
+      console.log('Map exposed to window.map for debugging');
       
       // Configure globe
       map.current!.setFog({
@@ -81,6 +92,7 @@ function TrackingModeContent() {
       
       // Set initial view based on inlet selection
       if (inlet) {
+        console.log('Flying to inlet:', inlet.name, [inlet.lng, inlet.lat]);
         // Zoom to specific inlet
         map.current!.flyTo({
           center: [inlet.lng!, inlet.lat!],
@@ -88,6 +100,7 @@ function TrackingModeContent() {
           duration: 1500
         });
       } else {
+        console.log('Fitting to East Coast bounds');
         // Show East Coast overview
         map.current!.fitBounds(EAST_COAST_BOUNDS, {
           padding: 40,
@@ -96,6 +109,7 @@ function TrackingModeContent() {
       }
 
       setMapFullyReady(true);
+      console.log('Map fully ready');
     });
     
     // Error handling
