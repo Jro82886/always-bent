@@ -4,7 +4,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useMapbox } from "@/lib/MapCtx";
 import { INLETS, DEFAULT_INLET, getInletById } from "@/lib/inlets";
-import { buildInletColorMap } from "@/lib/inletColors";
 import { useAppState } from "@/store/appState";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { usePathname } from "next/navigation";
@@ -19,7 +18,13 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
  * - Date picker (writes to store)
  * - Exclusive layer toggles (SST / CHL)
  */
-const COLOR_MAP = buildInletColorMap();
+// Build color map from inlets.ts (source of truth)
+const COLOR_MAP = INLETS.reduce((map, inlet) => {
+  if (inlet.color) {
+    map[inlet.id] = inlet.color;
+  }
+  return map;
+}, {} as Record<string, string>);
 
 export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boolean } = {}) {
   const map = useMapbox();

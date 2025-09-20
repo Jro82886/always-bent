@@ -6,7 +6,6 @@ import { MapPin, Loader2, ChevronRight, ChevronLeft, Waves, Fish, Eye, Users, Co
 import Image from 'next/image';
 import { useAppState } from '@/store/appState';
 import { INLETS } from '@/lib/inlets';
-import { INLET_COLORS } from '@/lib/inletColors';
 import InletChip from '@/components/CommandBridge/InletChip';
 import ClientOnly from '@/components/ClientOnly';
 import dynamic from 'next/dynamic';
@@ -215,8 +214,8 @@ function WelcomeContent() {
                   <div 
                     className="w-3 h-3 rounded-full"
                     style={{
-                      backgroundColor: INLET_COLORS[selectedInletId]?.color || '#3A3F47',
-                      boxShadow: `0 0 10px ${INLET_COLORS[selectedInletId]?.color || '#3A3F47'}88`
+                      backgroundColor: INLETS.find(i => i.id === selectedInletId)?.color || '#3A3F47',
+                      boxShadow: `0 0 10px ${INLETS.find(i => i.id === selectedInletId)?.color || '#3A3F47'}88`
                     }}
                   />
                   <span className="text-sm text-[#D8E4F0]/70">

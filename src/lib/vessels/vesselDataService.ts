@@ -4,7 +4,7 @@
  * Used by both Tracking page and Analysis (SnipTool)
  */
 
-import { getInletColor, INLET_COLORS } from '@/lib/inletColors';
+import { getInletById } from '@/lib/inlets';
 
 export interface Vessel {
   id: string;
@@ -174,8 +174,9 @@ export function getVesselStyle(vessel: Vessel, selectedInlet?: string) {
       };
     
     case 'fleet':
-      const inletColor = getInletColor(vessel.inlet || selectedInlet || 'nc-hatteras');
-      const inletGlow = INLET_COLORS[vessel.inlet || selectedInlet || 'nc-hatteras']?.glow || 'rgba(255,255,255,0.3)';
+      const inlet = getInletById(vessel.inlet || selectedInlet || 'nc-hatteras');
+      const inletColor = inlet?.color || '#00DDEB';
+      const inletGlow = inlet?.color ? `${inlet.color}33` : 'rgba(255,255,255,0.3)'; // 20% opacity
       return {
         color: inletColor,
         glow: inletGlow,

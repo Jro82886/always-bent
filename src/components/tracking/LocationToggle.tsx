@@ -6,7 +6,6 @@ import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
 import { toast } from 'sonner';
 import { getInletById } from '@/lib/inlets';
-import { INLET_COLORS } from '@/lib/inletColors';
 
 // Dev mode flag - show true GPS anywhere when true
 const DEV_MODE = process.env.NODE_ENV === 'development';
@@ -74,7 +73,7 @@ export default function LocationToggle({
 
     // Get inlet color
     const inlet = selectedInletId ? getInletById(selectedInletId) : null;
-    const inletColor = inlet && INLET_COLORS[inlet.id] ? INLET_COLORS[inlet.id].color : '#00DDEB';
+    const inletColor = inlet?.color || '#00DDEB';
 
     // Remove existing marker if any
     if (orbMarkerRef.current) {

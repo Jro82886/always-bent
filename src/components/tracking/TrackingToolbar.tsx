@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Wind, Anchor, Users, Ship, Navigation, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { INLET_COLORS } from '@/lib/inletColors';
-import { getInletById } from '@/lib/inlets';
+import { getInletById, INLETS } from '@/lib/inlets';
 import LocationToggle from './LocationToggle';
 import { useAppState } from '@/store/appState';
 
@@ -58,7 +57,7 @@ export default function TrackingToolbar({
   
   // Get inlet info for color
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
-  const inletColor = inlet && INLET_COLORS[inlet.id] ? INLET_COLORS[inlet.id].color : '#3A3F47';
+  const inletColor = inlet?.color || '#3A3F47';
 
   // Fetch weather data when inlet changes
   useEffect(() => {
