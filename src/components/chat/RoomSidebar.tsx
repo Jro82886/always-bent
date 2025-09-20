@@ -28,14 +28,24 @@ export default function RoomSidebar({ selectedRoom, onSelectRoom }: RoomSidebarP
   return (
     <div className="w-72 bg-slate-900/40 backdrop-blur-xl border-r border-white/10 flex flex-col shadow-2xl">
       <div className="p-5 border-b border-white/10">
-        <h2 className="text-lg font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">Channels</h2>
-        
-        {/* Room Info - moved from right rail */}
-        <div className="abfi-note mt-4">
-          <h3 className="text-xs font-semibold abfi-header-glow mb-1">Room Info</h3>
-          <p className="opacity-80 text-xs leading-relaxed">
-            Share fishing intel, conditions, and coordinate with other captains in your area.
-          </p>
+        <h2 className="text-lg font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(6,182,212,0.5)] mb-4">Channels</h2>
+
+        {/* Chat Intelligence Vision */}
+        <div className="abfi-card-bg rounded-xl p-4">
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center gap-2 text-sm font-semibold">
+              <span className="text-cyan-400">OBSERVATION</span>
+              <span className="text-slate-400">→</span>
+              <span className="text-emerald-400">COLLABORATION</span>
+              <span className="text-slate-400">→</span>
+              <span className="text-amber-400">WISDOM</span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              <span className="text-cyan-300">Local reports</span> share what's happening NOW.
+              <span className="text-emerald-300 ml-1">Captain insights</span> reveal what WORKS.
+              Together, they create <span className="text-amber-300">real-time fishing wisdom</span> that helps everyone catch more.
+            </p>
+          </div>
         </div>
       </div>
       

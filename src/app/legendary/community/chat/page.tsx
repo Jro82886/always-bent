@@ -66,7 +66,25 @@ export default function ChatPage() {
           // Room List
           <div className="h-full bg-slate-950">
             <div className="p-4 border-b border-cyan-500/20">
-              <h1 className="text-lg font-semibold text-white">Channels</h1>
+              <h1 className="text-lg font-semibold text-white mb-3">Channels</h1>
+              
+              {/* Chat Intelligence Vision */}
+              <div className="abfi-card-bg rounded-xl p-3">
+                <div className="text-center space-y-2">
+                  <div className="flex items-center justify-center gap-2 text-xs font-semibold">
+                    <span className="text-cyan-400">OBSERVATION</span>
+                    <span className="text-slate-400">→</span>
+                    <span className="text-emerald-400">COLLABORATION</span>
+                    <span className="text-slate-400">→</span>
+                    <span className="text-amber-400">WISDOM</span>
+                  </div>
+                  <p className="text-[10px] text-slate-300 leading-relaxed">
+                    <span className="text-cyan-300">Local reports</span> share what's happening NOW.
+                    <span className="text-emerald-300 ml-1">Captain insights</span> reveal what WORKS.
+                    Together, they create <span className="text-amber-300">real-time fishing wisdom</span> that helps everyone catch more.
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="overflow-y-auto">
               {MOCK_ROOMS.map(room => {
