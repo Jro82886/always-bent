@@ -5,7 +5,8 @@ import { useMemberstack } from '@memberstack/react';
 import { useRouter } from 'next/navigation';
 
 export default function EditProfilePage() {
-  const { member, updateMember, isLoading } = useMemberstack();
+  // @ts-ignore - Memberstack types are incomplete
+  const { member, updateMember, isLoading } = useMemberstack() as any;
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');

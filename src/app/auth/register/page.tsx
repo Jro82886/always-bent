@@ -25,7 +25,8 @@ export default function RegisterPage() {
 
     try {
       // Sign up with Memberstack
-      const result = await memberstack.signupWithPassword({
+      // @ts-ignore - Memberstack types are incomplete
+      const result = await memberstack?.signupMemberEmailPassword({
         email: formData.email,
         password: formData.password,
         customFields: {

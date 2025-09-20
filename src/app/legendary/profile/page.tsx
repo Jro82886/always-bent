@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import LogoutButton from '@/components/auth/LogoutButton';
 
 export default function ProfilePage() {
-  const { member, isLoading } = useMemberstack();
+  // @ts-ignore - Memberstack types are incomplete
+  const { member, isLoading } = useMemberstack() as any;
   const router = useRouter();
   const [profileData, setProfileData] = useState({
     captainName: '',

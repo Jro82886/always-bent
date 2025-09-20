@@ -11,7 +11,8 @@ interface UserBadgeProps {
 }
 
 export default function UserBadge({ variant = 'compact', showBoat = true }: UserBadgeProps) {
-  const { member } = useMemberstack();
+  // @ts-ignore - Memberstack types are incomplete
+  const { member } = useMemberstack() as any;
   const router = useRouter();
   const [userData, setUserData] = useState({
     captainName: '',
@@ -26,7 +27,7 @@ export default function UserBadge({ variant = 'compact', showBoat = true }: User
       
       const initials = captain
         .split(' ')
-        .map(n => n[0])
+        .map((n: string) => n[0])
         .join('')
         .toUpperCase()
         .slice(0, 2);

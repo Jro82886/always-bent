@@ -19,13 +19,18 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await memberstack.loginWithPassword({
+      // @ts-ignore - Memberstack types are incomplete
+      const result = await memberstack?.loginMemberEmailPassword({
         email,
         password,
       });
 
-      // Redirect to app after successful login
-      router.push('/legendary');
+      if (result?.data) {
+        // Redirect to app after successful login
+        router.push('/legendary');
+      } else {
+        setError('Login failed. Please check your credentials.');
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {

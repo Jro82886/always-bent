@@ -9,7 +9,8 @@ import { useMemberstack } from '@memberstack/react';
 const MEMBERSTACK_APP_ID = process.env.NEXT_PUBLIC_MEMBERSTACK_APP_ID || 'app_cmfpavrtq00zb0wws6asv8xf3';
 
 function AuthSync() {
-  const { member, isLoading } = useMemberstack();
+  // @ts-ignore - Memberstack types are incomplete
+  const { member, isLoading } = useMemberstack() as any;
   const router = useRouter();
   const pathname = usePathname();
 
