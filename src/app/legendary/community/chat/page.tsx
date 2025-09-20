@@ -43,33 +43,54 @@ export default function ChatPage() {
     <Suspense fallback={<div className="p-6 text-slate-400 animate-pulse">Loading chat...</div>}>
       <>
       {/* Desktop Layout */}
-      <div className="hidden md:flex h-full">
-        <RoomSidebar 
-          selectedRoom={selectedRoom}
-          onSelectRoom={setSelectedRoom}
-        />
-        <div className="flex-1">
-          <ChatWindow 
+      <div className="hidden md:flex flex-col h-full">
+        {/* Page Header with Vision */}
+        <div className="px-6 py-4 border-b border-white/10 bg-slate-950">
+          <div className="abfi-card-bg rounded-xl p-4 max-w-3xl mx-auto">
+            <div className="text-center space-y-2">
+              <h2 className="flex items-center justify-center gap-2 text-[15px] md:text-lg font-semibold tracking-wide">
+                <span className="text-cyan-400">OBSERVATION</span>
+                <span className="text-slate-400">→</span>
+                <span className="text-emerald-400">COLLABORATION</span>
+                <span className="text-slate-400">→</span>
+                <span className="bg-gradient-to-r from-orange-400/80 to-amber-400/80 bg-clip-text text-transparent">WISDOM</span>
+              </h2>
+              <p className="text-xs md:text-sm text-slate-300 leading-relaxed opacity-80">
+                <span className="text-cyan-300">Local reports</span> share what's happening NOW.
+                <span className="text-emerald-300 ml-1">Captain insights</span> reveal what WORKS.
+                Together, they create <span className="bg-gradient-to-r from-orange-400/80 to-amber-400/80 bg-clip-text text-transparent font-semibold">real-time fishing wisdom</span> that helps everyone catch more.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Chat Layout */}
+        <div className="flex flex-1 overflow-hidden">
+          <RoomSidebar 
+            selectedRoom={selectedRoom}
+            onSelectRoom={setSelectedRoom}
+          />
+          <div className="flex-1">
+            <ChatWindow 
+              roomId={selectedRoom}
+              showWeatherHeader={selectedRoom === 'inlet'}
+            />
+          </div>
+          <ContextPanel 
             roomId={selectedRoom}
-            showWeatherHeader={selectedRoom === 'inlet'}
+            inletId={selectedInletId || 'ny-montauk'}
           />
         </div>
-        <ContextPanel 
-          roomId={selectedRoom}
-          inletId={selectedInletId || 'ny-montauk'}
-        />
       </div>
 
       {/* Mobile Layout */}
-      <div className="md:hidden h-full">
+      <div className="md:hidden h-full flex flex-col">
         {!showMobileRoom ? (
           // Room List
-          <div className="h-full bg-slate-950">
-            <div className="p-4 border-b border-cyan-500/20">
-              <h1 className="text-lg font-semibold text-white mb-3">Channels</h1>
-              
-              {/* Chat Intelligence Vision */}
-              <div className="abfi-card-bg rounded-xl p-3">
+          <div className="h-full bg-slate-950 flex flex-col">
+            {/* Mobile Header with Vision */}
+            <div className="p-4 border-b border-cyan-500/20 bg-slate-950">
+              <div className="abfi-card-bg rounded-xl p-3 mb-3">
                 <div className="text-center space-y-2">
                   <div className="flex items-center justify-center gap-2 text-xs font-semibold">
                     <span className="text-cyan-400">OBSERVATION</span>
@@ -85,6 +106,7 @@ export default function ChatPage() {
                   </p>
                 </div>
               </div>
+              <h1 className="text-lg font-semibold text-white">Channels</h1>
             </div>
             <div className="overflow-y-auto">
               {MOCK_ROOMS.map(room => {
