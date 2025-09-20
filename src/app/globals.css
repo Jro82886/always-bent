@@ -551,8 +551,44 @@ html, body, #__next {
     display: inline-block; 
   }
 
-  /* Species pills (content tags - NEVER use inlet colors) */
-  .abfi-species-pill {
-    @apply rounded-full px-2.5 py-0.5 text-xs font-medium inline-flex items-center gap-1;
-  }
-}
+        /* Species pills (content tags - NEVER use inlet colors) */
+        .abfi-species-pill {
+          @apply rounded-full px-2.5 py-0.5 text-xs font-medium inline-flex items-center gap-1;
+        }
+        
+        /* Channel mentions */
+        .abfi-mention {
+          font-weight: 600;
+          border-radius: 9999px;
+          padding: 0.25rem 0.75rem;
+          font-size: 0.875rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+        
+        /* Channel-specific mention colors */
+        .abfi-mention-eastcoast {
+          color: #00C7B7;
+          background: rgba(0,199,183,0.15);
+          box-shadow: 0 0 6px #00C7B777;
+        }
+        
+        .abfi-mention-tuna {
+          color: #3B82F6;
+          background: rgba(59,130,246,0.15);
+          box-shadow: 0 0 6px #3B82F677;
+        }
+        
+        .abfi-mention-offshore {
+          color: #8B5CF6;
+          background: rgba(139,92,246,0.15);
+          box-shadow: 0 0 6px #8B5CF677;
+        }
+        
+        .abfi-mention-inshore {
+          color: #22C55E;
+          background: rgba(34,197,94,0.15);
+          box-shadow: 0 0 6px #22C55E77;
+        }
+      }
