@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
   // Filter by species (comma-separated)
   if (speciesParam) {
     const speciesArray = speciesParam.split(",").map(s => s.trim().toLowerCase());
+    // Use Postgres array contains operator
     query = query.contains("species", speciesArray);
   }
 
