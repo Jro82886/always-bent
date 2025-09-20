@@ -20,7 +20,7 @@ const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay'), {
 
 function WelcomeContent() {
   const router = useRouter();
-  const { selectedInletId, setSelectedInletId, setAppMode, setUsername } = useAppState();
+  const { selectedInletId, setSelectedInletId, setAppMode, setUsername, hydrateOnce } = useAppState();
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,6 +30,11 @@ function WelcomeContent() {
   
   // Ref to prevent double redirects
   const didRedirect = useRef(false);
+  
+  // Ensure store is hydrated from localStorage
+  useEffect(() => {
+    hydrateOnce();
+  }, [hydrateOnce]);
   
   useEffect(() => {
     // Prevent redirect loops and double redirects
