@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import BetaBanner from '@/components/BetaBanner';
+import NavigationHeader from '@/components/NavigationHeader';
 import { useAppState } from '@/store/appState';
 
 // Dynamically import modes with proper isolation
@@ -109,15 +110,18 @@ function ABFICore() {
 
 export default function LegendaryShell() {
   return (
-    <>
+    <div className="flex flex-col h-screen">
       <BetaBanner />
-      <Suspense fallback={
-        <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
-          <div className="text-cyan-400 animate-pulse">Loading platform...</div>
-        </div>
-      }>
-        <ABFICore />
-      </Suspense>
-    </>
+      <NavigationHeader />
+      <div className="flex-1 overflow-hidden">
+        <Suspense fallback={
+          <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+            <div className="text-cyan-400 animate-pulse">Loading platform...</div>
+          </div>
+        }>
+          <ABFICore />
+        </Suspense>
+      </div>
+    </div>
   );
 }
