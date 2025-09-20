@@ -99,7 +99,7 @@ function TrackingModeContent() {
     });
     
     // Error handling
-    map.current.on('error', (e) => {
+    map.current.on('error', (e: any) => {
       console.error('Map error:', e);
       // Don't break the UI - map should still be interactive
       if (e.error?.status === 401) {
@@ -184,9 +184,13 @@ function TrackingModeContent() {
         selectedInletId={selectedInletId}
       />
       
-      {/* Inlet Regions (clickable boundaries) */}
+      {/* Inlet Regions (glowing boundaries for nice entry visual) */}
       {mapFullyReady && (
-        <InletRegions map={map.current} />
+        <InletRegions 
+          map={map.current} 
+          enabled={true}  // Always show for visual appeal
+          opacity={0.16}  // Same subtle glow as Analysis page
+        />
       )}
       
       {/* Vessel Layer */}
