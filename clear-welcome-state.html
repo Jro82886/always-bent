@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Welcome State</title>
+</head>
+<body>
+    <h1>Clear Welcome State</h1>
+    <button onclick="clearState()">Clear Welcome State</button>
+    <div id="result"></div>
+    
+    <script>
+    function clearState() {
+        localStorage.removeItem('abfi_setup_complete');
+        localStorage.removeItem('abfi_welcome_completed');
+        localStorage.removeItem('abfi_has_seen_tutorial');
+        document.getElementById('result').innerHTML = 'Welcome state cleared! You can now visit the welcome page.';
+    }
+    </script>
+</body>
+</html>

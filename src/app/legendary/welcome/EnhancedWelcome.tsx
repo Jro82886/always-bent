@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { MapPin, Loader2, ChevronRight, ChevronLeft, Waves, Fish, Eye, Users, Compass, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useAppState } from '@/store/appState';
@@ -20,6 +20,8 @@ const TutorialOverlay = dynamic(() => import('@/components/TutorialOverlay'), {
 
 function WelcomeContent() {
   const router = useRouter();
+  const pathname = usePathname();
+  
   const { selectedInletId, setSelectedInletId, setAppMode, setUsername, hydrateOnce } = useAppState();
   
   const [loading, setLoading] = useState(false);
@@ -37,25 +39,28 @@ function WelcomeContent() {
   }, [hydrateOnce]);
   
   useEffect(() => {
-    // Prevent redirect loops and double redirects
+    // ✅ Guard: only run on /legendary/welcome; only run once
     if (didRedirect.current) return;
+    if (!pathname?.startsWith('/legendary/welcome')) return;
     
     // Check if user has already completed onboarding
-    const setupComplete = safeLocal.get('abfi_setup_complete');
+    const setupComplete = safeLocal.get('abfi_setup_complete') === 'true';
     const hasInlet = safeLocal.get('abfi_selected_inlet');
     const hasMode = safeLocal.get('abfi_app_mode');
     
-    if (setupComplete === 'true' && hasInlet && hasMode) {
+    if (setupComplete && hasInlet && hasMode) {
       // Mark that we're redirecting to prevent loops
       didRedirect.current = true;
       
       // User has already onboarded, redirect to app with their saved mode
       const params = new URLSearchParams();
       params.set('mode', hasMode === 'community' ? 'tracking' : 'analysis');
-      params.set('inlet', hasInlet);
+      if (hasInlet) params.set('inlet', hasInlet);
+      
+      console.log('Redirecting from welcome to:', `/legendary?${params.toString()}`);
       router.replace(`/legendary?${params.toString()}`);
     }
-  }, [router]);
+  }, [pathname, router]);
   
   const handleInletSelection = () => {
     if (!selectedInletId || selectedInletId === 'overview') {

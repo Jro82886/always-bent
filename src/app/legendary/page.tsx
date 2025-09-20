@@ -3,7 +3,6 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import AuthGuard from '@/components/AuthGuard';
 import BetaBanner from '@/components/BetaBanner';
 import FirstTimeSetup from '@/components/FirstTimeSetup';
 import { useAppState } from '@/store/appState';
@@ -137,7 +136,7 @@ function ABFICore() {
 
 export default function LegendaryPage() {
   return (
-    <AuthGuard requireAuth={true} fallbackPath="/legendary/welcome">
+    <>
       <BetaBanner />
       <FirstTimeSetup />
       <Suspense fallback={
@@ -147,6 +146,6 @@ export default function LegendaryPage() {
       }>
         <ABFICore />
       </Suspense>
-    </AuthGuard>
+    </>
   );
 }
