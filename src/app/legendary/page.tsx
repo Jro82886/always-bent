@@ -3,7 +3,9 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import AuthGuard from '@/components/AuthGuard';
 import BetaBanner from '@/components/BetaBanner';
+import FirstTimeSetup from '@/components/FirstTimeSetup';
 import { useAppState } from '@/store/appState';
 
 // Dynamically import modes with proper isolation
@@ -55,6 +57,17 @@ const TrendsMode = dynamic(
   }
 );
 
+const WelcomeMode = dynamic(
+  () => import('./welcome/page'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Loading Welcome...</div>
+      </div>
+    )
+  }
+);
 
 function ABFICore() {
   const searchParams = useSearchParams();
@@ -115,6 +128,8 @@ function ABFICore() {
       return <CommunityMode />;
     case 'trends':
       return <TrendsMode />;
+    case 'welcome':
+      return <WelcomeMode />;
     default:
       return <AnalysisMode />;
   }
@@ -122,8 +137,9 @@ function ABFICore() {
 
 export default function LegendaryPage() {
   return (
-    <>
+    <AuthGuard requireAuth={true} fallbackPath="/legendary/welcome">
       <BetaBanner />
+      <FirstTimeSetup />
       <Suspense fallback={
         <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
           <div className="text-cyan-400 animate-pulse">Loading platform...</div>
@@ -131,6 +147,6 @@ export default function LegendaryPage() {
       }>
         <ABFICore />
       </Suspense>
-    </>
+    </AuthGuard>
   );
 }
