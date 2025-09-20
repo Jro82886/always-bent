@@ -32,7 +32,7 @@ const TrackingMode = dynamic(
 );
 
 const CommunityMode = dynamic(
-  () => import('../app/legendary/community/CommunityPage'),
+  () => import('./community/CommunityModeWrapper'),
   { 
     ssr: false,
     loading: () => (
