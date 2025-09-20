@@ -27,6 +27,12 @@ aiohttp==3.9.1
 python-dotenv==1.0.0
 pydantic==2.5.0
 
+# Scheduling
+schedule==1.2.0
+
+# Cloud storage (optional)
+google-cloud-storage==2.10.0
+
 # Development
 pytest==7.4.3
 pytest-asyncio==0.21.1
