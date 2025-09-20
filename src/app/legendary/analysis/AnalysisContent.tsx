@@ -9,7 +9,6 @@ import SSTLayer from '@/components/layers/SSTLayer';
 import CHLLayer from '@/components/layers/CHLLayer';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
 import InletRegions from '@/components/InletRegions';
-import NewUserTutorial from '@/components/NewUserTutorial';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
@@ -49,25 +48,6 @@ function AnalysisModeContent() {
   // Commercial vessels toggle (OFF by default for energy saving)
   const [showCommercial, setShowCommercial] = useState(false);
   
-  // Check if tutorial should be shown (client-side only)
-  const [showingTutorial, setShowingTutorial] = useState(false);
-  const [tutorialCompleted, setTutorialCompleted] = useState(false);
-  
-  useEffect(() => {
-    // Check tutorial status on client side
-    const completed = localStorage.getItem('abfi_tutorial_completed');
-    const neverShow = localStorage.getItem('abfi_tutorial_never_show');
-    const shouldShow = localStorage.getItem('abfi_show_tutorial');
-    
-    // Show tutorial if explicitly requested from setup OR if not completed yet
-    if (shouldShow === 'true') {
-      setShowingTutorial(true);
-      localStorage.removeItem('abfi_show_tutorial'); // Clear the flag
-    } else {
-      setShowingTutorial(!completed && neverShow !== 'true');
-    }
-    setTutorialCompleted(completed === 'true');
-  }, []);
   
   // Watch for inlet changes and fly to selected inlet
   useEffect(() => {
@@ -362,11 +342,7 @@ function AnalysisModeContent() {
       {/* Map Container with enhanced rendering - Hidden during tracking for clean separation */}
       <div 
         ref={mapContainer} 
-        className={`w-full h-full transition-all duration-700 ${
-          showingTutorial
-            ? 'blur-md opacity-60' // Start blurred if tutorial will show
-            : '' // Keep map visible for analysis
-        }`} 
+        className="w-full h-full" 
         style={{ 
           imageRendering: 'pixelated',
           transform: 'translateZ(0)',
@@ -424,56 +400,9 @@ function AnalysisModeContent() {
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
-          {/* New User Tutorial - Shows once after welcome */}
-          {showingTutorial && !tutorialCompleted && map.current && (
-            <NewUserTutorial onComplete={() => {
-              setShowingTutorial(false);
-              setTutorialCompleted(true);
-              
-              // Dramatic East Coast overview zoom after tutorial
-              if (map.current) {
-                // First, ensure inlet regions are visible
-                const inletLayer = map.current.getLayer('inlet-regions-glow');
-                if (inletLayer) {
-                  map.current.setPaintProperty('inlet-regions-glow', 'circle-opacity', 0.09);
-                  map.current.setPaintProperty('inlet-regions-core', 'circle-opacity', 0.15);
-                }
-                
-                // Dramatic spin and zoom to East Coast
-                map.current.flyTo({
-                  center: [-75, 35], // Center of East Coast
-                  zoom: 4.8, // Wider view to show Maine to Florida Keys
-                  bearing: -15, // Slight angle for drama
-                  pitch: 25, // Tilt for 3D effect
-                  duration: 3000, // 3 second animation
-                  essential: true,
-                  easing: (t: number) => {
-                    // Custom easing for dramatic effect
-                    return t < 0.5 
-                      ? 4 * t * t * t 
-                      : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                  }
-                });
-                
-                // After initial zoom, settle into perfect view
-                setTimeout(() => {
-                  map.current?.flyTo({
-                    center: [-76, 36], // Perfect center for full East Coast view
-                    zoom: 5.2, // Show entire coast from Maine to Florida Keys
-                    bearing: 0,
-                    pitch: 0,
-                    duration: 2000,
-                    essential: true
-                  });
-                }, 3000);
-              }
-            }} />
-          )}
           
-          {/* ABFI Button - Hidden during tutorial, only on Analysis tab */}
-          {!showingTutorial && (
-            <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
-          )}
+          {/* ABFI Button - Only on Analysis tab */}
+          <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
           
           {/* Settings Panel - Bottom right corner */}
           <SettingsPanel />

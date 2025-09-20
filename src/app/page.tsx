@@ -6,14 +6,17 @@ export default function Root() {
   const router = useRouter();
   
   useEffect(() => {
-    // Check if user has already set up their boat
-    const boatName = localStorage.getItem('abfi_boat_name');
+    // Check if user has completed welcome flow
+    const setupComplete = localStorage.getItem('abfi_setup_complete');
+    const hasMode = localStorage.getItem('abfi_app_mode');
+    const hasInlet = localStorage.getItem('abfi_selected_inlet');
     
-    if (boatName) {
-      // Existing user - go to analysis (main app)
-      router.push('/legendary?mode=analysis');
+    if (setupComplete && hasMode && hasInlet) {
+      // Existing user - go to their saved mode
+      const mode = hasMode === 'community' ? 'tracking' : 'analysis';
+      router.push(`/legendary?mode=${mode}&inlet=${hasInlet}`);
     } else {
-      // New user - show welcome screen (trunk entry)
+      // New user - show legendary which will redirect to welcome
       router.push('/legendary');
     }
   }, [router]);

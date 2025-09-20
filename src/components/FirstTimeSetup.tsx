@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Compass, Ship, ChevronRight, CheckCircle, Sparkles } from 'lucide-react';
 
+// LEGACY: This component is replaced by EnhancedWelcome
+// Keeping for reference but disabled
 export default function FirstTimeSetup() {
+  return null; // Disabled - using EnhancedWelcome instead
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [locationEnabled, setLocationEnabled] = useState(false);

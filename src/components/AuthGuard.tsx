@@ -18,19 +18,19 @@ export default function AuthGuard({
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Simple check: do they have captain & boat names?
-    const captainName = localStorage.getItem('abfi_captain_name');
-    const boatName = localStorage.getItem('abfi_boat_name');
+    // Check if user has completed welcome flow
+    const setupComplete = localStorage.getItem('abfi_setup_complete');
+    const hasInlet = localStorage.getItem('abfi_selected_inlet');
+    const hasMode = localStorage.getItem('abfi_app_mode');
     
-    if (!captainName || !boatName) {
-      if (requireAuth) {
-        // No names stored, redirect to welcome
-        router.push(fallbackPath);
-      } else {
-        setIsReady(true);
-      }
+    // User needs to complete welcome if any of these are missing
+    const needsWelcome = !setupComplete || !hasInlet || !hasMode;
+    
+    if (needsWelcome && requireAuth) {
+      // Redirect to welcome flow
+      router.push(fallbackPath);
     } else {
-      // Has names, allow access
+      // User has completed welcome or auth not required
       setIsReady(true);
     }
   }, [requireAuth, fallbackPath, router]);

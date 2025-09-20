@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import WelcomeChip from './WelcomeChip';
 import InletChip from './InletChip';
 import Tabs from './Tabs';
 import { useAppState } from '@/store/appState';
@@ -79,10 +78,6 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           
           <div className="h-full w-px bg-cyan-500/10" />
           
-          {/* Welcome */}
-          <div className="px-6">
-            <WelcomeChip />
-          </div>
           
           <div className="h-full w-px bg-cyan-500/10" />
           
