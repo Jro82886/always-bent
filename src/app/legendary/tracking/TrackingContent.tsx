@@ -15,6 +15,9 @@ import InletRegions from '@/components/InletRegions';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { useLocationPermission } from '@/hooks/useLocationPermission';
+import { fitInletOffshore, INLET_VIEWS } from '@/utils/inletZoom';
+import { useInletRequired } from '@/components/useInletRequired';
+import { useLocationRequired } from '@/components/tracking/useLocationRequired';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
@@ -35,12 +38,35 @@ function TrackingModeContent() {
   // Get selected inlet from global state
   const { selectedInletId } = useAppState();
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+  const hasInlet = !!inlet && inlet.id !== 'overview';
   
   // Sync inlet from URL on mount
   useInletFromURL();
   
   // Location permission
   const { isGranted: locationGranted } = useLocationPermission();
+  
+  // Get app mode from store
+  const { appMode, setAppMode } = useAppState();
+  
+  // Auto-switch to browse mode if location disabled in community mode
+  useEffect(() => {
+    if (appMode === 'community' && !locationGranted) {
+      setAppMode('browse');
+    } else if (appMode === 'browse' && locationGranted) {
+      setAppMode('community');
+    }
+  }, [locationGranted, appMode, setAppMode]);
+  
+  // Inlet-required gating
+  const { gate, InletRequiredModal } = useInletRequired(hasInlet);
+  
+  // Location-required gating for non-commercial features
+  const { 
+    gateNonCommercial, 
+    LocationBanner, 
+    DisabledBanner 
+  } = useLocationRequired(locationGranted);
   
   // Vessel visibility states (all OFF by default per spec)
   const [showYou, setShowYou] = useState(false);
@@ -102,6 +128,9 @@ function TrackingModeContent() {
     map.current.on('load', () => {
       console.log('Map Loaded - Tracking Mode (only once!)');
       
+      // Add zoom controls (bottom-right corner like Analysis mode)
+      map.current!.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+      
       // Expose map for debugging
       (window as any).map = map.current;
       console.log('Map exposed to window.map for debugging');
@@ -150,39 +179,15 @@ function TrackingModeContent() {
     };
   }, []); // Empty dependency array - only run once!
 
-  // Update map view when inlet changes
-  useEffect(() => {
-    if (!map.current || !mapFullyReady) return;
-    
-    console.log('Inlet changed, updating map view');
-    
-    if (inlet) {
-      console.log('Flying to inlet:', inlet.name);
-      // Zoom to specific inlet
-      map.current.flyTo({
-        center: [inlet.lng!, inlet.lat!],
-        zoom: inlet.zoom,
-        duration: 2000
-      });
-    } else {
-      console.log('Returning to East Coast overview');
-      // Return to East Coast overview
-      map.current.fitBounds(EAST_COAST_BOUNDS, {
-        padding: 40,
-        duration: 2000
-      });
-    }
-  }, [inlet, mapFullyReady]);
+  // Remove auto-camera movement - inlet selection only updates state
+  // Camera movement is now controlled by the Inlet Zoom toggle
 
   // Handle fly to inlet zoom
   const handleFlyToInlet = () => {
     if (!map.current || !inlet) return;
     
-    map.current.flyTo({
-      center: [inlet.lng!, inlet.lat!],
-      zoom: inlet.zoom,
-      duration: 2000
-    });
+    const knownBbox = (INLET_VIEWS as any)[inlet.id.toUpperCase()];
+    fitInletOffshore(map.current, [inlet.lng!, inlet.lat!], knownBbox);
   };
 
   // Clean up global map when component is truly destroyed (page navigation)
@@ -215,22 +220,23 @@ function TrackingModeContent() {
       
       {/* Left Toolbar */}
       <TrackingToolbar
+        map={map.current}
         selectedInletId={selectedInletId}
         locationGranted={locationGranted}
         showYou={showYou}
-        setShowYou={setShowYou}
+        setShowYou={gate(gateNonCommercial(setShowYou))}
         showTracks={showTracks}
-        setShowTracks={setShowTracks}
+        setShowTracks={gate(gateNonCommercial(setShowTracks))}
         showFleet={showFleet}
-        setShowFleet={setShowFleet}
+        setShowFleet={gate(gateNonCommercial(setShowFleet))}
         showFleetTracks={showFleetTracks}
-        setShowFleetTracks={setShowFleetTracks}
+        setShowFleetTracks={gate(gateNonCommercial(setShowFleetTracks))}
         showCommercial={showCommercial}
-        setShowCommercial={setShowCommercial}
+        setShowCommercial={setShowCommercial} // Commercial not gated by location
         showCommercialTracks={showCommercialTracks}
-        setShowCommercialTracks={setShowCommercialTracks}
+        setShowCommercialTracks={setShowCommercialTracks} // Commercial not gated by location
         userPosition={userPosition}
-        onFlyToInlet={handleFlyToInlet}
+        onFlyToInlet={gate(handleFlyToInlet)}
       />
       
       {/* Right Legend - always visible */}
@@ -247,8 +253,8 @@ function TrackingModeContent() {
         />
       )}
       
-      {/* Rec Boats Clustering - handles fleet visualization */}
-      {mapFullyReady && (
+      {/* Rec Boats Clustering - only show if location enabled */}
+      {mapFullyReady && locationGranted && (
         <RecBoatsClustering
           map={map.current}
           showFleet={showFleet}
@@ -256,8 +262,8 @@ function TrackingModeContent() {
         />
       )}
       
-      {/* Vessel Layer - handles individual user vessel */}
-      {mapFullyReady && (
+      {/* Vessel Layer - only show if location enabled */}
+      {mapFullyReady && locationGranted && (
         <VesselLayerClean
           map={map.current}
           showYou={showYou}
@@ -278,6 +284,13 @@ function TrackingModeContent() {
           selectedInletId={selectedInletId || ''}
         />
       )}
+      
+      {/* Inlet Required Modal */}
+      <InletRequiredModal />
+      
+      {/* Location Banners */}
+      <LocationBanner />
+      <DisabledBanner />
     </div>
   );
 }

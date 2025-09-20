@@ -78,14 +78,7 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
     setSelectedInletId(inlet.id);
   };
 
-  // Ensure map is positioned once on mount (helpful during debugging)
-  useEffect(() => {
-    if (!map) return;
-    const inlet = getInletById(currentId) ?? DEFAULT_INLET;
-    // Do not animate here; MapShell handles authoritative fly on changes
-    map.jumpTo({ center: inlet.center, zoom: inlet.zoom });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map]);
+  // Removed auto-positioning - map camera is now controlled only by explicit user actions
 
   const onChangeDate = (e: React.ChangeEvent<HTMLInputElement>) => {
     const d = e.target.value;

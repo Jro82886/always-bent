@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import AuthGuard from '@/components/AuthGuard';
 import BetaBanner from '@/components/BetaBanner';
 import FirstTimeSetup from '@/components/FirstTimeSetup';
+import { useAppState } from '@/store/appState';
 
 // Dynamically import modes with proper isolation
 const AnalysisMode = dynamic(
@@ -75,6 +76,9 @@ function ABFICore() {
   const [currentMode, setCurrentMode] = useState(mode);
   const [isTransitioning, setIsTransitioning] = useState(false);
   
+  // Get app mode from store
+  const { appMode } = useAppState();
+  
   // Handle mode changes with proper cleanup
   useEffect(() => {
     if (mode !== currentMode) {
@@ -103,6 +107,15 @@ function ABFICore() {
         <div className="text-cyan-400 animate-pulse">Switching mode...</div>
       </div>
     );
+  }
+  
+  // Apply mode restrictions based on appMode
+  if (appMode === 'analysis') {
+    // Solo mode - only allow analysis and trends
+    if (currentMode === 'tracking' || currentMode === 'community') {
+      router.replace('/legendary?mode=analysis');
+      return null;
+    }
   }
   
   // Render the appropriate mode

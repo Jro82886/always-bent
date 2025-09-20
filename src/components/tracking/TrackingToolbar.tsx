@@ -3,8 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Wind, Anchor, Users, Ship, Navigation, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { INLET_COLORS } from '@/lib/inletColors';
+import { getInletById } from '@/lib/inlets';
+import LocationToggle from './LocationToggle';
+import { useAppState } from '@/store/appState';
 
 interface TrackingToolbarProps {
+  map: mapboxgl.Map | null;
   selectedInletId: string | null;
   locationGranted: boolean;
   showYou: boolean;
@@ -24,6 +29,7 @@ interface TrackingToolbarProps {
 }
 
 export default function TrackingToolbar({
+  map,
   selectedInletId,
   locationGranted,
   showYou,
@@ -44,6 +50,15 @@ export default function TrackingToolbar({
   const router = useRouter();
   const [weatherData, setWeatherData] = useState<any>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
+  const [inletZoomOn, setInletZoomOn] = useState(false);
+  
+  // Get app mode from store
+  const { appMode } = useAppState();
+  const isBrowseMode = appMode === 'browse' || !locationGranted;
+  
+  // Get inlet info for color
+  const inlet = selectedInletId ? getInletById(selectedInletId) : null;
+  const inletColor = inlet && INLET_COLORS[inlet.id] ? INLET_COLORS[inlet.id].color : '#3A3F47';
 
   // Fetch weather data when inlet changes
   useEffect(() => {
@@ -90,6 +105,17 @@ export default function TrackingToolbar({
 
   return (
     <div className="absolute left-4 top-24 z-10 space-y-4 pointer-events-none">
+      {/* Browse Mode Banner */}
+      {isBrowseMode && (
+        <div className="bg-slate-900/90 backdrop-blur-sm border border-amber-500/30 rounded-lg p-3 shadow-lg pointer-events-auto w-72">
+          <p className="text-xs text-amber-400">
+            {appMode === 'analysis' 
+              ? 'Solo Mode - Commercial vessels only'
+              : 'Enable location to see rec boats and join inlet tracking'
+            }
+          </p>
+        </div>
+      )}
       {/* Weather Card */}
       <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
         <div className="flex items-center gap-2 mb-3">
@@ -125,14 +151,68 @@ export default function TrackingToolbar({
         )}
       </div>
 
-      {/* My Vessel Section */}
-      <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
-        <div className="flex items-center gap-2 mb-3">
-          <Anchor className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-sm font-medium text-white">My Vessel</h3>
+      {/* My Vessel Section - Hidden in Browse Mode */}
+      {!isBrowseMode && (
+        <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Anchor className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-sm font-medium text-white">My Vessel</h3>
+          </div>
+          {inlet && (
+            <div 
+              className="h-3 w-3 rounded-full" 
+              style={{ 
+                background: inletColor, 
+                boxShadow: `0 0 10px ${inletColor}88, 0 0 18px ${inletColor}55` 
+              }}
+              title={inlet.name} 
+              aria-label={inlet.name}
+            />
+          )}
         </div>
         
         <div className="space-y-2">
+          {/* Inlet Zoom Toggle */}
+          <label className={`flex items-center justify-between w-full rounded-md px-3 py-2 text-xs ${
+            selectedInletId && selectedInletId !== 'overview' 
+              ? 'bg-slate-800/50 hover:bg-slate-700/50 cursor-pointer' 
+              : 'opacity-40 cursor-not-allowed'
+          }`}>
+            <span>Fly to Inlet Zoom</span>
+            <input
+              type="checkbox"
+              disabled={!selectedInletId || selectedInletId === 'overview'}
+              checked={inletZoomOn}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setInletZoomOn(next);
+                if (next) onFlyToInlet(); // ON → perform fitBounds
+                // OFF → do nothing; leave camera where it is
+              }}
+              className="sr-only"
+            />
+            <div className={`w-8 h-5 rounded-full relative transition-colors ${
+              inletZoomOn ? 'bg-cyan-500/30' : 'bg-slate-600/30'
+            }`}>
+              <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform ${
+                inletZoomOn ? 'translate-x-3 bg-cyan-400' : 'translate-x-0 bg-slate-600'
+              }`} />
+            </div>
+          </label>
+          
+          {/* Location Toggle - always at top */}
+          <LocationToggle 
+            map={map}
+            selectedInletId={selectedInletId}
+            showYou={showYou}
+            onLocationUpdate={(coords) => {
+              // Could update userPosition here if needed
+            }}
+          />
+          
+          <div className="h-px bg-white/10 my-2" />
+          
           <button
             onClick={() => setShowYou(!showYou)}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
@@ -154,18 +234,13 @@ export default function TrackingToolbar({
             <div className={`w-2 h-2 rounded-full ${showTracks ? 'bg-cyan-400' : 'bg-slate-600'}`} />
           </button>
           
-          <button
-            onClick={onFlyToInlet}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 transition-colors"
-          >
-            <Navigation className="w-3 h-3" />
-            <span>Fly to Inlet Zoom</span>
-          </button>
         </div>
       </div>
+      )}
 
-      {/* My Inlet Fleet Section */}
-      <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
+      {/* My Inlet Fleet Section - Hidden in Browse Mode */}
+      {!isBrowseMode && (
+        <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
         <div className="flex items-center gap-2 mb-3">
           <Users className="w-4 h-4 text-cyan-400" />
           <h3 className="text-sm font-medium text-white">My Inlet Fleet</h3>
@@ -210,8 +285,9 @@ export default function TrackingToolbar({
           </button>
         </div>
       </div>
+      )}
 
-      {/* Commercial Vessels Section */}
+      {/* Commercial Vessels Section - Always Visible */}
       <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
         <div className="flex items-center gap-2 mb-3">
           <Ship className="w-4 h-4 text-cyan-400" />

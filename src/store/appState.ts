@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { DEFAULT_INLET } from "@/lib/inlets";
 
 type RasterId = "sst" | "chl" | "abfi" | null;
+type AppMode = 'analysis' | 'community' | 'browse';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -14,6 +15,7 @@ type AppState = {
   username: string | null;
   _hydrated: boolean;
   communityBadge: boolean;
+  appMode: AppMode;
 
   // setters
   setSelectedInletId: (id: string | null | undefined) => void;
@@ -22,6 +24,7 @@ type AppState = {
   setUsername: (u: string | null | undefined) => void;
   hydrateOnce: () => void;
   setCommunityBadge: (b: boolean) => void;
+  setAppMode: (mode: AppMode) => void;
 };
 
 export const useAppState = create<AppState>((set, get) => ({
@@ -32,6 +35,7 @@ export const useAppState = create<AppState>((set, get) => ({
   username: null,
   _hydrated: false,
   communityBadge: false,
+  appMode: 'analysis' as AppMode, // Default to solo mode
 
   // Setters
   setSelectedInletId: (id) => {
@@ -75,10 +79,25 @@ export const useAppState = create<AppState>((set, get) => ({
         if (savedInlet) {
           set({ selectedInletId: savedInlet });
         }
+        
+        // Hydrate app mode
+        const savedMode = localStorage.getItem('abfi_app_mode') as AppMode;
+        if (savedMode && ['analysis', 'community', 'browse'].includes(savedMode)) {
+          set({ appMode: savedMode });
+        }
       }
     } catch {}
     set({ _hydrated: true });
   },
 
   setCommunityBadge: (b) => set({ communityBadge: !!b }),
+  
+  setAppMode: (mode) => {
+    set({ appMode: mode });
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('abfi_app_mode', mode);
+      }
+    } catch {}
+  },
 }));

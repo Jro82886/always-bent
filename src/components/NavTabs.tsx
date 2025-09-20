@@ -8,7 +8,7 @@ import { useAppState } from '@/store/appState';
 export default function NavTabs() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { username, hydrateOnce, communityBadge, setCommunityBadge } = useAppState();
+  const { username, hydrateOnce, communityBadge, setCommunityBadge, appMode } = useAppState();
   const [locationEnabled, setLocationEnabled] = useState(false);
   
   // Get the current mode from URL
@@ -21,13 +21,18 @@ export default function NavTabs() {
     setLocationEnabled(enabled);
   }, [hydrateOnce]);
   
-  // Build tabs based on permissions - ALL modes use ?mode= parameter
-  const TABS = [
-    { href: '/legendary?mode=analysis', label: 'Analysis' },
-    ...(locationEnabled ? [{ href: '/legendary?mode=tracking', label: 'Tracking' }] : []),
-    { href: '/legendary?mode=trends', label: 'Trends' },
-    { href: '/legendary?mode=community', label: 'Community' },
-  ];
+  // Build tabs based on app mode and permissions
+  const TABS = appMode === 'analysis' 
+    ? [
+        { href: '/legendary?mode=analysis', label: 'Analysis' },
+        { href: '/legendary?mode=trends', label: 'Trends' },
+      ]
+    : [
+        { href: '/legendary?mode=analysis', label: 'Analysis' },
+        ...(locationEnabled ? [{ href: '/legendary?mode=tracking', label: 'Tracking' }] : []),
+        { href: '/legendary?mode=trends', label: 'Trends' },
+        { href: '/legendary?mode=community', label: 'Community' },
+      ];
   return (
     <div
       className={[

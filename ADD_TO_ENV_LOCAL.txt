@@ -6,3 +6,6 @@ CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&
 # Updated Copernicus Credentials
 COPERNICUS_USER=jrosenkilde
 COPERNICUS_PASS=fevhuh-wuvmo2-mafFus
+
+# Inlet bbox feature flag
+NEXT_PUBLIC_INLET_BBOX_ENABLED=true

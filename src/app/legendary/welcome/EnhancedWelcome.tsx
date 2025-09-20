@@ -1,0 +1,361 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { MapPin, Loader2, ChevronRight, Waves, Fish, Eye, Users, Compass, PlayCircle } from 'lucide-react';
+import Image from 'next/image';
+import { useAppState } from '@/store/appState';
+import { INLETS } from '@/lib/inlets';
+import { INLET_COLORS } from '@/lib/inletColors';
+
+export default function EnhancedWelcomePage() {
+  const router = useRouter();
+  const { setSelectedInletId, setAppMode, setUsername } = useAppState();
+  
+  const [selectedInlet, setSelectedInlet] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [step, setStep] = useState(1); // 1: inlet selection, 2: mode choice, 3: tutorial option
+  
+  useEffect(() => {
+    // Check if user has already completed onboarding
+    const setupComplete = localStorage.getItem('abfi_setup_complete');
+    const hasInlet = localStorage.getItem('abfi_selected_inlet');
+    const hasMode = localStorage.getItem('abfi_app_mode');
+    
+    if (setupComplete === 'true' && hasInlet && hasMode) {
+      // User has already onboarded, redirect to app
+      router.replace('/legendary?mode=analysis');
+    }
+  }, [router]);
+  
+  const handleInletSelection = () => {
+    if (!selectedInlet) {
+      setError('Please select your inlet');
+      return;
+    }
+    
+    setError('');
+    
+    // Set the selected inlet
+    setSelectedInletId(selectedInlet);
+    
+    // Store inlet info (for Memberstack metadata later)
+    const inlet = INLETS.find(i => i.id === selectedInlet);
+    if (inlet) {
+      localStorage.setItem('abfi_inlet_id', inlet.id);
+      localStorage.setItem('abfi_inlet_name', inlet.name);
+    }
+    
+    // Move to mode selection
+    setStep(2);
+  };
+  
+  const handleModeSelection = async (mode: 'community' | 'solo') => {
+    setLoading(true);
+    
+    // Set the app mode
+    setAppMode(mode === 'solo' ? 'analysis' : 'community');
+    
+    // Store mode (for Memberstack metadata later)
+    localStorage.setItem('abfi_mode', mode);
+    
+    if (mode === 'community') {
+      // Request location permission
+      try {
+        const permission = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+        
+        if (permission.state === 'granted') {
+          localStorage.setItem('abfi_location_enabled', 'true');
+        } else {
+          // Request permission
+          navigator.geolocation.getCurrentPosition(
+            () => {
+              localStorage.setItem('abfi_location_enabled', 'true');
+            },
+            () => {
+              localStorage.setItem('abfi_location_enabled', 'false');
+            }
+          );
+        }
+      } catch {
+        // Permissions API not supported, try directly
+        navigator.geolocation.getCurrentPosition(
+          () => {
+            localStorage.setItem('abfi_location_enabled', 'true');
+          },
+          () => {
+            localStorage.setItem('abfi_location_enabled', 'false');
+          }
+        );
+      }
+    }
+    
+    setLoading(false);
+    // Move to tutorial option
+    setStep(3);
+  };
+  
+  const handleTutorialChoice = (takeTour: boolean) => {
+    // Mark setup as complete
+    localStorage.setItem('abfi_setup_complete', 'true');
+    
+    if (takeTour) {
+      // Set flag to show tutorial
+      localStorage.setItem('abfi_show_tutorial', 'true');
+      localStorage.setItem('abfi_has_seen_tutorial', 'false');
+    } else {
+      localStorage.setItem('abfi_has_seen_tutorial', 'true');
+    }
+    
+    // Navigate based on mode
+    const mode = localStorage.getItem('abfi_app_mode');
+    if (mode === 'community') {
+      router.replace('/legendary?mode=tracking');
+    } else {
+      router.replace('/legendary?mode=analysis');
+    }
+  };
+  
+  // Step 1: Inlet Selection
+  if (step === 1) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-50" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+        </div>
+
+        <div className="relative z-10 w-full max-w-lg">
+          <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+            
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-6">
+                <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl backdrop-blur-sm border border-cyan-500/30">
+                  <Waves className="w-16 h-16 text-cyan-400" />
+                </div>
+              </div>
+              <h1 className="text-3xl font-bold text-white mb-3">
+                Welcome to the ABFI Ocean Intelligence Platform
+              </h1>
+              <p className="text-slate-400 text-lg">
+                Every journey starts at your home inlet. Pick yours to anchor your experience. You can change it anytime.
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <select
+                value={selectedInlet}
+                onChange={(e) => setSelectedInlet(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-800/50 border border-cyan-500/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all appearance-none cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center',
+                  backgroundSize: '1.5rem',
+                  paddingRight: '3rem'
+                }}
+              >
+                <option value="">Choose your inlet...</option>
+                {INLETS.filter(inlet => !inlet.isOverview).map((inlet) => (
+                  <option key={inlet.id} value={inlet.id}>
+                    {inlet.name} - {inlet.state}
+                  </option>
+                ))}
+              </select>
+              
+              {/* Show selected inlet color */}
+              {selectedInlet && (
+                <div className="flex items-center justify-center gap-3 p-3 bg-slate-800/30 rounded-lg">
+                  <div 
+                    className="w-3 h-3 rounded-full"
+                    style={{
+                      backgroundColor: INLET_COLORS[selectedInlet]?.color || '#3A3F47',
+                      boxShadow: `0 0 10px ${INLET_COLORS[selectedInlet]?.color || '#3A3F47'}88`
+                    }}
+                  />
+                  <span className="text-sm text-slate-400">
+                    Your inlet color
+                  </span>
+                </div>
+              )}
+
+              <button
+                onClick={handleInletSelection}
+                disabled={!selectedInlet}
+                className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg rounded-lg hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  Next → Choose How You Want to Fish
+                  <ChevronRight className="w-5 h-5" />
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Step 2: Mode Selection
+  if (step === 2) {
+    const inlet = INLETS.find(i => i.id === selectedInlet);
+    
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-50" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+        </div>
+
+        <div className="relative z-10 w-full max-w-2xl">
+          <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+            
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-white mb-3">
+                Choose How You Want to Fish Today
+              </h1>
+              <p className="text-slate-400">
+                {inlet?.name} is ready for you
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Community Mode */}
+              <button
+                onClick={() => handleModeSelection('community')}
+                disabled={loading}
+                className="p-6 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl hover:border-cyan-400/50 transition-all group text-left"
+              >
+                <div className="mb-4">
+                  <div className="inline-flex p-3 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/30 transition-colors mb-4">
+                    <Users className="w-8 h-8 text-cyan-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-cyan-300">Join Community</h3>
+                </div>
+                <p className="text-sm text-slate-300 mb-4 leading-relaxed">
+                  Share your live location with {inlet?.name}. See your fleet, vessels, and chat in real time. 
+                  If you're offline offshore, your trip will sync when you're back online.
+                </p>
+                <div className="inline-flex items-center gap-2 text-cyan-400 font-medium">
+                  <span>Join Community</span>
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </button>
+
+              {/* Solo Mode */}
+              <button
+                onClick={() => handleModeSelection('solo')}
+                disabled={loading}
+                className="p-6 bg-gradient-to-br from-slate-700/20 to-slate-800/20 border border-slate-600/30 rounded-xl hover:border-slate-500/50 transition-all group text-left"
+              >
+                <div className="mb-4">
+                  <div className="inline-flex p-3 bg-slate-700/30 rounded-lg group-hover:bg-slate-700/40 transition-colors mb-4">
+                    <Eye className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-300">Solo Mode</h3>
+                </div>
+                <p className="text-sm text-slate-300 mb-4 leading-relaxed">
+                  Scout conditions, hotspots, and trends privately. Perfect for planning or tournaments 
+                  when you don't want to share your location.
+                </p>
+                <div className="inline-flex items-center gap-2 text-slate-400 font-medium">
+                  <span>Solo Mode</span>
+                  <ChevronRight className="w-4 h-4" />
+                </div>
+              </button>
+            </div>
+
+            {loading && (
+              <div className="mt-6 text-center">
+                <Loader2 className="w-6 h-6 animate-spin text-cyan-400 mx-auto" />
+                <p className="text-sm text-slate-400 mt-2">Setting up your experience...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Step 3: Tutorial Option
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 opacity-50" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md">
+        <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-cyan-500/30 p-8 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+          
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl backdrop-blur-sm border border-cyan-500/30">
+                <Compass className="w-16 h-16 text-cyan-400" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-3">
+              Ready to Get Bent?
+            </h1>
+            <p className="text-slate-400">
+              One more choice before you dive in
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {/* Take Tour */}
+            <button
+              onClick={() => handleTutorialChoice(true)}
+              className="w-full p-4 bg-gradient-to-br from-emerald-500/10 to-green-500/10 border border-emerald-500/30 rounded-xl hover:border-emerald-400/50 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-500/20 rounded-lg group-hover:bg-emerald-500/30 transition-colors">
+                  <PlayCircle className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="font-semibold text-emerald-300 mb-1">Take a Tour</h3>
+                  <p className="text-sm text-slate-400">
+                    A quick 1-minute walk-through of Command Bridge, Tracking, and Reports.
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {/* Skip Tutorial */}
+            <button
+              onClick={() => handleTutorialChoice(false)}
+              className="w-full p-4 bg-slate-800/30 border border-slate-700/30 rounded-xl hover:border-slate-600/50 transition-all group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-slate-700/30 rounded-lg group-hover:bg-slate-700/40 transition-colors">
+                  <ChevronRight className="w-6 h-6 text-slate-400" />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="font-semibold text-slate-300 mb-1">Enter ABFI</h3>
+                  <p className="text-sm text-slate-400">
+                    Jump right in — you can revisit the tour anytime in settings.
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div className="mt-8 text-center">
+            <div className="flex items-center justify-center gap-2 text-cyan-400">
+              <Fish className="w-4 h-4" />
+              <span className="text-xs font-medium uppercase tracking-wide">Always Bent Fishing Intelligence</span>
+              <Fish className="w-4 h-4 scale-x-[-1]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
