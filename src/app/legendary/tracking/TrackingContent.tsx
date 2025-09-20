@@ -23,6 +23,9 @@ const EAST_COAST_BOUNDS = [
   [-65.0, 45.0], // NE corner (Maine + offshore buffer)
 ] as [[number, number], [number, number]];
 
+// Store map instance outside component to persist across re-renders
+let globalMapInstance: mapboxgl.Map | null = null;
+
 function TrackingModeContent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -57,10 +60,28 @@ function TrackingModeContent() {
   // Initialize map ONCE - no dependencies
   useEffect(() => {
     console.log('Map init effect running');
-    console.log('- map.current exists:', !!map.current);
+    console.log('- globalMapInstance exists:', !!globalMapInstance);
     console.log('- mapContainer.current exists:', !!mapContainer.current);
     
-    if (map.current || !mapContainer.current) return;
+    // Check if we already have a global map instance
+    if (globalMapInstance) {
+      console.log('Reusing existing map instance');
+      map.current = globalMapInstance;
+      
+      // Check if the container changed
+      if (mapContainer.current && globalMapInstance.getContainer() !== mapContainer.current) {
+        console.log('Container changed, updating map container');
+        // Remove from old container and add to new
+        globalMapInstance.remove();
+        globalMapInstance = null;
+      } else {
+        // Map already exists and container is same, just mark as ready
+        setMapFullyReady(true);
+        return;
+      }
+    }
+    
+    if (!mapContainer.current) return;
 
     // Set Mapbox token here to avoid SSR issues
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
@@ -68,11 +89,14 @@ function TrackingModeContent() {
     mapboxgl.accessToken = token;
 
     console.log('Creating new map instance...');
-    map.current = new mapboxgl.Map({
+    const newMap = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
       projection: 'globe' as any,
     });
+    
+    map.current = newMap;
+    globalMapInstance = newMap;
 
     map.current.on('load', () => {
       console.log('Map Loaded - Tracking Mode (only once!)');
@@ -119,12 +143,9 @@ function TrackingModeContent() {
     });
 
     return () => {
-      console.log('Map cleanup');
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-        setMapFullyReady(false);
-      }
+      console.log('Map cleanup - keeping global instance alive');
+      // Don't destroy the map on unmount - keep it for reuse
+      // This prevents recreation on navigation
     };
   }, []); // Empty dependency array - only run once!
 
@@ -162,6 +183,21 @@ function TrackingModeContent() {
       duration: 2000
     });
   };
+
+  // Clean up global map when component is truly destroyed (page navigation)
+  useEffect(() => {
+    return () => {
+      // This runs when navigating away from Tracking page entirely
+      const pathname = window.location.pathname;
+      if (!pathname.includes('/tracking')) {
+        console.log('Leaving tracking page - cleaning up global map');
+        if (globalMapInstance) {
+          globalMapInstance.remove();
+          globalMapInstance = null;
+        }
+      }
+    };
+  }, []);
 
   return (
     <div className="relative h-screen overflow-hidden bg-black">
