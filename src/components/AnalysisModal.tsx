@@ -1,11 +1,14 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Target, Waves, Thermometer, Activity, Save } from 'lucide-react';
+import { X, Target, Waves, Thermometer, Activity, Save, Share2 } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { getAnalysisQuote } from '@/lib/philosophy';
 import { hardResetSnip } from '@/components/SnipController';
 import VesselAnalysisLegend from '@/components/analysis/VesselAnalysisLegend';
+import { showToast } from '@/components/ui/Toast';
+import { flags } from '@/lib/flags';
+import { useAppState } from '@/lib/store';
 import '@/styles/analysis-glow.css';
 
 interface AnalysisModalProps {
@@ -17,21 +20,123 @@ interface AnalysisModalProps {
 
 export default function AnalysisModal({ analysis, visible, onClose, onSave }: AnalysisModalProps) {
   const mapRef = (window as any).abfiMap || (window as any).map;
+  const { selectedInletId } = useAppState();
+  const [isSaving, setIsSaving] = useState(false);
+  const [reportId, setReportId] = useState<string | null>(null);
   
   const onDone = () => {
     hardResetSnip(mapRef); // clean + idle
     onClose?.();
   };
   
-  const onSaveReport = () => {
-    if (onSave) onSave(); // persist report
-    hardResetSnip(mapRef); // clean + idle
-    onClose?.();
+  const onSaveReport = async () => {
+    if (isSaving || reportId) return; // Prevent duplicate saves
+    
+    setIsSaving(true);
+    try {
+      // Prepare snip payload according to Phase 1 contract
+      const snipPayload = {
+        kind: 'snip',
+        layers_on: getActiveLayers(),
+        stats: {
+          sst_mean: analysis?.stats?.mean_temp_f || 0,
+          sst_min: analysis?.stats?.min_temp_f || 0,
+          sst_max: analysis?.stats?.max_temp_f || 0,
+          chl_midband_pct: analysis?.layerAnalysis?.chl?.midband_pct || 0,
+        },
+        narrative: analysis?.comprehensiveAnalysis || 'Ocean intelligence analysis completed',
+        effective_date: new Date().toISOString().split('T')[0],
+        client: { app: 'abfi', build: '1.0.0' },
+        // Include additional analysis data
+        features: analysis?.features || [],
+        vessel_summary: analysis?.vesselTracks || '',
+        edge_analysis: analysis?.edgeAnalysis || null,
+      };
+      
+      const response = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inlet_id: selectedInletId || 'unknown',
+          type: 'snip',
+          status: 'complete',
+          source: 'online',
+          payload_json: snipPayload,
+          meta: {
+            area_km2: analysis?.stats?.area_km2 || 0,
+            bounds: analysis?.bounds || null,
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      
+      const report = await response.json();
+      setReportId(report.id);
+      
+      showToast({
+        type: 'success',
+        title: 'Report Saved',
+        message: 'Your ocean intelligence report has been saved',
+        duration: 5000
+      });
+      
+      if (onSave) onSave(); // Legacy callback
+    } catch (error) {
+      console.error('Failed to save report:', error);
+      showToast({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Unable to save report. Please try again.',
+        duration: 7000
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  const onShareReport = async () => {
+    if (!reportId) {
+      // Save first if not already saved
+      await onSaveReport();
+    }
+    
+    if (reportId) {
+      const shareUrl = `${window.location.origin}/legendary/community/reports?reportId=${reportId}`;
+      
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast({
+          type: 'success',
+          title: 'Link Copied',
+          message: 'Report link copied to clipboard',
+          duration: 5000
+        });
+      } catch (error) {
+        console.error('Failed to copy link:', error);
+        showToast({
+          type: 'error',
+          title: 'Copy Failed',
+          message: 'Unable to copy link. Please try again.',
+          duration: 5000
+        });
+      }
+    }
+  };
+  
+  const getActiveLayers = () => {
+    const layers = [];
+    if (analysis?.layerAnalysis?.sst?.active) layers.push('sst');
+    if (analysis?.layerAnalysis?.chl?.active) layers.push('chl');
+    return layers.length > 0 ? layers : ['sst']; // Default to SST
   };
   
   const onSnipAnother = () => {
     hardResetSnip(mapRef); // clean
     onClose?.();
+    setReportId(null); // Reset for next snip
     // Re-enter draw mode
     setTimeout(() => {
       const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
@@ -509,7 +614,34 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           </button>
           
           <div className="flex gap-2">
-            {onSave && (
+            {/* Show Save/Share pills only when feature flag is enabled */}
+            {flags.reportsContract && (
+              <>
+                <button
+                  onClick={onSaveReport}
+                  disabled={isSaving || !!reportId}
+                  className={`px-4 py-2 text-sm rounded-lg font-semibold transition-all flex items-center gap-2 
+                    ${reportId 
+                      ? 'bg-green-500/20 text-green-300 border border-green-500/30 cursor-default' 
+                      : 'bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white transform hover:scale-105 shadow-lg shadow-cyan-500/25'
+                    }`}
+                >
+                  <Save size={14} className={reportId ? 'text-green-300' : 'text-white drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]'} />
+                  <span>{isSaving ? 'Saving...' : reportId ? 'Saved' : 'Save'}</span>
+                </button>
+                
+                <button
+                  onClick={onShareReport}
+                  className="px-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-purple-500/25 flex items-center gap-2"
+                >
+                  <Share2 size={14} className="text-white drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                  <span>Share</span>
+                </button>
+              </>
+            )}
+            
+            {/* Legacy Save button - only show if feature flag is off */}
+            {!flags.reportsContract && onSave && (
               <button
                 onClick={onSaveReport}
                 className="px-5 py-2 text-sm bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-500 hover:to-cyan-500 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-cyan-500/25 flex items-center gap-2"
@@ -518,6 +650,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                 <span>Save as Report</span>
               </button>
             )}
+            
             <button
               onClick={handleClose}
               className="px-5 py-2 text-sm bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded-lg font-semibold transition-all border border-cyan-500/30"
