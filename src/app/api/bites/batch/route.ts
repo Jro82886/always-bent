@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { analyzeOceanConditions } from '@/lib/ocean/analysis';
 import { getIdentityForUser, shouldHighlight } from '@/lib/reports/enrichIdentity';
+import { buildNarrativeWithToggles } from '@/lib/analysis/narrative-builder';
+import * as turf from '@turf/turf';
 
 export async function POST(request: NextRequest) {
   try {
@@ -188,17 +190,68 @@ async function queueBiteAnalysis(bite: any) {
   try {
     // Convert timestamp to date for ocean data query
     const biteDate = new Date(bite.created_at_ms);
+    const layers_on = bite.context?.layers_on || ['sst', 'chl'];
     
-    // Analyze ocean conditions at the exact time and location
-    const analysis = await analyzeOceanConditions({
+    // Create a small polygon around the bite point (approx 1km radius)
+    const point = turf.point([bite.lon, bite.lat]);
+    const buffered = turf.buffer(point, 1, { units: 'kilometers' });
+    const polygon = turf.feature(buffered.geometry as GeoJSON.Polygon);
+    
+    // Call the raster sampler for real stats
+    let samplerStats = null;
+    let narrative = '';
+    
+    try {
+      const samplerResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/rasters/sample`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          polygon,
+          time: biteDate.toISOString().split('T')[0],
+          layers: layers_on.filter((l: string) => l === 'sst' || l === 'chl')
+        })
+      });
+      
+      if (samplerResponse.ok) {
+        const samplerData = await samplerResponse.json();
+        samplerStats = samplerData.stats;
+        
+        // Build narrative
+        narrative = buildNarrativeWithToggles(
+          samplerStats,
+          layers_on as any,
+          null // No GFW data for bites yet
+        );
+      }
+    } catch (error) {
+      console.error('Sampler failed for bite:', error);
+    }
+    
+    // Fallback to legacy analysis if sampler failed
+    const analysis = samplerStats || await analyzeOceanConditions({
       lat: bite.lat,
       lon: bite.lon,
       date: biteDate,
-      layers: bite.context?.layers_on || ['sst', 'chl'],
+      layers: layers_on,
     });
     
     // Generate report content
-    const report = {
+    const report = samplerStats ? {
+      bite_id: bite.bite_id,
+      analysis_completed_at: new Date().toISOString(),
+      stats: samplerStats,
+      summary: narrative,
+      ocean_conditions: {
+        sst: samplerStats.sst_mean,
+        sst_range: samplerStats.sst_max - samplerStats.sst_min,
+        chl: samplerStats.chl_mean,
+        front_strength: samplerStats.front_strength_p90,
+      },
+      confidence_score: samplerStats.front_strength_p90 > 0.5 ? 0.8 : 0.5,
+      recommendations: narrative.includes('Strong temperature break') 
+        ? ['Focus on the temperature edges'] 
+        : ['Work the area thoroughly']
+    } : {
       bite_id: bite.bite_id,
       analysis_completed_at: new Date().toISOString(),
       ocean_conditions: {

@@ -224,18 +224,59 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
         {/* Grid Layout Main Content */}
         <div className="p-4 grid grid-cols-2 gap-4 max-h-[calc(90vh-8rem)] overflow-y-auto">
+          {/* Quick Stats Badges (if available from sampler) */}
+          {(analysis as any)?.samplerStats && (
+            <div className="col-span-2 flex flex-wrap gap-2 mb-2">
+              {(analysis as any).samplerStats.sst_mean !== undefined && (
+                <div className="px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full">
+                  <span className="text-sm text-orange-300">
+                    SST {(analysis as any).samplerStats.sst_mean.toFixed(1)}°F
+                  </span>
+                </div>
+              )}
+              {(analysis as any).samplerStats.sst_midband_pct !== undefined && (
+                <div className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full">
+                  <span className="text-sm text-cyan-300">
+                    {Math.round((analysis as any).samplerStats.sst_midband_pct * 100)}% Target Band
+                  </span>
+                </div>
+              )}
+              {(analysis as any).samplerStats.chl_midband_pct !== undefined && (
+                <div className="px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full">
+                  <span className="text-sm text-green-300">
+                    CHL {Math.round((analysis as any).samplerStats.chl_midband_pct * 100)}% Productive
+                  </span>
+                </div>
+              )}
+              {(analysis as any).samplerStats.front_strength_p90 !== undefined && (analysis as any).samplerStats.front_strength_p90 > 0 && (
+                <div className="px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-full">
+                  <span className="text-sm text-purple-300">
+                    Front Strength {(analysis as any).samplerStats.front_strength_p90.toFixed(2)}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* Comprehensive Analysis - Full Width at Top */}
-          {comprehensiveAnalysis && (
+          {(comprehensiveAnalysis || (analysis as any)?.narrative) && (
             <div className="col-span-2 bg-gradient-to-br from-slate-900/90 to-slate-800/90 rounded-xl p-4 border border-cyan-500/30">
               <h3 className="text-cyan-300 font-bold mb-3 flex items-center gap-2">
                 <Activity size={20} className="text-cyan-400" />
-                Comprehensive Analysis
+                Ocean Intelligence Report
               </h3>
-              <div 
-                className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed analysis-content"
-                dangerouslySetInnerHTML={{ __html: comprehensiveAnalysis.summary }}
-              />
-              {comprehensiveAnalysis.recommendation && (
+              <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed analysis-content">
+                {(analysis as any)?.narrative ? (
+                  // Use the new narrative from sampler if available
+                  <>{(analysis as any).narrative}</>
+                ) : comprehensiveAnalysis ? (
+                  // Fall back to comprehensive analysis
+                  <div dangerouslySetInnerHTML={{ __html: comprehensiveAnalysis.summary }} />
+                ) : (
+                  'Ocean intelligence analysis completed'
+                )}
+              </div>
+              {comprehensiveAnalysis?.recommendation && (
                 <div className="mt-3 pt-3 border-t border-cyan-500/20 text-gray-300 text-sm whitespace-pre-wrap font-mono">
                   {comprehensiveAnalysis.recommendation}
                 </div>

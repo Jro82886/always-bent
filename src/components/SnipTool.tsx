@@ -10,9 +10,11 @@ import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extractor';
 import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
 import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-analyzer';
+import { buildNarrativeWithToggles } from '@/lib/analysis/narrative-builder';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
 import { getVesselsInBoundsAsync, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
 import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
+import { useAppState } from '@/lib/store';
 
 interface SnipToolProps {
   map: mapboxgl.Map | null;
@@ -463,6 +465,9 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [isZoomedToSnip, setIsZoomedToSnip] = useState(false);
   const [previousView, setPreviousView] = useState<{ center: [number, number]; zoom: number } | null>(null);
   
+  // Get app state for date and layer toggles
+  const { isoDate } = useAppState();
+  
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
   const currentPolygon = useRef<any>(null);
@@ -832,9 +837,62 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       const activeLayers = {
         sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
         chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
-        ocean: map.getLayer('ocean-layer') && map.getLayoutProperty('ocean-layer', 'visibility') === 'visible'
+        ocean: map.getLayer('ocean-layer') && map.getLayoutProperty('ocean-layer', 'visibility') === 'visible',
+        gfw: vesselsInBounds.some(v => v.type === 'commercial') // Check if any commercial vessels found
       };
       
+      // Step 2.5: Call the new raster sampler
+      setAnalysisStep('Analyzing ocean data with real statistics...');
+      
+      let samplerStats = null;
+      let samplerNarrative = '';
+      
+      try {
+        const layers_on = [
+          ...(activeLayers.sst ? ['sst' as const] : []),
+          ...(activeLayers.chl ? ['chl' as const] : []),
+          ...(activeLayers.gfw ? ['gfw' as const] : [])
+        ];
+        
+        const samplerResponse = await fetch('/api/rasters/sample', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            polygon,
+            time: isoDate || new Date().toISOString().split('T')[0],
+            layers: layers_on.filter(l => l !== 'gfw') // Only SST/CHL for raster sampling
+          })
+        });
+        
+        if (samplerResponse.ok) {
+          const samplerData = await samplerResponse.json();
+          samplerStats = samplerData.stats;
+          
+          // Build GFW summary
+          const gfwSummary = activeLayers.gfw ? {
+            total: vesselsInBounds.filter(v => v.type === 'commercial').length,
+            byType: vesselsInBounds
+              .filter(v => v.type === 'commercial')
+              .reduce((acc, v) => {
+                const type = v.vesselType || 'unknown';
+                acc[type] = (acc[type] || 0) + 1;
+                return acc;
+              }, {} as Record<string, number>)
+          } : null;
+          
+          // Generate narrative with toggle logic
+          samplerNarrative = buildNarrativeWithToggles(
+            samplerStats,
+            layers_on,
+            gfwSummary
+          );
+          
+          console.log('Sampler stats:', samplerStats);
+          console.log('Narrative:', samplerNarrative);
+        }
+      } catch (error) {
+        console.error('Sampler failed, continuing with legacy analysis:', error);
+      }
       
       // Step 3: Extract REAL ocean data from tiles!
       
@@ -1056,7 +1114,21 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         edgeAnalysis: analysis.features && analysis.features.length > 0 
           ? processEdgesForAnalysis(analysis.features) 
           : undefined,
-        vessels: vesselsInBounds // Add actual vessel data for legend
+        vessels: vesselsInBounds, // Add actual vessel data for legend
+        // Add sampler data if available
+        ...(samplerStats ? {
+          stats: {
+            ...analysis.stats,
+            ...samplerStats // Override with real sampler stats
+          },
+          samplerStats,
+          narrative: samplerNarrative,
+          layers_on: [
+            ...(activeLayers.sst ? ['sst'] : []),
+            ...(activeLayers.chl ? ['chl'] : []),
+            ...(activeLayers.gfw ? ['gfw'] : [])
+          ]
+        } : {})
       };
       
       // Step 6: Store analysis but DON'T show modal yet
