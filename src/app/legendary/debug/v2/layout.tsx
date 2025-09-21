@@ -1,5 +1,5 @@
 "use client";
-import '../globals.css';
+import '@/app/globals.css';
 import { UIProvider, useUI } from '@/state/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -22,11 +22,11 @@ function HeaderBar(){
   const { sstOn, setSstOn, setSnipOn } = useUI() as any;
   return (
     <div className="h-14 border-b border-neutral-800 flex items-center justify-between px-4">
-      <div className="font-semibold tracking-wide">Always Bent (v2 sandbox)</div>
+      <div className="font-semibold tracking-wide">Always Bent (v2 debug sandbox)</div>
       <div className="flex items-center gap-2">
         <button className={`px-3 py-1 rounded ${sstOn?'bg-neutral-800':'hover:bg-neutral-800/60'}`} onClick={()=>{ setSstOn(!sstOn); setSnipOn(true); }}>SST</button>
         <button className="px-3 py-1 rounded bg-neutral-800/50 text-neutral-400" disabled>Chlorophyll</button>
-        <Link href="/v2/community" className={`px-3 py-1 rounded ${path.startsWith('/v2/community')?'bg-neutral-800':'hover:bg-neutral-800/60'}`}>Chat</Link>
+        <Link href="/legendary/debug/v2/community" className={`px-3 py-1 rounded ${path.startsWith('/legendary/debug/v2/community')?'bg-neutral-800':'hover:bg-neutral-800/60'}`}>Chat</Link>
       </div>
     </div>
   );

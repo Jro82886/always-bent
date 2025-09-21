@@ -8,6 +8,9 @@
     "@next/next/no-page-custom-font": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-empty-object-type": "off",
-    "prefer-const": "warn"
+    "prefer-const": "warn",
+    "no-restricted-imports": ["error", {
+      "patterns": ["@/app/legendary/debug/*", "@/app/legendary/debug/**/*"]
+    }]
   }
 }

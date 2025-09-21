@@ -1,11 +1,6 @@
-// SERVER: decide whether to show app shell or Welcome
-import { cookies } from 'next/headers';
+// src/app/legendary/page.tsx
 import { redirect } from 'next/navigation';
-import LegendaryShell from '@/components/LegendaryShell'; // whatever renders the tabs/app
 
-export default async function LegendaryRoot() {
-  const cookieStore = await cookies();
-  const onboarded = cookieStore.get('abfi_onboarded')?.value === '1';
-  if (!onboarded) redirect('/legendary/welcome');   // single server redirect; no blink
-  return <LegendaryShell />;
+export default function LegendaryIndex() {
+  redirect('/legendary/analysis');
 }

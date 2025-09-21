@@ -59,7 +59,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
         <div className="hidden lg:flex items-center h-16">
           {/* Brand (clickable → Analysis) */}
           <Link 
-            href="/legendary?mode=analysis"
+            href="/legendary"
             aria-label="Always Bent Home"
             className="px-6 flex items-center gap-3 h-full hover:bg-cyan-500/5 transition-colors group"
           >
@@ -89,7 +89,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           <div className="h-full w-px bg-cyan-500/10" />
           
           {/* Tabs (left-aligned) */}
-          <Tabs activeMode={currentTab as 'analysis' | 'tracking' | 'community' | 'trends'} />
+          <Tabs />
           
           {/* Spacer to push everything left */}
           <div className="flex-1" />
@@ -100,7 +100,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           {/* Top Row: Brand + Inlet */}
           <div className="flex items-center justify-between h-14 px-4">
             <Link 
-              href="/legendary?mode=analysis"
+              href="/legendary"
               aria-label="Always Bent Home"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
@@ -151,7 +151,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           {/* Top Row: Brand + Inlet (compact) */}
           <div className="flex items-center justify-between h-12 px-3">
             <Link 
-              href="/legendary?mode=analysis"
+              href="/legendary"
               aria-label="Always Bent Home"
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
