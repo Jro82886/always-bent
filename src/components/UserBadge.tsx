@@ -11,22 +11,14 @@ interface UserBadgeProps {
 }
 
 export default function UserBadge({ variant = 'compact', showBoat = true }: UserBadgeProps) {
+  // @ts-ignore - Memberstack types are incomplete
+  const { member } = useMemberstack() as any;
   const router = useRouter();
   const [userData, setUserData] = useState({
     captainName: '',
     boatName: '',
     initials: '',
   });
-  
-  // Try to use Memberstack, but handle when it's not available
-  let member = null;
-  try {
-    // @ts-ignore - Memberstack types are incomplete
-    const memberstackData = useMemberstack() as any;
-    member = memberstackData?.member;
-  } catch (error) {
-    // Not in MemberstackProvider, that's ok during build
-  }
 
   useEffect(() => {
     if (member) {

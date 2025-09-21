@@ -7,7 +7,7 @@ import { INLETS, DEFAULT_INLET, getInletById } from "@/lib/inlets";
 import { useAppState } from "@/store/appState";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { usePathname } from "next/navigation";
-import UserBadge from "@/components/UserBadge";
+import UserBadgeWrapper from "@/components/UserBadgeWrapper";
 
 /** Small helper for today's ISO (YYYY-MM-DD) */
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -236,7 +236,7 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
       
       {/* User Badge - Right side of command bridge */}
       <div className="ml-auto">
-        <UserBadge variant="compact" showBoat={false} />
+        <UserBadgeWrapper variant="compact" showBoat={false} />
       </div>
     </div>
   );
