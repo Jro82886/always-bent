@@ -4,11 +4,12 @@ import { MemberstackProvider as MSProvider } from '@memberstack/nextjs/client';
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useMemberstack } from '@memberstack/react';
+import dynamic from 'next/dynamic';
 
 // Your Memberstack app ID
 const MEMBERSTACK_APP_ID = process.env.NEXT_PUBLIC_MEMBERSTACK_APP_ID || 'app_cmfpavrtq00zb0wws6asv8xf3';
 
-function AuthSync() {
+function AuthSyncInner() {
   // @ts-ignore - Memberstack types are incomplete
   const { member, isLoading } = useMemberstack() as any;
   const router = useRouter();
@@ -52,6 +53,10 @@ function AuthSync() {
 
   return null;
 }
+
+const AuthSync = dynamic(() => Promise.resolve(AuthSyncInner), {
+  ssr: false
+});
 
 export default function MemberstackProvider({ children }: { children: React.ReactNode }) {
   return (
