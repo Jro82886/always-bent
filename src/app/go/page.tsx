@@ -14,8 +14,8 @@ export default function GoPage() {
       localStorage.setItem('abfi_boat_name', 'Demo Vessel');
       localStorage.setItem('abfi_username', 'DemoUser');
       
-      // Force redirect to the app
-      window.location.href = '/legendary/analysis';
+      // Force redirect to welcome page first
+      window.location.href = '/legendary/welcome';
     }
   }, []);
 
