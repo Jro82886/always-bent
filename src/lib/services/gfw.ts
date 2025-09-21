@@ -74,8 +74,8 @@ export async function searchGFWVesselsInArea(
   endDate: string
 ): Promise<GFWVessel[]> {
   if (!GFW_API_TOKEN) {
-    console.warn('GFW API token not configured, returning mock data');
-    return getMockGFWData(bounds);
+    console.error('GFW API token not configured');
+    throw new Error('GFW API not configured');
   }
 
   const [minLng, minLat, maxLng, maxLat] = bounds;
@@ -96,8 +96,10 @@ export async function searchGFWVesselsInArea(
     });
 
     if (!searchResponse.ok) {
-      console.error('GFW search error:', searchResponse.status);
-      return getMockGFWData(bounds);
+      if (searchResponse.status >= 500) {
+        throw new Error('GFW server down, try back later');
+      }
+      throw new Error(`GFW API error: ${searchResponse.status}`);
     }
 
     const searchData: GFWSearchResponse = await searchResponse.json();
@@ -129,10 +131,10 @@ export async function searchGFWVesselsInArea(
       }
     }
 
-    return vessels.length > 0 ? vessels : getMockGFWData(bounds);
+    return vessels;
   } catch (error) {
     console.error('Failed to fetch GFW data:', error);
-    return getMockGFWData(bounds);
+    throw error;
   }
 }
 
@@ -195,52 +197,6 @@ export async function getGFWVesselsInArea(
 ): Promise<GFWVessel[]> {
   // Use the search function which handles the v3 API properly
   return searchGFWVesselsInArea(bounds, startDate, endDate);
-}
-
-/**
- * Get mock GFW data for development/fallback
- */
-function getMockGFWData(bounds: [number, number, number, number]): GFWVessel[] {
-  const [minLng, minLat, maxLng, maxLat] = bounds;
-  
-  // Generate some mock commercial vessels
-  const vessels: GFWVessel[] = [];
-  const vesselTypes = ['Trawler', 'Longliner', 'Purse Seiner', 'Cargo', 'Tanker'];
-  const flags = ['USA', 'CAN', 'MEX', 'PAN', 'NOR'];
-  
-  for (let i = 0; i < 3; i++) {
-    const positions = [];
-    const startLng = minLng + Math.random() * (maxLng - minLng);
-    const startLat = minLat + Math.random() * (maxLat - minLat);
-    
-    // Generate a track with 10-20 points
-    const numPoints = 10 + Math.floor(Math.random() * 10);
-    for (let j = 0; j < numPoints; j++) {
-      const time = new Date();
-      time.setHours(time.getHours() - (numPoints - j) * 2);
-      
-      positions.push({
-        lon: startLng + (Math.random() - 0.5) * 0.1 * j,
-        lat: startLat + (Math.random() - 0.5) * 0.1 * j,
-        timestamp: time.toISOString(),
-        speed: 5 + Math.random() * 10,
-        course: Math.random() * 360
-      });
-    }
-    
-    vessels.push({
-      id: `gfw-mock-${i}`,
-      mmsi: `${338000000 + i}`,
-      name: `Commercial Vessel ${i + 1}`,
-      flag: flags[i % flags.length],
-      type: vesselTypes[i % vesselTypes.length],
-      length: 30 + Math.random() * 70,
-      tonnage: 100 + Math.random() * 900,
-      positions
-    });
-  }
-  
-  return vessels;
 }
 
 /**

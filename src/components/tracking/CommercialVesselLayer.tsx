@@ -67,9 +67,20 @@ export default function CommercialVesselLayer({
         ].join(',');
 
         const response = await fetch(`/api/gfw/vessels?bbox=${bbox}&inletId=${selectedInletId}&days=4`);
-        if (!response.ok) throw new Error('Failed to fetch commercial vessels');
-        
         const data = await response.json();
+        
+        if (!response.ok) {
+          // Handle specific error cases
+          if (data.message === 'GFW server down, try back later') {
+            console.error('GFW server is down');
+            // Could show a toast notification here
+          } else if (data.message === 'Vessel tracking service not available') {
+            console.error('GFW API not configured');
+          }
+          setVessels([]);
+          return;
+        }
+        
         setVessels(data.vessels || []);
       } catch (error) {
         console.error('Error fetching commercial vessels:', error);

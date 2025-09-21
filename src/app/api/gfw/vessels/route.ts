@@ -29,52 +29,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached.data);
     }
 
-    // If no token, return mock data
+    // If no token, return error
     if (!GFW_TOKEN) {
-      console.log('GFW API token not configured, returning mock data');
-      const mockData = {
-        vessels: [
-          {
-            id: 'mock-longliner-1',
-            name: 'Commercial Longliner Alpha',
-            type: 'longliner',
-            flag: 'USA',
-            length: 120,
-            positions: [
-              { lat: 40.85, lng: -71.95, timestamp: new Date().toISOString() }
-            ]
-          },
-          {
-            id: 'mock-trawler-1',
-            name: 'Atlantic Trawler',
-            type: 'trawler',
-            flag: 'USA',
-            length: 85,
-            positions: [
-              { lat: 41.05, lng: -71.65, timestamp: new Date().toISOString() }
-            ]
-          },
-          {
-            id: 'mock-drifter-1',
-            name: 'Drift Net Vessel',
-            type: 'driftnetter',
-            flag: 'USA',
-            length: 65,
-            positions: [
-              { lat: 40.95, lng: -71.75, timestamp: new Date().toISOString() }
-            ]
-          }
-        ]
-      };
-      
-      gfwCache.set(cacheKey, { data: mockData, timestamp: Date.now() });
-      return NextResponse.json(mockData);
+      console.error('GFW_API_TOKEN not configured');
+      return NextResponse.json(
+        { 
+          error: 'GFW API not configured',
+          message: 'Vessel tracking service not available',
+          vessels: []
+        },
+        { status: 503 }
+      );
     }
 
     // Parse bbox
     const [minLon, minLat, maxLon, maxLat] = bbox.split(',').map(Number);
     
-    // Calculate date range
+    // Calculate date range (4 days of history as per requirement)
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
@@ -98,6 +69,19 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      // Check if it's a server error
+      if (response.status >= 500) {
+        console.error('GFW server error:', response.status);
+        return NextResponse.json(
+          { 
+            error: 'GFW server error',
+            message: 'GFW server down, try back later',
+            vessels: []
+          },
+          { status: 503 }
+        );
+      }
+      
       console.error('GFW API error:', response.status, response.statusText);
       throw new Error(`GFW API error: ${response.status}`);
     }
@@ -105,7 +89,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
 
     // Transform GFW data to our format
-    const vessels = data.entries?.map((entry: any) => {
+    const vessels = (data.entries || []).map((entry: any) => {
       const vessel = entry.vessel || {};
       const positions = entry.positions || [];
       
@@ -124,28 +108,28 @@ export async function GET(request: NextRequest) {
         positions: positions.map((pos: any) => ({
           lat: pos.lat,
           lng: pos.lon,
-          timestamp: pos.timestamp,
-          speed: pos.speed,
-          course: pos.course
+          timestamp: pos.timestamp
         }))
       };
-    }) || [];
+    });
 
-    // Filter to only our target types
-    const filteredVessels = vessels.filter((v: any) => 
-      ['longliner', 'trawler', 'driftnetter'].includes(v.type)
-    );
-
-    const result = { vessels: filteredVessels };
+    const result = { vessels };
     
     // Cache the result
     gfwCache.set(cacheKey, { data: result, timestamp: Date.now() });
     
     return NextResponse.json(result);
+
   } catch (error) {
-    console.error('GFW vessels API error:', error);
+    console.error('GFW vessels error:', error);
+    
+    // Return empty vessels array with error message
     return NextResponse.json(
-      { error: 'Failed to fetch commercial vessels' },
+      { 
+        error: 'Failed to fetch vessel data',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        vessels: []
+      },
       { status: 500 }
     );
   }
