@@ -12,11 +12,13 @@ export interface Vessel {
   position: [number, number];
   type: 'user' | 'fleet' | 'commercial';
   inlet?: string;
+  inletColor?: string; // Color based on inlet association
   heading?: number;
   speed?: number;
   vesselType?: string; // For commercial vessels (Longliner, Trawler, etc.)
   lastUpdate?: Date;
   track?: [number, number][]; // Historical positions
+  hasReport?: boolean; // If vessel has submitted catch reports
 }
 
 export interface VesselFilters {
@@ -36,6 +38,9 @@ export interface VesselDataResult {
 let gfwCache: { data: Vessel[]; timestamp: number; bounds: string } | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+// Import inlet data
+import { INLETS } from '@/lib/inlets';
+
 // Mock data for fleet vessels (until real-time integration)
 const mockFleetVessels: Vessel[] = [
   { 
@@ -44,7 +49,9 @@ const mockFleetVessels: Vessel[] = [
     position: [-75.58, 35.22], 
     type: 'fleet', 
     inlet: 'nc-hatteras',
-    track: [[-75.60, 35.24], [-75.59, 35.23], [-75.58, 35.22]]
+    inletColor: INLETS.find(i => i.id === 'nc-hatteras')?.color || '#16a34a',
+    track: [[-75.60, 35.24], [-75.59, 35.23], [-75.58, 35.22]],
+    hasReport: true
   },
   { 
     id: 'fleet-2', 
@@ -52,7 +59,9 @@ const mockFleetVessels: Vessel[] = [
     position: [-75.62, 35.18], 
     type: 'fleet', 
     inlet: 'nc-hatteras',
-    track: [[-75.64, 35.20], [-75.63, 35.19], [-75.62, 35.18]]
+    inletColor: INLETS.find(i => i.id === 'nc-hatteras')?.color || '#16a34a',
+    track: [[-75.64, 35.20], [-75.63, 35.19], [-75.62, 35.18]],
+    hasReport: false
   },
   { 
     id: 'fleet-3', 
@@ -60,8 +69,31 @@ const mockFleetVessels: Vessel[] = [
     position: [-75.55, 35.25], 
     type: 'fleet', 
     inlet: 'nc-hatteras',
-    track: [[-75.53, 35.23], [-75.54, 35.24], [-75.55, 35.25]]
+    inletColor: INLETS.find(i => i.id === 'nc-hatteras')?.color || '#16a34a',
+    track: [[-75.53, 35.23], [-75.54, 35.24], [-75.55, 35.25]],
+    hasReport: true
   },
+  // Add vessels from different inlets
+  { 
+    id: 'fleet-4', 
+    name: 'Ocean Runner', 
+    position: [-75.09, 38.33], 
+    type: 'fleet', 
+    inlet: 'md-ocean-city',
+    inletColor: INLETS.find(i => i.id === 'md-ocean-city')?.color || '#059669',
+    track: [[-75.11, 38.35], [-75.10, 38.34], [-75.09, 38.33]],
+    hasReport: false
+  },
+  { 
+    id: 'fleet-5', 
+    name: 'Tuna Hunter', 
+    position: [-71.94, 41.07], 
+    type: 'fleet', 
+    inlet: 'ny-montauk',
+    inletColor: INLETS.find(i => i.id === 'ny-montauk')?.color || '#dc2626',
+    track: [[-71.96, 41.09], [-71.95, 41.08], [-71.94, 41.07]],
+    hasReport: true
+  }
 ];
 
 // Mock user vessel (until GPS integration)
@@ -147,23 +179,44 @@ async function fetchGFWVessels(bounds: [[number, number], [number, number]]): Pr
 
 /**
  * Get all vessels (for Tracking page)
+ * @param selectedInletId - Current inlet selection ('overview' or specific inlet)
  */
-export async function getAllVessels(): Promise<{ 
+export async function getAllVessels(selectedInletId?: string): Promise<{ 
   user: Vessel; 
   fleet: Vessel[]; 
   commercial: VesselDataResult;
 }> {
-  // For tracking page, use a wide area around the East Coast
-  const eastCoastBounds: [[number, number], [number, number]] = [
-    [-82.0, 24.0], // SW corner
-    [-65.0, 45.0]  // NE corner
-  ];
+  let bounds: [[number, number], [number, number]];
+  let filteredFleet = mockFleetVessels;
   
-  const commercialData = await fetchGFWVessels(eastCoastBounds);
+  if (!selectedInletId || selectedInletId === 'overview') {
+    // East Coast overview - show all vessels with their inlet colors
+    bounds = [[-82.0, 24.0], [-65.0, 45.0]];
+    // All fleet vessels shown with their respective inlet colors
+  } else {
+    // Specific inlet selected - filter fleet to that inlet
+    const inlet = INLETS.find(i => i.id === selectedInletId);
+    if (inlet) {
+      // Create bounds around inlet
+      const padding = 2.0; // degrees
+      bounds = [
+        [(inlet.lng || inlet.center[0]) - padding, (inlet.lat || inlet.center[1]) - padding],
+        [(inlet.lng || inlet.center[0]) + padding, (inlet.lat || inlet.center[1]) + padding]
+      ];
+      
+      // Filter fleet vessels to only those from this inlet
+      filteredFleet = mockFleetVessels.filter(v => v.inlet === selectedInletId);
+    } else {
+      // Fallback to East Coast
+      bounds = [[-82.0, 24.0], [-65.0, 45.0]];
+    }
+  }
+  
+  const commercialData = await fetchGFWVessels(bounds);
   
   return {
     user: mockUserVessel,
-    fleet: mockFleetVessels,
+    fleet: filteredFleet,
     commercial: commercialData
   };
 }
@@ -267,20 +320,40 @@ export function getVesselTrackingSummary(vessels: Vessel[], error?: string): str
   
   const parts = [];
   
+  // User vessel
+  if (userVessels.length > 0) {
+    parts.push('Your vessel in area');
+  }
+  
+  // Fleet vessels with inlet info
+  if (fleetVessels.length > 0) {
+    const inletGroups = fleetVessels.reduce((acc, v) => {
+      const inletId = v.inlet || 'unknown';
+      acc[inletId] = (acc[inletId] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const inletNames = Object.entries(inletGroups).map(([inletId, count]) => {
+      const inlet = INLETS.find(i => i.id === inletId);
+      return inlet ? `${count} from ${inlet.name}` : `${count} unknown`;
+    });
+    
+    parts.push(`${fleetVessels.length} inlet vessel${fleetVessels.length > 1 ? 's' : ''} (${inletNames.join(', ')})`);
+    
+    // Note if any have reports
+    const withReports = fleetVessels.filter(v => v.hasReport).length;
+    if (withReports > 0) {
+      parts.push(`${withReports} with catch report${withReports > 1 ? 's' : ''}`);
+    }
+  }
+  
+  // Commercial vessels
   if (commercialVessels.length > 0) {
     const types = commercialVessels
       .map(v => v.vesselType)
       .filter(Boolean);
     const uniqueTypes = [...new Set(types)];
     parts.push(`${commercialVessels.length} commercial vessel${commercialVessels.length > 1 ? 's' : ''} detected${uniqueTypes.length > 0 ? ` (${uniqueTypes.join(', ')})` : ''}`);
-  }
-  
-  if (fleetVessels.length > 0) {
-    parts.push(`${fleetVessels.length} fleet vessel${fleetVessels.length > 1 ? 's' : ''} nearby`);
-  }
-  
-  if (userVessels.length > 0) {
-    parts.push('Your vessel in area');
   }
   
   return parts.join('. ') + '.';
