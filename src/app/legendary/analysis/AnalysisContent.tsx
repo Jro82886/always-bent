@@ -200,11 +200,25 @@ function AnalysisModeContent() {
 
       // SST now wired by SSTLayer component when toggled
 
-      // Chlorophyll - back to Copernicus proxy
+      // Chlorophyll - use live WMTS if available
       if (!mapInstance.getSource('chl-src')) {
+        const chlWmtsTemplate = process.env.NEXT_PUBLIC_CHL_WMTS_TEMPLATE;
+        let chlUrl: string;
+        
+        if (chlWmtsTemplate) {
+          // Use live Copernicus WMTS - default to yesterday's data
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const timeStr = yesterday.toISOString().split('T')[0];
+          chlUrl = chlWmtsTemplate.replace('{TIME}', timeStr);
+        } else {
+          // Fall back to proxy endpoint
+          chlUrl = '/api/tiles/chl/{z}/{x}/{y}.png';
+        }
+        
         mapInstance.addSource('chl-src', {
           type: 'raster',
-          tiles: ['/api/tiles/chl/{z}/{x}/{y}.png'],  // Back to Copernicus
+          tiles: [chlUrl],
           tileSize: 256, // Standard tile size
           minzoom: 0,
           maxzoom: 24
