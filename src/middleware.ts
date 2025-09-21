@@ -23,27 +23,7 @@ const publicRoutes = [
 ];
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Check if user has the onboarded cookie (temporary auth check)
-  const isOnboarded = request.cookies.get('abfi_onboarded')?.value === '1';
-  
-  // Check if route requires protection
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
-  
-  // If trying to access protected route without auth, redirect to login
-  if (isProtectedRoute && !isOnboarded) {
-    const loginUrl = new URL('/auth/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-  
-  // If logged in and trying to access auth pages, redirect to app
-  if (isOnboarded && (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/register'))) {
-    return NextResponse.redirect(new URL('/legendary', request.url));
-  }
-  
+  // AUTHENTICATION DISABLED - All routes are accessible
   return NextResponse.next();
 }
 
