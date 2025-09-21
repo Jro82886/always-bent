@@ -11,6 +11,7 @@ import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';
 import TrackingToolbar from '@/components/tracking/TrackingToolbar';
 import TrackingLegend from '@/components/tracking/TrackingLegend';
+import GFWLegend from '@/components/tracking/GFWLegend';
 import InletRegions from '@/components/InletRegions';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
@@ -52,6 +53,14 @@ function TrackingModeContent() {
   
   // User position state
   const [userPosition, setUserPosition] = useState<{lat: number, lng: number, speed: number} | null>(null);
+  
+  // GFW vessel counts
+  const [gfwVesselCounts, setGfwVesselCounts] = useState<{
+    longliner: number;
+    drifting_longline: number;
+    trawler: number;
+    fishing_events: number;
+  }>({ longliner: 0, drifting_longline: 0, trawler: 0, fishing_events: 0 });
   
   // Handle position updates from VesselLayer
   const handlePositionUpdate = (position: { lat: number; lng: number; speed: number }) => {
@@ -238,6 +247,12 @@ function TrackingModeContent() {
         selectedInletId={selectedInletId}
       />
       
+      {/* GFW Legend - only when commercial vessels are shown */}
+      <GFWLegend 
+        showCommercial={showCommercial}
+        vesselCounts={gfwVesselCounts}
+      />
+      
       {/* Inlet Regions (glowing boundaries for nice entry visual) */}
       {mapFullyReady && (
         <InletRegions 
@@ -276,6 +291,7 @@ function TrackingModeContent() {
           showCommercial={showCommercial}
           showTracks={showCommercialTracks}
           selectedInletId={selectedInletId || ''}
+          onVesselCountsUpdate={setGfwVesselCounts}
         />
       )}
     </div>

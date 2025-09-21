@@ -50,15 +50,16 @@ export async function GET(request: NextRequest) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Build GFW API request
+    // Build GFW API request - only fishing vessels
     const params = new URLSearchParams({
-      'dataset': 'public-global-vessel-identity:v20231026',
-      'includes': 'vessel,positions',
-      'vessel-groups': 'longliner,trawler,driftnetter',
+      'dataset': 'public-global-fishing-vessels:latest',
+      'includes': 'vessel,positions,events',
+      'vessel-types': 'fishing',
+      'gear-types': 'trawlers,drifting_longlines,set_longlines,fixed_gear',
       'start-date': startDate.toISOString().split('T')[0],
       'end-date': endDate.toISOString().split('T')[0],
       'positions-bbox': bbox,
-      'limit': '50'
+      'limit': '100'
     });
 
     const response = await fetch(`${GFW_API_URL}?${params}`, {
@@ -93,11 +94,22 @@ export async function GET(request: NextRequest) {
       const vessel = entry.vessel || {};
       const positions = entry.positions || [];
       
-      // Determine vessel type
+      // Determine vessel type based on gear type
       let type = 'unknown';
-      if (vessel.geartype?.includes('longline')) type = 'longliner';
-      else if (vessel.geartype?.includes('trawl')) type = 'trawler';
-      else if (vessel.geartype?.includes('drift')) type = 'driftnetter';
+      const gearType = vessel.geartype?.toLowerCase() || '';
+      
+      if (gearType.includes('longline') || gearType.includes('set_longlines')) {
+        type = 'longliner';
+      } else if (gearType.includes('drifting_longlines')) {
+        type = 'drifting_longline';
+      } else if (gearType.includes('trawl')) {
+        type = 'trawler';
+      }
+      
+      // Check for fishing events
+      const fishingEvents = entry.events?.filter((e: any) => 
+        e.type === 'fishing' || e.type === 'apparent_fishing'
+      ) || [];
       
       return {
         id: vessel.id || entry.id,
@@ -109,6 +121,12 @@ export async function GET(request: NextRequest) {
           lat: pos.lat,
           lng: pos.lon,
           timestamp: pos.timestamp
+        })),
+        fishingEvents: fishingEvents.map((event: any) => ({
+          start: event.start,
+          end: event.end,
+          lat: event.position?.lat,
+          lng: event.position?.lon
         }))
       };
     });

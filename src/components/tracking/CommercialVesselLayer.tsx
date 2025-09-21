@@ -10,12 +10,18 @@ interface CommercialVesselLayerProps {
   showCommercial: boolean;
   showTracks: boolean;
   selectedInletId: string;
+  onVesselCountsUpdate?: (counts: {
+    longliner: number;
+    drifting_longline: number;
+    trawler: number;
+    fishing_events: number;
+  }) => void;
 }
 
 interface CommercialVessel {
   id: string;
   name: string;
-  type: 'longliner' | 'trawler' | 'driftnetter';
+  type: 'longliner' | 'drifting_longline' | 'trawler' | 'unknown';
   flag: string;
   length: number | null;
   positions: Array<{
@@ -25,13 +31,20 @@ interface CommercialVessel {
     speed?: number;
     course?: number;
   }>;
+  fishingEvents?: Array<{
+    start: string;
+    end: string;
+    lat?: number;
+    lng?: number;
+  }>;
 }
 
 export default function CommercialVesselLayer({ 
   map, 
   showCommercial,
   showTracks,
-  selectedInletId
+  selectedInletId,
+  onVesselCountsUpdate
 }: CommercialVesselLayerProps) {
   const commercialMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const [vessels, setVessels] = useState<CommercialVessel[]>([]);
@@ -42,6 +55,15 @@ export default function CommercialVesselLayer({
   useEffect(() => {
     if (!map || !showCommercial || !selectedInletId || selectedInletId === 'overview') {
       setVessels([]);
+      // Reset counts when hidden
+      if (onVesselCountsUpdate) {
+        onVesselCountsUpdate({
+          longliner: 0,
+          drifting_longline: 0,
+          trawler: 0,
+          fishing_events: 0
+        });
+      }
       return;
     }
 
@@ -70,7 +92,7 @@ export default function CommercialVesselLayer({
           inlet.lat! + padding
         ].join(',');
 
-        const response = await fetch(`/api/gfw/vessels?bbox=${bbox}&inletId=${selectedInletId}&days=4`);
+        const response = await fetch(`/api/gfw/vessels?bbox=${bbox}&inletId=${selectedInletId}&days=7`);
         const data = await response.json();
         
         if (!response.ok) {
@@ -99,6 +121,30 @@ export default function CommercialVesselLayer({
         
         const vesselsFound = data.vessels || [];
         setVessels(vesselsFound);
+        
+        // Calculate vessel counts
+        const counts = {
+          longliner: 0,
+          drifting_longline: 0,
+          trawler: 0,
+          fishing_events: 0
+        };
+        
+        vesselsFound.forEach((vessel: CommercialVessel) => {
+          if (vessel.type === 'longliner') counts.longliner++;
+          else if (vessel.type === 'drifting_longline') counts.drifting_longline++;
+          else if (vessel.type === 'trawler') counts.trawler++;
+          
+          // Count fishing events
+          if (vessel.fishingEvents && vessel.fishingEvents.length > 0) {
+            counts.fishing_events += vessel.fishingEvents.length;
+          }
+        });
+        
+        // Report counts to parent
+        if (onVesselCountsUpdate) {
+          onVesselCountsUpdate(counts);
+        }
         
         // Show info toast if no vessels found
         if (vesselsFound.length === 0 && showCommercial) {
@@ -144,11 +190,12 @@ export default function CommercialVesselLayer({
       const el = document.createElement('div');
       el.className = 'commercial-vessel-marker';
       
-      // Style based on vessel type
+      // Style based on vessel type - distinct colors
       const colors = {
-        longliner: '#ff9500', // orange
-        trawler: '#ffeb3b', // yellow
-        driftnetter: '#9c27b0' // purple
+        longliner: '#FF6B6B', // coral red
+        drifting_longline: '#4ECDC4', // turquoise
+        trawler: '#45B7D1', // ocean blue
+        unknown: '#95A5A6' // gray
       };
       
       const color = colors[vessel.type] || '#666';
@@ -156,20 +203,27 @@ export default function CommercialVesselLayer({
       el.innerHTML = `
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           ${vessel.type === 'longliner' ? `
-            <path d="M12 2L4 7V12C4 16.5 7 20.26 12 21C17 20.26 20 16.5 20 12V7L12 2Z" 
-              stroke="${color}" stroke-width="2" fill="${color}" opacity="0.3"/>
-            <path d="M12 2L4 7V12C4 16.5 7 20.26 12 21C17 20.26 20 16.5 20 12V7L12 2Z" 
+            <!-- Longliner: Hook and line icon -->
+            <path d="M12 2v10m0 0c0 2-2 4-4 4s-4-2-4-4 2-4 4-4m4 4c0 2 2 4 4 4s4-2 4-4-2-4-4-4" 
               stroke="${color}" stroke-width="2" fill="none"/>
+            <circle cx="12" cy="12" r="2" fill="${color}"/>
+          ` : vessel.type === 'drifting_longline' ? `
+            <!-- Drifting longline: Wavy line with hooks -->
+            <path d="M3 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0" 
+              stroke="${color}" stroke-width="2" fill="none"/>
+            <circle cx="6" cy="16" r="1.5" fill="${color}"/>
+            <circle cx="12" cy="16" r="1.5" fill="${color}"/>
+            <circle cx="18" cy="16" r="1.5" fill="${color}"/>
           ` : vessel.type === 'trawler' ? `
-            <rect x="4" y="8" width="16" height="8" rx="2" 
+            <!-- Trawler: Net icon -->
+            <path d="M12 3v6l-4 4v5h8v-5l-4-4V3" 
               stroke="${color}" stroke-width="2" fill="${color}" opacity="0.3"/>
-            <rect x="4" y="8" width="16" height="8" rx="2" 
+            <path d="M8 18c0 1.5 1.8 3 4 3s4-1.5 4-3" 
               stroke="${color}" stroke-width="2" fill="none"/>
           ` : `
-            <circle cx="12" cy="12" r="8" 
+            <!-- Unknown: Simple boat -->
+            <path d="M5 17L12 7l7 10M5 17h14" 
               stroke="${color}" stroke-width="2" fill="${color}" opacity="0.3"/>
-            <circle cx="12" cy="12" r="8" 
-              stroke="${color}" stroke-width="2" fill="none"/>
           `}
         </svg>
       `;
