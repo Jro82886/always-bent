@@ -8,10 +8,10 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/imagery", destination: "/analysis", permanent: false },
-      { source: "/v2/imagery", destination: "/analysis", permanent: false },
-      { source: "/home", destination: "/analysis", permanent: false },
-      { source: "/app", destination: "/analysis", permanent: false },
+      { source: "/imagery", destination: "/legendary/analysis", permanent: false },
+      { source: "/v2/imagery", destination: "/legendary/analysis", permanent: false },
+      { source: "/home", destination: "/", permanent: false },
+      { source: "/app", destination: "/legendary", permanent: false },
     ];
   },
 };
