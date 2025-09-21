@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useMemberstack } from '@memberstack/react';
@@ -8,6 +8,25 @@ import { useMemberstack } from '@memberstack/react';
 export const dynamic = 'force-dynamic';
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+        <div className="text-cyan-400 animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
+  return <RegisterForm />;
+}
+
+function RegisterForm() {
   const router = useRouter();
   const memberstack = useMemberstack();
   const [formData, setFormData] = useState({
