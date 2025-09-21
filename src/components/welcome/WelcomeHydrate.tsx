@@ -14,15 +14,23 @@ export default function WelcomeHydrate() {
       if (!key) return;
 
       if (key === 'join-community') {
-        localStorage.setItem('abfi_app_mode', 'community'); // UI hint only
-      } else if (key === 'solo-mode') {
-        localStorage.setItem('abfi_app_mode', 'solo');      // UI hint only
-      } else if (key === 'enter-abfi') {
-        // ✅ set server cookie, then go to /legendary
+        localStorage.setItem('abfi_app_mode', 'community');
+        // Set cookie and go to community
         await fetch('/api/session/onboard', { method: 'POST' });
-        router.replace('/legendary');
+        router.replace('/legendary/community/reports');
+      } else if (key === 'solo-mode') {
+        localStorage.setItem('abfi_app_mode', 'solo');
+        // Set cookie and go to analysis
+        await fetch('/api/session/onboard', { method: 'POST' });
+        router.replace('/legendary/analysis');
+      } else if (key === 'enter-abfi') {
+        // Set cookie and go to main app
+        await fetch('/api/session/onboard', { method: 'POST' });
+        router.replace('/legendary/analysis');
       } else if (key === 'take-tour') {
-        router.replace('/legendary/welcome?demo=true'); // optional
+        // For now, just go to analysis
+        await fetch('/api/session/onboard', { method: 'POST' });
+        router.replace('/legendary/analysis');
       }
     };
     document.addEventListener('click', onClick);
