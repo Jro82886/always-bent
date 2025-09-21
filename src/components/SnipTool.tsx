@@ -11,7 +11,7 @@ import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extract
 import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
 import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-analyzer';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
-import { getVesselsInBounds, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
+import { getVesselsInBoundsAsync, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
 import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
 
 interface SnipToolProps {
@@ -796,8 +796,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       ];
       
       // Get vessels from the shared data service
-      const vesselsInBounds = getVesselsInBounds(bounds);
-      const vesselSummary = getVesselTrackingSummary(vesselsInBounds);
+      setAnalysisStep('Fetching vessel data...');
+      const vesselResult = await getVesselsInBoundsAsync(bounds);
+      const vesselsInBounds = vesselResult.vessels;
+      const vesselSummary = getVesselTrackingSummary(vesselsInBounds, vesselResult.error);
       
       
       

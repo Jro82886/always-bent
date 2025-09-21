@@ -26,131 +26,192 @@ export interface VesselFilters {
   showTracks: boolean;
 }
 
-// Mock data for MVP - will be replaced with real-time data
-const mockVessels: {
-  user: Vessel;
-  fleet: Vessel[];
-  commercial: Vessel[];
-} = {
-  user: {
-    id: 'user-vessel',
-    name: 'Sea Hunter',
-    position: [-75.6, 35.2],
-    type: 'user',
-    heading: 45,
-    speed: 12,
-    track: [
-      [-75.6, 35.2],
-      [-75.58, 35.18],
-      [-75.55, 35.15],
-      [-75.52, 35.12]
-    ]
+export interface VesselDataResult {
+  vessels: Vessel[];
+  isLoading: boolean;
+  error?: string;
+}
+
+// Cache for GFW data
+let gfwCache: { data: Vessel[]; timestamp: number; bounds: string } | null = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Mock data for fleet vessels (until real-time integration)
+const mockFleetVessels: Vessel[] = [
+  { 
+    id: 'fleet-1', 
+    name: 'Reel Deal', 
+    position: [-75.58, 35.22], 
+    type: 'fleet', 
+    inlet: 'nc-hatteras',
+    track: [[-75.60, 35.24], [-75.59, 35.23], [-75.58, 35.22]]
   },
-  fleet: [
-    { 
-      id: 'fleet-1', 
-      name: 'Reel Deal', 
-      position: [-75.58, 35.22], 
-      type: 'fleet', 
-      inlet: 'nc-hatteras',
-      track: [[-75.60, 35.24], [-75.59, 35.23], [-75.58, 35.22]]
-    },
-    { 
-      id: 'fleet-2', 
-      name: 'Blue Water', 
-      position: [-75.62, 35.18], 
-      type: 'fleet', 
-      inlet: 'nc-hatteras',
-      track: [[-75.64, 35.20], [-75.63, 35.19], [-75.62, 35.18]]
-    },
-    { 
-      id: 'fleet-3', 
-      name: 'Fish Finder', 
-      position: [-75.55, 35.25], 
-      type: 'fleet', 
-      inlet: 'nc-hatteras',
-      track: [[-75.53, 35.23], [-75.54, 35.24], [-75.55, 35.25]]
-    },
-    { 
-      id: 'fleet-4', 
-      name: 'Lucky Strike', 
-      position: [-75.65, 35.15], 
-      type: 'fleet', 
-      inlet: 'nc-hatteras',
-      track: [[-75.67, 35.17], [-75.66, 35.16], [-75.65, 35.15]]
-    },
-    { 
-      id: 'fleet-5', 
-      name: 'Wave Runner', 
-      position: [-75.57, 35.21], 
-      type: 'fleet', 
-      inlet: 'nc-hatteras',
-      track: [[-75.55, 35.19], [-75.56, 35.20], [-75.57, 35.21]]
-    },
-  ],
-  commercial: [
-    { 
-      id: 'gfw-1', 
-      name: 'F/V Enterprise', 
-      position: [-75.7, 35.3], 
-      type: 'commercial', 
-      vesselType: 'Longliner',
-      track: [[-75.72, 35.32], [-75.71, 35.31], [-75.7, 35.3]]
-    },
-    { 
-      id: 'gfw-2', 
-      name: 'Lady Grace', 
-      position: [-75.5, 35.1], 
-      type: 'commercial', 
-      vesselType: 'Trawler',
-      track: [[-75.48, 35.08], [-75.49, 35.09], [-75.5, 35.1]]
-    },
-    { 
-      id: 'gfw-3', 
-      name: 'Ocean Pride', 
-      position: [-75.8, 35.4], 
-      type: 'commercial', 
-      vesselType: 'Seiner',
-      track: [[-75.82, 35.42], [-75.81, 35.41], [-75.8, 35.4]]
-    },
+  { 
+    id: 'fleet-2', 
+    name: 'Blue Water', 
+    position: [-75.62, 35.18], 
+    type: 'fleet', 
+    inlet: 'nc-hatteras',
+    track: [[-75.64, 35.20], [-75.63, 35.19], [-75.62, 35.18]]
+  },
+  { 
+    id: 'fleet-3', 
+    name: 'Fish Finder', 
+    position: [-75.55, 35.25], 
+    type: 'fleet', 
+    inlet: 'nc-hatteras',
+    track: [[-75.53, 35.23], [-75.54, 35.24], [-75.55, 35.25]]
+  },
+];
+
+// Mock user vessel (until GPS integration)
+const mockUserVessel: Vessel = {
+  id: 'user-vessel',
+  name: 'Sea Hunter',
+  position: [-75.6, 35.2],
+  type: 'user',
+  heading: 45,
+  speed: 12,
+  track: [
+    [-75.6, 35.2],
+    [-75.58, 35.18],
+    [-75.55, 35.15],
+    [-75.52, 35.12]
   ]
 };
 
 /**
- * Get all vessels (for Tracking page)
- * 
- * REAL DATA INTEGRATION POINT:
- * Replace mockVessels with actual data sources:
- * 
- * 1. USER VESSEL:
- *    - Source: Browser Geolocation API / Mobile GPS
- *    - Update frequency: Every 30 seconds when app is active
- *    - Store track history in localStorage/IndexedDB
- * 
- * 2. FLEET VESSELS:
- *    - Source: Supabase realtime subscription
- *    - Table: vessel_positions (user_id, position, timestamp)
- *    - Update when fleet members share location
- * 
- * 3. COMMERCIAL VESSELS:
- *    - Source: GFW API (api.globalfishingwatch.org)
- *    - Update frequency: Every 5 minutes
- *    - Filter by bounding box for performance
+ * Get commercial vessels from GFW API
  */
-export function getAllVessels(): { user: Vessel; fleet: Vessel[]; commercial: Vessel[] } {
-  // Using mock vessels for MVP - real AIS integration in phase 2
-  return mockVessels;
+async function fetchGFWVessels(bounds: [[number, number], [number, number]]): Promise<VesselDataResult> {
+  const [sw, ne] = bounds;
+  const bbox = `${sw[0]},${sw[1]},${ne[0]},${ne[1]}`;
+  const cacheKey = bbox;
+  
+  // Check cache
+  if (gfwCache && 
+      Date.now() - gfwCache.timestamp < CACHE_DURATION && 
+      gfwCache.bounds === cacheKey) {
+    return { vessels: gfwCache.data, isLoading: false };
+  }
+  
+  try {
+    const response = await fetch(`/api/gfw/vessels?bbox=${bbox}&days=4`);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      // Handle specific error cases
+      if (data.message === 'GFW server down, try back later') {
+        return { 
+          vessels: [], 
+          isLoading: false, 
+          error: 'GFW server down, try back later' 
+        };
+      } else if (data.message === 'Vessel tracking service not available') {
+        return { 
+          vessels: [], 
+          isLoading: false, 
+          error: 'Commercial vessel tracking not configured' 
+        };
+      }
+      throw new Error(data.message || 'Failed to fetch vessels');
+    }
+    
+    // Transform GFW data to our format
+    const vessels: Vessel[] = (data.vessels || []).map((v: any) => {
+      const latestPos = v.positions?.[v.positions.length - 1];
+      return {
+        id: v.id,
+        name: v.name || 'Unknown Vessel',
+        position: latestPos ? [latestPos.lng, latestPos.lat] : [0, 0],
+        type: 'commercial' as const,
+        vesselType: v.type,
+        speed: latestPos?.speed,
+        track: v.positions?.map((p: any) => [p.lng, p.lat]) || []
+      };
+    });
+    
+    // Cache the results
+    gfwCache = { data: vessels, timestamp: Date.now(), bounds: cacheKey };
+    
+    return { vessels, isLoading: false };
+  } catch (error) {
+    console.error('Error fetching GFW vessels:', error);
+    return { 
+      vessels: [], 
+      isLoading: false, 
+      error: error instanceof Error ? error.message : 'Failed to fetch vessels' 
+    };
+  }
+}
+
+/**
+ * Get all vessels (for Tracking page)
+ */
+export async function getAllVessels(): Promise<{ 
+  user: Vessel; 
+  fleet: Vessel[]; 
+  commercial: VesselDataResult;
+}> {
+  // For tracking page, use a wide area around the East Coast
+  const eastCoastBounds: [[number, number], [number, number]] = [
+    [-82.0, 24.0], // SW corner
+    [-65.0, 45.0]  // NE corner
+  ];
+  
+  const commercialData = await fetchGFWVessels(eastCoastBounds);
+  
+  return {
+    user: mockUserVessel,
+    fleet: mockFleetVessels,
+    commercial: commercialData
+  };
 }
 
 /**
  * Get vessels within a bounding box (for SnipTool analysis)
+ * Now returns loading state and error information
+ */
+export async function getVesselsInBoundsAsync(
+  bounds: [[number, number], [number, number]]
+): Promise<VesselDataResult> {
+  const [sw, ne] = bounds;
+  
+  // Get fleet vessels in bounds
+  const fleetInBounds = mockFleetVessels.filter(vessel => {
+    const [lng, lat] = vessel.position;
+    return lng >= sw[0] && lng <= ne[0] && lat >= sw[1] && lat <= ne[1];
+  });
+  
+  // Get user vessel if in bounds
+  const userInBounds = [];
+  const [userLng, userLat] = mockUserVessel.position;
+  if (userLng >= sw[0] && userLng <= ne[0] && userLat >= sw[1] && userLat <= ne[1]) {
+    userInBounds.push(mockUserVessel);
+  }
+  
+  // Fetch commercial vessels
+  const commercialResult = await fetchGFWVessels(bounds);
+  
+  // Combine all vessels
+  const allVessels = [...userInBounds, ...fleetInBounds, ...commercialResult.vessels];
+  
+  return {
+    vessels: allVessels,
+    isLoading: commercialResult.isLoading,
+    error: commercialResult.error
+  };
+}
+
+/**
+ * Legacy synchronous function for backward compatibility
+ * @deprecated Use getVesselsInBoundsAsync instead
  */
 export function getVesselsInBounds(bounds: [[number, number], [number, number]]): Vessel[] {
   const [sw, ne] = bounds;
   const allVessels = [
-    mockVessels.user,
-    ...mockVessels.fleet,
-    ...mockVessels.commercial
+    mockUserVessel,
+    ...mockFleetVessels
   ];
   
   return allVessels.filter(vessel => {
@@ -160,92 +221,87 @@ export function getVesselsInBounds(bounds: [[number, number], [number, number]])
 }
 
 /**
- * Get vessel style configuration for consistent rendering
+ * Get style properties for a vessel marker
  */
-export function getVesselStyle(vessel: Vessel, selectedInlet?: string) {
+export function getVesselStyle(vessel: Vessel): {
+  color: string;
+  icon: string;
+  size: number;
+} {
   switch (vessel.type) {
     case 'user':
-      return {
-        color: '#ffffff',
-        glow: 'rgba(14, 165, 233, 0.4)',
-        size: 14,
-        shape: 'circle',
-        pulse: true
-      };
-    
+      return { color: '#10B981', icon: 'user', size: 24 };
     case 'fleet':
-      const inletColor = getInletColor(vessel.inlet || selectedInlet || 'nc-hatteras');
-      const inletGlow = INLET_COLORS[vessel.inlet || selectedInlet || 'nc-hatteras']?.glow || 'rgba(255,255,255,0.3)';
-      return {
-        color: inletColor,
-        glow: inletGlow,
-        size: 10,
-        shape: 'circle',
-        pulse: false
+      return { 
+        color: vessel.inlet ? getInletColor(vessel.inlet) : '#3B82F6', 
+        icon: 'fleet', 
+        size: 20 
       };
-    
     case 'commercial':
-      return {
-        color: '#f39c12',
-        glow: 'rgba(243, 156, 18, 0.3)',
-        size: 12,
-        shape: 'triangle',
-        pulse: false
-      };
-  }
-}
-
-/**
- * Format vessel info for popup/analysis
- */
-export function formatVesselInfo(vessel: Vessel): string {
-  switch (vessel.type) {
-    case 'user':
-      return `YOUR VESSEL: ${vessel.name}
-Speed: ${vessel.speed} kts
-Heading: ${vessel.heading}°`;
-    
-    case 'fleet':
-      return `FLEET: ${vessel.name}
-Inlet: ${vessel.inlet}`;
-    
-    case 'commercial':
-      return `COMMERCIAL: ${vessel.name}
-Type: ${vessel.vesselType}`;
-    
+      return { color: '#F59E0B', icon: 'commercial', size: 20 };
     default:
-      return vessel.name;
+      return { color: '#6B7280', icon: 'default', size: 18 };
   }
 }
 
 /**
- * Get vessel tracking summary for analysis
+ * Generate a summary of vessel tracking for analysis reports
  */
-export function getVesselTrackingSummary(vessels: Vessel[]): {
-  userVessels: number;
-  fleetVessels: number;
-  commercialVessels: number;
-  totalVessels: number;
+export function getVesselTrackingSummary(vessels: Vessel[], error?: string): string {
+  if (error) {
+    if (error.includes('GFW server down')) {
+      return 'Commercial vessel tracking temporarily unavailable. GFW server down, try back later.';
+    } else if (error.includes('not configured')) {
+      return 'Commercial vessel tracking not available.';
+    }
+    return 'Unable to fetch vessel data.';
+  }
+  
+  if (!vessels || vessels.length === 0) {
+    return 'No vessels detected in this area.';
+  }
+  
+  const userVessels = vessels.filter(v => v.type === 'user');
+  const fleetVessels = vessels.filter(v => v.type === 'fleet');
+  const commercialVessels = vessels.filter(v => v.type === 'commercial');
+  
+  const parts = [];
+  
+  if (commercialVessels.length > 0) {
+    const types = commercialVessels
+      .map(v => v.vesselType)
+      .filter(Boolean);
+    const uniqueTypes = [...new Set(types)];
+    parts.push(`${commercialVessels.length} commercial vessel${commercialVessels.length > 1 ? 's' : ''} detected${uniqueTypes.length > 0 ? ` (${uniqueTypes.join(', ')})` : ''}`);
+  }
+  
+  if (fleetVessels.length > 0) {
+    parts.push(`${fleetVessels.length} fleet vessel${fleetVessels.length > 1 ? 's' : ''} nearby`);
+  }
+  
+  if (userVessels.length > 0) {
+    parts.push('Your vessel in area');
+  }
+  
+  return parts.join('. ') + '.';
+}
+
+/**
+ * Format vessel data for display in analysis results
+ */
+export function formatVesselData(vessels: Vessel[]): {
+  total: number;
+  byType: Record<string, number>;
   summary: string;
 } {
-  const userVessels = vessels.filter(v => v.type === 'user').length;
-  const fleetVessels = vessels.filter(v => v.type === 'fleet').length;
-  const commercialVessels = vessels.filter(v => v.type === 'commercial').length;
-  const totalVessels = vessels.length;
-  
-  let summary = '';
-  if (userVessels > 0) summary += `${userVessels} personal vessel${userVessels > 1 ? 's' : ''}, `;
-  if (fleetVessels > 0) summary += `${fleetVessels} ABFI fleet member${fleetVessels > 1 ? 's' : ''}, `;
-  if (commercialVessels > 0) summary += `${commercialVessels} commercial vessel${commercialVessels > 1 ? 's' : ''}`;
-  
-  // Clean up trailing comma
-  summary = summary.replace(/, $/, '');
+  const byType = vessels.reduce((acc, v) => {
+    acc[v.type] = (acc[v.type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
   
   return {
-    userVessels,
-    fleetVessels,
-    commercialVessels,
-    totalVessels,
-    summary: summary || 'No vessels detected'
+    total: vessels.length,
+    byType,
+    summary: getVesselTrackingSummary(vessels)
   };
 }

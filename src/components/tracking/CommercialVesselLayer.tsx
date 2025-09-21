@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { getInletById } from '@/lib/inlets';
+import { showToast } from '@/components/ui/Toast';
 
 interface CommercialVesselLayerProps {
   map: mapboxgl.Map | null;
@@ -34,6 +35,7 @@ export default function CommercialVesselLayer({
 }: CommercialVesselLayerProps) {
   const commercialMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const [vessels, setVessels] = useState<CommercialVessel[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const lastFetchRef = useRef<number>(0);
 
   // Fetch commercial vessels when inlet changes or layer is shown
@@ -52,6 +54,8 @@ export default function CommercialVesselLayer({
       if (lastFetch && now - lastFetch < 300000) return; // 5 minutes
       lastFetchRef.current = now;
 
+      setIsLoading(true);
+      
       try {
         // Get inlet bounds
         const inlet = getInletById(selectedInletId);
@@ -73,18 +77,43 @@ export default function CommercialVesselLayer({
           // Handle specific error cases
           if (data.message === 'GFW server down, try back later') {
             console.error('GFW server is down');
-            // Could show a toast notification here
+            showToast({
+              type: 'error',
+              title: 'Vessel Tracking Unavailable',
+              message: 'GFW server is down. Please try again later.',
+              duration: 7000
+            });
           } else if (data.message === 'Vessel tracking service not available') {
             console.error('GFW API not configured');
+            showToast({
+              type: 'warning',
+              title: 'Commercial Vessels Unavailable',
+              message: 'Vessel tracking service is not configured.',
+              duration: 7000
+            });
           }
           setVessels([]);
+          setIsLoading(false);
           return;
         }
         
-        setVessels(data.vessels || []);
+        const vesselsFound = data.vessels || [];
+        setVessels(vesselsFound);
+        
+        // Show info toast if no vessels found
+        if (vesselsFound.length === 0 && showCommercial) {
+          showToast({
+            type: 'info',
+            title: 'No Commercial Vessels',
+            message: 'No commercial vessels detected in this area.',
+            duration: 5000
+          });
+        }
       } catch (error) {
         console.error('Error fetching commercial vessels:', error);
         setVessels([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
