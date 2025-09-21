@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
+import { INLETS } from '@/lib/inlets';
+import { getAllVessels } from '@/lib/vessels/vesselDataService';
 
 interface RecBoatsClusteringProps {
   map: mapboxgl.Map | null;
@@ -173,10 +175,19 @@ export default function RecBoatsClustering({
         source: 'rec-vessels',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': '#00C7B7',  // Teal for boats
-          'circle-radius': 6,         // Bigger for easier clicks
-          'circle-stroke-width': 1.25,
-          'circle-stroke-color': '#001015'
+          'circle-color': [
+            'case',
+            // Match inlet_id to inlet colors
+            ...INLETS.flatMap(inlet => [
+              ['==', ['get', 'inlet_id'], inlet.id],
+              inlet.color || '#00C7B7'
+            ]),
+            '#00C7B7' // Default teal for unknown inlets
+          ],
+          'circle-radius': 8,         // Bigger for visibility
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.8
         }
       });
 

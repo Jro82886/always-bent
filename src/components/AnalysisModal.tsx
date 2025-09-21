@@ -5,6 +5,7 @@ import { X, Target, Waves, Thermometer, Activity, Save } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { getAnalysisQuote } from '@/lib/philosophy';
 import { hardResetSnip } from '@/components/SnipController';
+import VesselAnalysisLegend from '@/components/analysis/VesselAnalysisLegend';
 import '@/styles/analysis-glow.css';
 
 interface AnalysisModalProps {
@@ -255,6 +256,13 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                 <Activity size={18} className="text-orange-400" />
                 Vessel Activity (Last 4 Days)
               </h4>
+              
+              {/* Vessel Legend */}
+              {(analysis as any).vessels && (analysis as any).vessels.length > 0 && (
+                <div className="mb-4">
+                  <VesselAnalysisLegend vessels={(analysis as any).vessels} />
+                </div>
+              )}
               <div className="space-y-3">
                 {vesselTracks.recreational > 0 && (
                   <div className="flex items-center justify-between">

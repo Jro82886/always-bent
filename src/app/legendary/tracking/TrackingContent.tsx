@@ -10,7 +10,7 @@ import VesselLayerClean from '@/components/tracking/VesselLayerClean';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';
 import TrackingToolbar from '@/components/tracking/TrackingToolbar';
-import TrackingLegend from '@/components/tracking/TrackingLegend';
+import EnhancedTrackingLegend from '@/components/tracking/EnhancedTrackingLegend';
 import GFWLegend from '@/components/tracking/GFWLegend';
 import InletRegions from '@/components/InletRegions';
 import { useAppState } from '@/store/appState';
@@ -62,10 +62,29 @@ function TrackingModeContent() {
     fishing_events: number;
   }>({ longliner: 0, drifting_longline: 0, trawler: 0, fishing_events: 0 });
   
+  // Fleet vessels state
+  const [fleetVessels, setFleetVessels] = useState<Array<{
+    id: string;
+    inlet?: string;
+    inletColor?: string;
+    hasReport?: boolean;
+  }>>([]);
+  
   // Handle position updates from VesselLayer
   const handlePositionUpdate = (position: { lat: number; lng: number; speed: number }) => {
     setUserPosition(position);
   };
+  
+  // Fetch fleet vessels when inlet changes
+  useEffect(() => {
+    const fetchFleetVessels = async () => {
+      const { getAllVessels } = await import('@/lib/vessels/vesselDataService');
+      const vesselData = await getAllVessels(selectedInletId || undefined);
+      setFleetVessels(vesselData.fleet);
+    };
+    
+    fetchFleetVessels();
+  }, [selectedInletId]);
   
   // Initialize map ONCE - no dependencies
   useEffect(() => {
@@ -243,8 +262,12 @@ function TrackingModeContent() {
       />
       
       {/* Right Legend - always visible */}
-      <TrackingLegend 
+      <EnhancedTrackingLegend 
         selectedInletId={selectedInletId}
+        showYou={showYou}
+        showFleet={showFleet}
+        userPosition={userPosition}
+        fleetVessels={fleetVessels}
       />
       
       {/* GFW Legend - only when commercial vessels are shown */}

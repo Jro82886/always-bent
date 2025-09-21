@@ -1055,7 +1055,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         ...analysisWithVessels,
         edgeAnalysis: analysis.features && analysis.features.length > 0 
           ? processEdgesForAnalysis(analysis.features) 
-          : undefined
+          : undefined,
+        vessels: vesselsInBounds // Add actual vessel data for legend
       };
       
       // Step 6: Store analysis but DON'T show modal yet
