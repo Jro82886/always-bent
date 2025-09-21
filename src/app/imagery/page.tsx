@@ -1,12 +1,17 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { MapShell } from '@/lib/MapRef';
 import NavTabsWrapper from '@/components/NavTabsWrapper';
-import TopHUD from '@/components/TopHUD';
 import StatusPill from '@/components/StatusPill';
 import RequireUsername from '@/components/RequireUsername';
 import LayersRuntime from '@/components/LayersRuntime';
 import AnalyzeBar from '@/components/AnalyzeBar';
+
+const TopHUD = dynamic(() => import('@/components/TopHUD'), {
+  ssr: false,
+  loading: () => null
+});
 
 export default function ImageryPage() {
   return (

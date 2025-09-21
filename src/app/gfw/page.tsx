@@ -1,8 +1,13 @@
 'use client';
 
-import TopHUD from '@/components/TopHUD';
+import dynamic from 'next/dynamic';
 import RequireUsername from '@/components/RequireUsername';
 import NavTabsWrapper from '@/components/NavTabsWrapper';
+
+const TopHUD = dynamic(() => import('@/components/TopHUD'), {
+  ssr: false,
+  loading: () => null
+});
 
 export default function GfwPage() {
   const placeholder = 'https://example.com';
