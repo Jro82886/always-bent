@@ -12,7 +12,7 @@ NEXT_PUBLIC_MEMBERSTACK_APP_ID=app_cmfpavrtq00zb0wws6asv8xf3
 
 ### 2. **Database & Backend**
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://zspnmxnhclhxusmqyxmj.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://hobvjmmambhonsugehge.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[Your Supabase Anon Key]
 DATABASE_URL=[Your Database URL]
 ```
