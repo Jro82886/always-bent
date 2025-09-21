@@ -29,6 +29,15 @@ const SpeciesFilter = dynamic(() => import('@/components/reports/SpeciesFilter')
   ssr: false
 });
 
+const WeatherCard = dynamic(() => import('@/components/community/WeatherCard'), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-slate-900/50 backdrop-blur rounded-xl border border-cyan-500/20 p-6">
+      <div className="h-32 animate-pulse bg-slate-800/50 rounded"></div>
+    </div>
+  )
+});
+
 function ReportsContent() {
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const searchParams = useSearchParams();

@@ -2,7 +2,18 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import CommunityWrapper from './CommunityWrapper';
+
+// Dynamic import for WeatherCard
+const WeatherCard = dynamic(() => import('@/components/community/WeatherCard'), {
+  ssr: false,
+  loading: () => (
+    <div className="bg-slate-900/50 backdrop-blur rounded-xl border border-cyan-500/20 p-6">
+      <div className="h-32 animate-pulse bg-slate-800/50 rounded"></div>
+    </div>
+  )
+});
 
 // Community components no longer use searchParams - static optimization enabled!
 // No force-dynamic needed - we fixed the root cause!
@@ -49,9 +60,17 @@ export default function CommunityLayout({
         </Link>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        {children}
+      {/* Content with Weather Sidebar on Desktop */}
+      <div className="flex-1 overflow-hidden flex">
+        {/* Main Content */}
+        <div className="flex-1 overflow-hidden">
+          {children}
+        </div>
+        
+        {/* Weather Sidebar - Desktop Only */}
+        <div className="hidden lg:block w-80 bg-slate-950/50 border-l border-cyan-500/20 p-4 overflow-y-auto">
+          <WeatherCard />
+        </div>
       </div>
 
       {/* Mobile Bottom Tabs */}

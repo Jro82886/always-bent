@@ -1,42 +1,68 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getInletWeather, fetchBuoyData, INLET_BUOY_MAP } from '@/lib/weather/noaa';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const inletId = searchParams.get('inlet');
-    const stationId = searchParams.get('station');
     
-    // Direct station query
-    if (stationId) {
-      const data = await fetchBuoyData(stationId);
-      if (!data) {
-        return NextResponse.json(
-          { error: 'No data available for station' },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json(data);
+    if (!inletId) {
+      return NextResponse.json(
+        { error: 'inlet parameter is required' },
+        { status: 400 }
+      );
     }
     
-    // Inlet-based query
-    if (inletId) {
-      const weather = await getInletWeather(inletId);
-      return NextResponse.json(weather);
+    // Get inlet coordinates
+    const { getInletById } = await import('@/lib/inlets');
+    const inlet = getInletById(inletId);
+    
+    if (!inlet) {
+      return NextResponse.json(
+        { error: 'Invalid inlet ID' },
+        { status: 400 }
+      );
     }
     
-    // Return all available stations
-    const stations = Object.entries(INLET_BUOY_MAP)
-      .filter(([key]) => key !== 'default')
-      .map(([inletId, config]) => ({
-        inlet_id: inletId,
-        inlet_name: inletId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        station_id: config.primary,
-        station_name: config.name,
-        backup_station: config.backup
-      }));
+    const [lng, lat] = inlet.center;
     
-    return NextResponse.json({ stations });
+    // Use the StormGlass API through our stormio endpoint
+    const stormioResponse = await fetch(
+      `${req.nextUrl.origin}/api/stormio?lat=${lat}&lng=${lng}`,
+      { cache: 'no-store' }
+    );
+    
+    if (!stormioResponse.ok) {
+      throw new Error('Failed to fetch weather data');
+    }
+    
+    const stormData = await stormioResponse.json();
+    
+    // Transform StormGlass data to match LiveWeatherWidget format
+    const weatherData = {
+      waves: {
+        height: stormData.weather?.swellFt || 2.5,
+        period: stormData.weather?.swellPeriodS || 10,
+        direction: getDirectionDegrees(stormData.weather?.windDir || 'N')
+      },
+      water: {
+        temperature: toF(stormData.weather?.sstC || 22)
+      },
+      wind: {
+        speed: stormData.weather?.windKt || 10,
+        direction: getDirectionDegrees(stormData.weather?.windDir || 'N')
+      },
+      pressure: {
+        value: stormData.weather?.pressureHpa || 1013,
+        trend: stormData.weather?.pressureTrend || 'steady'
+      },
+      source: stormData.sources?.[0] || { id: 'stormglass', status: 'ok' },
+      lastUpdate: stormData.lastIso || new Date().toISOString()
+    };
+    
+    return NextResponse.json(weatherData);
     
   } catch (error) {
     console.error('Weather API error:', error);
@@ -47,7 +73,18 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-// Cache weather data for 10 minutes
-export const revalidate = 600;
+// Helper to convert compass direction to degrees
+function getDirectionDegrees(dir: string): number {
+  const directions: Record<string, number> = {
+    'N': 0, 'NNE': 22.5, 'NE': 45, 'ENE': 67.5,
+    'E': 90, 'ESE': 112.5, 'SE': 135, 'SSE': 157.5,
+    'S': 180, 'SSW': 202.5, 'SW': 225, 'WSW': 247.5,
+    'W': 270, 'WNW': 292.5, 'NW': 315, 'NNW': 337.5
+  };
+  return directions[dir] || 0;
+}
+
+// Convert Celsius to Fahrenheit
+function toF(c: number): number {
+  return Math.round((c * 9) / 5 + 32);
+}

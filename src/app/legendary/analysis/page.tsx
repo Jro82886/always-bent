@@ -12,6 +12,19 @@ const AnalysisContent = dynamic(() => import('./AnalysisContent'), {
   ),
 });
 
+// Load debug component only in development or with ?debug=true
+const SnipToolDebug = dynamic(() => import('@/components/SnipToolDebug'), {
+  ssr: false
+});
+
 export default function AnalysisPage() {
-  return <AnalysisContent />;
+  const showDebug = process.env.NODE_ENV === 'development' || 
+    (typeof window !== 'undefined' && window.location.search.includes('debug=true'));
+
+  return (
+    <>
+      <AnalysisContent />
+      {showDebug && <SnipToolDebug />}
+    </>
+  );
 }
