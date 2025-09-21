@@ -11,14 +11,30 @@ interface UserBadgeProps {
 }
 
 export default function UserBadge({ variant = 'compact', showBoat = true }: UserBadgeProps) {
-  // @ts-ignore - Memberstack types are incomplete
-  const { member } = useMemberstack() as any;
   const router = useRouter();
   const [userData, setUserData] = useState({
     captainName: '',
     boatName: '',
     initials: '',
   });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render anything until mounted
+  if (!mounted) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-slate-700 animate-pulse" />
+      </div>
+    );
+  }
+
+  // Now safe to use hooks
+  // @ts-ignore - Memberstack types are incomplete  
+  const { member } = useMemberstack() as any;
 
   useEffect(() => {
     if (member) {

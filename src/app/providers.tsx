@@ -1,14 +1,14 @@
 'use client';
 
 import { AuthProvider } from '@/lib/supabase/AuthProvider';
-import MemberstackProvider from '@/components/providers/MemberstackProvider';
+import ClientOnlyMemberstack from '@/components/providers/ClientOnlyMemberstack';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <MemberstackProvider>
+    <ClientOnlyMemberstack>
       <AuthProvider>
         {children}
       </AuthProvider>
-    </MemberstackProvider>
+    </ClientOnlyMemberstack>
   );
 }

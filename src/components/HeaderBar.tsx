@@ -235,9 +235,10 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
       ) : null}
       
       {/* User Badge - Right side of command bridge */}
-      <div className="ml-auto">
+      {/* Temporarily disabled to fix hydration error */}
+      {/* <div className="ml-auto">
         <UserBadgeWrapper variant="compact" showBoat={false} />
-      </div>
+      </div> */}
     </div>
   );
 }
