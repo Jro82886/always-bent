@@ -15,6 +15,10 @@ const publicRoutes = [
   '/auth/register',
   '/auth/forgot-password',
   '/legendary/welcome',
+  '/demo',
+  '/test',
+  '/simple',
+  '/go',
   '/'
 ];
 
