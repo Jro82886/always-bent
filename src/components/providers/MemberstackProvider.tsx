@@ -59,6 +59,11 @@ const AuthSync = dynamic(() => Promise.resolve(AuthSyncInner), {
 });
 
 export default function MemberstackProvider({ children }: { children: React.ReactNode }) {
+  // Only render provider on client
+  if (typeof window === 'undefined') {
+    return <>{children}</>;
+  }
+  
   return (
     <MSProvider config={{ publicKey: MEMBERSTACK_APP_ID }}>
       <AuthSync />
