@@ -38,10 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`min-h-screen w-full bg-gray-950 text-neutral-100 antialiased ${geistSans.variable} ${geistMono.variable}`}
       >
           <Providers>
-            <GuardsClient />
-            <BiteSyncInitializer />
+            {/* <GuardsClient /> */}
+            {/* <BiteSyncInitializer /> */}
             {children}
-            <BetaFeedback />
+            {/* <BetaFeedback /> */}
             <Toaster 
               position="bottom-center"
               toastOptions={{
