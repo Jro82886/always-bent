@@ -1,0 +1,5 @@
+# Add this to your .env.local and Vercel environment variables:
+
+NEXT_PUBLIC_FLAG_REPORTS_CONTRACT=true
+
+# This enables the Save/Share pills in the SnipTool analysis modal
