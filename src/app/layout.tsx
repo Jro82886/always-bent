@@ -7,6 +7,7 @@ import GuardsClient from '@/components/GuardsClient';
 import BiteSyncInitializer from '@/components/BiteSyncInitializer';
 import BetaFeedback from '@/components/BetaFeedback';
 import { Toaster } from 'sonner';
+import { Providers } from './providers';
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
@@ -36,20 +37,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`min-h-screen w-full bg-gray-950 text-neutral-100 antialiased ${geistSans.variable} ${geistMono.variable}`}
       >
-          <GuardsClient />
-          <BiteSyncInitializer />
-          {children}
-          <BetaFeedback />
-          <Toaster 
-            position="bottom-center"
-            toastOptions={{
-              style: {
-                background: '#0b1220',
-                color: '#fff',
-                border: '1px solid rgba(0, 221, 235, 0.3)',
-              },
-            }}
-          />
+          <Providers>
+            <GuardsClient />
+            <BiteSyncInitializer />
+            {children}
+            <BetaFeedback />
+            <Toaster 
+              position="bottom-center"
+              toastOptions={{
+                style: {
+                  background: '#0b1220',
+                  color: '#fff',
+                  border: '1px solid rgba(0, 221, 235, 0.3)',
+                },
+              }}
+            />
+          </Providers>
       </body>
     </html>
   );
