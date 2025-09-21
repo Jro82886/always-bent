@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { analyzeOceanConditions } from '@/lib/ocean/analysis';
+import { getIdentityForUser, shouldHighlight } from '@/lib/reports/enrichIdentity';
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,6 +72,9 @@ export async function POST(request: NextRequest) {
           continue;
         }
         
+        // Get user identity for the bite
+        const identity = await getIdentityForUser(supabase, bite.user_id || user.id);
+        
         // Prepare bite payload for unified reports table
         const bitePayload = {
           kind: 'bite',
@@ -82,12 +86,14 @@ export async function POST(request: NextRequest) {
           context: bite.context || {},
           captured_at: new Date(bite.created_at_ms).toISOString(),
           source_offline: true,
+          identity, // Add captain and boat info
+          species: bite.species || [],
+          highlight: false, // Will be determined after analysis
           // Original bite data
           bite_id: bite.bite_id,
           user_name: bite.user_name,
           notes: bite.notes,
           fish_on: bite.fish_on,
-          species: bite.species,
           device_tz: bite.device_tz,
           app_version: bite.app_version
         };
@@ -231,14 +237,18 @@ async function queueBiteAnalysis(bite: any) {
       .single();
     
     if (reportRecord) {
+      // Update payload with analysis and determine highlight
+      const updatedPayload = {
+        ...bite,
+        analysis: report,
+        highlight: shouldHighlight({ ...bite, analysis: report })
+      };
+      
       await supabase
         .from('reports')
         .update({
           status: 'complete',
-          payload_json: {
-            ...bite,
-            analysis: report
-          }
+          payload_json: updatedPayload
         })
         .eq('id', reportRecord.id);
       
