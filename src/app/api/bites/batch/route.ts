@@ -71,27 +71,67 @@ export async function POST(request: NextRequest) {
           continue;
         }
         
-        // Store the bite
+        // Prepare bite payload for unified reports table
+        const bitePayload = {
+          kind: 'bite',
+          coords: { 
+            lat: bite.lat, 
+            lon: bite.lon, 
+            accuracy_m: bite.accuracy_m 
+          },
+          context: bite.context || {},
+          captured_at: new Date(bite.created_at_ms).toISOString(),
+          source_offline: true,
+          // Original bite data
+          bite_id: bite.bite_id,
+          user_name: bite.user_name,
+          notes: bite.notes,
+          fish_on: bite.fish_on,
+          species: bite.species,
+          device_tz: bite.device_tz,
+          app_version: bite.app_version
+        };
+
+        // Store in unified reports table
         const { error: insertError } = await supabase
-          .from('bite_reports')
+          .from('reports')
           .insert({
-            bite_id: bite.bite_id,
-            user_id: bite.user_id,
-            user_name: bite.user_name,
-            created_at: new Date(bite.created_at_ms).toISOString(),
-            location: `POINT(${bite.lon} ${bite.lat})`,
-            lat: bite.lat,
-            lon: bite.lon,
-            accuracy_m: bite.accuracy_m,
-            inlet_id: bite.inlet_id,
-            context: bite.context,
-            notes: bite.notes,
-            fish_on: bite.fish_on,
-            species: bite.species,
-            device_tz: bite.device_tz,
-            app_version: bite.app_version,
-            status: 'pending_analysis'
+            user_id: bite.user_id || user.id,
+            inlet_id: bite.inlet_id || 'unknown',
+            type: 'bite',
+            status: 'queued', // Will be updated to 'complete' after analysis
+            source: 'offline',
+            payload_json: bitePayload,
+            meta: {
+              bite_id: bite.bite_id,
+              synced_at: new Date().toISOString(),
+              client: { app: 'abfi', version: bite.app_version }
+            }
           });
+        
+        // Also store in bite_reports for backward compatibility during transition
+        if (!insertError) {
+          await supabase
+            .from('bite_reports')
+            .insert({
+              bite_id: bite.bite_id,
+              user_id: bite.user_id,
+              user_name: bite.user_name,
+              created_at: new Date(bite.created_at_ms).toISOString(),
+              location: `POINT(${bite.lon} ${bite.lat})`,
+              lat: bite.lat,
+              lon: bite.lon,
+              accuracy_m: bite.accuracy_m,
+              inlet_id: bite.inlet_id,
+              context: bite.context,
+              notes: bite.notes,
+              fish_on: bite.fish_on,
+              species: bite.species,
+              device_tz: bite.device_tz,
+              app_version: bite.app_version,
+              status: 'pending_analysis'
+            });
+        }
         
         if (insertError) {
           
@@ -182,6 +222,34 @@ async function queueBiteAnalysis(bite: any) {
         confidence_score: report.confidence_score,
       })
       .eq('bite_id', bite.bite_id);
+    
+    // Also update unified reports table
+    const { data: reportRecord } = await supabase
+      .from('reports')
+      .select('id')
+      .eq('meta->>bite_id', bite.bite_id)
+      .single();
+    
+    if (reportRecord) {
+      await supabase
+        .from('reports')
+        .update({
+          status: 'complete',
+          payload_json: {
+            ...bite,
+            analysis: report
+          }
+        })
+        .eq('id', reportRecord.id);
+      
+      console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        service: 'bite-sync',
+        action: 'bite_sync_completed',
+        bite_id: bite.bite_id,
+        report_id: reportRecord.id
+      }));
+    }
     
     
     
