@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Target } from 'lucide-react';
 import { recordBite } from '@/lib/offline/biteDB';
 import { showToast } from '@/components/ui/Toast';
