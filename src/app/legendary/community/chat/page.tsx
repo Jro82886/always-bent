@@ -160,7 +160,7 @@ export default function ChatPage() {
                   <ChevronLeft className="w-5 h-5 text-slate-400" />
                 </button>
                 <h2 className="text-white font-medium flex-1">{currentRoom?.name}</h2>
-                <span className="text-xs text-slate-500">{currentRoom?.online} online</span>
+                <span className="text-xs text-slate-500">Chat</span>
               </div>
             </div>
             <div className="flex-1">

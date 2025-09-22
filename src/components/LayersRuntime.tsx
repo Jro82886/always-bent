@@ -116,7 +116,7 @@ export default function LayersRuntime() {
       wireMoveRefresh(map, effective as any, isoDate, fn => (unwireRef.current = fn));
     } else {
       // For XYZ layers (e.g., SST), refresh once after the current flyTo completes
-      const once = () => refreshOnDate(map, effective as any, isoDate, null);
+      const once = () => refreshOnDate(map, effective as any, isoDate || '', null);
       map.once("moveend", once);
       unwireRef.current = () => { /* one-shot */ };
     }

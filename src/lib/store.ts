@@ -17,7 +17,7 @@ interface AppState {
   activeRaster: 'sst' | 'chl' | 'abfi' | null;
   username: string | null;
   communityBadge: number;
-  hydrateOnce: boolean;
+  hydrateOnce: () => void;
   
   // Setters for existing state
   setSelectedInletId: (id: string | null) => void;
@@ -66,11 +66,11 @@ export const useAppState = create<AppState>((set, get) => ({
   isoDate: new Date().toISOString().split('T')[0],
   user: null,
   
-  // Legacy state
+  // Legacy state (temporary for compatibility)
   activeRaster: null,
   username: null,
   communityBadge: 0,
-  hydrateOnce: false,
+  hydrateOnce: () => {},  // no-op function for legacy compatibility
   
   // Setters for existing state
   setSelectedInletId: (id) => set({ selectedInletId: id }),
