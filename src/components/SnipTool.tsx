@@ -492,6 +492,32 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
   const currentPolygon = useRef<any>(null);
+  
+  // Helper functions for enabling/disabling drawing (single source of truth)
+  const enableDrawing = useCallback((mapInstance?: mapboxgl.Map) => {
+    const m = mapInstance || map;
+    if (!m) return;
+    m.getCanvas().style.cursor = 'crosshair';
+    set((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        showReviewCta: false,
+        isZoomingToSnip: false,
+      }
+    }));
+    setIsDrawing(true);
+    setStatus('idle');
+    console.log('[SnipFlow] Drawing enabled');
+  }, [map, set]);
+  
+  const disableDrawing = useCallback((mapInstance?: mapboxgl.Map) => {
+    const m = mapInstance || map;
+    if (!m) return;
+    m.getCanvas().style.cursor = '';
+    setIsDrawing(false);
+    console.log('[SnipFlow] Drawing disabled');
+  }, [map]);
 
   // Helper function to calculate polygon area in km²
   const polygonAreaKm2 = (geom: GeoJSON.Polygon): number => {
@@ -507,9 +533,18 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
 
   // Start drawing mode
   const startDrawing = useCallback(() => {
+    console.log('[SNIP DEBUG] startDrawing called, map exists:', !!map);
+    
     if (!map) {
+      console.warn('[SNIP DEBUG] No map instance available');
       return;
     }
+    
+    // Debug: Check current cursor and state
+    const currentCursor = map.getCanvas().style.cursor;
+    console.log('[SNIP DEBUG] Current cursor:', currentCursor || '(default)');
+    console.log('[SNIP DEBUG] Current isDrawing state:', isDrawing);
+    console.log('[SNIP DEBUG] Current showReviewCta:', analysis.showReviewCta);
     
     // Reset state at every draw start
     const pre = {
@@ -588,14 +623,16 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     setLastAnalysis(null);
     setShowCompleteBanner(false);
     
-    setIsDrawing(true);
+    // Use the helper to enable drawing
+    enableDrawing(map);
     startPoint.current = null;
     
-    // Change cursor with enhanced visibility
-    const canvas = map.getCanvas();
-    canvas.style.cursor = 'crosshair';
+    // Debug: Verify cursor after enableDrawing
+    console.log('[SNIP DEBUG] After enableDrawing, cursor is:', map.getCanvas().style.cursor);
+    console.log('[SNIP DEBUG] isDrawing should be true now:', isDrawing);
     
     // Add visual feedback class to canvas
+    const canvas = map.getCanvas();
     canvas.classList.add('snipping-active');
     
     // Expose stop function for hard reset
