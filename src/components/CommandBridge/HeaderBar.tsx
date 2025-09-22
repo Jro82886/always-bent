@@ -6,7 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import WelcomeChip from './WelcomeChip';
 import InletChip from './InletChip';
-import Tabs from './Tabs';
+import { CommandBridgeTabs } from './CommandBridgeTabs';
+import '@/styles/command-bridge-tabs.css';
 import { useAppState } from '@/store/appState';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 
@@ -94,7 +95,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           <div className="h-full w-px bg-cyan-500/10" />
           
           {/* Tabs (left-aligned) */}
-          <Tabs activeMode={currentTab as 'analysis' | 'tracking' | 'community' | 'trends'} />
+          <CommandBridgeTabs />
           
           {/* Spacer to push everything left */}
           <div className="flex-1" />
