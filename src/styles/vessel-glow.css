@@ -1,4 +1,10 @@
-/* Vessel Status Glow Styling */
+/* Vessel Status Glow Styling - Single source of truth */
+
+:root {
+  --user-vessel: #17FFA0;
+  --user-halo-inner: rgba(255,255,255,.9);
+  --user-halo-outer: rgba(0,255,255,.6);
+}
 
 .vessel-status { 
   display: flex; 
@@ -6,24 +12,25 @@
   gap: 8px; 
 }
 
-.vessel-status .vessel-dot {
+.vessel-dot {
   width: 10px; 
   height: 10px; 
-  border-radius: 50%; 
-  background: #fff;
-  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8),
-              0 0 12px 4px rgba(0, 255, 255, 0.6);
+  border-radius: 50%;
+  background: var(--user-vessel);
+  box-shadow:
+    0 0 6px 2px var(--user-halo-inner),
+    0 0 12px 6px var(--user-halo-outer);
   animation: pulseGlow 2s ease-in-out infinite;
 }
 
 @keyframes pulseGlow {
   0%, 100% { 
-    box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8), 
-                0 0 12px 4px rgba(0, 255, 255, 0.6); 
+    box-shadow: 0 0 6px 2px var(--user-halo-inner), 
+                0 0 12px 6px var(--user-halo-outer); 
   }
   50% { 
-    box-shadow: 0 0 10px 3px rgba(255, 255, 255, 1), 
-                0 0 18px 6px rgba(0, 255, 255, 0.9); 
+    box-shadow: 0 0 9px 3px var(--user-halo-inner), 
+                0 0 18px 8px var(--user-halo-outer); 
   }
 }
 

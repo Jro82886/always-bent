@@ -19,9 +19,10 @@
   color: #e6f8ff; 
 }
 
+/* ACTIVE GRADIENT + TAPERED LINE */
 .cb-tab.is-active {
-  color: #e6f8ff;
-  background: linear-gradient(90deg, rgba(0, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+  color: #e6f8ff !important;
+  background: linear-gradient(90deg, rgba(0, 255, 255, 0.14), rgba(255, 255, 255, 0.08));
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.18) inset;
 }
 
@@ -34,7 +35,7 @@
   background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0));
   opacity: 0; 
   transform: scaleX(0.7); 
-  transition: opacity 0.2s, transform 0.2s; 
+  transition: opacity 0.18s, transform 0.18s; 
   border-radius: 2px;
 }
 

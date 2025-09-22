@@ -7,7 +7,6 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import '@/styles/mapbox-controls.css';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
-import VesselLayerClean from '@/components/tracking/VesselLayerClean';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';
 import TrackingToolbar from '@/components/tracking/TrackingToolbar';
@@ -317,18 +316,6 @@ function TrackingModeContent() {
         />
       )}
       
-      {/* Vessel Layer - handles individual user vessel */}
-      {mapFullyReady && (
-        <VesselLayerClean
-          map={map.current}
-          showYou={showYou}
-          showFleet={showFleet}
-          showTracks={showTracks}
-          showFleetTracks={showFleetTracks}
-          selectedInletId={selectedInletId || ''}
-          onPositionUpdate={handlePositionUpdate}
-        />
-      )}
       
       {/* Commercial Vessel Layer */}
       {mapFullyReady && showCommercial && (

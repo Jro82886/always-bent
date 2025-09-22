@@ -9,6 +9,7 @@ import { showToast } from '@/components/ui/Toast';
 import { isInsideInlet } from '@/lib/geo/inletBounds';
 import mapboxgl from 'mapbox-gl';
 import '@/styles/vessel-glow.css';
+import { USER_VESSEL } from '@/config/vessel-style';
 
 interface TrackingToolbarProps {
   selectedInletId: string | null;
@@ -126,35 +127,45 @@ export default function TrackingToolbar({
         data: { type: 'FeatureCollection', features: [feature] } 
       });
       
-      // Add dot layer
+      // Add outer halo layer
+      map.addLayer({
+        id: 'user-vessel-halo-outer', 
+        type: 'circle', 
+        source: 'user-vessel',
+        paint: { 
+          'circle-radius': 22, 
+          'circle-color': USER_VESSEL.haloOuter,
+          'circle-opacity': 0.35,
+          'circle-blur': 1.8
+        } 
+      });
+      
+      // Add inner halo layer
+      map.addLayer({
+        id: 'user-vessel-halo', 
+        type: 'circle', 
+        source: 'user-vessel',
+        paint: { 
+          'circle-radius': 14, 
+          'circle-color': USER_VESSEL.haloInner,
+          'circle-opacity': 0.35,
+          'circle-blur': 1.2
+        } 
+      }, 'user-vessel-halo-outer');
+      
+      // Add dot layer on top
       map.addLayer({
         id: 'user-vessel-dot', 
         type: 'circle', 
         source: 'user-vessel',
         paint: { 
           'circle-radius': 6, 
-          'circle-opacity': 1, 
-          'circle-blur': 0.1, 
-          'circle-color': '#00e676' // emerald
+          'circle-color': USER_VESSEL.color,
+          'circle-blur': 0.1,
+          'circle-opacity': 1,
+          'circle-stroke-width': 0
         } 
-      });
-      
-      // Add accuracy circle layer
-      map.addLayer({
-        id: 'user-vessel-accuracy', 
-        type: 'circle', 
-        source: 'user-vessel',
-        paint: {
-          'circle-radius': [
-            'case',
-            ['has', 'accuracy'],
-            ['interpolate', ['linear'], ['get', 'accuracy'], 0, 30, 2000, 40],
-            0
-          ],
-          'circle-color': '#00e676', 
-          'circle-opacity': 0.1
-        }
-      }, 'user-vessel-dot');
+      }, 'user-vessel-halo');
     }
   };
 
@@ -228,9 +239,10 @@ export default function TrackingToolbar({
     setUserLocStatus('idle');
     setShowYou(false);
     
-    // Remove layers and source
-    if (map.getLayer('user-vessel-dot')) map.removeLayer('user-vessel-dot');
-    if (map.getLayer('user-vessel-accuracy')) map.removeLayer('user-vessel-accuracy');
+    // Remove all user vessel layers
+    ['user-vessel-dot', 'user-vessel-halo', 'user-vessel-halo-outer'].forEach(id => {
+      if (map.getLayer(id)) map.removeLayer(id);
+    });
     if (map.getSource('user-vessel')) map.removeSource('user-vessel');
   };
 

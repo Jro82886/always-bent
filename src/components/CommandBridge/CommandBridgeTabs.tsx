@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSelectedLayoutSegments } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 const TABS = [
   { href: '/legendary/analysis', label: 'Analysis' },
@@ -11,13 +11,12 @@ const TABS = [
 ];
 
 export function CommandBridgeTabs() {
-  const segments = useSelectedLayoutSegments();
-  const path = `/${segments.join('/')}`;
+  const pathname = usePathname() || '';
   
   return (
     <nav className="cb-tabs">
       {TABS.map(tab => {
-        const active = path.startsWith(tab.href);
+        const active = pathname.startsWith(tab.href);
         return (
           <Link 
             key={tab.href} 
