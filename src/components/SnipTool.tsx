@@ -890,9 +890,20 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       clearDrawing();
       
       // END NEW CLEAN ANALYSIS FLOW
-      return; // Skip all legacy code below
+    } catch (error) {
+      console.error('Error during analysis:', error);
+      setIsAnalyzing(false);
+      setIsDrawing(false);
+      showToast({
+        type: 'error',
+        title: 'Analysis Failed',
+        message: 'Unable to complete analysis. Please try again.',
+        duration: 5000
+      });
+    }
+  }, [map, onAnalysisComplete, clearDrawing, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled]);
       
-      /* LEGACY CODE - KEPT FOR REFERENCE BUT NOT EXECUTED
+  /* LEGACY CODE - KEPT FOR REFERENCE BUT NOT EXECUTED
       const polygon_legacy = currentPolygon.current;
       
       // Step 1: Get vessel data from shared service (source of truth)
@@ -1438,8 +1449,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       setIsAnalyzing(false);
       setIsDrawing(false);
     }
-    */ // END LEGACY CODE
-  }, [map, onAnalysisComplete, clearDrawing, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled]);
+  }, [map, onAnalysisComplete, clearDrawing]);
+  END LEGACY CODE */
 
   // Zoom out to previous view
   const zoomOut = useCallback(() => {
