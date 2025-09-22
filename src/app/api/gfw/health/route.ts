@@ -1,24 +1,14 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+
 export async function GET() {
-  const token = process.env.GFW_API_TOKEN;
-  
-  const health = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    token: {
-      present: !!token,
-      length: token?.length || 0,
-      preview: token ? `${token.substring(0, 10)}...${token.substring(token.length - 4)}` : 'not set'
-    },
-    environment: {
-      NODE_ENV: process.env.NODE_ENV,
-      VERCEL: !!process.env.VERCEL,
-      VERCEL_ENV: process.env.VERCEL_ENV
+  const token = process.env.GFW_API_TOKEN ?? '';
+  return NextResponse.json({
+    ok: true,
+    token: { 
+      present: !!token, 
+      preview: token ? token.slice(0, 8) + '…' : null 
     }
-  };
-  
-  console.log('[GFW Health]', health);
-  
-  return NextResponse.json(health);
+  });
 }

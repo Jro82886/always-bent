@@ -105,7 +105,21 @@ export default function GFWVesselLayer({
         return;
       }
       
-      const data = await response.json();
+      const result = await response.json();
+      
+      // Check response format
+      if (!result.ok) {
+        console.error('GFW API error:', result);
+        showToast({
+          type: 'error',
+          title: 'GFW Error',
+          message: result.error || 'Failed to fetch vessels',
+          duration: 4000
+        });
+        return;
+      }
+      
+      const data = result.data;
       
       // Check if configured
       if (data.configured === false) {
