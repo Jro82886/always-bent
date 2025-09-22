@@ -259,44 +259,6 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               </div>
             )}
 
-            {/* GFW Badges - Hide for now */}
-            {false && analysis.toggles.gfw && analysis.gfw && (
-              <>
-                {analysis.gfw.counts.longliner > 0 && (
-                  <div className="px-3 py-1 bg-red-500/20 border border-red-500/30 rounded-full">
-                    <span className="text-sm text-red-300">
-                      {analysis.gfw.counts.longliner} Longliner{analysis.gfw.counts.longliner > 1 ? 's' : ''}
-                    </span>
-                  </div>
-                )}
-                {analysis.gfw.counts.drifting_longline > 0 && (
-                  <div className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/30 rounded-full">
-                    <span className="text-sm text-cyan-300">
-                      {analysis.gfw.counts.drifting_longline} Drifting
-                    </span>
-                  </div>
-                )}
-                {analysis.gfw.counts.trawler > 0 && (
-                  <div className="px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full">
-                    <span className="text-sm text-blue-300">
-                      {analysis.gfw.counts.trawler} Trawler{analysis.gfw.counts.trawler > 1 ? 's' : ''}
-                    </span>
-                  </div>
-                )}
-                {analysis.gfw.counts.longliner === 0 && 
-                 analysis.gfw.counts.drifting_longline === 0 && 
-                 analysis.gfw.counts.trawler === 0 && (
-                  <div className="px-3 py-1 bg-gray-500/20 border border-gray-500/30 rounded-full">
-                    <span className="text-sm text-gray-400">No GFW vessels</span>
-                  </div>
-                )}
-              </>
-            )}
-            {!analysis.toggles.gfw && (
-              <div className="px-3 py-1 bg-gray-700/50 border border-gray-600/30 rounded-full">
-                <span className="text-sm text-gray-500">GFW: Off</span>
-              </div>
-            )}
           </div>
 
           {/* Narrative Section */}
@@ -312,7 +274,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
           {/* Area Stats */}
           <div className="mt-4 text-center text-xs text-gray-500">
-            Area analyzed: {((analysis as any).stats?.area_km2 || 0).toFixed(1)} km²
+            Area analyzed: {analysis.polygonMeta?.area_sq_km.toFixed(1) || '0.0'} km²
           </div>
         </div>
 
@@ -341,7 +303,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                     }`}
                 >
                   <Save size={14} className={reportId ? 'text-green-300' : 'text-white drop-shadow-[0_0_8px_rgba(134,239,172,0.8)]'} />
-                  <span>{isSaving ? 'Saving...' : reportId ? 'Saved' : 'Save'}</span>
+                  <span>{isSaving ? 'Saving...' : reportId ? 'Saved to My Reports' : 'Save to Snip Reports'}</span>
                 </button>
                 
                 <button

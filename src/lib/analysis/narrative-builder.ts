@@ -1,108 +1,212 @@
-import type { SnipAnalysis } from './types';
-import { SST_IDEAL_RANGE_F, SST_STRONG_FRONT_F_PER_KM, CHL_IDEAL_RANGE, CHL_FRONT_PER_KM, FORMAT } from './thresholds';
-import { gfwEnabled } from '@/lib/features/gfw';
+// src/lib/analysis/narrative-builder.ts
+// One source of truth for Analysis copy. Safe on missing data.
 
-function formatDirection(deg: number): string {
-  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  const index = Math.round(((deg % 360) / 45)) % 8;
-  return dirs[index];
+import type { SnipAnalysis } from './types';
+
+// Optional context you can pass in from the page/store
+export type AnalysisContext = {
+  // live Weather card (optional)
+  weather?: {
+    wind_kn?: number;        // surface wind (knots)
+    wind_dir_deg?: number;   // 0–360
+    swell_ft?: number;       // primary swell height (ft)
+    swell_period_s?: number; // seconds
+  };
+  // fleet/user presence (optional; computed server- or client-side)
+  fleetRecentCount?: number; // vessels from this inlet in last 4 days inside polygon
+  userInside?: boolean;      // user's current dot within polygon
+};
+
+// ---- Copy constants (used across modal + list) ----
+export const COPY = {
+  SST_OFF: 'SST (off): information not available — toggle ON to include.',
+  SST_NA: 'SST: no data returned for the selected time.',
+  CHL_OFF: 'Chlorophyll (off): information not available — toggle ON to include.',
+  CHL_NA: 'Chlorophyll: no data returned for the selected time.',
+  GFW_OFF: 'Commercial vessel activity (off).',
+  GFW_NA: 'Commercial vessel data not available.',
+};
+
+// ---- Thresholds (tune easily) ----
+const T = {
+  // °F/°C agnostic internally—assume your sampler already returns °F and mg/m³.
+  GRADIENT_STRONG_F: 2.0,      // strong SST change across snip area (°F)
+  GRADIENT_MODERATE_F: 0.8,    // moderate edge
+  TEMP_GOOD_MIN_F: 68,         // generic pelagic-friendly band; adjust per region/species later
+  TEMP_GOOD_MAX_F: 74,
+  CHL_LOW: 0.10,               // mg/m³
+  CHL_MOD: 0.30,
+  WIND_FRESH_MIN_KT: 12,       // fresh breeze starts to move water
+  SWELL_WORKABLE_MAX_FT: 5,
+};
+
+// ---- Utilities ----
+const f1 = (n: number | null | undefined) => (Number.isFinite(n!) ? (n as number).toFixed(1) : '—');
+const f2 = (n: number | null | undefined) => (Number.isFinite(n!) ? (n as number).toFixed(2) : '—');
+const deg = (d?: number) => (Number.isFinite(d!) ? `${Math.round(d!)}°` : '—');
+const compass = (d?: number) => {
+  if (!Number.isFinite(d!)) return '—';
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(((d!%360)+360)%360 / 22.5) % 16];
+};
+
+// Basic inside-band helper
+const inBand = (x: number | null | undefined, lo: number, hi: number) => x !== null && x !== undefined && x >= lo && x <= hi;
+
+// ---- Scoring helpers (0–100) ----
+function scoreThermal(sst?: any): number {
+  if (!sst || sst.mean === null || sst.mean === undefined) return 0;
+  const g = sst.gradient ?? 0;
+  let s = 0;
+  if (g >= T.GRADIENT_STRONG_F) s += 55;
+  else if (g >= T.GRADIENT_MODERATE_F) s += 35;
+  const meanOk = inBand(sst.mean, T.TEMP_GOOD_MIN_F, T.TEMP_GOOD_MAX_F);
+  s += meanOk ? 25 : 10;
+  // more spread can hint at micro-structure
+  const spread = Math.max(0, ((sst.max ?? sst.mean) - (sst.min ?? sst.mean)));
+  s += Math.min(20, spread * 4);
+  return Math.max(0, Math.min(100, Math.round(s)));
 }
 
-export function buildNarrative(a: SnipAnalysis): string {
+function scoreChl(chl?: any): number {
+  if (!chl || chl.mean === null || chl.mean === undefined) return 0;
+  // Favor low-moderate chlorophyll + some gradient (front between clear/off-color)
+  let s = 0;
+  if (chl.mean <= T.CHL_LOW) s += 30;
+  else if (chl.mean <= T.CHL_MOD) s += 20;
+  s += Math.min(30, Math.max(0, (chl.gradient ?? 0) * 40)); // gradient in mg/m³; scaled
+  return Math.max(0, Math.min(60, Math.round(s)));
+}
+
+function scorePresence(ctx?: AnalysisContext): number {
+  if (!ctx) return 0;
+  let s = 0;
+  if (ctx.fleetRecentCount && ctx.fleetRecentCount > 0) s += Math.min(25, 10 + ctx.fleetRecentCount * 3);
+  if (ctx.userInside) s += 5;
+  return Math.min(30, s);
+}
+
+// Final combined score
+function fishinessScore(a: SnipAnalysis, ctx?: AnalysisContext) {
+  const st = scoreThermal(a.sst);
+  const sc = scoreChl(a.chl);
+  const sp = scorePresence(ctx);
+  const score = Math.max(0, Math.min(100, Math.round(st + sc + sp)));
+  let label: 'Low'|'Fair'|'Good'|'Strong';
+  if (score >= 75) label = 'Strong';
+  else if (score >= 55) label = 'Good';
+  else if (score >= 35) label = 'Fair';
+  else label = 'Low';
+  return { score, label, parts: { thermal: st, chlorophyll: sc, presence: sp } };
+}
+
+// ---- Line writers (each returns a string or null) ----
+function lineSST(a: SnipAnalysis) {
+  if (!a.toggles.sst) return COPY.SST_OFF;
+  if (!a.sst || a.sst.mean === null || a.sst.mean === undefined) return COPY.SST_NA;
+  const { mean, min, max, gradient } = a.sst;
+  const range = `${f1(min)}–${f1(max)}°F`;
+  const g = f1(gradient);
+  // Short factual line
+  const base = `SST ${f1(mean)}°F (range ${range}, Δ ${g}°).`;
+  // Insight
+  let insight = '';
+  if ((gradient ?? 0) >= T.GRADIENT_STRONG_F)      insight = 'Sharp temperature break present—often a productive edge.';
+  else if ((gradient ?? 0) >= T.GRADIENT_MODERATE_F) insight = 'Moderate temp change—watch for bait stacking along this line.';
+  else                                       insight = 'Uniform water—limited structure to concentrate bait.';
+  // Band context
+  const band =
+    inBand(mean, T.TEMP_GOOD_MIN_F, T.TEMP_GOOD_MAX_F)
+      ? 'Temp band is within a favorable range.'
+      : (mean ?? 0) < T.TEMP_GOOD_MIN_F
+        ? 'Water reads cool for typical pelagic activity.'
+        : 'Water reads warm for typical pelagic activity.';
+  return `${base} ${insight} ${band}`;
+}
+
+function lineCHL(a: SnipAnalysis) {
+  if (!a.toggles.chl) return COPY.CHL_OFF;
+  if (!a.chl || a.chl.mean === null || a.chl.mean === undefined) return COPY.CHL_NA;
+  const { mean, min, max, gradient } = a.chl;
+  const base = `Chlorophyll ${f2(mean)} mg/m³ (range ${f2(min)}–${f2(max)}, Δ ${f2(gradient)}).`;
+  let insight = '';
+  if ((mean ?? 0) <= T.CHL_LOW)        insight = 'Clearer water—good visibility; pair with an SST break.';
+  else if ((mean ?? 0) <= T.CHL_MOD)   insight = 'Slight color; workable clarity with potential edge.';
+  else                           insight = 'Off-color water—look for cleaner seams or rips.';
+  return `${base} ${insight}`;
+}
+
+function lineWeather(ctx?: AnalysisContext) {
+  if (!ctx?.weather) return null;
+  const { wind_kn, wind_dir_deg, swell_ft, swell_period_s } = ctx.weather;
+  const parts: string[] = [];
+  if (Number.isFinite(wind_kn)) parts.push(`${Math.round(wind_kn!)} kt ${compass(wind_dir_deg)}`);
+  if (Number.isFinite(swell_ft) && Number.isFinite(swell_period_s)) parts.push(`${f1(swell_ft!)} ft @ ${Math.round(swell_period_s!)}s`);
+  if (!parts.length) return null;
+  // Brief read on workability
+  let work = '';
+  if ((wind_kn ?? 0) <= T.WIND_FRESH_MIN_KT && (swell_ft ?? 0) <= T.SWELL_WORKABLE_MAX_FT) work = 'Sea state looks workable.';
+  else work = 'Watch sea state; conditions may be sporty.';
+  return `Weather: ${parts.join(' • ')}. ${work}`;
+}
+
+function linePresence(a: SnipAnalysis, ctx?: AnalysisContext) {
+  const bits: string[] = [];
+  if (ctx?.fleetRecentCount && ctx.fleetRecentCount > 0) {
+    bits.push(`${ctx.fleetRecentCount} fleet vessel${ctx.fleetRecentCount>1?'s':''} in the last 4 days`);
+  } else {
+    bits.push('No recent fleet presence here');
+  }
+  if (a.toggles.myTracks && ctx?.userInside) bits.push('you are currently inside this area');
+  return `Presence: ${bits.join(' • ')}.`;
+}
+
+// ---- Public API ----
+export function buildNarrative(a: SnipAnalysis, ctx?: AnalysisContext): string {
   const lines: string[] = [];
 
-  // Title line is handled by UI; we provide concise paragraphs here.
+  // Core ocean signals
+  lines.push(lineSST(a));
+  lines.push(lineCHL(a));
 
-  // SST
-  if (!a.toggles.sst) {
-    lines.push(`• **SST** (off): information not available — toggle ON to include.`);
-  } else if (!a.sst || a.sst.mean == null) {
-    lines.push(`• **SST**: n/a${a.sst?.reason ? ` (${a.sst.reason})` : ''}.`);
-  } else {
-    const inBand = a.sst.mean >= SST_IDEAL_RANGE_F.min && a.sst.mean <= SST_IDEAL_RANGE_F.max;
-    const front = (a.sst.gradient ?? 0) >= SST_STRONG_FRONT_F_PER_KM;
-    lines.push(
-      `• **SST** ${FORMAT.sst(a.sst.mean)} (min ${FORMAT.sst(a.sst.min)}, max ${FORMAT.sst(a.sst.max)}).` +
-      (front ? ` Strong thermal edge (~${FORMAT.grad(a.sst.gradient, '°F')}) detected.` : ``) +
-      (inBand ? ` Temp is within target band (${SST_IDEAL_RANGE_F.min}–${SST_IDEAL_RANGE_F.max}°F).` : ` Temp is outside the ideal band.`)
-    );
+  // Commercial (placeholder until GFW clip is live)
+  if (!a.toggles.gfw) lines.push(COPY.GFW_OFF);
+  else if (!a.presence?.gfw)    lines.push(COPY.GFW_NA);
+  else {
+    const c = a.presence.gfw.counts;
+    lines.push(`Commercial vessels (last 4d): Longliners ${c.longliner} • Drifting ${c.drifting_longline} • Trawlers ${c.trawler} • Events ${c.events}.`);
   }
 
-  // CHL
-  if (!a.toggles.chl) {
-    lines.push(`• **Chl** (off): information not available — toggle ON to include.`);
-  } else if (!a.chl || a.chl.mean == null) {
-    lines.push(`• **Chl**: n/a${a.chl?.reason ? ` (${a.chl.reason})` : ''}.`);
-  } else {
-    const inBand = a.chl.mean >= CHL_IDEAL_RANGE.min && a.chl.mean <= CHL_IDEAL_RANGE.max;
-    const front = (a.chl.gradient ?? 0) >= CHL_FRONT_PER_KM;
-    lines.push(
-      `• **Chl** ${FORMAT.chl(a.chl.mean)} (min ${FORMAT.chl(a.chl.min)}, max ${FORMAT.chl(a.chl.max)}).` +
-      (front ? ` Color-front present (~${FORMAT.grad(a.chl.gradient, 'mg/m³')}).` : ``) +
-      (inBand ? ` Productivity sits in the target band (${CHL_IDEAL_RANGE.min}–${CHL_IDEAL_RANGE.max} mg/m³).` : ` Productivity outside the ideal band.`)
-    );
-  }
+  // Local weather + presence (optional)
+  const w = lineWeather(ctx);
+  if (w) lines.push(w);
+  lines.push(linePresence(a, ctx));
 
-  // Wind & Swell (best-effort hints)
-  if (a.wind && a.wind.speed_kn !== null) {
-    const dir = formatDirection(a.wind.direction_deg || 0);
-    lines.push(`• **Winds** near ${Math.round(a.wind.speed_kn)} kt from ${dir} (${a.wind.direction_deg}°).`);
-  }
-  
-  if (a.swell && a.swell.height_ft !== null) {
-    const dir = formatDirection(a.swell.direction_deg || 0);
-    lines.push(`• **Swell** ${a.swell.height_ft} ft @ ${a.swell.period_s} s from ${dir} (${a.swell.direction_deg}°).`);
-  }
+  // Score summary (final line)
+  const { score, label } = fishinessScore(a, ctx);
+  lines.push(`Signal strength: ${label} (${score}/100).`);
 
-  // Fleet Presence
-  if (a.presence) {
-    if (a.presence.myVesselInArea) {
-      lines.push(`• Your vessel is currently inside the selected area.`);
-    }
-    
-    if (a.presence.fleetVessels > 0) {
-      lines.push(
-        `• **${a.presence.fleetVessels} fleet vessels** from your inlet present within the last ${a.presence.fleetVisitsDays} day(s); ` +
-        `fleet tracks contribute to area productivity.`
-      );
-    } else {
-      lines.push(`• No recent fleet presence from your inlet inside this area.`);
-    }
-  }
+  // Clean out any nulls/empties, keep 3–6 lines, join with newlines
+  return lines.filter(Boolean).slice(0, 6).join('\n');
+}
 
-  // GFW (hide for now since we're not using it)
-  /*
-  if (!gfwEnabled) {
-    lines.push(`• **Commercial vessels**: coming soon.`);
-  } else if (!a.toggles.gfw) {
-    lines.push(`• **Commercial** (off): information not available — toggle ON to include.`);
-  } else if (!a.gfw) {
-    lines.push(`• **Commercial**: n/a.`);
-  } else {
-    const c = a.gfw.counts;
-    const total = c.longliner + c.drifting_longline + c.trawler;
-    lines.push(
-      `• **Commercial vessels (last 4 days)**: ${total} total — ` +
-      `Longliner ${c.longliner}, Drifting ${c.drifting_longline}, Trawler ${c.trawler}.` +
-      (c.events ? ` Fishing events: ${c.events}.` : ``)
-    );
-  }
-  */
+// Optional: export score if you want a pill/indicator
+export function getFishiness(a: SnipAnalysis, ctx?: AnalysisContext) {
+  return fishinessScore(a, ctx);
+}
 
-  // Tracks awareness (we don't render here; we nudge cross-checking)
-  if (a.toggles.myTracks || a.toggles.fleetTracks || a.toggles.gfwTracks) {
-    const parts: string[] = [];
-    if (a.toggles.myTracks) parts.push('your tracks');
-    if (a.toggles.fleetTracks) parts.push('fleet tracks');
-    if (a.toggles.gfwTracks) parts.push('commercial tracks');
-    lines.push(`• Tracks enabled: ${parts.join(', ')}. Cross-check behavior on **Tracking** for reinforcement patterns.`);
-  }
-
-  // Final hint if a lot is off
-  const offCount = ['sst','chl','gfw'].filter(k => !(a.toggles as any)[k]).length;
-  if (offCount >= 2) {
-    lines.push(`Tip: enable more layers to strengthen the prediction signal.`);
-  }
-
-  return lines.join('\n');
+// Legacy function for backward compatibility
+export function buildNarrativeWithToggles(a: SnipAnalysis): string {
+  // Use the new buildNarrative with minimal context
+  const ctx: AnalysisContext = {
+    weather: a.wind && a.swell ? {
+      wind_kn: a.wind.speed_kn ?? undefined,
+      wind_dir_deg: a.wind.direction_deg ?? undefined,
+      swell_ft: a.swell.height_ft ?? undefined,
+      swell_period_s: a.swell.period_s ?? undefined,
+    } : undefined,
+    fleetRecentCount: a.presence?.fleetVessels,
+    userInside: a.presence?.myVesselInArea,
+  };
+  return buildNarrative(a, ctx);
 }

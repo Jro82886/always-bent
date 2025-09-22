@@ -638,7 +638,13 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
             myTracks: false,
             fleetTracks: false,
             gfwTracks: false
-          }
+          },
+          polygonMeta: {
+            bbox: [0, 0, 0, 0] as [number, number, number, number],
+            area_sq_km: (currentAnalysis as any).stats?.area_km2 || 0,
+            centroid: { lat: 0, lon: 0 }
+          },
+          obtainedVia: 'snip' as const
         } : null}
         visible={showModal}
         onClose={handleCloseModal}

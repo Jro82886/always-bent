@@ -16,6 +16,7 @@ import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
 import { fetchWindSwell } from '@/lib/analysis/fetchWindSwell';
 import { clipFleetPresence } from '@/lib/analysis/clipFleetPresence';
 import { computePolygonMeta } from '@/lib/analysis/computePolygonMeta';
+import { fitBoundsToPolygon } from '@/lib/map/fitBoundsToPolygon';
 import { frontStrength, inSstBand, inChlMidBand } from '@/lib/analysis/hotspot-utils';
 import { THRESHOLDS } from '@/config/ocean-thresholds';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
@@ -892,23 +893,30 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         obtainedVia: 'snip'
       };
 
+      // Build context for narrative
+      const ctx = {
+        weather: windSwellData.wind && windSwellData.swell ? {
+          wind_kn: windSwellData.wind.speed_kn ?? undefined,
+          wind_dir_deg: windSwellData.wind.direction_deg ?? undefined,
+          swell_ft: windSwellData.swell.height_ft ?? undefined,
+          swell_period_s: windSwellData.swell.period_s ?? undefined,
+        } : undefined,
+        fleetRecentCount: fleetData.fleetVessels,
+        userInside: fleetData.myVesselInArea,
+      };
+
       // Compute narrative
-      const narrative = buildNarrative(analysis);
+      const narrative = buildNarrative(analysis, ctx);
 
-      // Zoom to bounds with padding
-      const [west, south, east, north] = bbox;
-      const padding = 50;
-      map.fitBounds(
-        [[west, south], [east, north]],
-        {
-          padding,
-          duration: 1000,
-          maxZoom: 12
-        }
-      );
-
-      // Store analysis - create AnalysisResult for legacy compatibility
-      const finalAnalysis: AnalysisResult = {
+      // Zoom to polygon first, then open modal
+      fitBoundsToPolygon(map, polygon.geometry, {
+        padding: 44,
+        maxZoom: 12.5,
+        durationMs: 900,
+        minAreaKm2: 0.3,
+        onDone: () => {
+          // Store analysis - create AnalysisResult for legacy compatibility
+          const finalAnalysis: AnalysisResult = {
         polygon: polygon,
         features: [], // No features for MVP
         hotspot: null, // No hotspot detection for MVP
@@ -946,12 +954,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         onAnalysisComplete(finalAnalysis);
       }
       
-      // Clean up drawing
-      clearTimeout(timeout);
-      setStatus('idle');
-      setIsAnalyzing(false);
-      setIsDrawing(false);
-      clearDrawing();
+          // Clean up drawing
+          clearTimeout(timeout);
+          setStatus('idle');
+          setIsAnalyzing(false);
+          setIsDrawing(false);
+          clearDrawing();
+        }
+      });
       
       // END NEW CLEAN ANALYSIS FLOW
     } catch (error) {
