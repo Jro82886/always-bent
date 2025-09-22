@@ -49,9 +49,6 @@ export interface VesselDataResult {
 let gfwCache: { data: Vessel[]; timestamp: number; bounds: string } | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Import inlet data
-import { INLETS } from '@/lib/inlets';
-
 // Mock data for fleet vessels (until real-time integration)
 const mockFleetVessels: Vessel[] = [
   { 

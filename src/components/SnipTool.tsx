@@ -15,6 +15,7 @@ import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } 
 import { getVesselsInBoundsAsync, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
 import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
 import { useAppState } from '@/lib/store';
+import { showToast } from '@/components/ui/Toast';
 
 interface SnipToolProps {
   map: mapboxgl.Map | null;
@@ -864,9 +865,21 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           })
         });
         
-        if (samplerResponse.ok) {
-          const samplerData = await samplerResponse.json();
+      if (samplerResponse.ok) {
+        const samplerData = await samplerResponse.json();
+        
+        // Check if no live data is available
+        if (samplerData.meta?.noDataAvailable) {
+          showToast({
+            type: 'error',
+            title: 'Ocean Data Unavailable',
+            message: samplerData.message || 'No live data is available at this time, please check an alternate day',
+            duration: 7000
+          });
+          // Proceed without sampler stats
+        } else {
           samplerStats = samplerData.stats;
+        }
           
           // Build GFW summary
           const gfwSummary = activeLayers.gfw ? {

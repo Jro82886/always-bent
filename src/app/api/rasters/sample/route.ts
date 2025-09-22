@@ -219,24 +219,20 @@ export async function POST(request: NextRequest) {
     // Check if we have Copernicus credentials
     if (!COPERNICUS_USER || !COPERNICUS_PASS) {
       console.error('Copernicus credentials not configured');
-      // Return mock data as fallback
       return NextResponse.json({
+        error: 'Ocean data service not configured',
+        message: 'No live data is available at this time, please check an alternate day',
         stats: {
-          coverage_pct: 0.98,
-          sst_mean: 70 + Math.random() * 8,
-          sst_midband_pct: 0.3 + Math.random() * 0.4,
-          chl_mean: 0.1 + Math.random() * 0.3,
-          chl_midband_pct: 0.2 + Math.random() * 0.6,
-          front_strength_p90: Math.random() * 0.8
+          coverage_pct: 0
         },
         meta: {
           tiles: 0,
           zoom: 0,
-          nodata_pct: 0.02,
+          nodata_pct: 1,
           timestamp: new Date().toISOString(),
-          isMockData: true
+          noDataAvailable: true
         }
-      });
+      }, { status: 503 });
     }
     
     // Generate sampling grid
