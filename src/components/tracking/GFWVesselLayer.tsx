@@ -68,7 +68,7 @@ export default function GFWVesselLayer({
       // Prefer inlet-based query
       let url = '/api/gfw/vessels';
       if (selectedInletId && selectedInletId !== 'overview') {
-        url += `?inlet_id=${selectedInletId}&days=7`;
+        url += `?inletId=${selectedInletId}&days=7`;
       } else {
         // Fallback to bbox
         const bounds = map.getBounds();

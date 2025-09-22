@@ -282,6 +282,7 @@ function TrackingModeContent() {
         showFleet={showFleet}
         userPosition={userPosition}
         fleetVessels={fleetVessels}
+        map={map.current}
       />
       
       {/* GFW Legend - only when commercial vessels are shown */}

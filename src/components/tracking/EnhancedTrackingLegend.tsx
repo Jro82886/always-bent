@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Anchor, Users, Navigation, AlertCircle } from 'lucide-react';
 import { getInletById, INLETS } from '@/lib/inlets';
+import { useAppState } from '@/lib/store';
+import mapboxgl from 'mapbox-gl';
 
 interface EnhancedTrackingLegendProps {
   selectedInletId: string | null;
@@ -10,6 +12,7 @@ interface EnhancedTrackingLegendProps {
   showFleet: boolean;
   userPosition: { lat: number; lng: number; speed: number } | null;
   fleetVessels?: Array<{ id: string; inlet?: string; inletColor?: string; hasReport?: boolean }>;
+  map?: mapboxgl.Map | null;
 }
 
 export default function EnhancedTrackingLegend({ 
@@ -17,12 +20,39 @@ export default function EnhancedTrackingLegend({
   showYou,
   showFleet,
   userPosition,
-  fleetVessels = []
+  fleetVessels = [],
+  map
 }: EnhancedTrackingLegendProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { userLoc, userLocStatus } = useAppState();
   
   const isOverview = !selectedInletId || selectedInletId === 'overview';
   const currentInlet = selectedInletId ? getInletById(selectedInletId) : null;
+  
+  // Helper for time ago
+  const timeAgo = (timestamp?: number) => {
+    if (!timestamp) return '';
+    const s = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    return `${h}h ago`;
+  };
+  
+  // Fly to user location
+  const flyToMe = () => {
+    if (!map || !userLoc) return;
+    map.flyTo({
+      center: [userLoc.lon, userLoc.lat],
+      zoom: 12,
+      speed: 0.9,
+      curve: 1.6,
+      pitch: 0,
+      bearing: 0,
+      essential: true
+    });
+  };
   
   // Group fleet vessels by inlet
   const vesselsByInlet = fleetVessels.reduce((acc, vessel) => {
@@ -67,16 +97,37 @@ export default function EnhancedTrackingLegend({
                   <Navigation className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs font-medium text-white">Your Vessel</span>
                 </div>
-                {showYou && userPosition ? (
-                  <span className="text-xs text-emerald-400">Active</span>
-                ) : (
-                  <span className="text-xs text-gray-500">
-                    {showYou ? 'No GPS' : 'Hidden'}
-                  </span>
-                )}
+                <div className="flex items-center gap-1">
+                  {userLocStatus === 'active' && userLoc ? (
+                    <>
+                      <span className="text-xs text-emerald-400">
+                        Active • {timeAgo(userLoc.updatedAt)}
+                      </span>
+                      {map && (
+                        <button
+                          onClick={flyToMe}
+                          className="p-1 hover:bg-slate-800/50 rounded transition-transform hover:translate-x-0.5"
+                          title="Fly to my position"
+                        >
+                          <ChevronRight className="w-3 h-3 text-emerald-400" />
+                        </button>
+                      )}
+                    </>
+                  ) : userLocStatus === 'requesting' ? (
+                    <span className="text-xs text-yellow-400">Locating...</span>
+                  ) : userLocStatus === 'denied' ? (
+                    <span className="text-xs text-red-400">Permission needed</span>
+                  ) : userLocStatus === 'error' ? (
+                    <span className="text-xs text-red-400">GPS error</span>
+                  ) : (
+                    <span className="text-xs text-gray-500">
+                      {showYou ? 'No GPS' : 'Hidden'}
+                    </span>
+                  )}
+                </div>
               </div>
               
-              {showYou && userPosition && (
+              {userLocStatus === 'active' && userLoc && userPosition && (
                 <div className="ml-6 space-y-1">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.8)]" />

@@ -8,12 +8,52 @@ const GFW_TOKEN = process.env.GFW_API_TOKEN;
 const gfwCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+// Import INLETS configuration
+import { INLETS } from '@/lib/inlets';
+
+// Helper to calculate bbox from inlet center and zoom
+function getInletBbox(inletId: string): string | null {
+  const inlet = INLETS.find(i => i.id === inletId);
+  if (!inlet) return null;
+  
+  // Rough calculation based on zoom level
+  // Higher zoom = smaller area
+  const zoomToDegrees: Record<number, number> = {
+    4.5: 20,   // Overview
+    7.2: 2.5,  // 90nm view
+    7.3: 2.3,  // 85nm view
+    7.4: 2.1,  // 80nm view
+    7.5: 1.9,  // 75nm view
+    7.6: 1.7,  // 70nm view
+    7.7: 1.5,  // 65nm view
+    7.8: 1.3,  // 55nm view
+    7.9: 1.1,  // 50nm view
+    8.0: 0.9   // 40nm view
+  };
+  
+  const degrees = zoomToDegrees[inlet.zoom] || 1.5;
+  const [lng, lat] = inlet.center;
+  
+  return `${lng - degrees},${lat - degrees},${lng + degrees},${lat + degrees}`;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const bbox = searchParams.get('bbox'); // Format: "minLon,minLat,maxLon,maxLat"
+    let bbox = searchParams.get('bbox'); // Format: "minLon,minLat,maxLon,maxLat"
     const inletId = searchParams.get('inletId');
     const days = parseInt(searchParams.get('days') || '4');
+    
+    // If inletId is provided, calculate bbox from it
+    if (inletId && !bbox) {
+      bbox = getInletBbox(inletId);
+      if (!bbox) {
+        return NextResponse.json(
+          { error: 'Invalid inlet ID' },
+          { status: 400 }
+        );
+      }
+    }
     
     if (!bbox) {
       return NextResponse.json(

@@ -201,15 +201,8 @@ export default function TrackingToolbar({
         setUserLoc({ lat, lon, accuracy, updatedAt: Date.now() });
         setUserLocStatus('active');
         setShowYou(true);
-
-        // Fly to location
-        map.flyTo({ 
-          center: [lon, lat], 
-          zoom: Math.max(map.getZoom(), 11), 
-          essential: true 
-        });
         
-        // Draw the dot
+        // Draw the dot (no camera movement)
         drawOrUpdateUserDot(lon, lat, accuracy);
       },
       (err) => {
