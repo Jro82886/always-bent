@@ -173,7 +173,7 @@ export function buildNarrative(a: SnipAnalysis, ctx?: AnalysisContext): string {
   if (!a.toggles.gfw) lines.push(COPY.GFW_OFF);
   else if (!a.presence?.gfw)    lines.push(COPY.GFW_NA);
   else {
-    const c = a.presence.gfw.counts;
+    const c = a.presence.gfw;
     lines.push(`Commercial vessels (last 4d): Longliners ${c.longliner} • Drifting ${c.drifting_longline} • Trawlers ${c.trawler} • Events ${c.events}.`);
   }
 
