@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as turf from '@turf/turf';
-import { createCanvas, Image } from 'canvas';
 import { 
   SST_TARGET_MIN, 
   SST_TARGET_MAX, 
   CHL_MID_BAND_RANGE,
   FRONT_STRONG_THRESHOLD 
 } from '@/config/ocean-thresholds';
+import { lonLat2pixel, getOptimalZoom } from '@/lib/wmts/coordinates';
+import { WMTS_LAYERS, buildGetFeatureInfoUrl } from '@/lib/wmts/layers';
 
 // Types
 interface SampleRequest {
@@ -48,38 +49,9 @@ interface SampleResponse {
   };
 }
 
-// Tile math helpers
-function lng2tile(lng: number, zoom: number): number {
-  return Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
-}
-
-function lat2tile(lat: number, zoom: number): number {
-  return Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
-}
-
-function tile2lng(x: number, zoom: number): number {
-  return x / Math.pow(2, zoom) * 360 - 180;
-}
-
-function tile2lat(y: number, zoom: number): number {
-  const n = Math.PI - 2 * Math.PI * y / Math.pow(2, zoom);
-  return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
-}
-
-// Helper to determine zoom level based on polygon size
-function getOptimalZoom(bbox: number[]): number {
-  const width = bbox[2] - bbox[0];
-  const height = bbox[3] - bbox[1];
-  const maxDim = Math.max(width, height);
-  
-  // Rough zoom calculation for ocean data tiles
-  if (maxDim > 10) return 5;
-  if (maxDim > 5) return 6;
-  if (maxDim > 2) return 7;
-  if (maxDim > 1) return 8;
-  if (maxDim > 0.5) return 9;
-  return 10;
-}
+// Get auth credentials
+const COPERNICUS_USER = process.env.COPERNICUS_USER || '';
+const COPERNICUS_PASS = process.env.COPERNICUS_PASS || '';
 
 // Calculate percentile
 function percentile(arr: number[], p: number): number {
@@ -89,186 +61,144 @@ function percentile(arr: number[], p: number): number {
   return sorted[Math.max(0, index)];
 }
 
-// Calculate gradient magnitude (simplified Sobel)
-function calculateGradient(values: number[][], width: number, height: number): number[][] {
-  const gradient: number[][] = Array(height).fill(null).map(() => Array(width).fill(0));
+// Calculate gradient magnitude for front detection
+function calculateFrontStrength(values: number[][], gridSize: number): number[][] {
+  const gradient: number[][] = Array(gridSize).fill(null).map(() => Array(gridSize).fill(0));
   
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      // Sobel X
-      const gx = (values[y-1][x+1] + 2*values[y][x+1] + values[y+1][x+1]) -
-                 (values[y-1][x-1] + 2*values[y][x-1] + values[y+1][x-1]);
-      
-      // Sobel Y
-      const gy = (values[y+1][x-1] + 2*values[y+1][x] + values[y+1][x+1]) -
-                 (values[y-1][x-1] + 2*values[y-1][x] + values[y-1][x+1]);
-      
-      // Magnitude
-      gradient[y][x] = Math.sqrt(gx * gx + gy * gy) / 8; // Normalize
+  for (let y = 1; y < gridSize - 1; y++) {
+    for (let x = 1; x < gridSize - 1; x++) {
+      // Simple gradient calculation
+      const dx = Math.abs(values[y][x + 1] - values[y][x - 1]) / 2;
+      const dy = Math.abs(values[y + 1][x] - values[y - 1][x]) / 2;
+      gradient[y][x] = Math.sqrt(dx * dx + dy * dy);
     }
   }
   
   return gradient;
 }
 
-// Convert raw pixel values to physical units based on Copernicus color mapping
-function pixelToPhysical(r: number, g: number, b: number, layer: 'sst' | 'chl'): number | null {
-  // Check for nodata (typically black or white)
-  if ((r === 0 && g === 0 && b === 0) || (r === 255 && g === 255 && b === 255)) {
+// Generate sampling grid
+function generateSamplingGrid(polygon: GeoJSON.Feature<GeoJSON.Polygon>): [number, number][] {
+  const area = turf.area(polygon) / 1000000; // km²
+  const bbox = turf.bbox(polygon);
+  
+  // Determine grid size based on area
+  let gridSize: number;
+  if (area < 50) {
+    gridSize = 10; // 100 samples
+  } else if (area < 2500) {
+    gridSize = 20; // 400 samples
+  } else {
+    gridSize = 30; // 900 samples max
+  }
+  
+  const points: [number, number][] = [];
+  const [west, south, east, north] = bbox;
+  
+  // Generate regular grid
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      const lon = west + (east - west) * (i + 0.5) / gridSize;
+      const lat = south + (north - south) * (j + 0.5) / gridSize;
+      
+      // Check if point is inside polygon
+      const pt = turf.point([lon, lat]);
+      if (turf.booleanPointInPolygon(pt, polygon)) {
+        points.push([lon, lat]);
+      }
+    }
+  }
+  
+  return points;
+}
+
+// Fetch value from GetFeatureInfo
+async function fetchPixelValue(
+  layer: typeof WMTS_LAYERS.SST | typeof WMTS_LAYERS.CHL,
+  lon: number,
+  lat: number,
+  zoom: number,
+  time: string
+): Promise<number | null> {
+  try {
+    const { tileCol, tileRow, i, j } = lonLat2pixel(lon, lat, zoom);
+    
+    const url = buildGetFeatureInfoUrl(
+      layer,
+      tileCol,
+      tileRow,
+      i,
+      j,
+      zoom,
+      time,
+      { user: COPERNICUS_USER, pass: COPERNICUS_PASS }
+    );
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${COPERNICUS_USER}:${COPERNICUS_PASS}`).toString('base64'),
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error(`GetFeatureInfo failed: ${response.status}`);
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    // Parse response - structure varies by layer
+    // Typical response: { features: [{ properties: { value: 293.15 } }] }
+    if (data.features && data.features.length > 0) {
+      const value = data.features[0].properties?.value || 
+                   data.features[0].properties?.[layer.variable];
+      
+      if (typeof value === 'number') {
+        return layer.conversionFn(value);
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching pixel value:', error);
     return null;
   }
-  
-  if (layer === 'sst') {
-    // SST uses a color scale from blue (cold) to red (hot)
-    // This is a simplified mapping - in production you'd use the actual colormap
-    // Approximate mapping: Blue = 50°F, Green = 70°F, Red = 85°F
-    const normalized = (r + g * 0.5) / (255 * 1.5); // Rough approximation
-    return 50 + normalized * 35; // Map to 50-85°F range
-  } else if (layer === 'chl') {
-    // CHL uses a color scale from blue (low) to green/yellow (high)
-    // Approximate mapping based on typical ocean color scales
-    const greenRatio = g / 255;
-    const blueRatio = b / 255;
-    // Low CHL = more blue, High CHL = more green
-    const chlNormalized = greenRatio / (greenRatio + blueRatio + 0.01);
-    return 0.01 + chlNormalized * 0.5; // Map to 0.01-0.5 mg/m³ range
-  }
-  
-  return null;
 }
 
-// Load image from URL
-async function loadImage(url: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = url;
-  });
-}
-
-// Fetch and process tiles for a given layer
-async function sampleRasterData(
-  polygon: GeoJSON.Feature<GeoJSON.Polygon>,
-  layer: 'sst' | 'chl',
-  time: string,
-  zoom: number
+// Sample multiple points in parallel with rate limiting
+async function sampleLayer(
+  layer: typeof WMTS_LAYERS.SST | typeof WMTS_LAYERS.CHL,
+  points: [number, number][],
+  zoom: number,
+  time: string
 ): Promise<{ values: number[]; nodata: number }> {
-  const bbox = turf.bbox(polygon);
   const values: number[] = [];
   let nodata = 0;
   
-  // Calculate tile bounds
-  const minX = lng2tile(bbox[0], zoom);
-  const maxX = lng2tile(bbox[2], zoom);
-  const minY = lat2tile(bbox[3], zoom); // Note: Y is inverted
-  const maxY = lat2tile(bbox[1], zoom);
-  
-  const tileCount = (maxX - minX + 1) * (maxY - minY + 1);
-  console.log(`Fetching ${tileCount} tiles for ${layer} at zoom ${zoom}`);
-  
-  // Process each tile
-  for (let x = minX; x <= maxX; x++) {
-    for (let y = minY; y <= maxY; y++) {
-      try {
-        // Get tile bounds in lat/lng
-        const tileBounds = [
-          tile2lng(x, zoom),
-          tile2lat(y + 1, zoom),
-          tile2lng(x + 1, zoom),
-          tile2lat(y, zoom)
-        ];
-        
-        // Create tile polygon
-        const tilePolygon = turf.bboxPolygon(tileBounds as [number, number, number, number]);
-        
-        // Check if tile intersects with our polygon
-        const intersection = turf.intersect(polygon, tilePolygon);
-        if (!intersection) continue;
-        
-        // Fetch tile
-        const tileUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/tiles/${layer}/${zoom}/${x}/${y}.png?date=${time}`;
-        console.log(`Fetching tile: ${tileUrl}`);
-        
-        const response = await fetch(tileUrl);
-        if (!response.ok) {
-          console.warn(`Failed to fetch tile ${x},${y}: ${response.status}`);
-          continue;
-        }
-        
-        // Convert to data URL for canvas
-        const blob = await response.blob();
-        const dataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-        
-        // Load image
-        const img = await loadImage(dataUrl);
-        
-        // Create canvas and draw image
-        const canvas = createCanvas(256, 256);
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        
-        // Get image data
-        const imageData = ctx.getImageData(0, 0, 256, 256);
-        const pixels = imageData.data;
-        
-        // Sample pixels at regular intervals
-        const sampleInterval = 4; // Sample every 4th pixel for performance
-        
-        for (let py = 0; py < 256; py += sampleInterval) {
-          for (let px = 0; px < 256; px += sampleInterval) {
-            // Convert pixel coordinates to lat/lng
-            const lng = tileBounds[0] + (px / 256) * (tileBounds[2] - tileBounds[0]);
-            const lat = tileBounds[3] + (py / 256) * (tileBounds[1] - tileBounds[3]);
-            
-            // Check if point is inside our polygon
-            const point = turf.point([lng, lat]);
-            if (!turf.booleanPointInPolygon(point, polygon)) continue;
-            
-            // Extract pixel RGB values
-            const idx = (py * 256 + px) * 4;
-            const r = pixels[idx];
-            const g = pixels[idx + 1];
-            const b = pixels[idx + 2];
-            
-            // Convert to physical units
-            const physicalValue = pixelToPhysical(r, g, b, layer);
-            if (physicalValue !== null) {
-              values.push(physicalValue);
-            } else {
-              nodata++;
-            }
-          }
-        }
-      } catch (error) {
-        console.error(`Error processing tile ${x},${y}:`, error);
-      }
-    }
-  }
-  
-  // If we couldn't get any real data, fall back to mock data
-  if (values.length === 0) {
-    console.warn('No real data extracted, using mock data as fallback');
-    const area = turf.area(polygon) / 1000000; // km²
-    const numSamples = Math.min(1000, Math.max(100, Math.floor(area * 10)));
+  // Process in batches to avoid overwhelming the server
+  const batchSize = 50;
+  for (let i = 0; i < points.length; i += batchSize) {
+    const batch = points.slice(i, i + batchSize);
     
-    for (let i = 0; i < numSamples; i++) {
-      if (layer === 'sst') {
-        const base = 70;
-        const variation = (Math.sin(i / 10) + Math.random() - 0.5) * 4;
-        values.push(base + variation);
+    const promises = batch.map(([lon, lat]) => 
+      fetchPixelValue(layer, lon, lat, zoom, time)
+    );
+    
+    const results = await Promise.all(promises);
+    
+    for (const value of results) {
+      if (value !== null) {
+        values.push(value);
       } else {
-        const base = 0.25;
-        const variation = (Math.sin(i / 15) + Math.random() - 0.5) * 0.2;
-        values.push(Math.max(0.05, base + variation));
+        nodata++;
       }
     }
-  } else {
-    console.log(`Extracted ${values.length} real ${layer} values`);
+    
+    // Small delay between batches
+    if (i + batchSize < points.length) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
   }
   
   return { values, nodata };
@@ -286,12 +216,46 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Calculate optimal zoom and bbox
+    // Check if we have Copernicus credentials
+    if (!COPERNICUS_USER || !COPERNICUS_PASS) {
+      console.error('Copernicus credentials not configured');
+      // Return mock data as fallback
+      return NextResponse.json({
+        stats: {
+          coverage_pct: 0.98,
+          sst_mean: 70 + Math.random() * 8,
+          sst_midband_pct: 0.3 + Math.random() * 0.4,
+          chl_mean: 0.1 + Math.random() * 0.3,
+          chl_midband_pct: 0.2 + Math.random() * 0.6,
+          front_strength_p90: Math.random() * 0.8
+        },
+        meta: {
+          tiles: 0,
+          zoom: 0,
+          nodata_pct: 0.02,
+          timestamp: new Date().toISOString(),
+          isMockData: true
+        }
+      });
+    }
+    
+    // Generate sampling grid
+    const samplePoints = generateSamplingGrid(polygon);
+    if (samplePoints.length === 0) {
+      return NextResponse.json(
+        { error: 'No valid sample points within polygon' },
+        { status: 400 }
+      );
+    }
+    
+    console.log(`Sampling ${samplePoints.length} points for layers:`, layers);
+    
+    // Determine zoom level
     const bbox = turf.bbox(polygon);
     const zoom = getOptimalZoom(bbox);
-    const area = turf.area(polygon) / 1000000; // km²
     
-    console.log(`Sampling area: ${area.toFixed(2)} km² at zoom ${zoom}`);
+    // Format time for WMTS (ISO8601 with milliseconds)
+    const wmtsTime = new Date(time).toISOString();
     
     // Initialize stats
     const stats: any = {
@@ -300,18 +264,17 @@ export async function POST(request: NextRequest) {
     const hist: any = {};
     let totalNodata = 0;
     let totalSamples = 0;
-    let tileCount = 0;
-    
-    // Calculate tile count for metadata
-    const minX = lng2tile(bbox[0], zoom);
-    const maxX = lng2tile(bbox[2], zoom);
-    const minY = lat2tile(bbox[3], zoom);
-    const maxY = lat2tile(bbox[1], zoom);
-    tileCount = (maxX - minX + 1) * (maxY - minY + 1);
     
     // Sample SST if requested
     if (layers.includes('sst')) {
-      const { values, nodata } = await sampleRasterData(polygon, 'sst', time, zoom);
+      console.log('Sampling SST data...');
+      const { values, nodata } = await sampleLayer(
+        WMTS_LAYERS.SST,
+        samplePoints,
+        zoom,
+        wmtsTime
+      );
+      
       totalSamples += values.length + nodata;
       totalNodata += nodata;
       
@@ -330,7 +293,7 @@ export async function POST(request: NextRequest) {
         // Calculate histogram (16 bins)
         const binCount = 16;
         const range = stats.sst_max - stats.sst_min;
-        const binSize = range / binCount;
+        const binSize = range / binCount || 1;
         const bins = Array(binCount).fill(0);
         
         values.forEach(v => {
@@ -340,18 +303,20 @@ export async function POST(request: NextRequest) {
         
         hist.sst = bins;
         
-        // Calculate fronts (gradient analysis)
-        const gridSize = Math.min(50, Math.ceil(Math.sqrt(values.length)));
-        const grid: number[][] = [];
-        for (let i = 0; i < gridSize; i++) {
-          grid[i] = [];
-          for (let j = 0; j < gridSize; j++) {
-            const idx = i * gridSize + j;
-            grid[i][j] = idx < values.length ? values[idx] : stats.sst_mean;
-          }
-        }
+        // Calculate fronts from SST grid
+        const gridSize = Math.ceil(Math.sqrt(samplePoints.length));
+        const sstGrid: number[][] = Array(gridSize).fill(null).map(() => Array(gridSize).fill(stats.sst_mean));
         
-        const gradients = calculateGradient(grid, gridSize, gridSize);
+        // Fill grid with actual values
+        samplePoints.forEach((pt, idx) => {
+          if (idx < values.length) {
+            const row = Math.floor(idx / gridSize);
+            const col = idx % gridSize;
+            sstGrid[row][col] = values[idx];
+          }
+        });
+        
+        const gradients = calculateFrontStrength(sstGrid, gridSize);
         const flatGradients = gradients.flat().filter(g => g > 0);
         
         if (flatGradients.length > 0) {
@@ -360,12 +325,21 @@ export async function POST(request: NextRequest) {
           const strongFronts = flatGradients.filter(g => g >= FRONT_STRONG_THRESHOLD).length;
           stats.front_coverage_pct = strongFronts / flatGradients.length;
         }
+        
+        console.log(`SST stats: mean=${stats.sst_mean.toFixed(1)}°F, samples=${values.length}`);
       }
     }
     
     // Sample CHL if requested
     if (layers.includes('chl')) {
-      const { values, nodata } = await sampleRasterData(polygon, 'chl', time, zoom);
+      console.log('Sampling CHL data...');
+      const { values, nodata } = await sampleLayer(
+        WMTS_LAYERS.CHL,
+        samplePoints,
+        zoom,
+        wmtsTime
+      );
+      
       totalSamples += values.length + nodata;
       totalNodata += nodata;
       
@@ -383,10 +357,10 @@ export async function POST(request: NextRequest) {
         ).length;
         stats.chl_midband_pct = inBand / values.length;
         
-        // Calculate histogram (16 bins)
+        // Calculate histogram
         const binCount = 16;
         const range = stats.chl_max - stats.chl_min;
-        const binSize = range / binCount;
+        const binSize = range / binCount || 1;
         const bins = Array(binCount).fill(0);
         
         values.forEach(v => {
@@ -395,6 +369,8 @@ export async function POST(request: NextRequest) {
         });
         
         hist.chl = bins;
+        
+        console.log(`CHL stats: mean=${stats.chl_mean.toFixed(3)} mg/m³, samples=${values.length}`);
       }
     }
     
@@ -403,11 +379,18 @@ export async function POST(request: NextRequest) {
       stats.coverage_pct = 1 - (totalNodata / totalSamples);
     }
     
+    // Calculate tile count estimate
+    const tileSet = new Set<string>();
+    samplePoints.forEach(([lon, lat]) => {
+      const { tileCol, tileRow } = lonLat2pixel(lon, lat, zoom);
+      tileSet.add(`${tileCol},${tileRow}`);
+    });
+    
     const response: SampleResponse = {
       stats,
       hist: Object.keys(hist).length > 0 ? hist : undefined,
       meta: {
-        tiles: tileCount,
+        tiles: tileSet.size,
         zoom,
         nodata_pct: totalSamples > 0 ? totalNodata / totalSamples : 0,
         timestamp: new Date().toISOString()
