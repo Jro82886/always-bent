@@ -504,6 +504,16 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const enableDrawing = useCallback((mapInstance?: mapboxgl.Map) => {
     const m = mapInstance || map;
     if (!m) return;
+    // Freeze gestures to prevent map from stealing drags
+    try {
+      m.dragPan.disable();
+      m.scrollZoom.disable();
+      m.boxZoom.disable();
+      m.doubleClickZoom.disable();
+      m.dragRotate.disable();
+      (m as any).touchZoomRotate?.disable?.();
+      (m as any).keyboard?.disable?.();
+    } catch {}
     m.getCanvas().style.cursor = 'crosshair';
     set((s) => ({
       ...s,
@@ -547,14 +557,15 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     }));
 
-    // force interaction + crosshair
-    try { 
-      map.scrollZoom.enable(); 
-      map.dragPan.enable();
+    // Freeze map gestures while drawing and set crosshair
+    try {
+      map.dragPan.disable();
+      map.scrollZoom.disable();
       map.boxZoom.disable();
       map.doubleClickZoom.disable();
       map.dragRotate.disable();
       map.touchZoomRotate.disable();
+      map.keyboard?.disable?.();
     } catch (e) {
       console.warn('[SNIP] Could not set map interactions', e);
     }
@@ -802,6 +813,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     map.doubleClickZoom.enable();
     map.scrollZoom.enable();
     map.boxZoom.enable();
+    (map as any).touchZoomRotate?.enable?.();
+    (map as any).keyboard?.enable?.();
   }, [map]);
 
   // Clear drawing
