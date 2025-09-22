@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Target, ChevronDown, ChevronUp, Map, Navigation, GraduationCap, 
          Thermometer, Wind, Waves, Compass, Eye, Cloud, Activity } from 'lucide-react';
 import { useAppState } from '@/lib/store';
@@ -22,11 +22,54 @@ export default function UnifiedCommandCenter({
   onStartTracking,
   onStopTracking
 }: UnifiedCommandCenterProps) {
-  const { selectedInletId } = useAppState();
+  const { selectedInletId, analysis } = useAppState();
   const [weather, setWeather] = useState<InletWeather | null>(null);
   const [loading, setLoading] = useState(false);
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [weatherExpanded, setWeatherExpanded] = useState(true);
+  const set = useAppState.setState;
+
+  // Hardened snip starter: clears stuck state, forces crosshair, engages drawing
+  const startSnipSafe = useCallback((e?: React.MouseEvent | KeyboardEvent) => {
+    console.log('%c[SNIP] Button clicked', 'color:#00e1a7;font-weight:bold');
+    try {
+      set((s) => ({
+        ...s,
+        analysis: {
+          ...s.analysis,
+          showReviewCta: false,
+          pendingAnalysis: null,
+          narrative: '',
+          lastSnipPolygon: null,
+          lastSnipBBox: null,
+          lastSnipCenter: null,
+          isZoomingToSnip: false,
+        }
+      }));
+
+      const map: any = (window as any)?.mapboxMap || (window as any)?.map;
+      map?.getCanvas?.()?.style && (map.getCanvas().style.cursor = 'crosshair');
+
+      requestAnimationFrame(() => {
+        (window as any).enableDrawing?.();
+        console.log('[SNIP] Drawing mode engaged');
+      });
+    } catch (err) {
+      console.warn('[SNIP] startSnipSafe error', err);
+    }
+  }, [set]);
+
+  // Keyboard fallback: Shift + S
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      if ((ev.key === 'S' || ev.key === 's') && ev.shiftKey) {
+        ev.preventDefault();
+        startSnipSafe(ev);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [startSnipSafe]);
   
   // Fetch weather data
   useEffect(() => {
@@ -198,13 +241,16 @@ export default function UnifiedCommandCenter({
             {/* Main Snip Button */}
             <button
               data-snip-button
-              onClick={onAnalyze}
+              onClick={startSnipSafe}
+              disabled={!!analysis?.isZoomingToSnip}
+              aria-disabled={!!analysis?.isZoomingToSnip}
               className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 
                        hover:from-cyan-500/30 hover:to-blue-500/30 
                        text-cyan-300 font-semibold rounded-lg 
                        border border-cyan-500/30 transition-all duration-200
                        flex items-center justify-center gap-3
                        shadow-lg hover:shadow-cyan-500/20"
+              style={{ position: 'relative', zIndex: 999999, pointerEvents: 'auto', isolation: 'isolate' }}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" strokeDasharray="3 3" />
