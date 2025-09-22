@@ -34,7 +34,6 @@ export default function UnifiedCommandCenter({
     try {
       console.log('[SNIP] startSnipSafe');
       // Clear stale analysis flags
-      useAppState.getState().clearAnalysis?.();
       useAppState.setState(s => ({
         analysis: {
           ...s.analysis,
