@@ -550,10 +550,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   
   // Imperative start snip function
   const startSnip = useCallback(() => {
-    const map = (window as any).mapboxMap || (window as any).map;
-    if (!map) return console.warn('[SNIP] no map');
+    if (!map) {
+      console.warn('[SNIP] No map instance available');
+      return;
+    }
 
-    // reset state machine
+    console.log('[SNIP] startSnip called - setting up drawing mode');
+
+    // Reset state machine
     set(s => ({
       ...s,
       analysis: {
@@ -569,27 +573,19 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     }));
 
-    // Freeze map gestures while drawing and set crosshair
-    try {
-      map.dragPan.disable();
-      map.scrollZoom.disable();
-      map.boxZoom.disable();
-      map.doubleClickZoom.disable();
-      map.dragRotate.disable();
-      map.touchZoomRotate.disable();
-      map.keyboard?.disable?.();
-    } catch (e) {
-      console.warn('[SNIP] Could not set map interactions', e);
-    }
-    
-    map.getCanvas().style.cursor = 'crosshair';
-    console.log('%c[SNIP] starting draw', 'color:#0f0;font-weight:700');
-
-    // enter draw mode
-    setStatus('drawing');
-    setIsDrawing(true);
+    // Clear any previous drawing state
     startPoint.current = null;
-    enableDrawing(map);
+    currentPolygon.current = null;
+    
+    // Set drawing state FIRST (this enables mouse handlers)
+    setIsDrawing(true);
+    setStatus('drawing');
+    
+    // Then freeze gestures and set cursor
+    freezeGestures(map, true);
+    map.getCanvas().style.cursor = 'crosshair';
+    
+    console.log('[SNIP] Drawing mode enabled - isDrawing:', true);
     
     /* TEMP FALLBACK - Remove after draw is fixed
     // Uncomment to test with fake data if drawing doesn't work
@@ -2038,10 +2034,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   useEffect(() => {
     if (!map || !isDrawing) return;
 
-    
+    console.log('[SNIP] Setting up mouse handlers - isDrawing:', isDrawing);
 
     const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
-      
+      console.log('[SNIP] Mouse down at:', e.lngLat);
       e.preventDefault();
       startPoint.current = [e.lngLat.lng, e.lngLat.lat];
       updateRectangle(startPoint.current, startPoint.current);
@@ -2055,6 +2051,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
 
     const handleMouseUp = (e: mapboxgl.MapMouseEvent) => {
       if (!startPoint.current) return;
+      console.log('[SNIP] Mouse up at:', e.lngLat);
       
       const endPoint: [number, number] = [e.lngLat.lng, e.lngLat.lat];
       const dx = Math.abs(endPoint[0] - startPoint.current[0]);
@@ -2094,8 +2091,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     map.on('mousemove', handleMouseMove);
     map.on('mouseup', handleMouseUp);
     window.addEventListener('keydown', handleEscape);
+    
+    console.log('[SNIP] Mouse handlers attached to map');
 
     return () => {
+      console.log('[SNIP] Removing mouse handlers');
       map.off('mousedown', handleMouseDown);
       map.off('mousemove', handleMouseMove);
       map.off('mouseup', handleMouseUp);
