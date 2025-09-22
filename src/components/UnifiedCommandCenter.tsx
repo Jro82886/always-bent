@@ -32,22 +32,35 @@ export default function UnifiedCommandCenter({
   // Hardened snip starter: clears stuck state, forces crosshair, engages drawing
   const startSnipSafe = useCallback(() => {
     try {
-      console.log('[SNIP] startSnipSafe');
-      // Clear stale analysis flags
+      console.log('[SNIP] startSnipSafe - clearing state and starting draw');
+      
+      // Clear stale analysis state
       useAppState.setState(s => ({
         analysis: {
           ...s.analysis,
           showReviewCta: false,
           isZoomingToSnip: false,
           pendingAnalysis: null,
-          narrative: ''
+          narrative: '',
+          lastSnipPolygon: null,
+          lastSnipBBox: null,
+          lastSnipCenter: null
         }
       }));
-      // Force crosshair
-      const map = (window as any).mapboxMap;
-      map?.getCanvas?.().style && (map.getCanvas().style.cursor = 'crosshair');
-      // Engage drawing on next frame
-      requestAnimationFrame(() => (window as any).enableDrawing?.());
+      
+      // Call the actual snip tool's start function
+      // This properly sets isDrawing=true and enables mouse handlers
+      if ((window as any).startSnipping) {
+        (window as any).startSnipping();
+        console.log('[SNIP] startSnipping called successfully');
+      } else {
+        console.error('[SNIP] startSnipping not found - SnipTool may not be mounted');
+        // Fallback: try to set cursor at least
+        const map = (window as any).mapboxMap || (window as any).map;
+        if (map?.getCanvas) {
+          map.getCanvas().style.cursor = 'crosshair';
+        }
+      }
     } catch (e) {
       console.error('[SNIP] startSnipSafe error', e);
     }
