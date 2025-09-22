@@ -307,11 +307,14 @@ export default function TrackingToolbar({
   return (
     <div className="absolute left-4 top-24 z-10 space-y-4 pointer-events-none">
       {/* Weather Card */}
-      <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
-        <div className="flex items-center gap-2 mb-3">
-          <Wind className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-sm font-medium text-white">Weather</h3>
+      <div className="ab-card pointer-events-auto w-72">
+        <div className="ab-head">
+          <div className="flex items-center gap-2">
+            <Wind className="w-4 h-4 text-cyan-400" />
+            <h3 className="ab-head__title">Weather</h3>
+          </div>
         </div>
+        <div className="ab-head__underline" />
         
         {weatherLoading ? (
           <div className="text-xs text-slate-400">Loading...</div>
@@ -342,33 +345,36 @@ export default function TrackingToolbar({
       </div>
 
       {/* My Vessel Section */}
-      <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
-        <div className="flex items-center gap-2 mb-3">
-          <Anchor className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-sm font-medium text-white">My Vessel</h3>
+      <div className="ab-card pointer-events-auto w-72">
+        <div className="ab-head">
+          <div className="flex items-center gap-2">
+            <Anchor className="w-4 h-4 text-cyan-400" />
+            <h3 className="ab-head__title">My Vessel</h3>
+          </div>
         </div>
+        <div className="ab-head__underline" />
         
         <div className="space-y-2">
-          <button
-            onClick={showYou ? onHideMe : onShowMe}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
-              showYou ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
-            }`}
-          >
-            <span>{showYou ? 'Hide Me' : 'Show Me'}</span>
-            <div className={`w-2 h-2 rounded-full ${showYou ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-          </button>
+          <div className="ab-row">
+            <span className="text-sm text-slate-300">{showYou ? 'Hide Me' : 'Show Me'}</span>
+            <button
+              onClick={showYou ? onHideMe : onShowMe}
+              className={`ab-pill ${showYou ? 'ab-pill--on' : 'ab-pill--off'}`}
+            >
+              {showYou ? 'Active' : 'Hidden'}
+            </button>
+          </div>
           
-          <button
-            onClick={() => setShowTracks(!showTracks)}
-            disabled={!showYou}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
-              showTracks ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
-            } ${!showYou ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <span>My Tracks</span>
-            <div className={`w-2 h-2 rounded-full ${showTracks ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-          </button>
+          <div className="ab-row">
+            <span className="text-sm text-slate-300">My Tracks</span>
+            <button
+              onClick={() => setShowTracks(!showTracks)}
+              disabled={!showYou}
+              className={`ab-pill ${showTracks ? 'ab-pill--on' : 'ab-pill--off'} ${!showYou ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {showTracks ? 'Active' : 'Hidden'}
+            </button>
+          </div>
           
           {/* Location Status */}
           {userLocStatus !== 'idle' && (
@@ -405,11 +411,14 @@ export default function TrackingToolbar({
       </div>
 
       {/* My Inlet Fleet Section */}
-      <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
-        <div className="flex items-center gap-2 mb-3">
-          <Users className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-sm font-medium text-white">My Inlet Fleet</h3>
+      <div className="ab-card pointer-events-auto w-72">
+        <div className="ab-head">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-cyan-400" />
+            <h3 className="ab-head__title">My Inlet Fleet</h3>
+          </div>
         </div>
+        <div className="ab-head__underline" />
         
         {!locationGranted ? (
           <div className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md p-2 mb-2">
@@ -418,27 +427,27 @@ export default function TrackingToolbar({
         ) : null}
         
         <div className="space-y-2">
-          <button
-            onClick={() => setShowFleet(!showFleet)}
-            disabled={!locationGranted}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
-              showFleet ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
-            } ${!locationGranted ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <span>Fleet Boats</span>
-            <div className={`w-2 h-2 rounded-full ${showFleet ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-          </button>
+          <div className="ab-row">
+            <span className="text-sm text-slate-300">Fleet Boats</span>
+            <button
+              onClick={() => setShowFleet(!showFleet)}
+              disabled={!locationGranted}
+              className={`ab-pill ${showFleet ? 'ab-pill--on' : 'ab-pill--off'} ${!locationGranted ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {showFleet ? 'Active' : 'Hidden'}
+            </button>
+          </div>
           
-          <button
-            onClick={() => setShowFleetTracks(!showFleetTracks)}
-            disabled={!locationGranted || !showFleet}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
-              showFleetTracks ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
-            } ${!locationGranted || !showFleet ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <span>Fleet Tracks</span>
-            <div className={`w-2 h-2 rounded-full ${showFleetTracks ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-          </button>
+          <div className="ab-row">
+            <span className="text-sm text-slate-300">Fleet Tracks</span>
+            <button
+              onClick={() => setShowFleetTracks(!showFleetTracks)}
+              disabled={!locationGranted || !showFleet}
+              className={`ab-pill ${showFleetTracks ? 'ab-pill--on' : 'ab-pill--off'} ${!locationGranted || !showFleet ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {showFleetTracks ? 'Active' : 'Hidden'}
+            </button>
+          </div>
           
           {/* Chat CTA */}
           <button
@@ -453,33 +462,36 @@ export default function TrackingToolbar({
 
       {/* Commercial Vessels Section */}
       {gfwEnabled && (
-        <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
-          <div className="flex items-center gap-2 mb-3">
-            <Ship className="w-4 h-4 text-cyan-400" />
-            <h3 className="text-sm font-medium text-white">Commercial Vessels</h3>
+        <div className="ab-card pointer-events-auto w-72">
+          <div className="ab-head">
+            <div className="flex items-center gap-2">
+              <Ship className="w-4 h-4 text-cyan-400" />
+              <h3 className="ab-head__title">Commercial Vessels</h3>
+            </div>
           </div>
+          <div className="ab-head__underline" />
           
-          <div className="space-y-2">
-            <button
-              onClick={() => setShowCommercial(!showCommercial)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
-                showCommercial ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
-              }`}
-            >
-              <span>GFW Boats</span>
-              <div className={`w-2 h-2 rounded-full ${showCommercial ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-            </button>
+          <div className="space-y-2 p-3">
+            <div className="ab-row">
+              <span className="text-sm text-slate-300">GFW Boats</span>
+              <button
+                onClick={() => setShowCommercial(!showCommercial)}
+                className={`ab-pill ${showCommercial ? 'ab-pill--on' : 'ab-pill--off'}`}
+              >
+                {showCommercial ? 'Active' : 'Hidden'}
+              </button>
+            </div>
             
-            <button
-              onClick={() => setShowCommercialTracks(!showCommercialTracks)}
-              disabled={!showCommercial}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
-                showCommercialTracks ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
-              } ${!showCommercial ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <span>Commercial Tracks</span>
-              <div className={`w-2 h-2 rounded-full ${showCommercialTracks ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-            </button>
+            <div className="ab-row">
+              <span className="text-sm text-slate-300">Commercial Tracks</span>
+              <button
+                onClick={() => setShowCommercialTracks(!showCommercialTracks)}
+                disabled={!showCommercial}
+                className={`ab-pill ${showCommercialTracks ? 'ab-pill--on' : 'ab-pill--off'} ${!showCommercial ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {showCommercialTracks ? 'Active' : 'Hidden'}
+              </button>
+            </div>
           </div>
         </div>
       )}

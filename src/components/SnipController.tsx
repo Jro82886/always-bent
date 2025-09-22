@@ -628,6 +628,7 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
         analysis={currentAnalysis ? {
           ...currentAnalysis,
           narrative: (currentAnalysis as any).narrative || 'Analysis completed',
+          polygon: (currentAnalysis as any).polygon?.geometry || (currentAnalysis as any).polygon,
           bbox: [0, 0, 0, 0] as [number, number, number, number],
           timeISO: new Date().toISOString(),
           toggles: {

@@ -5,6 +5,7 @@ import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@/styles/mapbox-controls.css';
+import '@/styles/tracking-polish.css';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';

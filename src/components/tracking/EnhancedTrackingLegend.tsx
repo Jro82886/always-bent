@@ -70,14 +70,14 @@ export default function EnhancedTrackingLegend({
     <div className={`absolute right-4 top-24 z-10 transition-all duration-300 ${
       isCollapsed ? 'w-12' : 'w-72'
     }`}>
-      <div className="bg-slate-900/95 backdrop-blur-sm border border-cyan-500/30 rounded-lg shadow-lg overflow-hidden">
+      <div className="ab-card overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-cyan-500/20">
+        <div className="ab-head">
           {!isCollapsed && (
-            <h3 className="text-sm font-medium text-white flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Anchor className="w-4 h-4 text-cyan-400" />
-              Vessel Tracking
-            </h3>
+              <h3 className="ab-head__title">Vessel Tracking</h3>
+            </div>
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -90,46 +90,38 @@ export default function EnhancedTrackingLegend({
             )}
           </button>
         </div>
+        
+        {/* Underline after header */}
+        {!isCollapsed && <div className="ab-head__underline" />}
 
         {/* Legend Content */}
         {!isCollapsed && (
-          <div className="p-4 space-y-4">
+          <div className="space-y-4">
             {/* Your Vessel Section */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
+            <div className="space-y-2 p-4">
+              <div className="ab-row">
                 <div className="flex items-center gap-2">
                   <Navigation className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-medium text-white">Your Vessel</span>
+                  <span className="text-sm font-medium text-white">Your Vessel</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  {userLocStatus === 'active' && userLoc ? (
-                    <>
-                      <span className="text-xs text-emerald-400">
-                        Active • {timeAgo(userLoc.updatedAt)}
-                      </span>
-                      {map && (
-                        <button
-                          onClick={flyToMe}
-                          className="p-1 hover:bg-slate-800/50 rounded transition-transform hover:translate-x-0.5"
-                          title="Fly to my position"
-                        >
-                          <ChevronRight className="w-3 h-3 text-emerald-400" />
-                        </button>
-                      )}
-                    </>
-                  ) : userLocStatus === 'requesting' ? (
-                    <span className="text-xs text-yellow-400">Locating...</span>
-                  ) : userLocStatus === 'denied' ? (
-                    <span className="text-xs text-red-400">Permission needed</span>
-                  ) : userLocStatus === 'error' ? (
-                    <span className="text-xs text-red-400">GPS error</span>
-                  ) : (
-                    <span className="text-xs text-gray-500">
-                      {userLocStatus === 'idle' ? 'Hidden' : 'No GPS'}
-                    </span>
-                  )}
-                </div>
+                <span className={`ab-pill ${
+                  userLocStatus === 'active' ? 'ab-pill--on' : 'ab-pill--off'
+                }`}>
+                  {userLocStatus === 'active' ? 'Active' : 
+                   userLocStatus === 'requesting' ? 'Locating' :
+                   userLocStatus === 'denied' ? 'No GPS' :
+                   userLocStatus === 'error' ? 'Error' : 'Hidden'}
+                </span>
               </div>
+              
+              {/* Active status line */}
+              {userLocStatus === 'active' && userLoc && (
+                <div className="ab-status">
+                  <span className="ab-dot" />
+                  <span>Active • {timeAgo(userLoc.updatedAt)}</span>
+                  {map && <button onClick={flyToMe}>Fly to me ▸</button>}
+                </div>
+              )}
               
               {userLocStatus === 'active' && userLoc && userPosition && (
                 <div className="ml-6 space-y-1">
@@ -149,13 +141,16 @@ export default function EnhancedTrackingLegend({
                 </div>
               )}
             </div>
+            
+            {/* Divider */}
+            <div className="ab-div" />
 
             {/* Fleet Vessels Section */}
-            <div className="space-y-2 pt-3 border-t border-cyan-500/20">
-              <div className="flex items-center justify-between">
+            <div className="space-y-2 p-4">
+              <div className="ab-row">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-blue-400" />
-                  <span className="text-xs font-medium text-white">Fleet Vessels</span>
+                  <span className="text-sm font-medium text-white">Fleet Vessels</span>
                 </div>
                 <span className="text-xs text-gray-400">
                   {showFleet ? `${fleetVessels.length} total` : 'Hidden'}

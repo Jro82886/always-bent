@@ -11,7 +11,7 @@ import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extract
 import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
 import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-analyzer';
 import { buildNarrative } from '@/lib/analysis/narrative-builder';
-import type { SnipAnalysis, LayerToggles, SnipReportPayload } from '@/lib/analysis/types';
+import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats } from '@/lib/analysis/types';
 import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
 import { frontStrength, inSstBand, inChlMidBand } from '@/lib/analysis/hotspot-utils';
 import { THRESHOLDS } from '@/config/ocean-thresholds';
@@ -828,7 +828,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       if (toggles.chl) want.push('chl');
 
       const [scalarRes, gfwRes] = await Promise.all([
-        want.length ? sampleScalars({ polygon: polygon.geometry, timeISO, layers: want }) : Promise.resolve({}),
+        want.length ? sampleScalars({ polygon: polygon.geometry, timeISO, layers: want }) : Promise.resolve({} as { sst?: ScalarStats | null; chl?: ScalarStats | null }),
         toggles.gfw ? clipGFW({ polygon: polygon.geometry, days: 4 }) : Promise.resolve(null),
       ]);
 
@@ -858,23 +858,36 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         }
       );
 
-      // Store analysis
-      const finalAnalysis = {
-        ...analysis,
-        narrative,
-        // Add legacy fields for compatibility
+      // Store analysis - create AnalysisResult for legacy compatibility
+      const finalAnalysis: AnalysisResult = {
+        polygon: polygon,
+        features: [], // No features for MVP
+        hotspot: null, // No hotspot detection for MVP
         stats: {
-          avg_temp_f: analysis.sst?.mean,
-          min_temp_f: analysis.sst?.min,
-          max_temp_f: analysis.sst?.max,
+          avg_temp_f: analysis.sst?.mean ?? 0,
+          min_temp_f: analysis.sst?.min ?? 0,
+          max_temp_f: analysis.sst?.max ?? 0,
+          temp_range_f: (analysis.sst?.max ?? 0) - (analysis.sst?.min ?? 0),
           area_km2: turf.area(polygon) / 1000000
         },
-        polygon: polygon,
+        layerAnalysis: {
+          sst: analysis.sst ? {
+            active: true,
+            description: `SST: ${analysis.sst.mean?.toFixed(1) ?? 'N/A'}°F`
+          } : undefined,
+          chl: analysis.chl ? {
+            active: true,
+            description: `CHL: ${analysis.chl.mean?.toFixed(2) ?? 'N/A'} mg/m³`,
+            avg_chl_mg_m3: analysis.chl.mean ?? undefined,
+            max_chl_mg_m3: analysis.chl.max ?? undefined
+          } : undefined
+        },
+        narrative,
         type: 'snip' as const,
         id: crypto.randomUUID(),
         user_id: 'current-user',
         created_at: new Date().toISOString()
-      };
+      } as any;
       
       setLastAnalysis(finalAnalysis);
       setHasAnalysisResults(true);
