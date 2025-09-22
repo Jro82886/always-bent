@@ -17,6 +17,15 @@ export function toLegacy(a: SnipAnalysis): LegacySnipAnalysis {
     },
     detected_features: [],
     report_text: 'Generated via adapter',
-    // primary_hotspot intentionally omitted for MVP
+    hotspot_confidence: 0,
+    success_prediction: 0,
+    predicted_species: [],
+    created_at: new Date().toISOString(),
+    layers_active: {
+      sst: a.toggles.sst,
+      chl: a.toggles.chl,
+      current: false,
+      bathymetry: false
+    }
   } as LegacySnipAnalysis;
 }

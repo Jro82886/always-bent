@@ -2,7 +2,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import type { 
-  SnipAnalysis, 
+  LegacySnipAnalysis as SnipAnalysis, 
   CatchReport, 
   VesselTrack, 
   MLPattern,
@@ -167,8 +167,8 @@ export async function predictSuccess(analysis: Partial<SnipAnalysis>): Promise<n
   
   // Check for detected features
   if (analysis.detected_features) {
-    const hasEdge = analysis.detected_features.some(f => f.type === 'edge' && f.confidence > 0.8);
-    const hasEddy = analysis.detected_features.some(f => f.type === 'eddy' && f.confidence > 0.8);
+    const hasEdge = analysis.detected_features.some((f: any) => f.type === 'edge' && f.confidence > 0.8);
+    const hasEddy = analysis.detected_features.some((f: any) => f.type === 'eddy' && f.confidence > 0.8);
     
     if (hasEdge) score += 0.15;
     if (hasEddy) score += 0.1;
