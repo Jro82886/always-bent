@@ -573,9 +573,18 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     }));
 
-    // Clear any previous drawing state
+    // Clear any previous drawing state and layers
     startPoint.current = null;
     currentPolygon.current = null;
+    
+    // Clear any existing rectangle from previous draws
+    if (map.getSource('snip-rectangle')) {
+      const source = map.getSource('snip-rectangle') as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: 'FeatureCollection',
+        features: []
+      });
+    }
     
     // Set drawing state FIRST (this enables mouse handlers)
     setIsDrawing(true);
@@ -2035,10 +2044,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     if (!map || !isDrawing) return;
 
     console.log('[SNIP] Setting up mouse handlers - isDrawing:', isDrawing);
+    
+    // Get the map canvas directly
+    const canvas = map.getCanvas();
 
     const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
       console.log('[SNIP] Mouse down at:', e.lngLat);
-      e.preventDefault();
+      e.originalEvent.preventDefault();
+      e.originalEvent.stopPropagation();
       startPoint.current = [e.lngLat.lng, e.lngLat.lat];
       updateRectangle(startPoint.current, startPoint.current);
     };
