@@ -17,6 +17,11 @@ const ChatWindow = dynamic(() => import('@/components/chat/ChatWindow'), {
   loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
 });
 
+const UnifiedChatContainer = dynamic(() => import('@/components/chat/UnifiedChatContainer'), {
+  ssr: false,
+  loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
+});
+
 const ContextPanel = dynamic(() => import('@/components/chat/ContextPanel'), {
   ssr: false,
   loading: () => <div className="w-80 bg-slate-900 animate-pulse" />
@@ -27,7 +32,7 @@ const WeatherHeader = dynamic(() => import('@/components/chat/WeatherHeader'), {
 });
 
 export default function ChatPage() {
-  const { selectedInletId } = useAppState();
+  const { selectedInletId, user } = useAppState();
   const [selectedRoom, setSelectedRoom] = useState('inlet');
   const [showMobileRoom, setShowMobileRoom] = useState(false);
   
@@ -71,10 +76,17 @@ export default function ChatPage() {
             onSelectRoom={setSelectedRoom}
           />
           <div className="flex-1">
-            <ChatWindow 
-              roomId={selectedRoom}
-              showWeatherHeader={selectedRoom === 'inlet'}
-            />
+            {selectedRoom === 'inlet' && selectedInletId && selectedInletId !== 'overview' ? (
+              <UnifiedChatContainer 
+                inletId={selectedInletId}
+                userId={user?.id}
+              />
+            ) : (
+              <ChatWindow 
+                roomId={selectedRoom}
+                showWeatherHeader={false}
+              />
+            )}
           </div>
           <ContextPanel 
             roomId={selectedRoom}
@@ -150,10 +162,17 @@ export default function ChatPage() {
               </div>
             </div>
             <div className="flex-1">
-              <ChatWindow 
-                roomId={selectedRoom}
-                showWeatherHeader={false}
-              />
+              {selectedRoom === 'inlet' && selectedInletId && selectedInletId !== 'overview' ? (
+                <UnifiedChatContainer 
+                  inletId={selectedInletId}
+                  userId={user?.id}
+                />
+              ) : (
+                <ChatWindow 
+                  roomId={selectedRoom}
+                  showWeatherHeader={false}
+                />
+              )}
             </div>
           </div>
         )}

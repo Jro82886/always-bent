@@ -38,11 +38,12 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
       : null
   ).current;
 
-  // Extract fresh boats from presence state
-  const extractFreshBoats = (presenceState: Record<string, PresenceState[]>) => {
+  // Extract fresh boats from presence state and vessel positions
+  const extractFreshBoats = async (presenceState: Record<string, PresenceState[]>) => {
     const freshBoats = new Map<string, boolean>();
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     
+    // Add boats from presence
     Object.values(presenceState).forEach(states => {
       states.forEach(state => {
         if (new Date(state.last_seen) > twoMinutesAgo) {
@@ -52,6 +53,19 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
         }
       });
     });
+    
+    // Layer in vessels from fleet API (vessels with position pings but no chat presence)
+    try {
+      const response = await fetch(`/api/fleet/online?inlet_id=${inletId}`);
+      if (response.ok) {
+        const vessels = await response.json();
+        vessels.forEach((vessel: any) => {
+          freshBoats.set(vessel.vessel_id, true);
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching fleet vessels:', error);
+    }
     
     return freshBoats;
   };
@@ -73,11 +87,9 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
         channelRef.current = channel;
 
         // Handle presence sync
-        channel.on('presence', { event: 'sync' }, () => {
+        channel.on('presence', { event: 'sync' }, async () => {
           const presenceState = channel.presenceState();
-          const freshBoats = extractFreshBoats(presenceState);
-          
-          // TODO: Layer in vessels_latest for boats with tracking pings but no chat presence
+          const freshBoats = await extractFreshBoats(presenceState);
           setBoatsOnline(freshBoats.size);
         });
 
