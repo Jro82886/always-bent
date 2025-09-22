@@ -19,7 +19,7 @@ export default function GFWLegend({ showCommercial, vesselCounts }: GFWLegendPro
     {
       type: 'longliner',
       label: 'Longliner',
-      color: '#FF6B6B',
+      color: '#FF6B6B', // coral red
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M12 2v10m0 0c0 2-2 4-4 4s-4-2-4-4 2-4 4-4m4 4c0 2 2 4 4 4s4-2 4-4-2-4-4-4" 
@@ -31,7 +31,7 @@ export default function GFWLegend({ showCommercial, vesselCounts }: GFWLegendPro
     {
       type: 'drifting_longline',
       label: 'Drifting Longline',
-      color: '#4ECDC4',
+      color: '#46E6D4', // turquoise
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M3 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0" 
@@ -45,7 +45,7 @@ export default function GFWLegend({ showCommercial, vesselCounts }: GFWLegendPro
     {
       type: 'trawler',
       label: 'Trawler',
-      color: '#45B7D1',
+      color: '#4B9BFF', // ocean blue
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M12 3v6l-4 4v5h8v-5l-4-4V3" 
@@ -83,8 +83,8 @@ export default function GFWLegend({ showCommercial, vesselCounts }: GFWLegendPro
         {vesselCounts?.fishing_events && vesselCounts.fishing_events > 0 && (
           <div className="flex items-center justify-between text-xs pt-2 border-t border-white/10">
             <div className="flex items-center gap-2">
-              <Fish className="w-4 h-4 text-yellow-400" />
-              <span className="text-gray-300">Active Fishing</span>
+              <Fish className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-300">Fishing Events</span>
             </div>
             <span className="text-gray-400 ml-4">{vesselCounts.fishing_events}</span>
           </div>

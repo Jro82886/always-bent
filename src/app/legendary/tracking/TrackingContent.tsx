@@ -10,6 +10,7 @@ import { useInletFromURL } from '@/hooks/useInletFromURL';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';
 import FleetLayer from '@/components/tracking/FleetLayer';
+import GFWVesselLayer from '@/components/tracking/GFWVesselLayer';
 import TrackingToolbar from '@/components/tracking/TrackingToolbar';
 import EnhancedTrackingLegend from '@/components/tracking/EnhancedTrackingLegend';
 import GFWLegend from '@/components/tracking/GFWLegend';
@@ -310,14 +311,13 @@ function TrackingModeContent() {
       )}
       
       
-      {/* Commercial Vessel Layer */}
-      {mapFullyReady && showCommercial && (
-        <CommercialVesselLayer
+      {/* GFW Commercial Vessel Layer */}
+      {mapFullyReady && (
+        <GFWVesselLayer
           map={map.current}
           showCommercial={showCommercial}
-          showTracks={showCommercialTracks}
-          selectedInletId={selectedInletId || ''}
-          onVesselCountsUpdate={setGfwVesselCounts}
+          selectedInletId={selectedInletId}
+          onVesselCountUpdate={setGfwVesselCounts}
         />
       )}
       
