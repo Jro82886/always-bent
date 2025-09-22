@@ -11,7 +11,8 @@ import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extract
 import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
 import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-analyzer';
 import { buildNarrative } from '@/lib/analysis/narrative-builder';
-import type { SnipAnalysis } from '@/lib/analysis/types';
+import type { SnipAnalysis, LayerToggles, SnipReportPayload } from '@/lib/analysis/types';
+import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
 import { frontStrength, inSstBand, inChlMidBand } from '@/lib/analysis/hotspot-utils';
 import { THRESHOLDS } from '@/config/ocean-thresholds';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
@@ -470,7 +471,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [previousView, setPreviousView] = useState<{ center: [number, number]; zoom: number } | null>(null);
   
   // Get app state for date and layer toggles
-  const { isoDate, selectedInletId } = useAppState();
+  const { 
+    isoDate, 
+    selectedInletId,
+    myTracksEnabled,
+    fleetTracksEnabled,
+    gfwTracksEnabled 
+  } = useAppState();
   
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
@@ -1177,7 +1184,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         toggles: {
           sst: activeLayers.sst || false,
           chl: activeLayers.chl || false,
-          gfw: activeLayers.gfw || false
+          gfw: activeLayers.gfw || false,
+          myTracks: myTracksEnabled,
+          fleetTracks: fleetTracksEnabled,
+          gfwTracks: gfwTracksEnabled
         },
         narrative: buildNarrative({
           polygon: polygon.geometry,

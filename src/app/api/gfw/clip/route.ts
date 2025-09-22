@@ -1,31 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import { NextResponse } from 'next/server';
 
-const Body = z.object({
-  polygon: z.any(), // GeoJSON Polygon
-  gears: z.array(z.enum(['longliner','drifting_longline','trawler'])).default([
-    'longliner','drifting_longline','trawler'
-  ])
-});
-
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const url = new URL(req.url);
-    const days = Number(url.searchParams.get('days') ?? 4);
-    const { polygon, gears } = Body.parse(await req.json());
+    const { polygon, gears } = await req.json();
+    if (!polygon) return NextResponse.json({ error: 'polygon required' }, { status: 400 });
 
-    // TODO: call your existing Vercel GFW proxy with polygon + days + gears
-    // Expect counts + (optional) clipped tracks
+    // If GFW is not configured, return 204 so UI prints "n/a"
+    if (!process.env.GFW_API_TOKEN) return new Response(null, { status: 204 });
 
-    // --- MOCK SHAPE (stable for UI work) ---
-    const result = {
+    // TODO: call your internal GFW service here; placeholder returns empty counts
+    // Keep shape stable for the client
+    return NextResponse.json({
       counts: { longliner: 0, drifting_longline: 0, trawler: 0, events: 0 },
-      sampleNames: [] as string[],
-      // tracks: [{ id, gear, coords: [[lon,lat], ...] }]
-    };
-
-    return NextResponse.json(result, { status: 200 });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message ?? 'bad request' }, { status: 400 });
+      sampleVesselNames: [],
+    });
+  } catch (e) {
+    return NextResponse.json({ error: 'clip error' }, { status: 500 });
   }
 }
