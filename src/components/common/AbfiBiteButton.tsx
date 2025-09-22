@@ -15,45 +15,14 @@ export default function AbfiBiteButton({ compact = false, context = 'tracking' a
     setBusy(true);
     
     try {
-      // Try to get GPS
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 8000, maximumAge: 5000 });
-      }).catch(() => null);
-
-      let lat = pos?.coords.latitude ?? userLoc?.lat;
-      let lon = pos?.coords.longitude ?? userLoc?.lon;
-      let accuracy = pos?.coords.accuracy ?? userLoc?.accuracy;
-
-      if ((!lat || !lon) && context === 'analysis') {
-        // Offer manual map-center fallback (low confidence)
-        const map: any = (window as any).map || (window as any).mapboxMap;
-        if (map?.getCenter) {
-          const center = map.getCenter();
-          lat = center.lat;
-          lon = center.lng;
-          accuracy = 500; // low-confidence
-        }
-      }
-
-      if (!lat || !lon) {
-        showToast({ type: 'warning', title: 'Location Required', message: 'Enable location to log a bite.', duration: 3500 });
-        setBusy(false);
-        return;
-      }
-
+      // Let recordBite handle GPS + map-center fallback internally
+      const layersOn: string[] = [];
       await recordBite({
         user_id: user?.id || 'anonymous',
         user_name: 'Anonymous',
-        lat, lon, accuracy_m: accuracy,
         inlet_id: selectedInletId || undefined,
-        context: {
-          layers_on: [],
-          map_zoom: (window as any).map?.getZoom?.() || 8,
-          vessel_count: 0
-        },
+        layers_on: layersOn,
         fish_on: true,
-        device_tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        app_version: '1.0.0'
       });
 
       // Increment pending badge immediately
@@ -67,7 +36,8 @@ export default function AbfiBiteButton({ compact = false, context = 'tracking' a
         showToast({ type: 'info', title: 'Saved offline', message: 'Will upload when back online.', duration: 4000 });
       }
     } catch (err: any) {
-      const msg = err?.code === err.PERMISSION_DENIED ? 'Enable location to log a bite.' : 'Couldn’t get GPS — try again.';
+      const denied = typeof err?.code !== 'undefined' && err.code === (navigator as any).geolocation?.PERMISSION_DENIED;
+      const msg = denied ? 'Enable location to log a bite.' : 'Couldn’t get GPS — try again.';
       showToast({ type: 'warning', title: 'Location', message: msg, duration: 3500 });
     } finally {
       setBusy(false);
