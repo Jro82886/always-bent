@@ -563,6 +563,24 @@ export default function LeftZone({
               )}
             </div>
           )}
+          
+          {/* Weather Section */}
+          <div className="border-t border-cyan-500/20 px-4 py-3 space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Waves size={14} className="text-cyan-400" />
+              <span className="text-xs font-medium text-cyan-300 uppercase tracking-wider">Weather</span>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Wind</span>
+                <span className="text-cyan-300">12kt SE ↗</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">Swell</span>
+                <span className="text-cyan-300">4.2ft @ 9s</span>
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* DATE SELECTOR - Always visible, disabled when no layers active */}

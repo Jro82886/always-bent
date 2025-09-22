@@ -48,7 +48,7 @@ export function fitBoundsToPolygon(
   const padding = opts?.padding ?? 36;
   const maxZoom  = opts?.maxZoom ?? 12.5;
   const animate  = opts?.animate ?? true;
-  const duration = opts?.durationMs ?? 900;
+  const duration = opts?.durationMs ?? 1500;
 
   // If selection is microscopic, a gentle flyTo feels better than a super-zoom jump.
   if (areaKm2 < (opts?.minAreaKm2 ?? 0.3)) {

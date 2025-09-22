@@ -912,7 +912,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       fitBoundsToPolygon(map, polygon.geometry, {
         padding: 44,
         maxZoom: 12.5,
-        durationMs: 900,
+        durationMs: 1500,
         minAreaKm2: 0.3,
         onDone: () => {
           // Store analysis - create AnalysisResult for legacy compatibility

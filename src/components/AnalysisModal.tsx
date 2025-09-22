@@ -8,6 +8,7 @@ import { showToast } from '@/components/ui/Toast';
 import { flags } from '@/lib/flags';
 import { useAppState } from '@/lib/store';
 import type { SnipAnalysis } from '@/lib/analysis/types';
+import { INLETS } from '@/lib/inlets';
 import '@/styles/analysis-glow.css';
 
 interface AnalysisModalProps {
@@ -118,6 +119,21 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   };
 
   const onSnipAnother = () => {
+    // Reset zoom to inlet view
+    if (mapRef) {
+      const inletId = selectedInletId || 'ocean-city';
+      const inlet = INLETS.find(i => i.id === inletId);
+      if (inlet) {
+        mapRef.easeTo({ 
+          center: [inlet.lng, inlet.lat], 
+          zoom: 8, 
+          duration: 1000 
+        });
+      } else {
+        // Fallback: zoom out 2 levels
+        mapRef.zoomTo(mapRef.getZoom() - 2, { duration: 1000 });
+      }
+    }
     hardResetSnip(mapRef);
     onClose?.();
     setReportId(null);
@@ -267,14 +283,24 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               <Activity size={20} className="text-cyan-400" />
               Ocean Intelligence Analysis
             </h3>
-            <div className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">
-              {analysis.narrative}
+            <div className="text-gray-300 text-sm leading-relaxed space-y-2">
+              {analysis.narrative.split('\n').filter(Boolean).map((line, idx) => (
+                <div key={idx} className="py-1">
+                  {line}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Area Stats */}
           <div className="mt-4 text-center text-xs text-gray-500">
-            Area analyzed: {analysis.polygonMeta?.area_sq_km.toFixed(1) || '0.0'} km²
+            <div>Area analyzed: {analysis.polygonMeta?.area_sq_km.toFixed(1) || '0.0'} km²</div>
+            {analysis.polygonMeta?.centroid && (
+              <div>
+                Center: {Math.abs(analysis.polygonMeta.centroid.lat).toFixed(2)}°{analysis.polygonMeta.centroid.lat >= 0 ? 'N' : 'S'}, {' '}
+                {Math.abs(analysis.polygonMeta.centroid.lon).toFixed(2)}°{analysis.polygonMeta.centroid.lon >= 0 ? 'E' : 'W'}
+              </div>
+            )}
           </div>
         </div>
 
