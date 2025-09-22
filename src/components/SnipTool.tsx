@@ -470,6 +470,18 @@ function processEdgesForAnalysis(features: any[]): string {
   return edgeAnalysis;
 }
 
+// Helper to freeze/unfreeze map gestures
+function freezeGestures(map: mapboxgl.Map, freeze: boolean) {
+  const method = freeze ? 'disable' : 'enable';
+  map.dragPan?.[method]?.();
+  map.scrollZoom?.[method]?.();
+  map.boxZoom?.[method]?.();
+  map.dragRotate?.[method]?.();
+  map.doubleClickZoom?.[method]?.();
+  map.keyboard?.[method]?.();
+  map.touchZoomRotate?.[method]?.();
+}
+
 export default function SnipTool({ map, onAnalysisComplete, isActive = false }: SnipToolProps) {
   const [status, setStatus] = useState<'idle' | 'drawing' | 'analyzing'>('idle');
   const [isDrawing, setIsDrawing] = useState(false);
@@ -744,12 +756,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       document.head.appendChild(style);
     }
     
-    // Disable map interactions
-    map.dragPan.disable();
-    map.dragRotate.disable();
-    map.doubleClickZoom.disable();
-    map.scrollZoom.disable();
-    map.boxZoom.disable();
+    // Freeze all gestures
+    freezeGestures(map, true);
     
     // Clear any existing rectangle
     if (map.getSource('snip-rectangle')) {
@@ -807,14 +815,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       if (map.getSource('snip-rectangle')) map.removeSource('snip-rectangle');
     } catch {}
     
-    // Re-enable map interactions
-    map.dragPan.enable();
-    map.dragRotate.enable();
-    map.doubleClickZoom.enable();
-    map.scrollZoom.enable();
-    map.boxZoom.enable();
-    (map as any).touchZoomRotate?.enable?.();
-    (map as any).keyboard?.enable?.();
+    // Restore all gestures
+    freezeGestures(map, false);
   }, [map]);
 
   // Clear drawing
@@ -839,12 +841,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     canvas.style.cursor = '';
     canvas.classList.remove('snipping-active');
     
-    // Re-enable map interactions
-    map.dragPan.enable();
-    map.dragRotate.enable();
-    map.doubleClickZoom.enable();
-    map.scrollZoom.enable();
-    map.boxZoom.enable();
+    // Restore all gestures
+    freezeGestures(map, false);
     
     // Clear rectangle
     if (map.getSource('snip-rectangle')) {
@@ -1271,8 +1269,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     setShowReviewBar(false);
     if (map) {
       clearSnipOutlineLayer(map);
-      // Reset cursor to crosshair for new drawing
-      map.getCanvas().style.cursor = 'crosshair';
+      // Restore all gestures
+      freezeGestures(map, false);
+      // Reset cursor to default
+      map.getCanvas().style.cursor = '';
     }
     setPendingPolygon(null);
     
@@ -1288,8 +1288,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     }));
     
-    // Reset drawing state to allow new snips
-    setIsDrawing(true);
+    // Reset drawing state
+    setIsDrawing(false);
     setStatus('idle');
     
     // Optionally snap back a bit
@@ -2067,11 +2067,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         updateRectangle(startPoint.current, endPoint);
         
         // Re-enable map interactions but keep rectangle
-        map.dragPan.enable();
-        map.dragRotate.enable();
-        map.doubleClickZoom.enable();
-        map.scrollZoom.enable();
-        map.boxZoom.enable();
+        freezeGestures(map, false);
         map.getCanvas().style.cursor = '';
         
         // Trigger analysis while keeping rectangle visible

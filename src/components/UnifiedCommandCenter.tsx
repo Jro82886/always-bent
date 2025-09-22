@@ -30,42 +30,37 @@ export default function UnifiedCommandCenter({
   const set = useAppState.setState;
 
   // Hardened snip starter: clears stuck state, forces crosshair, engages drawing
-  const startSnipSafe = useCallback((e?: React.MouseEvent | KeyboardEvent) => {
-    console.log('%c[SNIP] Button clicked', 'color:#00e1a7;font-weight:bold');
+  const startSnipSafe = useCallback(() => {
     try {
-      set((s) => ({
-        ...s,
+      console.log('[SNIP] startSnipSafe');
+      // Clear stale analysis flags
+      useAppState.getState().clearAnalysis?.();
+      useAppState.setState(s => ({
         analysis: {
           ...s.analysis,
           showReviewCta: false,
-          pendingAnalysis: null,
-          narrative: '',
-          lastSnipPolygon: null,
-          lastSnipBBox: null,
-          lastSnipCenter: null,
           isZoomingToSnip: false,
+          pendingAnalysis: null,
+          narrative: ''
         }
       }));
-
-      const map: any = (window as any)?.mapboxMap || (window as any)?.map;
-      map?.getCanvas?.()?.style && (map.getCanvas().style.cursor = 'crosshair');
-
-      requestAnimationFrame(() => {
-        (window as any).enableDrawing?.();
-        console.log('[SNIP] Drawing mode engaged');
-      });
-    } catch (err) {
-      console.warn('[SNIP] startSnipSafe error', err);
+      // Force crosshair
+      const map = (window as any).mapboxMap;
+      map?.getCanvas?.().style && (map.getCanvas().style.cursor = 'crosshair');
+      // Engage drawing on next frame
+      requestAnimationFrame(() => (window as any).enableDrawing?.());
+    } catch (e) {
+      console.error('[SNIP] startSnipSafe error', e);
     }
-  }, [set]);
+  }, []);
 
   // Keyboard fallback: Shift + S
   useEffect(() => {
-    const onKey = (ev: KeyboardEvent) => {
-      if ((ev.key === 'S' || ev.key === 's') && ev.shiftKey) {
-        ev.preventDefault();
-        startSnipSafe(ev);
-      }
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const editing = tag === 'input' || tag === 'textarea' || (e.target as HTMLElement)?.isContentEditable;
+      if (editing) return;
+      if (e.shiftKey && (e.key === 'S' || e.key === 's')) startSnipSafe();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -240,18 +235,15 @@ export default function UnifiedCommandCenter({
             
             {/* Main Snip Button */}
             <button
-              type="button"
               data-snip-button
+              className="snip-btn snip-primary w-full"
               aria-label="Draw analysis area"
               onClick={startSnipSafe}
-              disabled={!!analysis?.isZoomingToSnip}
-              aria-disabled={!!analysis?.isZoomingToSnip}
-              className="snip-btn"
             >
-              <span className="snip-icon" aria-hidden>▦</span>
-              <span>Draw Analysis Area</span>
+              <span className="snip-icon">▢▢</span>
+              Draw Analysis Area
+              <span className="snip-hint" />
             </button>
-            <p className="snip-hint">Click and drag to select ocean area for analysis</p>
             
             {/* Quick instructions */}
             <div className="text-center text-[11px] text-gray-500">

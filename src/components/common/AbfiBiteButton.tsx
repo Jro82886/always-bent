@@ -5,6 +5,7 @@ import { Target } from 'lucide-react';
 import { recordBite } from '@/lib/offline/biteDB';
 import { showToast } from '@/components/ui/Toast';
 import { useAppState } from '@/lib/store';
+import '@/components/abfi.css';
 
 export default function AbfiBiteButton({ compact = false, context = 'tracking' as 'tracking' | 'analysis' }) {
   const [busy, setBusy] = useState(false);
