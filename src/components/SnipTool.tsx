@@ -1126,10 +1126,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     log('Cancel clicked, clearing review state');
     
     setShowReviewBar(false);
-    if (map) clearSnipOutlineLayer(map);
+    if (map) {
+      clearSnipOutlineLayer(map);
+      // Reset cursor to crosshair for new drawing
+      map.getCanvas().style.cursor = 'crosshair';
+    }
     setPendingPolygon(null);
     
-    // Reset review CTA
+    // Reset all analysis state
     set((s) => ({
       ...s,
       analysis: {
@@ -1137,8 +1141,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         showReviewCta: false,
         pendingAnalysis: null,
         narrative: '',
+        isZoomingToSnip: false,
       }
     }));
+    
+    // Reset drawing state to allow new snips
+    setIsDrawing(true);
+    setStatus('idle');
     
     // Optionally snap back a bit
     const cam = analysis.preZoomCamera;

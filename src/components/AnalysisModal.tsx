@@ -65,7 +65,27 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
   const onDone = () => {
     cleanupSnipVisualization(mapRef);
+    // Reset analysis state
+    useAppState.setState((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        showReviewCta: false,
+        pendingAnalysis: null,
+        narrative: '',
+        isZoomingToSnip: false,
+      }
+    }));
     onClose?.();
+    
+    // Re-enable drawing mode after modal closes
+    setTimeout(() => {
+      const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
+      if (snipButton) {
+        console.log('[SnipFlow] Re-enabling drawing mode from Done button');
+        snipButton.click();
+      }
+    }, 500);
   };
 
   const onSaveReport = async () => {
@@ -206,9 +226,19 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         showReviewCta: false,
         pendingAnalysis: null,
         narrative: '',
+        isZoomingToSnip: false,
       }
     }));
     onClose?.();
+    
+    // Re-enable drawing mode after a short delay
+    setTimeout(() => {
+      const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
+      if (snipButton) {
+        console.log('[SnipFlow] Re-enabling drawing mode from Back to Overview');
+        snipButton.click();
+      }
+    }, 1000);
   };
 
   if (!mounted || !visible || !analysis) {
