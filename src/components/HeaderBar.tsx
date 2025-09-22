@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useMapbox } from "@/lib/MapCtx";
 import { INLETS, DEFAULT_INLET, getInletById } from "@/lib/inlets";
 import { buildInletColorMap } from "@/lib/inletColors";
-import { useAppState } from "@/store/appState";
+import { useAppState } from "@/lib/store";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { usePathname } from "next/navigation";
 

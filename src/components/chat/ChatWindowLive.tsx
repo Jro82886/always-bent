@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, AtSign, Circle } from 'lucide-react';
 import RoomBar from './RoomBar';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { useRealtimeChat } from '@/hooks/useRealtimeChat';
 import { useOnlinePresence } from '@/hooks/useOnlinePresence';
 import { highlightMentions } from '@/lib/chat/mentions';

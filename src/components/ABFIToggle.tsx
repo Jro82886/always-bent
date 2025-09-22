@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useMapbox } from "@/lib/MapCtx";
-import { useAppState } from "@/store/appState";
+import { useAppState } from "@/lib/store";
 import { addOrUpdateRaster, setRasterVisible, getRasterLayer } from "@/lib/layers";
 
 export default function ABFIToggle() {

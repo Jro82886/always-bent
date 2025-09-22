@@ -8,7 +8,7 @@ import WelcomeChip from './WelcomeChip';
 import InletChip from './InletChip';
 import { CommandBridgeTabs } from './CommandBridgeTabs';
 import '@/styles/command-bridge-tabs.css';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 
 interface HeaderBarProps {

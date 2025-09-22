@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 
 export default function NavTabs() {
   const pathname = usePathname();

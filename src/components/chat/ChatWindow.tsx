@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { MOCK_MESSAGES, MOCK_PRESENCE } from '@/mocks/chat';
 import { Send, AtSign } from 'lucide-react';
 import RoomBar from './RoomBar';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 
 interface ChatWindowProps {
   roomId: string;

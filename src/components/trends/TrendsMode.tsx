@@ -6,7 +6,7 @@ import {
   Moon, Waves, MapPin, Sunrise, Sunset, Navigation, Cloud, Droplets,
   AlertCircle, Info, ChevronRight, Clock, Anchor, RefreshCw, CheckCircle, XCircle
 } from 'lucide-react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';

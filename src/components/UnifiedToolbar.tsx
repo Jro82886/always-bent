@@ -6,7 +6,7 @@ import {
   Thermometer, Waves, Wind, Clock, ChevronDown,
   Navigation, TrendingUp, Activity
 } from 'lucide-react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 import SnipTool from '@/components/SnipTool';
 import type mapboxgl from 'mapbox-gl';

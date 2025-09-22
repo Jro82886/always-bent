@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { initChatClient, ChatMessage, ChatClient } from '@/lib/services/chat';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 
 interface UseRealtimeChatReturn {
   messages: ChatMessage[];

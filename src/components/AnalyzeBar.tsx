@@ -2,7 +2,7 @@
 import { useCallback, useState, useEffect } from 'react';
 // BBox type for bounding box coordinates [west, south, east, north]
 type BBox = [number, number, number, number];
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { DEFAULT_INLET, getInletById } from '@/lib/inlets';
 import { ensureHotspotLayers } from '@/lib/overlay';
 import AnalysisFooterBar from '@/components/AnalysisFooterBar';

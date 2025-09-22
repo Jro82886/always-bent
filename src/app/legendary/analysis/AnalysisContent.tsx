@@ -18,7 +18,7 @@ import RightZone from '@/components/RightZone';
 import OfflineManager from '@/components/OfflineManager';
 import SettingsPanel from '@/components/SettingsPanel';
 // CommercialVesselLegend now integrated into LeftZone
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
 import { useInletFromURL } from '@/hooks/useInletFromURL';

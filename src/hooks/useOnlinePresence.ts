@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 
 interface OnlineUser {
   userId: string;

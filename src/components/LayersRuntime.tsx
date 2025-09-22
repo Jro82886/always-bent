@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useMapbox } from "@/lib/MapCtx";
-import { useAppState } from "@/store/appState";
+import { useAppState } from "@/lib/store";
 import { showOnly, refreshOnDate, wireMoveRefresh, needsBbox, RASTER_LAYERS, setRasterVisible } from "@/lib/layers";
 import { cleanReload } from "@/utils/cleanReload";
 import OverviewPanel from "@/components/OverviewPanel";

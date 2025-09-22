@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { InletWeather, formatWind, formatWaves, assessFishingConditions } from '@/lib/weather/noaa';
 import { getInletById } from '@/lib/inlets';
 

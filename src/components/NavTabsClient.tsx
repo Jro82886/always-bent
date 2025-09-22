@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 
 /**
  * NavTabsClient - Navigation tabs that determine active state from pathname

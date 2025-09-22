@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppState } from "@/store/appState";
+import { useAppState } from "@/lib/store";
 import { getInletById } from "@/lib/inlets";
 
 export default function StatusPill() {

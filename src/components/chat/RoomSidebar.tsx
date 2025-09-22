@@ -2,7 +2,7 @@
 
 import { MOCK_ROOMS } from '@/mocks/chat';
 import { Users } from 'lucide-react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 
 interface RoomSidebarProps {

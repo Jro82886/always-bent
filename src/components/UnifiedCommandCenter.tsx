@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Target, ChevronDown, ChevronUp, Map, Navigation, GraduationCap, 
          Thermometer, Wind, Waves, Compass, Eye, Cloud, Activity } from 'lucide-react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { InletWeather, formatWind, formatWaves, assessFishingConditions } from '@/lib/weather/noaa';
 import { getInletById } from '@/lib/inlets';
 

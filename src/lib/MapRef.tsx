@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import { MapCtx } from "@/lib/MapCtx";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useAppState } from "@/store/appState";
+import { useAppState } from "@/lib/store";
 import { DEFAULT_INLET, getInletById } from "@/lib/inlets";
 import { PersistentLayerManager } from "@/lib/persistLayers";
 import { overviewBundle } from "@/lib/persistentBundles";

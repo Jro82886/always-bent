@@ -4,7 +4,7 @@ import * as React from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { INLETS } from "@/lib/inlets";
 import { ChevronDown } from "lucide-react";
-import { useAppState } from "@/store/appState";
+import { useAppState } from "@/lib/store";
 
 type Props = {
   value: string;

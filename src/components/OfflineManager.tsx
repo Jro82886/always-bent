@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 
 export default function OfflineManager() {
   const [isOffline, setIsOffline] = useState(false);

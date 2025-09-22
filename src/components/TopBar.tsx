@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAppState } from "@/store/appState";
+import { useAppState } from "@/lib/store";
 
 export default function TopBar() {
   const { username, setUsername } = useAppState();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 
 export function useInletFromURL() {
   const { setSelectedInletId } = useAppState();

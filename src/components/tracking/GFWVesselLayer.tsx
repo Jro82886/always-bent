@@ -110,11 +110,11 @@ export default function GFWVesselLayer({
       // Check if configured
       if (data.configured === false) {
         // Update counts to show not configured
-        onVesselCountUpdate({
+        onVesselCountUpdate?.({
           longliner: -1,  // Special value to indicate not configured
-          driftingLongline: -1,
+          drifting_longline: -1,
           trawler: -1,
-          fishingEvents: -1
+          fishing_events: -1
         });
         showToast({
           type: 'warning',

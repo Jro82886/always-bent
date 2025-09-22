@@ -1,5 +1,5 @@
 'use client';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { getInletById, INLETS } from '@/lib/inlets';
 import { useEffect, useState } from 'react';
 import { MapPin, Wind, Waves, Thermometer } from 'lucide-react';

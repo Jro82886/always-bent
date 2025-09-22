@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 
 export default function RequireUsername({ children }: { children: React.ReactNode }) {
   const { username, hydrateOnce } = useAppState();

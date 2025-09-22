@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { MapPin, ChevronDown, X } from 'lucide-react';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { INLETS as inlets } from '@/lib/inlets';
 
 interface InletChipProps {
