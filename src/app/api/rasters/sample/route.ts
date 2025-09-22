@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as turf from '@turf/turf';
-import { 
-  SST_TARGET_MIN, 
-  SST_TARGET_MAX, 
-  CHL_MID_BAND_RANGE,
-  FRONT_STRONG_THRESHOLD 
-} from '@/config/ocean-thresholds';
+import { THRESHOLDS } from '@/config/ocean-thresholds';
 import { lonLat2pixel, getOptimalZoom } from '@/lib/wmts/coordinates';
 import { WMTS_LAYERS, buildGetFeatureInfoUrl } from '@/lib/wmts/layers';
 
@@ -283,7 +278,7 @@ export async function POST(request: NextRequest) {
         stats.sst_p90 = percentile(values, 90);
         
         // Calculate midband percentage
-        const inBand = values.filter(v => v >= SST_TARGET_MIN && v <= SST_TARGET_MAX).length;
+        const inBand = values.filter(v => v >= THRESHOLDS.SST.TARGET_MIN && v <= THRESHOLDS.SST.TARGET_MAX).length;
         stats.sst_midband_pct = inBand / values.length;
         
         // Calculate histogram (16 bins)
@@ -318,7 +313,7 @@ export async function POST(request: NextRequest) {
         if (flatGradients.length > 0) {
           stats.front_strength_mean = flatGradients.reduce((a, b) => a + b, 0) / flatGradients.length;
           stats.front_strength_p90 = percentile(flatGradients, 90);
-          const strongFronts = flatGradients.filter(g => g >= FRONT_STRONG_THRESHOLD).length;
+          const strongFronts = flatGradients.filter(g => g >= THRESHOLDS.SST.FRONT_STRONG).length;
           stats.front_coverage_pct = strongFronts / flatGradients.length;
         }
         
@@ -349,7 +344,7 @@ export async function POST(request: NextRequest) {
         
         // Calculate midband percentage
         const inBand = values.filter(v => 
-          v >= CHL_MID_BAND_RANGE.min && v <= CHL_MID_BAND_RANGE.max
+          v >= THRESHOLDS.CHL.MID_BAND_MIN && v <= THRESHOLDS.CHL.MID_BAND_MAX
         ).length;
         stats.chl_midband_pct = inBand / values.length;
         

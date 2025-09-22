@@ -16,7 +16,7 @@ import TrackingToolbar from '@/components/tracking/TrackingToolbar';
 import EnhancedTrackingLegend from '@/components/tracking/EnhancedTrackingLegend';
 import GFWLegend from '@/components/tracking/GFWLegend';
 import InletRegions from '@/components/InletRegions';
-import { useAppState } from '@/store/appState';
+import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 import { useLocationPermission } from '@/hooks/useLocationPermission';
 import dynamic from 'next/dynamic';

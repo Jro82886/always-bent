@@ -470,7 +470,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [previousView, setPreviousView] = useState<{ center: [number, number]; zoom: number } | null>(null);
   
   // Get app state for date and layer toggles
-  const { isoDate } = useAppState();
+  const { isoDate, selectedInletId } = useAppState();
   
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
@@ -1201,6 +1201,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       const finalAnalysis = {
         ...analysis,
         ...snipAnalysis,
+        polygon: polygon as GeoJSON.Feature<GeoJSON.Polygon>, // Ensure polygon is Feature type
         vesselTracks: vesselData.summary,
         comprehensiveAnalysis: comprehensiveAnalysis,
         edgeAnalysis: analysis.features && analysis.features.length > 0 

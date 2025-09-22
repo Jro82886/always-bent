@@ -8,7 +8,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { analyzeOceanConditions } from '@/lib/ocean/analysis';
 import { getIdentityForUser, shouldHighlight } from '@/lib/reports/enrichIdentity';
-import { buildNarrativeWithToggles } from '@/lib/analysis/narrative-builder';
 import * as turf from '@turf/turf';
 
 export async function POST(request: NextRequest) {
@@ -216,12 +215,15 @@ async function queueBiteAnalysis(bite: any) {
         const samplerData = await samplerResponse.json();
         samplerStats = samplerData.stats;
         
-        // Build narrative
-        narrative = buildNarrativeWithToggles(
-          samplerStats,
-          layers_on as any,
-          null // No GFW data for bites yet
-        );
+        // Build simple narrative for bite
+        if (samplerStats?.sst_mean) {
+          narrative = `Ocean conditions: SST ${samplerStats.sst_mean.toFixed(1)}°F`;
+          if (samplerStats.chl_mean) {
+            narrative += `, CHL ${samplerStats.chl_mean.toFixed(2)} mg/m³`;
+          }
+        } else {
+          narrative = 'Ocean conditions recorded';
+        }
       }
     } catch (error) {
       console.error('Sampler failed for bite:', error);
