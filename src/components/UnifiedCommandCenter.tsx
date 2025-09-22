@@ -197,6 +197,7 @@ export default function UnifiedCommandCenter({
             
             {/* Main Snip Button */}
             <button
+              data-snip-button
               onClick={onAnalyze}
               className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 
                        hover:from-cyan-500/30 hover:to-blue-500/30 

@@ -764,6 +764,19 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     }
   }, [map]);
 
+  // Named export-like attach for debug usage from window
+  (typeof window !== 'undefined') && ((window as any).enableDrawing = (mi?: any) => enableDrawing(mi || map));
+
+  // Debug starter shim for agents
+  function debugStartSnip() {
+    console.log('%c[SNIP] Button clicked','color:#0bf;font-weight:700');
+    if (typeof window !== 'undefined' && (window as any).enableDrawing) {
+      (window as any).enableDrawing(map);
+    } else {
+      enableDrawing(map || undefined);
+    }
+  }
+
   // Stop drawing mode (for external use)
   const stopDrawing = useCallback(() => {
     if (!map) return;
