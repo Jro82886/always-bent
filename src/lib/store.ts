@@ -52,6 +52,16 @@ interface AppState {
   setGfwTracksEnabled: (v: boolean) => void;
   appendMyTrack: (lon: number, lat: number) => void;
   clearMyTrack: () => void;
+  
+  // Analysis state
+  analysis: {
+    preZoomCamera: null | { center:[number,number]; zoom:number; bearing:number; pitch:number };
+    lastSnipPolygon: GeoJSON.Polygon | null;
+    lastSnipBBox: [number, number, number, number] | null;
+    lastSnipCenter: null | { lat:number; lon:number };
+    pendingAnalysis: import('@/lib/analysis/types').SnipAnalysis | null;
+    isZoomingToSnip: boolean;
+  };
 }
 
 // Initialize restriction from env or localStorage
@@ -130,4 +140,14 @@ export const useAppState = create<AppState>((set, get) => ({
   }),
   
   clearMyTrack: () => set({ myTrackCoords: [] }),
+  
+  // Analysis state
+  analysis: {
+    preZoomCamera: null as null | { center:[number,number]; zoom:number; bearing:number; pitch:number },
+    lastSnipPolygon: null as GeoJSON.Polygon | null,
+    lastSnipBBox: null as [number, number, number, number] | null,
+    lastSnipCenter: null as null | { lat:number; lon:number },
+    pendingAnalysis: null as import('@/lib/analysis/types').SnipAnalysis | null,
+    isZoomingToSnip: false,
+  },
 }));

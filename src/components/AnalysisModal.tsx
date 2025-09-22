@@ -9,6 +9,7 @@ import { flags } from '@/lib/flags';
 import { useAppState } from '@/lib/store';
 import type { SnipAnalysis } from '@/lib/analysis/types';
 import { INLETS } from '@/lib/inlets';
+import { centroidOf, fmtDeg } from '@/lib/geo/format';
 import '@/styles/analysis-glow.css';
 
 interface AnalysisModalProps {
@@ -143,6 +144,33 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         snipButton.click();
       }
     }, 300);
+  };
+  
+  const onBackToOverview = () => {
+    if (mapRef) {
+      const cam = useAppState.getState().analysis.preZoomCamera;
+      if (cam) {
+        mapRef.easeTo({ 
+          center: cam.center, 
+          zoom: cam.zoom, 
+          bearing: cam.bearing, 
+          pitch: cam.pitch, 
+          duration: 900 
+        });
+      }
+      // Clear snip outline
+      const sourceId = 'snip-outline';
+      if (mapRef.getSource(sourceId)) {
+        if (mapRef.getLayer('snip-outline-layer-glow')) {
+          mapRef.removeLayer('snip-outline-layer-glow');
+        }
+        if (mapRef.getLayer('snip-outline-layer')) {
+          mapRef.removeLayer('snip-outline-layer');
+        }
+        mapRef.removeSource(sourceId);
+      }
+    }
+    onClose?.();
   };
 
   if (!mounted || !visible || !analysis) {
@@ -295,12 +323,15 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           {/* Area Stats */}
           <div className="mt-4 text-center text-xs text-gray-500">
             <div>Area analyzed: {analysis.polygonMeta?.area_sq_km.toFixed(1) || '0.0'} km²</div>
-            {analysis.polygonMeta?.centroid && (
-              <div>
-                Center: {Math.abs(analysis.polygonMeta.centroid.lat).toFixed(2)}°{analysis.polygonMeta.centroid.lat >= 0 ? 'N' : 'S'}, {' '}
-                {Math.abs(analysis.polygonMeta.centroid.lon).toFixed(2)}°{analysis.polygonMeta.centroid.lon >= 0 ? 'E' : 'W'}
-              </div>
-            )}
+            {(() => {
+              const center = analysis.polygon ? centroidOf(analysis.polygon) : 
+                (analysis.polygonMeta?.centroid || (useAppState.getState().analysis.lastSnipCenter ?? {lat: NaN, lon: NaN}));
+              return !isNaN(center.lat) && !isNaN(center.lon) ? (
+                <div>
+                  Center: {fmtDeg(center.lat, true)}, {fmtDeg(center.lon, false)}
+                </div>
+              ) : null;
+            })()}
           </div>
         </div>
 
@@ -341,6 +372,13 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                 </button>
               </>
             )}
+            
+            <button
+              onClick={onBackToOverview}
+              className="px-4 py-2 text-sm bg-slate-700/50 hover:bg-slate-700/70 text-slate-300 hover:text-white rounded-lg transition-all border border-slate-600/30"
+            >
+              Back to overview
+            </button>
             
             <button
               onClick={onDone}

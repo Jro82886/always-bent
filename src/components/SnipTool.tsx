@@ -16,7 +16,10 @@ import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
 import { fetchWindSwell } from '@/lib/analysis/fetchWindSwell';
 import { clipFleetPresence } from '@/lib/analysis/clipFleetPresence';
 import { computePolygonMeta } from '@/lib/analysis/computePolygonMeta';
-import { fitBoundsToPolygon } from '@/lib/map/fitBoundsToPolygon';
+import { fitBoundsToPolygon as fitBoundsToPolygonOld } from '@/lib/map/fitBoundsToPolygon';
+import { zoomToSnip } from '@/lib/map/fit';
+import { ensureSnipOutlineLayer, clearSnipOutlineLayer } from '@/lib/map/snipOutline';
+import { centroidOf, fmtDeg } from '@/lib/geo/format';
 import { frontStrength, inSstBand, inChlMidBand } from '@/lib/analysis/hotspot-utils';
 import { THRESHOLDS } from '@/config/ocean-thresholds';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
@@ -471,6 +474,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [analysisStep, setAnalysisStep] = useState<string>('');
   const [lastAnalysis, setLastAnalysis] = useState<AnalysisResult | null>(null);
   const [hasAnalysisResults, setHasAnalysisResults] = useState(false);
+  const [showReviewBar, setShowReviewBar] = useState(false);
+  const [pendingPolygon, setPendingPolygon] = useState<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
   const [showCompleteBanner, setShowCompleteBanner] = useState(false);
   const [isZoomedToSnip, setIsZoomedToSnip] = useState(false);
   const [previousView, setPreviousView] = useState<{ center: [number, number]; zoom: number } | null>(null);
@@ -482,8 +487,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     selectedInletId,
     myTracksEnabled,
     fleetTracksEnabled,
-    gfwTracksEnabled 
+    gfwTracksEnabled,
+    analysis 
   } = useAppState();
+  const set = useAppState.setState;
   
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
@@ -506,6 +513,22 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     if (!map) {
       return;
     }
+    
+    // Reset state at every draw start
+    const pre = {
+      center: map.getCenter().toArray() as [number, number],
+      zoom: map.getZoom(),
+      bearing: map.getBearing(),
+      pitch: map.getPitch(),
+    };
+    set((s) => {
+      s.analysis.preZoomCamera = pre;
+      s.analysis.pendingAnalysis = null;
+      s.analysis.lastSnipPolygon = null;
+      s.analysis.lastSnipBBox = null;
+      s.analysis.lastSnipCenter = null;
+      s.analysis.isZoomingToSnip = false;
+    });
 
     setStatus('drawing');
     
@@ -808,7 +831,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     }, 16);
   }, [map]);
 
-  // Complete drawing and analyze
+  // Complete drawing and prepare for review
   const completeDrawing = useCallback(async () => {
     if (!map || !currentPolygon.current) return;
     
@@ -823,19 +846,52 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       return;
     }
     
+    // Store current camera state
+    const pre = {
+      center: map.getCenter().toArray() as [number, number],
+      zoom: map.getZoom(),
+      bearing: map.getBearing(),
+      pitch: map.getPitch(),
+    };
+    set((s) => { 
+      s.analysis.preZoomCamera = pre; 
+      s.analysis.isZoomingToSnip = true;
+    });
+    
+    const bbox = turf.bbox(polygon) as [number, number, number, number];
+    const center = centroidOf(polygon.geometry);
+    
+    set((s) => { 
+      s.analysis.lastSnipPolygon = polygon.geometry; 
+      s.analysis.lastSnipBBox = bbox; 
+      s.analysis.lastSnipCenter = center;
+    });
+    
+    // Keep the box visible
+    setPendingPolygon(polygon);
+    ensureSnipOutlineLayer(map, polygon.geometry);
+    
+    // Zoom to polygon and wait for completion
+    await zoomToSnip(map, bbox);
+    
+    // Show review bar after zoom completes
+    set((s) => { s.analysis.isZoomingToSnip = false; });
+    setShowReviewBar(true);
+    setStatus('idle');
+  }, [map, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled, set]);
+  
+  // Handle review click
+  const onReviewClick = useCallback(async () => {
+    if (!map || !pendingPolygon) return;
+    
+    setShowReviewBar(false);
     setStatus('analyzing');
     setIsAnalyzing(true);
     
-    // Set timeout guard
-    const timeout = setTimeout(() => {
-      setStatus('idle');
-      setIsAnalyzing(false);
-    }, 6000);
+    const polygon = pendingPolygon;
+    const timeISO = isoDate || new Date().toISOString();
     
     try {
-      // NEW CLEAN ANALYSIS FLOW
-      const timeISO = isoDate || new Date().toISOString();
-      const bbox = turf.bbox(polygon) as [number, number, number, number];
       
       // Check active layers
       const activeLayers = {
@@ -977,7 +1033,23 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         duration: 5000
       });
     }
-  }, [map, onAnalysisComplete, clearDrawing, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled]);
+  }, [map, onAnalysisComplete, clearDrawing, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled, pendingPolygon, set]);
+  
+  // Handle cancel click
+  const onCancelClick = useCallback(() => {
+    setShowReviewBar(false);
+    clearSnipOutlineLayer(map);
+    setPendingPolygon(null);
+    // Optionally snap back a bit
+    const cam = analysis.preZoomCamera;
+    if (cam && map) {
+      map.easeTo({ 
+        center: cam.center, 
+        zoom: cam.zoom - 1, 
+        duration: 800 
+      });
+    }
+  }, [map, analysis.preZoomCamera]);
       
   /* LEGACY CODE - KEPT FOR REFERENCE BUT NOT EXECUTED
       const polygon_legacy = currentPolygon.current;
@@ -1896,6 +1968,34 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       {/* Offline Bites Upload Section */}
       <OfflineBitesUploader />
+      
+      {/* Review Bar */}
+      {showReviewBar && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000]">
+          <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl px-6 py-3 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-cyan-300 font-medium">
+                Area selected • {pendingPolygon && analysis.lastSnipCenter ? 
+                  `${analysis.lastSnipCenter.lat.toFixed(2)}°${analysis.lastSnipCenter.lat >= 0 ? 'N' : 'S'}, ${Math.abs(analysis.lastSnipCenter.lon).toFixed(2)}°${analysis.lastSnipCenter.lon >= 0 ? 'E' : 'W'}` : 
+                  'Ready to analyze'}
+              </span>
+              <button
+                onClick={onReviewClick}
+                className="px-4 py-2 bg-emerald-500/90 hover:bg-emerald-500 text-slate-900 font-semibold rounded-lg 
+                         shadow-[0_0_20px_#00e1a780] transition-all transform hover:scale-105"
+              >
+                Review analysis
+              </button>
+              <button
+                onClick={onCancelClick}
+                className="px-3 py-2 text-gray-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="hidden">
         <button

@@ -645,8 +645,8 @@ export default function LeftZone({
         
         {/* SST LEGEND - Show when SST is active */}
         
-        {/* COMMERCIAL VESSELS TOGGLE */}
-        {setShowCommercial && (
+        {/* COMMERCIAL VESSELS TOGGLE - Hidden for now */}
+        {false && setShowCommercial && (
           <div className="bg-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-500/20 p-3 space-y-2">
             <ToggleCard
               icon={
