@@ -473,6 +473,9 @@ function processEdgesForAnalysis(features: any[]): string {
 // Helper to freeze/unfreeze map gestures
 function freezeGestures(map: mapboxgl.Map, freeze: boolean) {
   const method = freeze ? 'disable' : 'enable';
+  console.log(`[SNIP] ${freeze ? 'Disabling' : 'Enabling'} all map interactions`);
+  
+  // Disable/enable ALL interactions
   map.dragPan?.[method]?.();
   map.scrollZoom?.[method]?.();
   map.boxZoom?.[method]?.();
@@ -480,6 +483,14 @@ function freezeGestures(map: mapboxgl.Map, freeze: boolean) {
   map.doubleClickZoom?.[method]?.();
   map.keyboard?.[method]?.();
   map.touchZoomRotate?.[method]?.();
+  map.touchPitch?.[method]?.();
+  
+  // Also toggle the internal interactive flag to prevent ALL events
+  if (freeze) {
+    (map as any)._interactive = false;
+  } else {
+    (map as any)._interactive = true;
+  }
 }
 
 export default function SnipTool({ map, onAnalysisComplete, isActive = false }: SnipToolProps) {
@@ -2045,8 +2056,22 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
 
     console.log('[SNIP] Setting up mouse handlers - isDrawing:', isDrawing);
     
-    // Get the map canvas directly
-    const canvas = map.getCanvas();
+    // Create an invisible overlay div to capture ALL mouse events
+    const mapContainer = map.getContainer();
+    const overlay = document.createElement('div');
+    overlay.id = 'snip-draw-overlay';
+    overlay.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 999999;
+      cursor: crosshair;
+      pointer-events: auto;
+    `;
+    mapContainer.appendChild(overlay);
+    console.log('[SNIP] Created overlay div for drawing');
 
     // These handlers are no longer used - we use canvas directly now
     // Keeping for reference but they're replaced by handleCanvasMouseDown etc.
@@ -2063,25 +2088,30 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     };
 
-    // Use canvas directly for mouse events to bypass layer interference
-    const handleCanvasMouseDown = (e: MouseEvent) => {
+    // Mouse handlers for the overlay div
+    const handleOverlayMouseDown = (e: MouseEvent) => {
       if (!map) return;
-      const rect = canvas.getBoundingClientRect();
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const rect = mapContainer.getBoundingClientRect();
       const point = new mapboxgl.Point(
         e.clientX - rect.left,
         e.clientY - rect.top
       );
       const lngLat = map.unproject(point);
-      console.log('[SNIP] Canvas mouse down at:', lngLat);
-      e.preventDefault();
-      e.stopPropagation();
+      console.log('[SNIP] Overlay mouse down at:', lngLat);
+      
       startPoint.current = [lngLat.lng, lngLat.lat];
       updateRectangle(startPoint.current, startPoint.current);
     };
 
-    const handleCanvasMouseMove = (e: MouseEvent) => {
+    const handleOverlayMouseMove = (e: MouseEvent) => {
       if (!startPoint.current || !map) return;
-      const rect = canvas.getBoundingClientRect();
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const rect = mapContainer.getBoundingClientRect();
       const point = new mapboxgl.Point(
         e.clientX - rect.left,
         e.clientY - rect.top
@@ -2091,15 +2121,18 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       updateRectangle(startPoint.current, current);
     };
 
-    const handleCanvasMouseUp = (e: MouseEvent) => {
+    const handleOverlayMouseUp = (e: MouseEvent) => {
       if (!startPoint.current || !map) return;
-      const rect = canvas.getBoundingClientRect();
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const rect = mapContainer.getBoundingClientRect();
       const point = new mapboxgl.Point(
         e.clientX - rect.left,
         e.clientY - rect.top
       );
       const lngLat = map.unproject(point);
-      console.log('[SNIP] Canvas mouse up at:', lngLat);
+      console.log('[SNIP] Overlay mouse up at:', lngLat);
       
       const endPoint: [number, number] = [lngLat.lng, lngLat.lat];
       const dx = Math.abs(endPoint[0] - startPoint.current[0]);
@@ -2115,19 +2148,23 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     };
 
-    // Attach to canvas with capture phase to get events first
-    canvas.addEventListener('mousedown', handleCanvasMouseDown, true);
-    canvas.addEventListener('mousemove', handleCanvasMouseMove, true);
-    canvas.addEventListener('mouseup', handleCanvasMouseUp, true);
+    // Attach handlers to the overlay
+    overlay.addEventListener('mousedown', handleOverlayMouseDown);
+    overlay.addEventListener('mousemove', handleOverlayMouseMove);
+    overlay.addEventListener('mouseup', handleOverlayMouseUp);
     window.addEventListener('keydown', handleEscape);
     
-    console.log('[SNIP] Mouse handlers attached to CANVAS directly');
+    console.log('[SNIP] Mouse handlers attached to overlay div');
 
     return () => {
-      console.log('[SNIP] Removing canvas mouse handlers');
-      canvas.removeEventListener('mousedown', handleCanvasMouseDown, true);
-      canvas.removeEventListener('mousemove', handleCanvasMouseMove, true);
-      canvas.removeEventListener('mouseup', handleCanvasMouseUp, true);
+      console.log('[SNIP] Removing overlay and handlers');
+      const existingOverlay = document.getElementById('snip-draw-overlay');
+      if (existingOverlay) {
+        existingOverlay.removeEventListener('mousedown', handleOverlayMouseDown);
+        existingOverlay.removeEventListener('mousemove', handleOverlayMouseMove);
+        existingOverlay.removeEventListener('mouseup', handleOverlayMouseUp);
+        existingOverlay.remove();
+      }
       window.removeEventListener('keydown', handleEscape);
     };
   }, [map, isDrawing, updateRectangle, completeDrawing, clearDrawing, isZoomedToSnip, previousView, zoomOut]);
