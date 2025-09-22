@@ -1029,11 +1029,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Build narrative and store with analysis
       const narrativeText = buildNarrative(analysis, ctx);
       
+      // Include narrative in the analysis object
+      const analysisWithNarrative = { ...analysis, narrative: narrativeText };
+      
       set((s) => ({
         ...s,
         analysis: {
           ...s.analysis,
-          pendingAnalysis: analysis,
+          pendingAnalysis: analysisWithNarrative,
           narrative: narrativeText,
           showReviewCta: false, // hide button once modal opens
         }

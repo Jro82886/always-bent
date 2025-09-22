@@ -72,6 +72,7 @@ export type SnipAnalysis = {
   // Metadata
   polygonMeta: PolygonMeta;
   notes?: string;
+  narrative?: string; // ensure present (used by UI)
   obtainedVia: 'snip' | 'bite';
 };
 

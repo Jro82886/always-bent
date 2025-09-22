@@ -64,6 +64,10 @@ interface AppState {
     showReviewCta: boolean;
     narrative: string;
   };
+  
+  // Analysis setters
+  setAnalysis: (partial: Partial<AppState['analysis']>) => void;
+  resetAnalysisTransient: () => void;
 }
 
 // Initialize restriction from env or localStorage
@@ -154,4 +158,18 @@ export const useAppState = create<AppState>((set, get) => ({
     showReviewCta: false,
     narrative: '' as string,
   },
+  
+  // Analysis setters
+  setAnalysis: (partial) => set((s) => ({ 
+    analysis: { ...s.analysis, ...partial } 
+  })),
+  resetAnalysisTransient: () => set((s) => ({
+    analysis: {
+      ...s.analysis,
+      pendingAnalysis: null,
+      narrative: '',
+      isZoomingToSnip: false,
+      showReviewCta: false,
+    }
+  })),
 }));
