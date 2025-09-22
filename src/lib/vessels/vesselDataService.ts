@@ -7,11 +7,15 @@
 import { getInletColor, INLET_COLORS } from '@/lib/inletColors';
 import { createClient } from '@supabase/supabase-js';
 import { INLETS } from '@/lib/inlets';
+import { showToast } from '@/components/ui/Toast';
 
 // Initialize Supabase client for live vessel data
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+
+// Flag to track if we've shown the live data warning
+let hasShownLiveDataWarning = false;
 
 export interface Vessel {
   id: string;
@@ -188,9 +192,18 @@ async function fetchGFWVessels(bounds: [[number, number], [number, number]]): Pr
  * Fetch live fleet vessels from database with fallback to mock data
  */
 async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]> {
-  // If no Supabase client, use mock data
+  // If no Supabase client, show warning and use mock data for testing
   if (!supabase) {
-    console.log('No Supabase client, using mock fleet data');
+    if (!hasShownLiveDataWarning) {
+      showToast({
+        type: 'warning',
+        title: 'Live Fleet Data Unavailable',
+        message: 'Fleet vessel tracking is not available. Using test data.',
+        duration: 7000
+      });
+      hasShownLiveDataWarning = true;
+    }
+    // Return mock data for testing only
     return selectedInletId && selectedInletId !== 'overview' 
       ? mockFleetVessels.filter(v => v.inlet === selectedInletId)
       : mockFleetVessels;
@@ -221,10 +234,14 @@ async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]
     }
 
     if (!data || data.length === 0) {
-      console.log('No live fleet data, using mock data');
-      return selectedInletId && selectedInletId !== 'overview' 
-        ? mockFleetVessels.filter(v => v.inlet === selectedInletId)
-        : mockFleetVessels;
+      showToast({
+        type: 'info',
+        title: 'No Fleet Vessels',
+        message: 'No fleet vessels detected in this area. Check back later.',
+        duration: 5000
+      });
+      // Return empty array - no mock data when live system returns no results
+      return [];
     }
 
     // Group by vessel ID and get latest position
@@ -257,7 +274,15 @@ async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]
     return vessels;
 
   } catch (error) {
-    console.warn('Failed to fetch live fleet vessels, falling back to mock data:', error);
+    console.error('Failed to fetch live fleet vessels:', error);
+    showToast({
+      type: 'error',
+      title: 'Fleet Data Error',
+      message: 'Unable to fetch fleet vessel data. Please try again later.',
+      duration: 7000
+    });
+    // For testing only - return mock data
+    // TODO: Remove mock data before go-live
     return selectedInletId && selectedInletId !== 'overview' 
       ? mockFleetVessels.filter(v => v.inlet === selectedInletId)
       : mockFleetVessels;
