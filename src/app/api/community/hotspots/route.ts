@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getSupabase } from "@/lib/supabase/server"
 
 export async function GET(req: NextRequest) {
   try {
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     // Transform to GeoJSON for map display
     const hotspots = {
       type: 'FeatureCollection',
-      features: (data || []).map(spot => ({
+      features: (data || []).map((spot: any) => ({
         type: 'Feature',
         geometry: {
           type: 'Point',

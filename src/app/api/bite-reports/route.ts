@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getSupabase } from "@/lib/supabase/server"
 import type { BiteReportRequest, StormioSnapshot } from '@/types/stormio';
 
 // Force dynamic rendering

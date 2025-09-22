@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getSupabase } from "@/lib/supabase/server"
 import { analyzeOceanConditions } from '@/lib/ocean/analysis';
 import { getIdentityForUser, shouldHighlight } from '@/lib/reports/enrichIdentity';
 import * as turf from '@turf/turf';

@@ -4,7 +4,7 @@
  * Avoids notification overload by only alerting on high-value events
  */
 
-import { createClient } from "@/lib/supabaseClient"
+import { getSupabase } from "@/lib/supabaseClient"
 
 interface NotificationPreferences {
   enableHighlights: boolean;
@@ -132,7 +132,7 @@ export function subscribeToHighlights(inletId?: string) {
       schema: 'public',
       table: 'bite_reports',
       filter: inletId ? `inlet_id=eq.${inletId}` : undefined,
-    }, (payload) => {
+    }, (payload: any) => {
       // Check if it's a highlight
       if (payload.new && payload.new.is_hotspot) {
         showHighlightNotification(payload.new);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getSupabase } from "@/lib/supabase/server"
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     }
     
     // Transform data for client
-    const reports = (data || []).map(report => ({
+    const reports = (data || []).map((report: any) => ({
       id: report.id,
       user_id: report.user_id,
       captain_name: report.profiles?.captain_name || 'Anonymous',

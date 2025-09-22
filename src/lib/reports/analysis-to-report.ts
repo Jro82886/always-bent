@@ -3,7 +3,7 @@
  * Implements Jeff's ABFI highlight logic
  */
 
-import { createClient } from "@/lib/supabaseClient"
+import { getSupabase } from "@/lib/supabaseClient"
 
 interface AnalysisData {
   geometry: GeoJSON.Polygon;

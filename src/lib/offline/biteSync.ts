@@ -12,7 +12,7 @@ import {
   getPendingCount,
   type QueuedBite 
 } from './biteDB';
-import { createClient } from "@/lib/supabaseClient"
+import { getSupabase } from "@/lib/supabaseClient"
 
 // Re-export for convenience
 export { getPendingCount } from './biteDB';

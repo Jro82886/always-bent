@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getSupabase } from "@/lib/supabase/server"
 
 export async function GET(req: NextRequest) {
   try {
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     // Group tracks by vessel
     const vesselTracks = new Map();
     
-    (data || []).forEach(point => {
+    (data || []).forEach((point: any) => {
       const vesselId = point.user_id;
       if (!vesselTracks.has(vesselId)) {
         vesselTracks.set(vesselId, {

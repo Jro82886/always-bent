@@ -3,7 +3,7 @@
 import { MOCK_PRESENCE } from '@/mocks/chat';
 import { getInletById } from '@/lib/inlets';
 import { useRouter } from 'next/navigation';
-import { createClient } from "@/lib/supabaseClient"
+import { getSupabase } from "@/lib/supabaseClient"
 
 interface PresenceBarProps {
   inletId?: string;

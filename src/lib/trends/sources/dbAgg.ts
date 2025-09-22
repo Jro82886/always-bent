@@ -1,5 +1,5 @@
 import { TrendsInput } from '@/types/trends';
-import { createClient } from "@/lib/supabaseClient"
+import { getSupabase } from "@/lib/supabaseClient"
 
 export async function getDbAgg({ inletId, range }: TrendsInput) {
   const supabase = getSupabase();
@@ -27,7 +27,7 @@ export async function getDbAgg({ inletId, range }: TrendsInput) {
   
   // Group by time bucket
   const activityMap = new Map<string, number>();
-  activityData?.forEach(report => {
+  activityData?.forEach((report: any) => {
     const date = new Date(report.created_at);
     const key = bucket === 'hour' 
       ? `${date.toISOString().slice(0, 13)}:00:00.000Z` // Round to hour
@@ -61,7 +61,7 @@ export async function getDbAgg({ inletId, range }: TrendsInput) {
   
   // Count species
   const speciesMap = new Map<string, number>();
-  speciesData?.forEach(report => {
+  speciesData?.forEach((report: any) => {
     if (report.species) {
       speciesMap.set(report.species, (speciesMap.get(report.species) || 0) + 1);
     }

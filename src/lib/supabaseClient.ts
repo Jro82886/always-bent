@@ -13,7 +13,7 @@ export function getSupabase(): SupabaseClient {
     throw new Error('Missing Supabase environment variables');
   }
   
-  _client = getSupabase(url, anonKey, {
+  _client = createClient(url, anonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,

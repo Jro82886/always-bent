@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createClient } from "@/lib/supabaseClient"
+import { getSupabase } from "@/lib/supabaseClient"
 import { useAppState } from '@/lib/store';
 
 interface OnlineUser {
@@ -53,13 +53,13 @@ export function useOnlinePresence(roomId: string): UseOnlinePresenceReturn {
         
         setOnlineUsers(users);
       })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+      .on('presence', { event: 'join' }, ({ key, newPresences }: any) => {
         console.log('User joined:', key, newPresences);
       })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }: any) => {
         console.log('User left:', key, leftPresences);
       })
-      .subscribe(async (status) => {
+      .subscribe(async (status: any) => {
         if (status === 'SUBSCRIBED') {
           // Announce my presence
           await channel.track(userStatus);

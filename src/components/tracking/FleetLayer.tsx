@@ -251,9 +251,9 @@ export default function FleetLayer({
       
       try {
         // Remove event listeners
-        map.off('click', 'fleet-vessels');
-        map.off('mouseenter', 'fleet-vessels');
-        map.off('mouseleave', 'fleet-vessels');
+        // map.off not available - handlers cleaned up via removeLayer
+        // map.off not available
+        // map.off not available
         
         // Remove layers
         if (map.getLayer('fleet-vessels-badge')) map.removeLayer('fleet-vessels-badge');
