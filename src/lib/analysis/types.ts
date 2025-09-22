@@ -80,3 +80,39 @@ export type SnipReportPayload = {
   analysis: SnipAnalysis;
   preview: { sst: boolean; chl: boolean; gfw: boolean };
 };
+
+// Legacy compatibility type for components still expecting AnalysisResult
+export interface AnalysisResult {
+  polygon: GeoJSON.Feature;
+  features: any[];
+  hotspot: {
+    location: [number, number];
+    confidence: number;
+    gradient_strength: number;
+    optimal_approach: string;
+  } | null;
+  stats: {
+    min_temp_f: number;
+    max_temp_f: number;
+    avg_temp_f: number;
+    temp_range_f: number;
+    area_km2: number;
+  };
+  layerAnalysis?: {
+    sst?: {
+      active: boolean;
+      description: string;
+    };
+    chl?: {
+      active: boolean;
+      description: string;
+      avg_chl_mg_m3?: number;
+      max_chl_mg_m3?: number;
+    };
+  };
+  narrative?: string;
+  type?: 'snip' | 'bite';
+  id?: string;
+  user_id?: string;
+  created_at?: string;
+}

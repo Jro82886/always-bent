@@ -10,7 +10,7 @@ import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 import SnipTool from '@/components/SnipTool';
 import type mapboxgl from 'mapbox-gl';
-import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
+import type { AnalysisResult } from '@/lib/analysis/types';
 import '@/styles/analysis.css';
 
 interface UnifiedToolbarProps {

@@ -5,13 +5,12 @@ import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
 import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
-import { analyzeMultiLayer, generateMockSSTData, generateMockCHLData } from '@/lib/analysis/sst-analyzer';
-import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
+// Removed imports from deprecated sst-analyzer
 import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extractor';
 import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
 import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-analyzer';
 import { buildNarrative } from '@/lib/analysis/narrative-builder';
-import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats } from '@/lib/analysis/types';
+import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats, AnalysisResult } from '@/lib/analysis/types';
 import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
 import { fetchWindSwell } from '@/lib/analysis/fetchWindSwell';
 import { clipFleetPresence } from '@/lib/analysis/clipFleetPresence';
@@ -922,46 +921,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     setPendingPolygon(polygon);
     ensureSnipOutlineLayer(map, polygon.geometry);
     
-    // Kick off samplers in background (don't block CTA)
-    log('Starting background data fetch');
-    
-    const want: Array<'sst'|'chl'> = [];
-    if (activeLayers.sst) want.push('sst');
-    if (activeLayers.chl) want.push('chl');
-    
-    void Promise.allSettled([
-      want.length ? sampleScalars({ polygon: polygon.geometry, timeISO, layers: want }) : Promise.resolve({ sst: null, chl: null }),
-      fetchWindSwell(polygon.geometry),
-      clipFleetPresence(polygon.geometry, selectedInletId || 'overview', 96),
-    ]).then(([scalarRes, windSwellRes, fleetRes]) => {
-      log('Background data fetch complete');
-      
-      const scalarData = scalarRes.status === 'fulfilled' ? scalarRes.value : { sst: null, chl: null };
-      const windSwellData = windSwellRes.status === 'fulfilled' ? windSwellRes.value : { wind: null, swell: null };
-      const fleetData = fleetRes.status === 'fulfilled' ? fleetRes.value : {
-        myVesselInArea: false,
-        fleetVessels: 0,
-        fleetVisitsDays: 0,
-        gfw: null
-      };
-      
-      set((s) => {
-        const pa = s.analysis.pendingAnalysis || baseAnalysis;
-        return {
-          analysis: {
-            ...s.analysis,
-            pendingAnalysis: {
-              ...pa,
-              sst: activeLayers.sst ? (scalarData.sst ?? { mean: null, min: null, max: null, gradient: null, units: '°F', reason: 'NoData' }) : undefined,
-              chl: activeLayers.chl ? (scalarData.chl ?? { mean: null, min: null, max: null, gradient: null, units: 'mg/m³', reason: 'NoData' }) : undefined,
-              wind: windSwellData.wind,
-              swell: windSwellData.swell,
-              presence: fleetData,
-            },
-          },
-        };
-      });
-    });
+    // No longer fetching in background - will fetch on Review click instead
+    log('Analysis state ready, waiting for Review click');
     
     // Zoom to polygon and wait for completion
     log('Starting zoom to snip area');
@@ -1008,35 +969,82 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   
   // Handle review click
   const onReviewClick = useCallback(async () => {
-    const pendingAnalysis = analysis.pendingAnalysis;
-    if (!map || !pendingPolygon || !pendingAnalysis) return;
+    const polygon = analysis.lastSnipPolygon;
+    if (!map || !polygon) return;
     
     const log = (...args: any[]) => console.log('[SnipFlow]', ...args);
-    log('Review clicked, building narrative');
+    log('Review clicked, building analysis from scratch');
     
     setShowReviewBar(false);
     setStatus('analyzing');
     setIsAnalyzing(true);
     
-    // Build context for narrative
-    const ctx = {
-      weather: pendingAnalysis.wind && pendingAnalysis.swell ? {
-        wind_kn: pendingAnalysis.wind.speed_kn ?? undefined,
-        wind_dir_deg: pendingAnalysis.wind.direction_deg ?? undefined,
-        swell_ft: pendingAnalysis.swell.height_ft ?? undefined,
-        swell_period_s: pendingAnalysis.swell.period_s ?? undefined,
-      } : undefined,
-      fleetRecentCount: pendingAnalysis.presence?.fleetVessels,
-      userInside: pendingAnalysis.presence?.myVesselInArea,
+    const timeISO = isoDate || new Date().toISOString();
+    
+    // Check active layers from map
+    const activeLayers = {
+      sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
+      chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+      gfw: false // hidden for now
     };
     
-    // Build narrative (always returns text)
-    const narrativeText = buildNarrative(pendingAnalysis, ctx);
+    // --- Base analysis object ---
+    const baseAnalysis: SnipAnalysis = {
+      polygon,
+      timeISO,
+      sst: null,
+      chl: null,
+      wind: null,
+      swell: null,
+      presence: null,
+      toggles: {
+        sst: activeLayers.sst || false,
+        chl: activeLayers.chl || false,
+        gfw: false,
+        myTracks: myTracksEnabled,
+        fleetTracks: fleetTracksEnabled,
+        gfwTracks: gfwTracksEnabled
+      },
+      polygonMeta: {
+        bbox: analysis.lastSnipBBox || turf.bbox(polygon) as [number, number, number, number],
+        area_sq_km: turf.area(polygon) / 1000000,
+        centroid: analysis.lastSnipCenter || centroidOf(polygon)
+      },
+      obtainedVia: 'snip'
+    };
+    
+    log('Base analysis:', baseAnalysis);
+    
+    // --- Call samplers only if toggled ---
+    try {
+      const want: Array<'sst'|'chl'> = [];
+      if (activeLayers.sst) want.push('sst');
+      if (activeLayers.chl) want.push('chl');
+      
+      if (want.length > 0) {
+        log('Fetching raster data for:', want);
+        const scalarResult = await sampleScalars({ polygon, timeISO, layers: want });
+        
+        if (activeLayers.sst && scalarResult.sst) {
+          baseAnalysis.sst = scalarResult.sst;
+        }
+        if (activeLayers.chl && scalarResult.chl) {
+          baseAnalysis.chl = scalarResult.chl;
+        }
+      }
+    } catch (err) {
+      console.warn('[SnipFlow] sampler error', err);
+      // Continue with null values
+    }
+    
+    // --- Build narrative (ALWAYS returns string) ---
+    const narrativeText = buildNarrative(baseAnalysis);
     log('Narrative built:', narrativeText);
     
-    // Update analysis with narrative
-    const analysisWithNarrative = { ...pendingAnalysis, narrative: narrativeText };
+    // Include narrative in analysis
+    const analysisWithNarrative = { ...baseAnalysis, narrative: narrativeText };
     
+    // --- Store in Zustand ---
     set((s) => ({
       ...s,
       analysis: {
@@ -1047,28 +1055,28 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     }));
     
-    // Create legacy analysis for modal
+    // --- Create legacy format for modal ---
     const finalAnalysis: AnalysisResult = {
-      polygon: pendingPolygon,
+      polygon: pendingPolygon || { type: 'Feature', geometry: polygon, properties: {} } as any,
       features: [],
       hotspot: null,
       stats: {
-        avg_temp_f: pendingAnalysis.sst?.mean ?? 0,
-        min_temp_f: pendingAnalysis.sst?.min ?? 0,
-        max_temp_f: pendingAnalysis.sst?.max ?? 0,
-        temp_range_f: ((pendingAnalysis.sst?.max ?? 0) - (pendingAnalysis.sst?.min ?? 0)),
-        area_km2: pendingAnalysis.polygonMeta.area_sq_km
+        avg_temp_f: baseAnalysis.sst?.mean ?? 0,
+        min_temp_f: baseAnalysis.sst?.min ?? 0,
+        max_temp_f: baseAnalysis.sst?.max ?? 0,
+        temp_range_f: ((baseAnalysis.sst?.max ?? 0) - (baseAnalysis.sst?.min ?? 0)),
+        area_km2: baseAnalysis.polygonMeta.area_sq_km
       },
       layerAnalysis: {
-        sst: pendingAnalysis.sst ? {
+        sst: activeLayers.sst ? {
           active: true,
-          description: `SST: ${pendingAnalysis.sst.mean?.toFixed(1) ?? 'N/A'}°F`
+          description: baseAnalysis.sst ? `SST: ${baseAnalysis.sst.mean?.toFixed(1) ?? 'N/A'}°F` : 'SST: Off'
         } : undefined,
-        chl: pendingAnalysis.chl ? {
+        chl: activeLayers.chl ? {
           active: true,
-          description: `CHL: ${pendingAnalysis.chl.mean?.toFixed(2) ?? 'N/A'} mg/m³`,
-          avg_chl_mg_m3: pendingAnalysis.chl.mean ?? undefined,
-          max_chl_mg_m3: pendingAnalysis.chl.max ?? undefined
+          description: baseAnalysis.chl ? `CHL: ${baseAnalysis.chl.mean?.toFixed(2) ?? 'N/A'} mg/m³` : 'CHL: Off',
+          avg_chl_mg_m3: baseAnalysis.chl?.mean ?? undefined,
+          max_chl_mg_m3: baseAnalysis.chl?.max ?? undefined
         } : undefined
       },
       narrative: narrativeText,
@@ -1078,10 +1086,12 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       created_at: new Date().toISOString()
     } as any;
     
+    log('Final analysis for modal:', finalAnalysis);
+    
     setLastAnalysis(finalAnalysis);
     setHasAnalysisResults(true);
     
-    // Trigger modal
+    // --- Open modal with analysis ---
     if (onAnalysisComplete) {
       onAnalysisComplete(finalAnalysis);
     }
@@ -1091,7 +1101,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     setIsAnalyzing(false);
     setIsDrawing(false);
     clearDrawing();
-  }, [map, pendingPolygon, analysis.pendingAnalysis, onAnalysisComplete, clearDrawing, set]);
+  }, [map, analysis, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled, pendingPolygon, onAnalysisComplete, clearDrawing, set]);
   
   // Handle cancel click
   const onCancelClick = useCallback(() => {

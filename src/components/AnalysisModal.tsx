@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Target, Waves, Thermometer, Activity, Save, Share2, Fish } from 'lucide-react';
 import { getAnalysisQuote } from '@/lib/philosophy';
-import { hardResetSnip } from '@/components/SnipController';
+// Removed import from deprecated SnipController
 import { showToast } from '@/components/ui/Toast';
 import { flags } from '@/lib/flags';
 import { useAppState } from '@/lib/store';
@@ -47,8 +47,24 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     }
   }, [visible, analysis, mounted]);
 
+  const cleanupSnipVisualization = (map: any) => {
+    // Clean up snip outline layer if present
+    if (map) {
+      const sourceId = 'snip-outline';
+      if (map.getSource(sourceId)) {
+        if (map.getLayer('snip-outline-layer-glow')) {
+          map.removeLayer('snip-outline-layer-glow');
+        }
+        if (map.getLayer('snip-outline-layer')) {
+          map.removeLayer('snip-outline-layer');
+        }
+        map.removeSource(sourceId);
+      }
+    }
+  };
+
   const onDone = () => {
-    hardResetSnip(mapRef);
+    cleanupSnipVisualization(mapRef);
     onClose?.();
   };
 
@@ -140,7 +156,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         mapRef.zoomTo(mapRef.getZoom() - 2, { duration: 1000 });
       }
     }
-    hardResetSnip(mapRef);
+    cleanupSnipVisualization(mapRef);
     onClose?.();
     setReportId(null);
     setTimeout(() => {
