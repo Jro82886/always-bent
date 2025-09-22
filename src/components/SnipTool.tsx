@@ -13,6 +13,9 @@ import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-anal
 import { buildNarrative } from '@/lib/analysis/narrative-builder';
 import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats } from '@/lib/analysis/types';
 import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
+import { fetchWindSwell } from '@/lib/analysis/fetchWindSwell';
+import { clipFleetPresence } from '@/lib/analysis/clipFleetPresence';
+import { computePolygonMeta } from '@/lib/analysis/computePolygonMeta';
 import { frontStrength, inSstBand, inChlMidBand } from '@/lib/analysis/hotspot-utils';
 import { THRESHOLDS } from '@/config/ocean-thresholds';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
@@ -856,20 +859,37 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       if (toggles.sst) want.push('sst');
       if (toggles.chl) want.push('chl');
 
-      const [scalarRes, gfwRes] = await Promise.all([
+      const [scalarRes, windSwellRes, fleetRes] = await Promise.allSettled([
         want.length ? sampleScalars({ polygon: polygon.geometry, timeISO, layers: want }) : Promise.resolve({} as { sst?: ScalarStats | null; chl?: ScalarStats | null }),
-        toggles.gfw ? clipGFW({ polygon: polygon.geometry, days: 4 }) : Promise.resolve(null),
+        fetchWindSwell(polygon.geometry),
+        clipFleetPresence(polygon.geometry, selectedInletId || 'overview', 96),
       ]);
+
+      // Process results safely
+      const scalarData = scalarRes.status === 'fulfilled' ? scalarRes.value : {};
+      const windSwellData = windSwellRes.status === 'fulfilled' ? windSwellRes.value : { wind: null, swell: null };
+      const fleetData = fleetRes.status === 'fulfilled' ? fleetRes.value : {
+        myVesselInArea: false,
+        fleetVessels: 0,
+        fleetVisitsDays: 0,
+        gfw: null
+      };
+
+      // Compute polygon metadata
+      const polygonMeta = computePolygonMeta(polygon.geometry);
 
       // Build analysis object
       const analysis: SnipAnalysis = {
         polygon: polygon.geometry,
-        bbox,
         timeISO,
-        sst: toggles.sst ? (scalarRes.sst ?? { mean: null, min: null, max: null, gradient: null, units: '°F', reason: 'NoData' }) : null,
-        chl: toggles.chl ? (scalarRes.chl ?? { mean: null, min: null, max: null, gradient: null, units: 'mg/m³', reason: 'NoData' }) : null,
-        gfw: toggles.gfw ? gfwRes : null,
+        sst: toggles.sst ? (scalarData.sst ?? { mean: null, min: null, max: null, gradient: null, units: '°F', reason: 'NoData' }) : undefined,
+        chl: toggles.chl ? (scalarData.chl ?? { mean: null, min: null, max: null, gradient: null, units: 'mg/m³', reason: 'NoData' }) : undefined,
+        wind: windSwellData.wind,
+        swell: windSwellData.swell,
+        presence: fleetData,
         toggles,
+        polygonMeta,
+        obtainedVia: 'snip'
       };
 
       // Compute narrative

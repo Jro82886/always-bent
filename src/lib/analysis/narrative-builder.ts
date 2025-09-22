@@ -2,6 +2,12 @@ import type { SnipAnalysis } from './types';
 import { SST_IDEAL_RANGE_F, SST_STRONG_FRONT_F_PER_KM, CHL_IDEAL_RANGE, CHL_FRONT_PER_KM, FORMAT } from './thresholds';
 import { gfwEnabled } from '@/lib/features/gfw';
 
+function formatDirection(deg: number): string {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const index = Math.round(((deg % 360) / 45)) % 8;
+  return dirs[index];
+}
+
 export function buildNarrative(a: SnipAnalysis): string {
   const lines: string[] = [];
 
@@ -37,7 +43,35 @@ export function buildNarrative(a: SnipAnalysis): string {
     );
   }
 
-  // GFW
+  // Wind & Swell (best-effort hints)
+  if (a.wind && a.wind.speed_kn !== null) {
+    const dir = formatDirection(a.wind.direction_deg || 0);
+    lines.push(`• **Winds** near ${Math.round(a.wind.speed_kn)} kt from ${dir} (${a.wind.direction_deg}°).`);
+  }
+  
+  if (a.swell && a.swell.height_ft !== null) {
+    const dir = formatDirection(a.swell.direction_deg || 0);
+    lines.push(`• **Swell** ${a.swell.height_ft} ft @ ${a.swell.period_s} s from ${dir} (${a.swell.direction_deg}°).`);
+  }
+
+  // Fleet Presence
+  if (a.presence) {
+    if (a.presence.myVesselInArea) {
+      lines.push(`• Your vessel is currently inside the selected area.`);
+    }
+    
+    if (a.presence.fleetVessels > 0) {
+      lines.push(
+        `• **${a.presence.fleetVessels} fleet vessels** from your inlet present within the last ${a.presence.fleetVisitsDays} day(s); ` +
+        `fleet tracks contribute to area productivity.`
+      );
+    } else {
+      lines.push(`• No recent fleet presence from your inlet inside this area.`);
+    }
+  }
+
+  // GFW (hide for now since we're not using it)
+  /*
   if (!gfwEnabled) {
     lines.push(`• **Commercial vessels**: coming soon.`);
   } else if (!a.toggles.gfw) {
@@ -53,6 +87,7 @@ export function buildNarrative(a: SnipAnalysis): string {
       (c.events ? ` Fishing events: ${c.events}.` : ``)
     );
   }
+  */
 
   // Tracks awareness (we don't render here; we nudge cross-checking)
   if (a.toggles.myTracks || a.toggles.fleetTracks || a.toggles.gfwTracks) {

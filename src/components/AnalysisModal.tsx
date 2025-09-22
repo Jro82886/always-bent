@@ -57,15 +57,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           type: 'snip',
           status: 'complete',
           inlet_id: selectedInletId || undefined,
-          payload_json: {
-            analysis,
-            bounds: analysis.bbox,
-            preview: {
-              sst: !!analysis.sst && analysis.sst.mean !== null,
-              chl: !!analysis.chl && analysis.chl.mean !== null,
-              gfw: !!analysis.gfw && analysis.gfw.counts.longliner > 0
-            }
-          }
+          payload_json: analysis
         })
       });
       
@@ -177,9 +169,17 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
               Prediction Report
             </h2>
+            <span className="text-xs bg-cyan-500/20 text-cyan-300 px-2 py-1 rounded-full ml-2">
+              Snip
+            </span>
             <span className="text-xs text-gray-400 ml-2">
               {new Date(analysis.timeISO).toLocaleString()}
             </span>
+            {analysis.polygonMeta && (
+              <span className="text-xs text-gray-400 ml-2">
+                • {analysis.polygonMeta.area_sq_km.toFixed(1)} km²
+              </span>
+            )}
           </div>
         </div>
 
@@ -233,8 +233,34 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               </div>
             )}
 
-            {/* GFW Badges */}
-            {analysis.toggles.gfw && analysis.gfw && (
+            {/* Weather Badges */}
+            {analysis.wind && analysis.wind.speed_kn !== null && (
+              <div className="px-3 py-1 bg-blue-500/20 border border-blue-500/30 rounded-full">
+                <span className="text-sm text-blue-300 flex items-center gap-1">
+                  💨 {Math.round(analysis.wind.speed_kn)} kt • {analysis.wind.direction_deg}°
+                </span>
+              </div>
+            )}
+            
+            {analysis.swell && analysis.swell.height_ft !== null && (
+              <div className="px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-full">
+                <span className="text-sm text-indigo-300 flex items-center gap-1">
+                  🌊 {analysis.swell.height_ft} ft • {analysis.swell.period_s}s • {analysis.swell.direction_deg}°
+                </span>
+              </div>
+            )}
+            
+            {/* Fleet Presence Badge */}
+            {analysis.presence && analysis.presence.fleetVessels > 0 && (
+              <div className="px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-full">
+                <span className="text-sm text-purple-300 flex items-center gap-1">
+                  🚤 {analysis.presence.fleetVessels} Fleet Vessels
+                </span>
+              </div>
+            )}
+
+            {/* GFW Badges - Hide for now */}
+            {false && analysis.toggles.gfw && analysis.gfw && (
               <>
                 {analysis.gfw.counts.longliner > 0 && (
                   <div className="px-3 py-1 bg-red-500/20 border border-red-500/30 rounded-full">

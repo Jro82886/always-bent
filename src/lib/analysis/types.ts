@@ -18,20 +18,61 @@ export type ScalarStats = {
   reason?: string; // when null values, e.g. "NoData" or "layer off"
 };
 
+export type WindStats = {
+  speed_kn: number | null;
+  direction_deg: number | null;
+};
+
+export type SwellStats = {
+  height_ft: number | null;
+  period_s: number | null;
+  direction_deg: number | null;
+};
+
+export type TrackPresence = {
+  myVesselInArea: boolean;
+  fleetVessels: number;       // unique vessels from selected inlet
+  fleetVisitsDays: number;    // consecutive days with presence (≤7)
+  gfw?: {
+    longliner: number;
+    drifting_longline: number;
+    trawler: number;
+    events: number;
+  } | null;
+};
+
+export type PolygonMeta = {
+  bbox: [number, number, number, number];
+  area_sq_km: number;
+  centroid: { lat: number; lon: number };
+};
+
 export type GFWClip = {
   counts: { longliner: number; drifting_longline: number; trawler: number; events: number };
   sampleVesselNames?: string[]; // optional for flavor
+  reason?: string;
 };
 
 export type SnipAnalysis = {
   polygon: GeoJSON.Polygon;
-  bbox: [number, number, number, number];
   timeISO: string;
+  
+  // Environmental
   sst?: ScalarStats | null;
   chl?: ScalarStats | null;
-  gfw?: GFWClip | null;
+  wind?: WindStats | null;
+  swell?: SwellStats | null;
+  
+  // Activity awareness
+  presence?: TrackPresence | null;
+  
+  // Toggles
   toggles: LayerToggles;
-  notes?: string; // future proof
+  
+  // Metadata
+  polygonMeta: PolygonMeta;
+  notes?: string;
+  obtainedVia: 'snip' | 'bite';
 };
 
 export type SnipReportPayload = {
