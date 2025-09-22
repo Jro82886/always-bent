@@ -19,6 +19,12 @@ interface AppState {
   communityBadge: number;
   hydrateOnce: () => void;
   
+  // ABFI bites
+  pendingBitesCount: number;
+  setPendingBitesCount: (count: number) => void;
+  incrementPendingBites: (by?: number) => void;
+  decrementPendingBites: (by?: number) => void;
+  
   // Setters for existing state
   setSelectedInletId: (id: string | null) => void;
   setIsoDate: (date: string | null) => void;
@@ -96,6 +102,12 @@ export const useAppState = create<AppState>((set, get) => ({
   username: null,
   communityBadge: 0,
   hydrateOnce: () => {},  // no-op function for legacy compatibility
+  
+  // ABFI bites
+  pendingBitesCount: 0,
+  setPendingBitesCount: (count) => set({ pendingBitesCount: Math.max(0, count) }),
+  incrementPendingBites: (by = 1) => set((s) => ({ pendingBitesCount: Math.max(0, s.pendingBitesCount + by) })),
+  decrementPendingBites: (by = 1) => set((s) => ({ pendingBitesCount: Math.max(0, s.pendingBitesCount - by) })),
   
   // Setters for existing state
   setSelectedInletId: (id) => set({ selectedInletId: id }),

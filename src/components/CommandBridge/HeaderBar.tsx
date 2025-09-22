@@ -10,6 +10,7 @@ import { CommandBridgeTabs } from './CommandBridgeTabs';
 import '@/styles/command-bridge-tabs.css';
 import { useAppState } from '@/lib/store';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
+import AbfiBiteButton from '@/components/common/AbfiBiteButton';
 
 interface HeaderBarProps {
   activeMode?: string;
@@ -99,6 +100,13 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
           
           {/* Spacer to push everything left */}
           <div className="flex-1" />
+
+          {/* ABFI bite pill (visible on Analysis + Tracking) */}
+          {(activeMode === 'analysis' || activeMode === 'tracking') && (
+            <div className="px-4 hidden lg:block">
+              <AbfiBiteButton compact context={activeMode as any} />
+            </div>
+          )}
         </div>
         
         {/* Tablet Layout 640px-1024px */}

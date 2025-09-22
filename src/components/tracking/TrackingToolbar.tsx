@@ -11,6 +11,7 @@ import { isInsideInlet } from '@/lib/geo/inletBounds';
 import mapboxgl from 'mapbox-gl';
 import '@/styles/vessel-glow.css';
 import { USER_VESSEL } from '@/config/vessel-style';
+import AbfiBiteButton from '@/components/common/AbfiBiteButton';
 
 interface TrackingToolbarProps {
   selectedInletId: string | null;
@@ -389,6 +390,11 @@ export default function TrackingToolbar({
             </button>
           </div>
           
+          {/* ABFI Bite Button */}
+          <div className="pt-1">
+            <AbfiBiteButton context="tracking" />
+          </div>
+
           {/* Location Status */}
           {userLocStatus !== 'idle' && (
             <div className="mt-2 text-xs">

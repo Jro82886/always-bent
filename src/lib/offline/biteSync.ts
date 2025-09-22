@@ -13,6 +13,7 @@ import {
   type QueuedBite 
 } from './biteDB';
 import { getSupabase } from "@/lib/supabaseClient"
+import { useAppState } from '@/lib/store';
 
 // Re-export for convenience
 export { getPendingCount } from './biteDB';
@@ -169,6 +170,12 @@ export async function syncBites(manual: boolean = false): Promise<{
       retryCount = 0;
     }
     
+    // Decrement pending bites count in store
+    try {
+      const dec = useAppState.getState().decrementPendingBites;
+      if (dec && synced > 0) dec(synced);
+    } catch {}
+
     emitSyncEvent('sync-complete', { synced, failed, expired });
     
     return { synced, failed, expired };
