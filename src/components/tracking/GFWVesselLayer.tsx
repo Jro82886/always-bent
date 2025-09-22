@@ -72,6 +72,10 @@ export default function GFWVesselLayer({
       } else {
         // Fallback to bbox
         const bounds = map.getBounds();
+        if (!bounds) {
+          console.warn('Unable to get map bounds');
+          return;
+        }
         const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
         url += `?bbox=${bbox}&days=7`;
       }
@@ -366,6 +370,8 @@ export default function GFWVesselLayer({
       clearTimeout(moveTimeout);
       moveTimeout = setTimeout(() => {
         const currentBounds = map.getBounds();
+        if (!currentBounds) return;
+        
         const lastBounds = lastBoundsRef.current;
         
         // Check if bounds changed meaningfully
