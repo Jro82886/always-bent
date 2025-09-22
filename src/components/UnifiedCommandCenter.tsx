@@ -240,24 +240,18 @@ export default function UnifiedCommandCenter({
             
             {/* Main Snip Button */}
             <button
+              type="button"
               data-snip-button
+              aria-label="Draw analysis area"
               onClick={startSnipSafe}
               disabled={!!analysis?.isZoomingToSnip}
               aria-disabled={!!analysis?.isZoomingToSnip}
-              className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 
-                       hover:from-cyan-500/30 hover:to-blue-500/30 
-                       text-cyan-300 font-semibold rounded-lg 
-                       border border-cyan-500/30 transition-all duration-200
-                       flex items-center justify-center gap-3
-                       shadow-lg hover:shadow-cyan-500/20"
-              style={{ position: 'relative', zIndex: 999999, pointerEvents: 'auto', isolation: 'isolate' }}
+              className="snip-btn"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" strokeDasharray="3 3" />
-                <path d="M3 3 L10 10 M14 14 L21 21" strokeWidth="2" />
-              </svg>
-              <span className="text-base">Draw Analysis Area</span>
+              <span className="snip-icon" aria-hidden>▦</span>
+              <span>Draw Analysis Area</span>
             </button>
+            <p className="snip-hint">Click and drag to select ocean area for analysis</p>
             
             {/* Quick instructions */}
             <div className="text-center text-[11px] text-gray-500">
