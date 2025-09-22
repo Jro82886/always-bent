@@ -1067,7 +1067,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         sstData,
         vesselData,
         analysis,
-        selectedInletId
+        selectedInletId || undefined
       );
       
       // Update analysis with comprehensive data
