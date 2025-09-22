@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
           t: pos.timestamp
         }))
       };
-    }).filter(v => v.last_pos); // Only include vessels with positions
+    }).filter((v: any) => v.last_pos); // Only include vessels with positions
 
     // Extract fishing events
     const events = (data.entries || []).flatMap((entry: any) => {
@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
         t: event.start,
         gear,
         score: event.score || 1
-      })).filter(e => e.lon && e.lat);
+      })).filter((e: any) => e.lon && e.lat);
     });
 
     const result = { vessels, events };

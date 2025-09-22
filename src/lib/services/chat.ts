@@ -59,11 +59,8 @@ export function initChatClient(): ChatClient {
     };
   }
 
-  // Supabase client with Realtime broadcast only
-  const supabase: SupabaseClient = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    realtime: { params: { eventsPerSecond: 5 } },
-  });
+  // Use the imported supabase client
+  const supabaseClient = supabase;
 
   let channel: RealtimeChannel | null = null;
   let currentInlet: string | null = null;
@@ -78,7 +75,7 @@ export function initChatClient(): ChatClient {
         await channel.unsubscribe();
         channel = null;
       }
-      channel = supabase.channel(`chat:${inletId}`, { config: { broadcast: { ack: true } } });
+      channel = supabaseClient.channel(`chat:${inletId}`, { config: { broadcast: { ack: true } } });
       channel.on("broadcast", { event: "message" }, (payload) => {
         const msg = payload.payload as ChatMessage;
         if (onMessageRef) onMessageRef(msg);

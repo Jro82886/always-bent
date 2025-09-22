@@ -3,10 +3,7 @@ import { supabase } from '@/lib/supabase/client';
 
 export async function GET() {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Using imported supabase client
 
     // Test connection and check our ML tables exist
     const tables = [
