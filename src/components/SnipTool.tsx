@@ -2335,4 +2335,3 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     </>
   );
 }
-}
