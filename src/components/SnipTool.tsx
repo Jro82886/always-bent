@@ -526,49 +526,47 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     console.log('[SnipFlow] Drawing disabled');
   }, [map]);
   
-  // --- DEBUG: Enhanced start snip with loud logs ---
-  // Note: This is defined after startDrawing to avoid hoisting issues
-  const debugStartSnip = useCallback(() => {
-    console.log("%c[SNIP] Button clicked", "color:#00e1a7;font-weight:bold");
-    const debugMap = getMap();
-    if (!debugMap) return;
+  // Imperative start snip function
+  const startSnip = useCallback(() => {
+    const map = (window as any).mapboxMap || (window as any).map;
+    if (!map) return console.warn('[SNIP] no map');
 
-    // Clear any stale state
-    try {
-      useAppState.setState((s: any) => ({
-        ...s,
-        analysis: {
-          ...(s.analysis ?? {}),
-          isZoomingToSnip: false,
-          showReviewCta: false,
-          pendingAnalysis: null,
-          narrative: "",
-          lastSnipPolygon: null,
-          lastSnipBBox: null,
-          lastSnipCenter: null,
-          preZoomCamera: null,
-        },
-      }));
-      console.log("[SNIP] Store reset: analysis state cleared");
+    // reset state machine
+    set(s => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        isZoomingToSnip: false,
+        showReviewCta: false,
+        pendingAnalysis: null,
+        narrative: '',
+        lastSnipPolygon: null,
+        lastSnipBBox: null,
+        lastSnipCenter: null,
+        preZoomCamera: null,
+      }
+    }));
+
+    // force interaction + crosshair
+    try { 
+      map.scrollZoom.enable(); 
+      map.dragPan.enable();
+      map.boxZoom.disable();
+      map.doubleClickZoom.disable();
+      map.dragRotate.disable();
+      map.touchZoomRotate.disable();
     } catch (e) {
-      console.warn("[SNIP] Store reset failed", e);
+      console.warn('[SNIP] Could not set map interactions', e);
     }
+    
+    map.getCanvas().style.cursor = 'crosshair';
+    console.log('%c[SNIP] starting draw', 'color:#0f0;font-weight:700');
 
-    // Force cursor + ensure map is interactable
-    try {
-      const canvas = debugMap.getCanvas();
-      canvas.style.cursor = "crosshair";
-      console.log("[SNIP] Cursor set to crosshair");
-    } catch (e) {
-      console.warn("[SNIP] Could not set cursor", e);
-    }
-
-    // For now, just enable drawing directly
-    console.log("[SNIP] Enabling drawing mode...");
-    enableDrawing(debugMap);
+    // enter draw mode
     setStatus('drawing');
     setIsDrawing(true);
     startPoint.current = null;
+    enableDrawing(map);
     
     /* TEMP FALLBACK - Remove after draw is fixed
     // Uncomment to test with fake data if drawing doesn't work
@@ -2085,18 +2083,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
 
   // Handle programmatic trigger
   useEffect(() => {
-    const handleTrigger = () => {
-      
-      startDrawing();
-    };
-    
     // Add to window for easy access
-    (window as any).startSnipping = handleTrigger;
+    (window as any).startSnipping = startSnip;
     
     return () => {
       delete (window as any).startSnipping;
     };
-  }, [startDrawing]);
+  }, [startSnip]);
 
   // Quick success notification with persistent tooltip
   const showQuickHint = () => {
@@ -2229,8 +2222,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         <button
           data-snip-button
           onClick={() => {
-            console.log("%c[SNIP] onClick reached", "color:#46E6D4");
-            debugStartSnip();
+            console.log('%c[SNIP] onClick', 'color:#0bd');
+            startSnip();
           }}
           className="hidden"
         >

@@ -1,0 +1,21 @@
+/* Analysis-specific debug CSS - TEMPORARY */
+/* Remove this file after debugging! */
+
+/* Kill overlays that might block clicks on Analysis page only */
+.analysis-root .modal-backdrop,
+.analysis-root .right-drawer,
+.analysis-root .snip-review-banner,
+.analysis-root [data-review-cta] {
+  pointer-events: none !important; /* TEMP while we debug */
+}
+
+/* Ensure map is always clickable */
+.analysis-root .mapboxgl-canvas {
+  pointer-events: auto !important;
+  z-index: 1;
+}
+
+/* Visual indicator when in snipping mode */
+.analysis-root .mapboxgl-canvas.snipping-active {
+  outline: 2px solid rgba(0, 225, 167, 0.3);
+}

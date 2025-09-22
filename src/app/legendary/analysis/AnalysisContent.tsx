@@ -5,6 +5,7 @@ import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@/styles/mapbox-controls.css';
+import '@/styles/analysis-debug.css'; // TEMP debug CSS
 import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
 import CHLLayer from '@/components/layers/CHLLayer';
@@ -369,8 +370,20 @@ function AnalysisModeContent() {
 
   // This duplicate inlet handler can be removed - already handled above
 
+  // Keyboard failsafe for snip tool
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 's' && !e.ctrlKey && !e.metaKey) {
+        const btn = document.querySelector('[data-snip-button]') as HTMLButtonElement;
+        btn?.click();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
-    <div className={`w-full h-screen relative bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 ${sstActive ? 'sst-active' : ''}`} style={{
+    <div className={`analysis-root w-full h-screen relative bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 ${sstActive ? 'sst-active' : ''}`} style={{
       backgroundImage: 'linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(3, 7, 18, 1), rgba(15, 23, 42, 0.95))',
       backgroundBlendMode: 'multiply'
     }}>

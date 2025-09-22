@@ -63,33 +63,30 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     }
   };
 
+  const reEnable = () => {
+    const map = (window as any).mapboxMap || (window as any).map;
+    if (map) map.getCanvas().style.cursor = 'crosshair';
+    useAppState.setState(s => ({ 
+      ...s, 
+      analysis: { 
+        ...s.analysis, 
+        isZoomingToSnip: false, 
+        showReviewCta: false, 
+        pendingAnalysis: null, 
+        narrative: '' 
+      } 
+    }));
+    setTimeout(() => {
+      if ((window as any).startSnipping) {
+        (window as any).startSnipping();
+      }
+    }, 300);
+  };
+
   const onDone = () => {
     cleanupSnipVisualization(mapRef);
-    // Reset analysis state
-    useAppState.setState((s) => ({
-      ...s,
-      analysis: {
-        ...s.analysis,
-        showReviewCta: false,
-        pendingAnalysis: null,
-        narrative: '',
-        isZoomingToSnip: false,
-      }
-    }));
     onClose?.();
-    
-    // Re-enable drawing mode after modal closes
-    setTimeout(() => {
-      console.log("[SNIP] Re-enable drawing after modal close (Done)");
-      const map = (window as any).mapboxMap || (window as any).map;
-      map?.getCanvas()?.style && (map.getCanvas().style.cursor = "crosshair");
-      
-      const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
-      if (snipButton) {
-        console.log('[SnipFlow] Re-enabling drawing mode from Done button');
-        snipButton.click();
-      }
-    }, 400);
+    reEnable();
   };
 
   const onSaveReport = async () => {
@@ -210,43 +207,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           duration: 900 
         });
       }
-      // Clear snip outline
-      const sourceId = 'snip-outline';
-      if (mapRef.getSource(sourceId)) {
-        if (mapRef.getLayer('snip-outline-layer-glow')) {
-          mapRef.removeLayer('snip-outline-layer-glow');
-        }
-        if (mapRef.getLayer('snip-outline-layer')) {
-          mapRef.removeLayer('snip-outline-layer');
-        }
-        mapRef.removeSource(sourceId);
-      }
+      cleanupSnipVisualization(mapRef);
     }
-    // Reset analysis state
-    useAppState.setState((s) => ({
-      ...s,
-      analysis: {
-        ...s.analysis,
-        showReviewCta: false,
-        pendingAnalysis: null,
-        narrative: '',
-        isZoomingToSnip: false,
-      }
-    }));
     onClose?.();
-    
-    // Re-enable drawing mode after a short delay
-    setTimeout(() => {
-      console.log("[SNIP] Re-enable drawing after modal close (Back to Overview)");
-      const map = (window as any).mapboxMap || (window as any).map;
-      map?.getCanvas()?.style && (map.getCanvas().style.cursor = "crosshair");
-      
-      const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
-      if (snipButton) {
-        console.log('[SnipFlow] Re-enabling drawing mode from Back to Overview');
-        snipButton.click();
-      }
-    }, 1000);
+    reEnable();
   };
 
   if (!mounted || !visible || !analysis) {
