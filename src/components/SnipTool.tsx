@@ -2048,45 +2048,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     // Get the map canvas directly
     const canvas = map.getCanvas();
 
-    const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
-      console.log('[SNIP] Mouse down at:', e.lngLat);
-      e.originalEvent.preventDefault();
-      e.originalEvent.stopPropagation();
-      startPoint.current = [e.lngLat.lng, e.lngLat.lat];
-      updateRectangle(startPoint.current, startPoint.current);
-    };
-
-    const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
-      if (!startPoint.current) return;
-      const current: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-      updateRectangle(startPoint.current, current);
-    };
-
-    const handleMouseUp = (e: mapboxgl.MapMouseEvent) => {
-      if (!startPoint.current) return;
-      console.log('[SNIP] Mouse up at:', e.lngLat);
-      
-      const endPoint: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-      const dx = Math.abs(endPoint[0] - startPoint.current[0]);
-      const dy = Math.abs(endPoint[1] - startPoint.current[1]);
-      
-      
-      
-      if (dx > 0.0001 || dy > 0.0001) {
-        // Keep rectangle visible and trigger analysis
-        updateRectangle(startPoint.current, endPoint);
-        
-        // Re-enable map interactions but keep rectangle
-        freezeGestures(map, false);
-        map.getCanvas().style.cursor = '';
-        
-        // Trigger analysis while keeping rectangle visible
-        completeDrawing();
-      } else {
-        // Too small, clear everything
-        clearDrawing();
-      }
-    };
+    // These handlers are no longer used - we use canvas directly now
+    // Keeping for reference but they're replaced by handleCanvasMouseDown etc.
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -2100,18 +2063,71 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     };
 
-    map.on('mousedown', handleMouseDown);
-    map.on('mousemove', handleMouseMove);
-    map.on('mouseup', handleMouseUp);
+    // Use canvas directly for mouse events to bypass layer interference
+    const handleCanvasMouseDown = (e: MouseEvent) => {
+      if (!map) return;
+      const rect = canvas.getBoundingClientRect();
+      const point = new mapboxgl.Point(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+      const lngLat = map.unproject(point);
+      console.log('[SNIP] Canvas mouse down at:', lngLat);
+      e.preventDefault();
+      e.stopPropagation();
+      startPoint.current = [lngLat.lng, lngLat.lat];
+      updateRectangle(startPoint.current, startPoint.current);
+    };
+
+    const handleCanvasMouseMove = (e: MouseEvent) => {
+      if (!startPoint.current || !map) return;
+      const rect = canvas.getBoundingClientRect();
+      const point = new mapboxgl.Point(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+      const lngLat = map.unproject(point);
+      const current: [number, number] = [lngLat.lng, lngLat.lat];
+      updateRectangle(startPoint.current, current);
+    };
+
+    const handleCanvasMouseUp = (e: MouseEvent) => {
+      if (!startPoint.current || !map) return;
+      const rect = canvas.getBoundingClientRect();
+      const point = new mapboxgl.Point(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+      const lngLat = map.unproject(point);
+      console.log('[SNIP] Canvas mouse up at:', lngLat);
+      
+      const endPoint: [number, number] = [lngLat.lng, lngLat.lat];
+      const dx = Math.abs(endPoint[0] - startPoint.current[0]);
+      const dy = Math.abs(endPoint[1] - startPoint.current[1]);
+      
+      if (dx > 0.0001 || dy > 0.0001) {
+        updateRectangle(startPoint.current, endPoint);
+        freezeGestures(map, false);
+        map.getCanvas().style.cursor = '';
+        completeDrawing();
+      } else {
+        clearDrawing();
+      }
+    };
+
+    // Attach to canvas with capture phase to get events first
+    canvas.addEventListener('mousedown', handleCanvasMouseDown, true);
+    canvas.addEventListener('mousemove', handleCanvasMouseMove, true);
+    canvas.addEventListener('mouseup', handleCanvasMouseUp, true);
     window.addEventListener('keydown', handleEscape);
     
-    console.log('[SNIP] Mouse handlers attached to map');
+    console.log('[SNIP] Mouse handlers attached to CANVAS directly');
 
     return () => {
-      console.log('[SNIP] Removing mouse handlers');
-      map.off('mousedown', handleMouseDown);
-      map.off('mousemove', handleMouseMove);
-      map.off('mouseup', handleMouseUp);
+      console.log('[SNIP] Removing canvas mouse handlers');
+      canvas.removeEventListener('mousedown', handleCanvasMouseDown, true);
+      canvas.removeEventListener('mousemove', handleCanvasMouseMove, true);
+      canvas.removeEventListener('mouseup', handleCanvasMouseUp, true);
       window.removeEventListener('keydown', handleEscape);
     };
   }, [map, isDrawing, updateRectangle, completeDrawing, clearDrawing, isZoomedToSnip, previousView, zoomOut]);
@@ -2318,4 +2334,5 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       </div>
     </>
   );
+}
 }
