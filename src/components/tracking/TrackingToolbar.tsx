@@ -275,13 +275,13 @@ export default function TrackingToolbar({
             <div className="flex justify-between">
               <span className="text-slate-400">Wind:</span>
               <span className="text-white font-medium">
-                {weatherData.weather?.windKt ? `${weatherData.weather.windKt} kt ${weatherData.weather.windDir || ''}` : '--'}
+                {weatherData.weather?.windKt ? `${Math.round(weatherData.weather.windKt)} kt ${weatherData.weather.windDir || ''}` : '--'}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Swell:</span>
               <span className="text-white font-medium">
-                {weatherData.weather?.swellFt ? `${weatherData.weather.swellFt}ft @ ${weatherData.weather.swellPeriodS || '?'}s` : '--'}
+                {weatherData.weather?.swellFt ? `${Math.round(weatherData.weather.swellFt)}ft @ ${Math.round(weatherData.weather.swellPeriodS || 0)}s` : '--'}
               </span>
             </div>
           </div>

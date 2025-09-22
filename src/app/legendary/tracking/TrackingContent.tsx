@@ -9,6 +9,7 @@ import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';
+import FleetLayer from '@/components/tracking/FleetLayer';
 import TrackingToolbar from '@/components/tracking/TrackingToolbar';
 import EnhancedTrackingLegend from '@/components/tracking/EnhancedTrackingLegend';
 import GFWLegend from '@/components/tracking/GFWLegend';
@@ -79,10 +80,10 @@ function TrackingModeContent() {
   
   // Fleet vessels state
   const [fleetVessels, setFleetVessels] = useState<Array<{
-    id: string;
-    inlet?: string;
-    inletColor?: string;
-    hasReport?: boolean;
+    vessel_id: string;
+    name: string;
+    inlet_id: string;
+    has_report: boolean;
   }>>([]);
   
   // Handle position updates from VesselLayer
@@ -90,16 +91,6 @@ function TrackingModeContent() {
     setUserPosition(position);
   };
   
-  // Fetch fleet vessels when inlet changes
-  useEffect(() => {
-    const fetchFleetVessels = async () => {
-      const { getAllVessels } = await import('@/lib/vessels/vesselDataService');
-      const vesselData = await getAllVessels(selectedInletId || undefined);
-      setFleetVessels(vesselData.fleet);
-    };
-    
-    fetchFleetVessels();
-  }, [selectedInletId]);
   
   // Initialize map ONCE - no dependencies
   useEffect(() => {
@@ -307,12 +298,14 @@ function TrackingModeContent() {
         />
       )}
       
-      {/* Rec Boats Clustering - handles fleet visualization */}
+      {/* Fleet Layer - handles live fleet vessel data */}
       {mapFullyReady && (
-        <RecBoatsClustering
+        <FleetLayer
           map={map.current}
           showFleet={showFleet}
-          selectedInletId={selectedInletId}
+          showFleetTracks={showFleetTracks}
+          selectedInletId={selectedInletId || ''}
+          onFleetUpdate={setFleetVessels}
         />
       )}
       
