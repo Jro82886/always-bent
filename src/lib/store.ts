@@ -13,10 +13,21 @@ interface AppState {
   isoDate: string | null;
   user: { id: string } | null;
   
+  // Legacy state (for compatibility)
+  activeRaster: 'sst' | 'chl' | 'abfi' | null;
+  username: string | null;
+  communityBadge: number;
+  hydrateOnce: boolean;
+  
   // Setters for existing state
   setSelectedInletId: (id: string | null) => void;
   setIsoDate: (date: string | null) => void;
   setUser: (user: { id: string } | null) => void;
+  
+  // Legacy setters
+  setActiveRaster: (raster: 'sst' | 'chl' | 'abfi' | null) => void;
+  setUsername: (username: string | null) => void;
+  setCommunityBadge: (badge: number) => void;
   
   // User vessel location state
   userLoc?: UserLocation;
@@ -55,10 +66,21 @@ export const useAppState = create<AppState>((set, get) => ({
   isoDate: new Date().toISOString().split('T')[0],
   user: null,
   
+  // Legacy state
+  activeRaster: null,
+  username: null,
+  communityBadge: 0,
+  hydrateOnce: false,
+  
   // Setters for existing state
   setSelectedInletId: (id) => set({ selectedInletId: id }),
   setIsoDate: (date) => set({ isoDate: date }),
   setUser: (user) => set({ user }),
+  
+  // Legacy setters
+  setActiveRaster: (raster) => set({ activeRaster: raster }),
+  setUsername: (username) => set({ username }),
+  setCommunityBadge: (badge) => set({ communityBadge: badge }),
   
   // User vessel location
   userLoc: undefined,
