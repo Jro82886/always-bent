@@ -483,10 +483,6 @@ function AnalysisModeContent() {
             }} />
           )}
           
-          {/* ABFI Button - Hidden during tutorial, only on Analysis tab */}
-          {!showingTutorial && (
-          )}
-          
           {/* Settings Panel - Bottom right corner */}
           <SettingsPanel />
           
