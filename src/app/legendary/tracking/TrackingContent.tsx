@@ -7,7 +7,6 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import '@/styles/mapbox-controls.css';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
-import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';
 import FleetLayer from '@/components/tracking/FleetLayer';
 import GFWVesselLayer from '@/components/tracking/GFWVesselLayer';
@@ -227,26 +226,6 @@ function TrackingModeContent() {
     // No camera movement on dropdown change
   }, [inlet, mapFullyReady]);
 
-  // Handle fly to inlet zoom
-  const handleFlyToInlet = () => {
-    if (!map.current) return;
-    
-    if (inlet) {
-      // Use center and zoom for inlet view
-      map.current.flyTo({
-        center: inlet.center,
-        zoom: inlet.zoom,
-        duration: 1200,
-        essential: true
-      });
-    } else {
-      // No inlet selected - go to East Coast overview
-      map.current.fitBounds(EAST_COAST_BOUNDS, {
-        padding: 40,
-        duration: 1200
-      });
-    }
-  };
 
   // Clean up global map when component is truly destroyed (page navigation)
   useEffect(() => {
@@ -293,7 +272,6 @@ function TrackingModeContent() {
         showCommercialTracks={gfwTracksEnabled}
         setShowCommercialTracks={setGfwTracksEnabled}
         userPosition={userPosition}
-        onFlyToInlet={handleFlyToInlet}
         onChatToggle={() => setShowChat(!showChat)}
         map={map.current}
       />

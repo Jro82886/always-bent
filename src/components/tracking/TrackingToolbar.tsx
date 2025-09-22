@@ -27,7 +27,6 @@ interface TrackingToolbarProps {
   showCommercialTracks: boolean;
   setShowCommercialTracks: (show: boolean) => void;
   userPosition: { lat: number; lng: number; speed: number } | null;
-  onFlyToInlet: () => void;
   onChatToggle?: () => void;
   map?: mapboxgl.Map | null;
 }
@@ -48,7 +47,6 @@ export default function TrackingToolbar({
   showCommercialTracks,
   setShowCommercialTracks,
   userPosition,
-  onFlyToInlet,
   onChatToggle,
   map
 }: TrackingToolbarProps) {
@@ -71,11 +69,7 @@ export default function TrackingToolbar({
     const fetchWeather = async () => {
       setWeatherLoading(true);
       try {
-        // Get inlet coordinates
-        const inlet = await import('@/lib/inlets').then(m => m.getInletById(selectedInletId));
-        if (!inlet) return;
-
-        const response = await fetch(`/api/stormio?lat=${inlet.lat}&lng=${inlet.lng}`);
+        const response = await fetch(`/api/weather?inlet=${selectedInletId}`);
         if (!response.ok) throw new Error('Failed to fetch weather');
         
         const data = await response.json();
@@ -96,16 +90,23 @@ export default function TrackingToolbar({
   }, [selectedInletId]);
 
   const handleChatClick = () => {
+    // Check if inlet is selected
+    if (!selectedInletId || selectedInletId === 'overview') {
+      showToast({
+        type: 'info',
+        title: 'Select an Inlet',
+        message: 'Pick an inlet to open chat',
+        duration: 3000
+      });
+      return;
+    }
+    
     // Use drawer if available, otherwise redirect
     if (flags.communityDrawer && onChatToggle) {
       onChatToggle();
     } else {
       // Redirect to Community tab with inlet pre-selected
-      if (selectedInletId && selectedInletId !== 'overview') {
-        router.push(`/legendary/community?inlet=${selectedInletId}`);
-      } else {
-        router.push('/legendary/community');
-      }
+      router.push(`/legendary/community?inlet=${selectedInletId}`);
     }
   };
 
@@ -366,14 +367,6 @@ export default function TrackingToolbar({
           >
             <span>My Tracks</span>
             <div className={`w-2 h-2 rounded-full ${showTracks ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-          </button>
-          
-          <button
-            onClick={onFlyToInlet}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 transition-colors"
-          >
-            <Navigation className="w-3 h-3" />
-            <span>Fly to Inlet Zoom</span>
           </button>
           
           {/* Location Status */}

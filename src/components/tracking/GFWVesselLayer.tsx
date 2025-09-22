@@ -109,6 +109,13 @@ export default function GFWVesselLayer({
       
       // Check if configured
       if (data.configured === false) {
+        // Update counts to show not configured
+        onVesselCountUpdate({
+          longliner: -1,  // Special value to indicate not configured
+          driftingLongline: -1,
+          trawler: -1,
+          fishingEvents: -1
+        });
         showToast({
           type: 'warning',
           title: 'GFW Not Available',

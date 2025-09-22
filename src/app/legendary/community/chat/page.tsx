@@ -76,11 +76,20 @@ export default function ChatPage() {
             onSelectRoom={setSelectedRoom}
           />
           <div className="flex-1">
-            {selectedRoom === 'inlet' && selectedInletId && selectedInletId !== 'overview' ? (
-              <UnifiedChatContainer 
-                inletId={selectedInletId}
-                userId={user?.id}
-              />
+            {selectedRoom === 'inlet' ? (
+              selectedInletId && selectedInletId !== 'overview' ? (
+                <UnifiedChatContainer 
+                  inletId={selectedInletId}
+                  userId={user?.id}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-slate-400">
+                  <div className="text-center space-y-2">
+                    <p className="text-lg font-medium">Select an Inlet</p>
+                    <p className="text-sm opacity-70">Use the inlet menu in the header to pick your inlet</p>
+                  </div>
+                </div>
+              )
             ) : (
               <ChatWindow 
                 roomId={selectedRoom}

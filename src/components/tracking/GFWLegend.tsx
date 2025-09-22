@@ -16,6 +16,9 @@ interface GFWLegendProps {
 export default function GFWLegend({ showCommercial, showCommercialTracks, vesselCounts }: GFWLegendProps) {
   if (!showCommercial) return null;
 
+  // Check if GFW is not configured (special -1 value)
+  const isNotConfigured = vesselCounts?.longliner === -1;
+
   const vesselTypes = [
     {
       type: 'longliner',
@@ -66,32 +69,40 @@ export default function GFWLegend({ showCommercial, showCommercialTracks, vessel
       </div>
       
       <div className="space-y-2">
-        {vesselTypes.map(({ type, label, color, icon }) => {
-          const count = vesselCounts?.[type as keyof typeof vesselCounts] || 0;
-          return (
-            <div key={type} className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4" style={{ color }}>
-                  {icon}
-                </div>
-                <span className="text-gray-300">{label}</span>
-                {showCommercialTracks && count > 0 && (
-                  <div className="w-8 h-0.5" style={{ backgroundColor: color, opacity: 0.7 }} />
-                )}
-              </div>
-              <span className="text-gray-400 ml-4">{count}</span>
-            </div>
-          );
-        })}
-        
-        {vesselCounts?.fishing_events && vesselCounts.fishing_events > 0 && (
-          <div className="flex items-center justify-between text-xs pt-2 border-t border-white/10">
-            <div className="flex items-center gap-2">
-              <Fish className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-300">Fishing Events</span>
-            </div>
-            <span className="text-gray-400 ml-4">{vesselCounts.fishing_events}</span>
+        {isNotConfigured ? (
+          <div className="text-xs text-gray-500 italic">
+            Not available - API token required
           </div>
+        ) : (
+          <>
+            {vesselTypes.map(({ type, label, color, icon }) => {
+              const count = vesselCounts?.[type as keyof typeof vesselCounts] || 0;
+              return (
+                <div key={type} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4" style={{ color }}>
+                      {icon}
+                    </div>
+                    <span className="text-gray-300">{label}</span>
+                    {showCommercialTracks && count > 0 && (
+                      <div className="w-8 h-0.5" style={{ backgroundColor: color, opacity: 0.7 }} />
+                    )}
+                  </div>
+                  <span className="text-gray-400 ml-4">{count}</span>
+                </div>
+              );
+            })}
+            
+            {vesselCounts?.fishing_events && vesselCounts.fishing_events > 0 && (
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <Fish className="w-4 h-4 text-gray-400" />
+                  <span className="text-gray-300">Fishing Events</span>
+                </div>
+                <span className="text-gray-400 ml-4">{vesselCounts.fishing_events}</span>
+              </div>
+            )}
+          </>
         )}
       </div>
       

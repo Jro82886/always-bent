@@ -125,7 +125,7 @@ export default function EnhancedTrackingLegend({
                     <span className="text-xs text-red-400">GPS error</span>
                   ) : (
                     <span className="text-xs text-gray-500">
-                      {showYou ? 'No GPS' : 'Hidden'}
+                      {userLocStatus === 'idle' ? 'Hidden' : 'No GPS'}
                     </span>
                   )}
                 </div>
@@ -139,8 +139,8 @@ export default function EnhancedTrackingLegend({
                   </div>
                   {myTracksEnabled && (
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-0.5 bg-emerald-400" />
-                      <span className="text-xs text-slate-300">Track history</span>
+                      <div className="w-3 h-0.5 bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.8)]" />
+                      <span className="text-xs text-slate-300">Vessel track</span>
                     </div>
                   )}
                   <div className="text-[10px] text-slate-400 mt-1">

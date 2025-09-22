@@ -14,11 +14,9 @@ import NewUserTutorial from '@/components/NewUserTutorial';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import LeftZone from '@/components/LeftZone';
 import RightZone from '@/components/RightZone';
-import ReportCatchButton from '@/components/ReportCatchButton';
 // Weather now integrated into UnifiedCommandCenter
 import OfflineManager from '@/components/OfflineManager';
 import SettingsPanel from '@/components/SettingsPanel';
-import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 // CommercialVesselLegend now integrated into LeftZone
 import { useAppState } from '@/store/appState';
 import { OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
@@ -487,7 +485,6 @@ function AnalysisModeContent() {
           
           {/* ABFI Button - Hidden during tutorial, only on Analysis tab */}
           {!showingTutorial && (
-            <ReportCatchButton map={map.current} disabled={isAnalysisModalOpen} />
           )}
           
           {/* Settings Panel - Bottom right corner */}
@@ -497,14 +494,6 @@ function AnalysisModeContent() {
           {/* Weather now integrated into UnifiedCommandCenter */}
 
           {/* Commercial Vessels Toggle - Moved to LeftZone */}
-
-          {/* Commercial Vessel Layer */}
-          <CommercialVesselLayer 
-            map={map.current} 
-            showCommercial={showCommercial}
-            showTracks={false}
-            selectedInletId={selectedInletId || ''}
-          />
 
           {/* Commercial Vessel Legend - Now integrated into LeftZone */}
 
