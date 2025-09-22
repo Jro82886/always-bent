@@ -24,6 +24,11 @@ const ChatDrawer = dynamic(() => import('@/components/chat/ChatDrawer'), {
   ssr: false
 });
 
+// Dynamic import for RestrictToggle (dev only)
+const RestrictToggle = dynamic(() => import('@/components/dev/RestrictToggle'), {
+  ssr: false
+});
+
 // Mapbox token will be set in useEffect to avoid SSR issues
 
 // East Coast bounding box for overview
@@ -270,6 +275,7 @@ function TrackingModeContent() {
         userPosition={userPosition}
         onFlyToInlet={handleFlyToInlet}
         onChatToggle={() => setShowChat(!showChat)}
+        map={map.current}
       />
       
       {/* Right Legend - always visible */}
@@ -339,6 +345,9 @@ function TrackingModeContent() {
           userName={undefined} // TODO: Get from auth
         />
       )}
+      
+      {/* Dev-only Restrict Toggle */}
+      <RestrictToggle />
     </div>
   );
 }

@@ -1,26 +1,70 @@
-/**
- * Simple app state store
- * This is a minimal implementation to fix build errors
- * Replace with actual state management solution as needed
- */
+import { create } from 'zustand';
+
+interface UserLocation {
+  lat: number;
+  lon: number;
+  accuracy?: number;
+  updatedAt: number;
+}
 
 interface AppState {
+  // Existing state
   selectedInletId: string | null;
-  isoDate: string;
-  user: {
-    id: string;
-  } | null;
+  isoDate: string | null;
+  user: { id: string } | null;
+  
+  // Setters for existing state
+  setSelectedInletId: (id: string | null) => void;
+  setIsoDate: (date: string | null) => void;
+  setUser: (user: { id: string } | null) => void;
+  
+  // User vessel location state
+  userLoc?: UserLocation;
+  userLocStatus: 'idle' | 'requesting' | 'active' | 'denied' | 'error';
+  setUserLoc: (loc?: UserLocation) => void;
+  setUserLocStatus: (status: 'idle' | 'requesting' | 'active' | 'denied' | 'error') => void;
+  
+  // Inlet restriction flags
+  restrictToInlet: boolean;
+  restrictOverride?: boolean | null;
+  setRestrictOverride: (v: boolean | null) => void;
 }
 
-// Default state
-const defaultState: AppState = {
+// Initialize restriction from env or localStorage
+const initialRestrict = process.env.NEXT_PUBLIC_FLAG_USER_LOCATION_RESTRICT_TO_INLET === 'true';
+const storedOverride = typeof window !== 'undefined' 
+  ? JSON.parse(localStorage.getItem('restrictOverride') ?? 'null')
+  : null;
+
+export const useAppState = create<AppState>((set, get) => ({
+  // Existing state
   selectedInletId: null,
   isoDate: new Date().toISOString().split('T')[0],
-  user: null
-};
-
-// Simple hook that returns static state
-// In production, this should connect to actual state management
-export function useAppState(): AppState {
-  return defaultState;
-}
+  user: null,
+  
+  // Setters for existing state
+  setSelectedInletId: (id) => set({ selectedInletId: id }),
+  setIsoDate: (date) => set({ isoDate: date }),
+  setUser: (user) => set({ user }),
+  
+  // User vessel location
+  userLoc: undefined,
+  userLocStatus: 'idle',
+  setUserLoc: (loc) => set({ userLoc: loc }),
+  setUserLocStatus: (status) => set({ userLocStatus: status }),
+  
+  // Inlet restriction
+  restrictToInlet: storedOverride ?? initialRestrict,
+  restrictOverride: storedOverride,
+  setRestrictOverride: (v) => {
+    if (typeof window === 'undefined') return;
+    
+    if (v === null) {
+      localStorage.removeItem('restrictOverride');
+      set({ restrictOverride: null, restrictToInlet: initialRestrict });
+    } else {
+      localStorage.setItem('restrictOverride', JSON.stringify(v));
+      set({ restrictOverride: v, restrictToInlet: v });
+    }
+  },
+}));

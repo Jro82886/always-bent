@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Wind, Anchor, Users, Ship, Navigation, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { flags } from '@/lib/flags';
+import { useAppState } from '@/lib/store';
+import { showToast } from '@/components/ui/Toast';
+import { isInsideInlet } from '@/lib/geo/inletBounds';
+import mapboxgl from 'mapbox-gl';
 
 interface TrackingToolbarProps {
   selectedInletId: string | null;
@@ -23,6 +27,7 @@ interface TrackingToolbarProps {
   userPosition: { lat: number; lng: number; speed: number } | null;
   onFlyToInlet: () => void;
   onChatToggle?: () => void;
+  map?: mapboxgl.Map | null;
 }
 
 export default function TrackingToolbar({
@@ -42,11 +47,16 @@ export default function TrackingToolbar({
   setShowCommercialTracks,
   userPosition,
   onFlyToInlet,
-  onChatToggle
+  onChatToggle,
+  map
 }: TrackingToolbarProps) {
   const router = useRouter();
   const [weatherData, setWeatherData] = useState<any>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
+  
+  // Get user location state from store
+  const { userLoc, userLocStatus, setUserLoc, setUserLocStatus, restrictToInlet } = useAppState();
+  const watchIdRef = useRef<number | null>(null);
 
   // Fetch weather data when inlet changes
   useEffect(() => {
@@ -96,6 +106,140 @@ export default function TrackingToolbar({
     }
   };
 
+  // Draw or update user dot on map
+  const drawOrUpdateUserDot = (lon: number, lat: number, accuracy?: number) => {
+    if (!map) return;
+    
+    const src = map.getSource('user-vessel') as mapboxgl.GeoJSONSource | undefined;
+    const feature: GeoJSON.Feature = { 
+      type: 'Feature', 
+      geometry: { type: 'Point', coordinates: [lon, lat] }, 
+      properties: { accuracy: accuracy ?? null } 
+    };
+    
+    if (src) {
+      src.setData({ type: 'FeatureCollection', features: [feature] });
+    } else {
+      map.addSource('user-vessel', { 
+        type: 'geojson', 
+        data: { type: 'FeatureCollection', features: [feature] } 
+      });
+      
+      // Add dot layer
+      map.addLayer({
+        id: 'user-vessel-dot', 
+        type: 'circle', 
+        source: 'user-vessel',
+        paint: { 
+          'circle-radius': 6, 
+          'circle-opacity': 1, 
+          'circle-blur': 0.1, 
+          'circle-color': '#00e676' // emerald
+        } 
+      });
+      
+      // Add accuracy circle layer
+      map.addLayer({
+        id: 'user-vessel-accuracy', 
+        type: 'circle', 
+        source: 'user-vessel',
+        paint: {
+          'circle-radius': [
+            'case',
+            ['has', 'accuracy'],
+            ['interpolate', ['linear'], ['get', 'accuracy'], 0, 30, 2000, 40],
+            0
+          ],
+          'circle-color': '#00e676', 
+          'circle-opacity': 0.1
+        }
+      }, 'user-vessel-dot');
+    }
+  };
+
+  // Handle Show Me button click
+  const onShowMe = async () => {
+    if (!map) return;
+    
+    setUserLocStatus('requesting');
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const accuracy = pos.coords.accuracy;
+
+        // Check if we should restrict to inlet bounds
+        if (restrictToInlet) {
+          const inside = isInsideInlet(lon, lat, selectedInletId || '');
+          if (!inside) {
+            setUserLoc(undefined);
+            setUserLocStatus('idle');
+            showToast({
+              type: 'info',
+              title: 'Outside Selected Inlet',
+              message: 'You\'re outside the selected inlet. Switch inlets to show your position.',
+              duration: 5000
+            });
+            return;
+          }
+        }
+
+        // Update state
+        setUserLoc({ lat, lon, accuracy, updatedAt: Date.now() });
+        setUserLocStatus('active');
+        setShowYou(true);
+
+        // Fly to location
+        map.flyTo({ 
+          center: [lon, lat], 
+          zoom: Math.max(map.getZoom(), 11), 
+          essential: true 
+        });
+        
+        // Draw the dot
+        drawOrUpdateUserDot(lon, lat, accuracy);
+      },
+      (err) => {
+        setUserLocStatus(err.code === err.PERMISSION_DENIED ? 'denied' : 'error');
+        showToast({
+          type: 'warning',
+          title: 'Location Access',
+          message: err.code === err.PERMISSION_DENIED
+            ? 'Location permission denied. Enable to show your vessel.'
+            : 'Could not get location. Try again.',
+          duration: 5000
+        });
+      },
+      { 
+        enableHighAccuracy: true, 
+        timeout: 8000, 
+        maximumAge: 15000 
+      }
+    );
+  };
+
+  // Handle Hide Me
+  const onHideMe = () => {
+    if (!map) return;
+    
+    setUserLoc(undefined);
+    setUserLocStatus('idle');
+    setShowYou(false);
+    
+    // Remove layers and source
+    if (map.getLayer('user-vessel-dot')) map.removeLayer('user-vessel-dot');
+    if (map.getLayer('user-vessel-accuracy')) map.removeLayer('user-vessel-accuracy');
+    if (map.getSource('user-vessel')) map.removeSource('user-vessel');
+  };
+
+  // Effect to handle showYou state changes
+  useEffect(() => {
+    if (!showYou && map) {
+      onHideMe();
+    }
+  }, [showYou, map]);
+
   return (
     <div className="absolute left-4 top-24 z-10 space-y-4 pointer-events-none">
       {/* Weather Card */}
@@ -142,12 +286,12 @@ export default function TrackingToolbar({
         
         <div className="space-y-2">
           <button
-            onClick={() => setShowYou(!showYou)}
+            onClick={showYou ? onHideMe : onShowMe}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
               showYou ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
             }`}
           >
-            <span>Show Me</span>
+            <span>{showYou ? 'Hide Me' : 'Show Me'}</span>
             <div className={`w-2 h-2 rounded-full ${showYou ? 'bg-cyan-400' : 'bg-slate-600'}`} />
           </button>
           
@@ -169,6 +313,34 @@ export default function TrackingToolbar({
             <Navigation className="w-3 h-3" />
             <span>Fly to Inlet Zoom</span>
           </button>
+          
+          {/* Location Status */}
+          {userLocStatus !== 'idle' && (
+            <div className="mt-2 text-xs">
+              {userLocStatus === 'requesting' && (
+                <div className="text-slate-400">Locating...</div>
+              )}
+              {userLocStatus === 'active' && userLoc && (
+                <div className="text-cyan-400">
+                  Active • updated {Math.round((Date.now() - userLoc.updatedAt) / 1000)}s ago
+                </div>
+              )}
+              {userLocStatus === 'denied' && (
+                <div className="text-amber-400">
+                  Enable location to show your vessel
+                  <button
+                    onClick={onShowMe}
+                    className="ml-2 text-cyan-400 hover:text-cyan-300 underline"
+                  >
+                    Enable
+                  </button>
+                </div>
+              )}
+              {userLocStatus === 'error' && (
+                <div className="text-red-400">Location error - try again</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
