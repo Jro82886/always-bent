@@ -20,6 +20,7 @@ import { getInletById } from '@/lib/inlets';
 import { useLocationPermission } from '@/hooks/useLocationPermission';
 import dynamic from 'next/dynamic';
 import { flags } from '@/lib/flags';
+import { getOrCreateEphemeralUser } from '@/lib/auth/ephemeral';
 
 // Dynamic import for ChatDrawer
 const ChatDrawer = dynamic(() => import('@/components/chat/ChatDrawer'), {
@@ -341,7 +342,7 @@ function TrackingModeContent() {
           isOpen={showChat}
           onClose={() => setShowChat(false)}
           inletId={selectedInletId}
-          userId={undefined} // TODO: Get from auth
+          userId={getOrCreateEphemeralUser().id} // TODO: Replace with Memberstack user once enabled
           userName={undefined} // TODO: Get from auth
         />
       )}

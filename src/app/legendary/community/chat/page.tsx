@@ -2,9 +2,10 @@
 
 import { useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { MOCK_ROOMS } from '@/mocks/chat';
+// import { MOCK_ROOMS } from '@/mocks/chat'; // TODO: Remove mock rooms
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/lib/store';
+import { getOrCreateEphemeralUser } from '@/lib/auth/ephemeral';
 
 // Dynamically import components to avoid SSR issues
 const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
@@ -32,11 +33,13 @@ const WeatherHeader = dynamic(() => import('@/components/chat/WeatherHeader'), {
 });
 
 export default function ChatPage() {
-  const { selectedInletId, user } = useAppState();
+  const { selectedInletId } = useAppState();
+  const ephemeralUser = getOrCreateEphemeralUser(); // TODO: Replace with Memberstack user once enabled
   const [selectedRoom, setSelectedRoom] = useState('inlet');
   const [showMobileRoom, setShowMobileRoom] = useState(false);
   
-  const currentRoom = MOCK_ROOMS.find(r => r.id === selectedRoom);
+  // Only inlet chat is supported for now
+  const currentRoom = selectedRoom === 'inlet' ? { id: 'inlet', name: 'Inlet Chat' } : null;
 
   // Mobile view
   const handleMobileRoomSelect = (roomId: string) => {
@@ -80,7 +83,7 @@ export default function ChatPage() {
               selectedInletId && selectedInletId !== 'overview' ? (
                 <UnifiedChatContainer 
                   inletId={selectedInletId}
-                  userId={user?.id}
+                  userId={ephemeralUser.id}
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center text-slate-400">
@@ -130,29 +133,19 @@ export default function ChatPage() {
               <h1 className="text-lg font-semibold text-white">Channels</h1>
             </div>
             <div className="overflow-y-auto">
-              {MOCK_ROOMS.map(room => {
-                const displayName = room.id === 'inlet' && selectedInletId 
-                  ? `${selectedInletId.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')} Chat`
-                  : room.name;
-                  
-                return (
-                  <button
-                    key={room.id}
-                    onClick={() => handleMobileRoomSelect(room.id)}
-                    className="w-full px-4 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors border-b border-slate-800"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-white font-medium">{displayName}</span>
-                    {room.unread > 0 && (
-                      <span className="px-2 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 rounded-full">
-                        {room.unread}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-slate-500">{room.online} online</span>
-                </button>
-              );
-              })}
+              {/* Only show inlet chat for now */}
+              <button
+                onClick={() => handleMobileRoomSelect('inlet')}
+                className="w-full px-4 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors border-b border-slate-800"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-white font-medium">
+                    {selectedInletId 
+                      ? `${selectedInletId.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')} Chat`
+                      : 'Inlet Chat'}
+                  </span>
+                </div>
+              </button>
             </div>
           </div>
         ) : (
@@ -174,7 +167,7 @@ export default function ChatPage() {
               {selectedRoom === 'inlet' && selectedInletId && selectedInletId !== 'overview' ? (
                 <UnifiedChatContainer 
                   inletId={selectedInletId}
-                  userId={user?.id}
+                  userId={ephemeralUser.id}
                 />
               ) : (
                 <ChatWindow 

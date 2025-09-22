@@ -251,8 +251,11 @@ export default function RecBoatsClustering({
       sourceAddedRef.current = true;
       console.log('Rec boats clustering initialized');
       
-      // Load initial mock data
-      loadMockData();
+      // TODO: Replace with real fleet data from vessel_positions
+      // loadMockData();
+      
+      // For now, show empty state
+      updateRecData([]);
     }
 
     return () => {
