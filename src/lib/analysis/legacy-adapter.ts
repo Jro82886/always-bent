@@ -21,11 +21,9 @@ export function toLegacy(a: SnipAnalysis): LegacySnipAnalysis {
     success_prediction: 0,
     predicted_species: [],
     created_at: new Date().toISOString(),
-    layers_active: {
-      sst: a.toggles.sst,
-      chl: a.toggles.chl,
-      current: false,
-      bathymetry: false
-    }
+    layers_active: [
+      ...(a.toggles.sst ? ['sst' as const] : []),
+      ...(a.toggles.chl ? ['chlorophyll' as const] : [])
+    ]
   } as LegacySnipAnalysis;
 }
