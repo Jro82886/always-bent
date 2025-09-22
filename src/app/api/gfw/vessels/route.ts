@@ -70,11 +70,12 @@ export async function GET(request: NextRequest) {
     }
 
     // If no token, return configured: false
-    if (!GFW_TOKEN) {
+    if (!GFW_TOKEN?.trim()) {
       console.error('GFW_API_TOKEN not configured');
       return NextResponse.json({
         configured: false,
         vessels: [],
+        tracks: [],
         events: []
       });
     }
@@ -107,17 +108,26 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
+      // Soft-fail for auth/rate limit errors
+      if ([401, 403, 429].includes(response.status)) {
+        console.error('GFW auth/rate limit error:', response.status);
+        return NextResponse.json({
+          configured: false,
+          vessels: [],
+          tracks: [],
+          events: []
+        });
+      }
+      
       // Check if it's a server error
       if (response.status >= 500) {
         console.error('GFW server error:', response.status);
-        return NextResponse.json(
-          { 
-            error: 'GFW server error',
-            message: 'GFW server down, try back later',
-            vessels: []
-          },
-          { status: 503 }
-        );
+        return NextResponse.json({
+          configured: false,
+          vessels: [],
+          tracks: [],
+          events: []
+        });
       }
       
       console.error('GFW API error:', response.status, response.statusText);

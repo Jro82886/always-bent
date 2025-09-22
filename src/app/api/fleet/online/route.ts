@@ -9,12 +9,12 @@ export async function GET(request: NextRequest) {
   const inletId = searchParams.get('inlet_id');
   
   if (!inletId) {
-    return NextResponse.json({ error: 'inlet_id parameter required' }, { status: 400 });
+    return NextResponse.json([]); // Soft fail - return empty array
   }
   
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Supabase configuration missing');
-    return NextResponse.json({ error: 'Service configuration error' }, { status: 500 });
+    return NextResponse.json([]); // Soft fail - return empty array
   }
   
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
       .order('recorded_at', { ascending: false });
     
     if (vesselsError) {
-      console.error('Error fetching vessels:', vesselsError);
-      return NextResponse.json({ error: 'Failed to fetch vessels' }, { status: 500 });
+      console.error('Fleet vessels query error:', vesselsError);
+      return NextResponse.json([]); // Soft fail - return empty array
     }
     
     if (!vessels || vessels.length === 0) {
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response);
     
   } catch (error) {
-    console.error('Fleet online API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Fleet online handler crash:', error);
+    return NextResponse.json([]); // Soft fail - return empty array
   }
 }
