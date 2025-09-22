@@ -658,7 +658,7 @@ export default function LeftZone({
               label="Commercial Vessels"
               active={showCommercial}
               tone="orange"
-              onClick={() => setShowCommercial(!showCommercial)}
+              onClick={() => setShowCommercial?.(!showCommercial)}
               rightSlot={showCommercial && <span className="text-xs text-orange-400">GFW</span>}
             />
             

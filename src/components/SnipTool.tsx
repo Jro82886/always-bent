@@ -521,14 +521,18 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       bearing: map.getBearing(),
       pitch: map.getPitch(),
     };
-    set((s) => {
-      s.analysis.preZoomCamera = pre;
-      s.analysis.pendingAnalysis = null;
-      s.analysis.lastSnipPolygon = null;
-      s.analysis.lastSnipBBox = null;
-      s.analysis.lastSnipCenter = null;
-      s.analysis.isZoomingToSnip = false;
-    });
+    set((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        preZoomCamera: pre,
+        pendingAnalysis: null,
+        lastSnipPolygon: null,
+        lastSnipBBox: null,
+        lastSnipCenter: null,
+        isZoomingToSnip: false,
+      }
+    }));
 
     setStatus('drawing');
     
@@ -853,19 +857,27 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       bearing: map.getBearing(),
       pitch: map.getPitch(),
     };
-    set((s) => { 
-      s.analysis.preZoomCamera = pre; 
-      s.analysis.isZoomingToSnip = true;
-    });
+    set((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        preZoomCamera: pre,
+        isZoomingToSnip: true,
+      }
+    }));
     
     const bbox = turf.bbox(polygon) as [number, number, number, number];
     const center = centroidOf(polygon.geometry);
     
-    set((s) => { 
-      s.analysis.lastSnipPolygon = polygon.geometry; 
-      s.analysis.lastSnipBBox = bbox; 
-      s.analysis.lastSnipCenter = center;
-    });
+    set((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        lastSnipPolygon: polygon.geometry,
+        lastSnipBBox: bbox,
+        lastSnipCenter: center,
+      }
+    }));
     
     // Keep the box visible
     setPendingPolygon(polygon);
@@ -875,7 +887,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     await zoomToSnip(map, bbox);
     
     // Show review bar after zoom completes
-    set((s) => { s.analysis.isZoomingToSnip = false; });
+    set((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        isZoomingToSnip: false,
+      }
+    }));
     setShowReviewBar(true);
     setStatus('idle');
   }, [map, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled, set]);
@@ -965,7 +983,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       const narrative = buildNarrative(analysis, ctx);
 
       // Zoom to polygon first, then open modal
-      fitBoundsToPolygon(map, polygon.geometry, {
+      fitBoundsToPolygonOld(map, polygon.geometry, {
         padding: 44,
         maxZoom: 12.5,
         durationMs: 1500,
@@ -1011,7 +1029,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
       
           // Clean up drawing
-          clearTimeout(timeout);
           setStatus('idle');
           setIsAnalyzing(false);
           setIsDrawing(false);
@@ -1022,7 +1039,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // END NEW CLEAN ANALYSIS FLOW
     } catch (error) {
       console.error('Error during analysis:', error);
-      clearTimeout(timeout);
       setStatus('idle');
       setIsAnalyzing(false);
       setIsDrawing(false);
@@ -1038,7 +1054,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   // Handle cancel click
   const onCancelClick = useCallback(() => {
     setShowReviewBar(false);
-    clearSnipOutlineLayer(map);
+    if (map) clearSnipOutlineLayer(map);
     setPendingPolygon(null);
     // Optionally snap back a bit
     const cam = analysis.preZoomCamera;
