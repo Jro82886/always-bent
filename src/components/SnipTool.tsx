@@ -973,7 +973,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     if (!map || !polygon) return;
     
     const log = (...args: any[]) => console.log('[SnipFlow]', ...args);
-    log('Review clicked, building analysis from scratch');
+    log('Review clicked, opening modal immediately');
     
     setShowReviewBar(false);
     setStatus('analyzing');
@@ -1013,16 +1013,70 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       obtainedVia: 'snip'
     };
     
-    log('Base analysis:', baseAnalysis);
+    // 👇 INSTANT placeholder narrative
+    let narrativeText = "Analyzing ocean conditions...";
+    const placeholderAnalysis = { ...baseAnalysis, narrative: narrativeText };
     
-    // --- Call samplers only if toggled ---
+    // Store placeholder and open modal IMMEDIATELY
+    set((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        pendingAnalysis: placeholderAnalysis,
+        narrative: narrativeText,
+        showReviewCta: false,
+      }
+    }));
+    
+    // Create legacy format with placeholder
+    const createLegacyAnalysis = (analysis: SnipAnalysis, narrative: string): AnalysisResult => ({
+      polygon: pendingPolygon || { type: 'Feature', geometry: polygon, properties: {} } as any,
+      features: [],
+      hotspot: null,
+      stats: {
+        avg_temp_f: analysis.sst?.mean ?? 0,
+        min_temp_f: analysis.sst?.min ?? 0,
+        max_temp_f: analysis.sst?.max ?? 0,
+        temp_range_f: ((analysis.sst?.max ?? 0) - (analysis.sst?.min ?? 0)),
+        area_km2: analysis.polygonMeta.area_sq_km
+      },
+      layerAnalysis: {
+        sst: activeLayers.sst ? {
+          active: true,
+          description: analysis.sst ? `SST: ${analysis.sst.mean?.toFixed(1) ?? 'N/A'}°F` : 'SST: Analyzing...'
+        } : undefined,
+        chl: activeLayers.chl ? {
+          active: true,
+          description: analysis.chl ? `CHL: ${analysis.chl.mean?.toFixed(2) ?? 'N/A'} mg/m³` : 'CHL: Analyzing...',
+          avg_chl_mg_m3: analysis.chl?.mean ?? undefined,
+          max_chl_mg_m3: analysis.chl?.max ?? undefined
+        } : undefined
+      },
+      narrative,
+      type: 'snip' as const,
+      id: crypto.randomUUID(),
+      user_id: 'current-user',
+      created_at: new Date().toISOString()
+    } as any);
+    
+    // Open modal with placeholder
+    const placeholderLegacy = createLegacyAnalysis(baseAnalysis, narrativeText);
+    setLastAnalysis(placeholderLegacy);
+    setHasAnalysisResults(true);
+    
+    log('Opening modal with placeholder:', placeholderLegacy);
+    if (onAnalysisComplete) {
+      onAnalysisComplete(placeholderLegacy);
+    }
+    
+    // --- NOW resolve samplers in background ---
     try {
       const want: Array<'sst'|'chl'> = [];
       if (activeLayers.sst) want.push('sst');
       if (activeLayers.chl) want.push('chl');
       
       if (want.length > 0) {
-        log('Fetching raster data for:', want);
+        log('Background fetching raster data for:', want);
         const scalarResult = await sampleScalars({ polygon, timeISO, layers: want });
         
         if (activeLayers.sst && scalarResult.sst) {
@@ -1031,70 +1085,35 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         if (activeLayers.chl && scalarResult.chl) {
           baseAnalysis.chl = scalarResult.chl;
         }
+        
+        log('Raster data received:', scalarResult);
       }
     } catch (err) {
       console.warn('[SnipFlow] sampler error', err);
       // Continue with null values
     }
     
-    // --- Build narrative (ALWAYS returns string) ---
-    const narrativeText = buildNarrative(baseAnalysis);
-    log('Narrative built:', narrativeText);
+    // --- Rebuild narrative with real data ---
+    narrativeText = buildNarrative(baseAnalysis);
+    log('Final narrative built:', narrativeText);
     
-    // Include narrative in analysis
-    const analysisWithNarrative = { ...baseAnalysis, narrative: narrativeText };
+    const finalAnalysisWithNarrative = { ...baseAnalysis, narrative: narrativeText };
     
-    // --- Store in Zustand ---
+    // Update store with real data
     set((s) => ({
       ...s,
       analysis: {
         ...s.analysis,
-        pendingAnalysis: analysisWithNarrative,
+        pendingAnalysis: finalAnalysisWithNarrative,
         narrative: narrativeText,
-        showReviewCta: false,
       }
     }));
     
-    // --- Create legacy format for modal ---
-    const finalAnalysis: AnalysisResult = {
-      polygon: pendingPolygon || { type: 'Feature', geometry: polygon, properties: {} } as any,
-      features: [],
-      hotspot: null,
-      stats: {
-        avg_temp_f: baseAnalysis.sst?.mean ?? 0,
-        min_temp_f: baseAnalysis.sst?.min ?? 0,
-        max_temp_f: baseAnalysis.sst?.max ?? 0,
-        temp_range_f: ((baseAnalysis.sst?.max ?? 0) - (baseAnalysis.sst?.min ?? 0)),
-        area_km2: baseAnalysis.polygonMeta.area_sq_km
-      },
-      layerAnalysis: {
-        sst: activeLayers.sst ? {
-          active: true,
-          description: baseAnalysis.sst ? `SST: ${baseAnalysis.sst.mean?.toFixed(1) ?? 'N/A'}°F` : 'SST: Off'
-        } : undefined,
-        chl: activeLayers.chl ? {
-          active: true,
-          description: baseAnalysis.chl ? `CHL: ${baseAnalysis.chl.mean?.toFixed(2) ?? 'N/A'} mg/m³` : 'CHL: Off',
-          avg_chl_mg_m3: baseAnalysis.chl?.mean ?? undefined,
-          max_chl_mg_m3: baseAnalysis.chl?.max ?? undefined
-        } : undefined
-      },
-      narrative: narrativeText,
-      type: 'snip' as const,
-      id: crypto.randomUUID(),
-      user_id: 'current-user',
-      created_at: new Date().toISOString()
-    } as any;
+    // Update modal with real data (it should re-render automatically)
+    const finalLegacyAnalysis = createLegacyAnalysis(baseAnalysis, narrativeText);
+    setLastAnalysis(finalLegacyAnalysis);
     
-    log('Final analysis for modal:', finalAnalysis);
-    
-    setLastAnalysis(finalAnalysis);
-    setHasAnalysisResults(true);
-    
-    // --- Open modal with analysis ---
-    if (onAnalysisComplete) {
-      onAnalysisComplete(finalAnalysis);
-    }
+    log('Updated modal with final analysis:', finalLegacyAnalysis);
     
     // Clean up
     setStatus('idle');
