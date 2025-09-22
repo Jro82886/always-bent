@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 
 // Initialize Supabase client
 const getSupabaseClient = () => {
@@ -10,7 +10,7 @@ const getSupabaseClient = () => {
     return null;
   }
   
-  return createClient(url, key);
+  return supabase;
 };
 
 // Simplify track points based on zoom level

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 
 // Initialize Supabase client only when environment variables are available
 const getSupabaseClient = () => {
@@ -10,7 +10,7 @@ const getSupabaseClient = () => {
     return null;
   }
   
-  return createClient(url, key);
+  return supabase;
 };
 
 // GET /api/tracking/fleet - Get all active fleet positions with trails

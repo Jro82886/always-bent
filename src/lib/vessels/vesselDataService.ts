@@ -5,7 +5,7 @@
  */
 
 import { getInletColor, INLET_COLORS } from '@/lib/inletColors';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 import { INLETS } from '@/lib/inlets';
 import { showToast } from '@/components/ui/Toast';
 import { getInletColor as getInletColorFromSource } from '@/lib/style/fleetColors';
@@ -13,7 +13,7 @@ import { getInletColor as getInletColorFromSource } from '@/lib/style/fleetColor
 // Initialize Supabase client for live vessel data
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const supabaseClient = supabaseUrl && supabaseAnonKey ? supabase : null;
 
 // Flag to track if we've shown the live data warning
 let hasShownLiveDataWarning = false;
@@ -191,7 +191,7 @@ async function fetchGFWVessels(bounds: [[number, number], [number, number]]): Pr
  */
 async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]> {
   // If no Supabase client, show warning and use mock data for testing
-  if (!supabase) {
+  if (!supabaseClient) {
     if (!hasShownLiveDataWarning) {
       showToast({
         type: 'warning',

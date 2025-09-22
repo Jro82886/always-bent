@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 import { showToast } from '@/components/ui/Toast';
 import { INLETS } from '@/lib/inlets';
 
@@ -13,6 +13,8 @@ export interface ChatMessage {
   vessel_id?: string | null;
   text: string;
   created_at: string;
+  _optimistic?: boolean;
+  _failed?: boolean;
 }
 
 interface PresenceState {
@@ -31,12 +33,8 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
   const dbChannelRef = useRef<any>(null);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
   
-  // Initialize Supabase client
-  const supabase = useRef(
-    supabaseUrl && supabaseAnonKey 
-      ? createClient(supabaseUrl, supabaseAnonKey)
-      : null
-  ).current;
+  // Use the imported supabase client directly
+  const supabaseClient = supabaseUrl && supabaseAnonKey ? supabase : null;
 
   // Extract fresh boats from presence state and vessel positions
   const extractFreshBoats = async (presenceState: any) => {
@@ -74,12 +72,12 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
   };
 
   useEffect(() => {
-    if (!supabase || !inletId || inletId === 'overview' || !userId) return;
+    if (!supabaseClient || !inletId || inletId === 'overview' || !userId) return;
 
     const setupChannel = async () => {
       try {
         // Create presence channel
-        const channel = supabase.channel(`chat:${inletId}`, {
+        const channel = supabaseClient.channel(`chat:${inletId}`, {
           config: {
             presence: {
               key: userId
@@ -128,7 +126,14 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
               filter: `inlet_id=eq.${inletId}`
             },
             (payload) => {
-              setMessages(prev => [...prev, payload.new as ChatMessage]);
+              const newMsg = payload.new as ChatMessage;
+              setMessages(prev => {
+                // Don't add if we already have this message (avoid duplicates)
+                if (prev.some(msg => msg.id === newMsg.id)) {
+                  return prev;
+                }
+                return [...prev, newMsg];
+              });
             }
           )
           .subscribe();
@@ -136,7 +141,7 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
         dbChannelRef.current = dbChannel;
 
         // Load initial messages
-        const { data: initialMessages, error } = await supabase
+        const { data: initialMessages, error } = await supabaseClient
           .from('chat_messages')
           .select('*')
           .eq('inlet_id', inletId)
@@ -192,33 +197,71 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
       setBoatsOnline(0);
       setConnected(false);
     };
-  }, [inletId, userId, vesselId, supabase]);
+  }, [inletId, userId, vesselId, supabaseClient]);
 
   // Send message function
   const send = async (text: string) => {
-    if (!supabase || !userId || !text.trim()) return;
+    if (!supabaseClient || !userId || !text.trim()) return;
+
+    // 1) Create optimistic message
+    const optimisticId = `tmp-${Date.now()}`;
+    const optimisticMessage: ChatMessage = {
+      id: optimisticId,
+      inlet_id: inletId,
+      user_id: userId,
+      vessel_id: vesselId,
+      text: text.trim(),
+      created_at: new Date().toISOString(),
+      _optimistic: true
+    };
+
+    // 2) Add to UI immediately
+    setMessages(prev => [...prev, optimisticMessage]);
 
     try {
-      const { error } = await supabase
+      // 3) Persist to database
+      const { data, error } = await supabaseClient
         .from('chat_messages')
         .insert({
           inlet_id: inletId,
           user_id: userId,
           vessel_id: vesselId,
           text: text.trim()
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Error sending message:', error);
+        
+        // Mark message as failed
+        setMessages(prev => prev.map(msg => 
+          msg.id === optimisticId 
+            ? { ...msg, _failed: true, _optimistic: false }
+            : msg
+        ));
+        
         showToast({
           type: 'error',
           title: 'Send Failed',
           message: 'Unable to send message. Please try again.',
           duration: 3000
         });
+      } else if (data) {
+        // 4) Replace optimistic with real message
+        setMessages(prev => prev.map(msg => 
+          msg.id === optimisticId ? { ...data, _optimistic: false } : msg
+        ));
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Mark message as failed
+      setMessages(prev => prev.map(msg => 
+        msg.id === optimisticId 
+          ? { ...msg, _failed: true, _optimistic: false }
+          : msg
+      ));
     }
   };
 

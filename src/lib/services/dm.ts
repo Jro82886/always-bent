@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface DMConversation {
@@ -30,7 +30,7 @@ export class DMClient {
   private conversationCallbacks: Map<string, (message: DMMessage) => void> = new Map();
 
   constructor(supabaseUrl: string, supabaseKey: string, userId: string, username: string) {
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    this.supabase = supabase;
     this.userId = userId;
     this.username = username;
   }

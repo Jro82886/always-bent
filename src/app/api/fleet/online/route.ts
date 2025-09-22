@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]); // Soft fail - return empty array
   }
   
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  // Using imported supabase client
   
   try {
     // Get vessels online in the last 10 minutes

@@ -1,4 +1,5 @@
-import { createClient, SupabaseClient, RealtimeChannel } from "@supabase/supabase-js";
+import { supabase } from '@/lib/supabase/client';
+import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import { nanoid } from "nanoid";
 
 export type ChatMessage = {
