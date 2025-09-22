@@ -1,4 +1,4 @@
-import { SnipAnalysis } from './types';
+import type { SnipAnalysis } from './types';
 import { SST_IDEAL_RANGE_F, SST_STRONG_FRONT_F_PER_KM, CHL_IDEAL_RANGE, CHL_FRONT_PER_KM, FORMAT } from './thresholds';
 
 export function buildNarrative(a: SnipAnalysis): string {

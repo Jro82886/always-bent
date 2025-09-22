@@ -1134,8 +1134,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         // Tracks will be shown if user enables them on tracking page
       }
       
-      // Build hotspots array (only real detections)
-      const hotspots: SnipAnalysis['hotspots'] = [];
+      // Hotspots will be computed later when needed
+      const hotspots: any[] = [];
       
       // Check for SST front
       if (sstStats && sstStats.gradient) {
@@ -1179,8 +1179,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         sst: sstStats,
         chl: chlStats,
         gfw: gfwData,
-        presence: presenceData,
-        hotspots: hotspots.length > 0 ? hotspots : undefined,
         toggles: {
           sst: activeLayers.sst || false,
           chl: activeLayers.chl || false,
@@ -1189,23 +1187,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           fleetTracks: fleetTracksEnabled,
           gfwTracks: gfwTracksEnabled
         },
-        narrative: buildNarrative({
-          polygon: polygon.geometry,
-          bbox: snippedBounds as [number, number, number, number],
-          timeISO: new Date().toISOString(),
-          sst: sstStats,
-          chl: chlStats,
-          gfw: gfwData,
-          presence: presenceData,
-          hotspots: hotspots.length > 0 ? hotspots : undefined,
-          toggles: {
-            sst: activeLayers.sst || false,
-            chl: activeLayers.chl || false,
-            gfw: activeLayers.gfw || false
-          },
-          narrative: ''
-        })
+        notes: undefined
       };
+      
+      // Generate narrative from the analysis
+      const narrative = buildNarrative(snipAnalysis);
       
       // Add legacy fields for compatibility with existing modal
       const finalAnalysis = {

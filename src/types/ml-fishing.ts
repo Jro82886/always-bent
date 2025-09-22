@@ -1,6 +1,6 @@
 // ML-Ready Types for Always Bent Fishing Intelligence
 
-export interface SnipAnalysis {
+export interface LegacySnipAnalysis {
   id: string;
   user_id: string;
   geometry: GeoJSON.Polygon;
