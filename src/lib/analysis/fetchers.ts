@@ -6,11 +6,66 @@ export async function sampleScalars({
   const res = await fetch('/api/rasters/sample', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ polygon, time: timeISO, layers }),
+    body: JSON.stringify({ 
+      polygon: { type: 'Feature', geometry: polygon, properties: {} }, 
+      time: timeISO, 
+      layers 
+    }),
   });
-  if (!res.ok) throw new Error(`sampler ${res.status}`);
+  
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ error: 'Unknown error' }));
+    console.error('Raster sample error:', error);
+    
+    // Return null values with reason if service not configured
+    if (res.status === 503 && error.noDataAvailable) {
+      const result: { sst?: ScalarStats|null; chl?: ScalarStats|null } = {};
+      if (layers.includes('sst')) {
+        result.sst = { mean: null, min: null, max: null, gradient: null, units: '°F', reason: 'No data available' };
+      }
+      if (layers.includes('chl')) {
+        result.chl = { mean: null, min: null, max: null, gradient: null, units: 'mg/m³', reason: 'No data available' };
+      }
+      return result;
+    }
+    
+    throw new Error(`sampler ${res.status}`);
+  }
+  
   const data = await res.json();
-  return data; // expected shape: { sst?: ScalarStats|null, chl?: ScalarStats|null }
+  
+  // Transform response to our expected format
+  const result: { sst?: ScalarStats|null; chl?: ScalarStats|null } = {};
+  
+  if (layers.includes('sst') && data.stats) {
+    if (data.stats.sst_mean !== undefined) {
+      result.sst = {
+        mean: data.stats.sst_mean,
+        min: data.stats.sst_min,
+        max: data.stats.sst_max,
+        gradient: data.stats.front_strength_mean || null,
+        units: '°F'
+      };
+    } else {
+      result.sst = { mean: null, min: null, max: null, gradient: null, units: '°F', reason: 'No data' };
+    }
+  }
+  
+  if (layers.includes('chl') && data.stats) {
+    if (data.stats.chl_mean !== undefined) {
+      result.chl = {
+        mean: data.stats.chl_mean,
+        min: data.stats.chl_min,
+        max: data.stats.chl_max,
+        gradient: null, // CHL gradient not provided by API
+        units: 'mg/m³'
+      };
+    } else {
+      result.chl = { mean: null, min: null, max: null, gradient: null, units: 'mg/m³', reason: 'No data' };
+    }
+  }
+  
+  return result;
 }
 
 export async function clipGFW({

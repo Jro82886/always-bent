@@ -795,11 +795,104 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const completeDrawing = useCallback(async () => {
     if (!map || !currentPolygon.current) return;
     
-    
     setIsAnalyzing(true);
     
     try {
       const polygon = currentPolygon.current;
+      
+      // NEW CLEAN ANALYSIS FLOW
+      const timeISO = isoDate || new Date().toISOString();
+      const bbox = turf.bbox(polygon) as [number, number, number, number];
+      
+      // Check active layers
+      const activeLayers = {
+        sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
+        chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+        gfw: map.getLayer('gfw-vessels-dots') && map.getLayoutProperty('gfw-vessels-dots', 'visibility') === 'visible'
+      };
+      
+      const toggles: LayerToggles = {
+        sst: activeLayers.sst || false,
+        chl: activeLayers.chl || false,
+        gfw: activeLayers.gfw || false,
+        myTracks: myTracksEnabled,
+        fleetTracks: fleetTracksEnabled,
+        gfwTracks: gfwTracksEnabled
+      };
+
+      // Run fetches in parallel honoring toggles
+      setAnalysisStep('Analyzing ocean data...');
+      
+      const want: Array<'sst'|'chl'> = [];
+      if (toggles.sst) want.push('sst');
+      if (toggles.chl) want.push('chl');
+
+      const [scalarRes, gfwRes] = await Promise.all([
+        want.length ? sampleScalars({ polygon: polygon.geometry, timeISO, layers: want }) : Promise.resolve({}),
+        toggles.gfw ? clipGFW({ polygon: polygon.geometry, days: 4 }) : Promise.resolve(null),
+      ]);
+
+      // Build analysis object
+      const analysis: SnipAnalysis = {
+        polygon: polygon.geometry,
+        bbox,
+        timeISO,
+        sst: toggles.sst ? (scalarRes.sst ?? { mean: null, min: null, max: null, gradient: null, units: '°F', reason: 'NoData' }) : null,
+        chl: toggles.chl ? (scalarRes.chl ?? { mean: null, min: null, max: null, gradient: null, units: 'mg/m³', reason: 'NoData' }) : null,
+        gfw: toggles.gfw ? gfwRes : null,
+        toggles,
+      };
+
+      // Compute narrative
+      const narrative = buildNarrative(analysis);
+
+      // Zoom to bounds with padding
+      const [west, south, east, north] = bbox;
+      const padding = 50;
+      map.fitBounds(
+        [[west, south], [east, north]],
+        {
+          padding,
+          duration: 1000,
+          maxZoom: 12
+        }
+      );
+
+      // Store analysis
+      const finalAnalysis = {
+        ...analysis,
+        narrative,
+        // Add legacy fields for compatibility
+        stats: {
+          avg_temp_f: analysis.sst?.mean,
+          min_temp_f: analysis.sst?.min,
+          max_temp_f: analysis.sst?.max,
+          area_km2: turf.area(polygon) / 1000000
+        },
+        polygon: polygon,
+        type: 'snip' as const,
+        id: crypto.randomUUID(),
+        user_id: 'current-user',
+        created_at: new Date().toISOString()
+      };
+      
+      setLastAnalysis(finalAnalysis);
+      setHasAnalysisResults(true);
+      
+      // Trigger modal
+      if (onAnalysisComplete) {
+        onAnalysisComplete(finalAnalysis);
+      }
+      
+      // Clean up drawing
+      setIsAnalyzing(false);
+      setIsDrawing(false);
+      clearDrawing();
+      
+      // END NEW CLEAN ANALYSIS FLOW
+      return; // Skip all legacy code below
+      
+      const polygon_legacy = currentPolygon.current;
       
       // Step 1: Get vessel data from shared service (source of truth)
       
