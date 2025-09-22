@@ -532,6 +532,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         lastSnipCenter: null,
         isZoomingToSnip: false,
         showReviewCta: false,
+        narrative: '',
       }
     }));
 
@@ -1025,12 +1026,16 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       setLastAnalysis(finalAnalysis);
       setHasAnalysisResults(true);
       
-      // Store pending analysis and trigger modal
+      // Build narrative and store with analysis
+      const narrativeText = buildNarrative(analysis, ctx);
+      
       set((s) => ({
         ...s,
         analysis: {
           ...s.analysis,
           pendingAnalysis: analysis,
+          narrative: narrativeText,
+          showReviewCta: false, // hide button once modal opens
         }
       }));
       
@@ -1074,6 +1079,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         ...s.analysis,
         showReviewCta: false,
         pendingAnalysis: null,
+        narrative: '',
       }
     }));
     // Optionally snap back a bit

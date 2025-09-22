@@ -62,6 +62,7 @@ interface AppState {
     pendingAnalysis: import('@/lib/analysis/types').SnipAnalysis | null;
     isZoomingToSnip: boolean;
     showReviewCta: boolean;
+    narrative: string;
   };
 }
 
@@ -151,5 +152,6 @@ export const useAppState = create<AppState>((set, get) => ({
     pendingAnalysis: null as import('@/lib/analysis/types').SnipAnalysis | null,
     isZoomingToSnip: false,
     showReviewCta: false,
+    narrative: '' as string,
   },
 }));

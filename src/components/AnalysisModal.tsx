@@ -21,7 +21,7 @@ interface AnalysisModalProps {
 
 export default function AnalysisModal({ analysis, visible, onClose, onSave }: AnalysisModalProps) {
   const mapRef = (window as any).abfiMap || (window as any).map;
-  const { selectedInletId } = useAppState();
+  const { selectedInletId, analysis: storeAnalysis } = useAppState();
   const [isSaving, setIsSaving] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -184,6 +184,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         ...s.analysis,
         showReviewCta: false,
         pendingAnalysis: null,
+        narrative: '',
       }
     }));
     onClose?.();
@@ -328,7 +329,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               Ocean Intelligence Analysis
             </h3>
             <div className="text-gray-300 text-sm leading-relaxed space-y-2">
-              {analysis.narrative.split('\n').filter(Boolean).map((line, idx) => (
+              {(analysis.narrative || storeAnalysis.narrative || 'Analysis loading...').split('\n').filter(Boolean).map((line, idx) => (
                 <div key={idx} className="py-1">
                   {line}
                 </div>
