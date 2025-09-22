@@ -8,6 +8,7 @@ import { getInletColor, INLET_COLORS } from '@/lib/inletColors';
 import { createClient } from '@supabase/supabase-js';
 import { INLETS } from '@/lib/inlets';
 import { showToast } from '@/components/ui/Toast';
+import { getInletColor as getInletColorFromSource } from '@/lib/style/fleetColors';
 
 // Initialize Supabase client for live vessel data
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -57,7 +58,7 @@ const mockFleetVessels: Vessel[] = [
     position: [-75.58, 35.22], 
     type: 'fleet', 
     inlet: 'nc-hatteras',
-    inletColor: INLETS.find(i => i.id === 'nc-hatteras')?.color || '#16a34a',
+    inletColor: getInletColorFromSource('nc-hatteras'),
     track: [[-75.60, 35.24], [-75.59, 35.23], [-75.58, 35.22]],
     hasReport: true
   },
@@ -67,7 +68,7 @@ const mockFleetVessels: Vessel[] = [
     position: [-75.62, 35.18], 
     type: 'fleet', 
     inlet: 'nc-hatteras',
-    inletColor: INLETS.find(i => i.id === 'nc-hatteras')?.color || '#16a34a',
+    inletColor: getInletColorFromSource('nc-hatteras'),
     track: [[-75.64, 35.20], [-75.63, 35.19], [-75.62, 35.18]],
     hasReport: false
   },
@@ -77,7 +78,7 @@ const mockFleetVessels: Vessel[] = [
     position: [-75.55, 35.25], 
     type: 'fleet', 
     inlet: 'nc-hatteras',
-    inletColor: INLETS.find(i => i.id === 'nc-hatteras')?.color || '#16a34a',
+    inletColor: getInletColorFromSource('nc-hatteras'),
     track: [[-75.53, 35.23], [-75.54, 35.24], [-75.55, 35.25]],
     hasReport: true
   },
@@ -88,7 +89,7 @@ const mockFleetVessels: Vessel[] = [
     position: [-75.09, 38.33], 
     type: 'fleet', 
     inlet: 'md-ocean-city',
-    inletColor: INLETS.find(i => i.id === 'md-ocean-city')?.color || '#059669',
+    inletColor: getInletColorFromSource('md-ocean-city'),
     track: [[-75.11, 38.35], [-75.10, 38.34], [-75.09, 38.33]],
     hasReport: false
   },
@@ -98,7 +99,7 @@ const mockFleetVessels: Vessel[] = [
     position: [-71.94, 41.07], 
     type: 'fleet', 
     inlet: 'ny-montauk',
-    inletColor: INLETS.find(i => i.id === 'ny-montauk')?.color || '#dc2626',
+    inletColor: getInletColorFromSource('ny-montauk'),
     track: [[-71.96, 41.09], [-71.95, 41.08], [-71.94, 41.07]],
     hasReport: true
   }
@@ -251,14 +252,13 @@ async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]
 
     // Convert to Vessel format
     const vessels: Vessel[] = Array.from(vesselMap.values()).map(record => {
-      const inlet = INLETS.find(i => i.id === record.inlet_id);
       return {
         id: record.id,
         name: record.name || 'Unknown Vessel',
         position: [record.lng, record.lat],
         type: 'fleet' as const,
         inlet: record.inlet_id,
-        inletColor: inlet?.color || '#00C7B7',
+        inletColor: getInletColorFromSource(record.inlet_id), // Use single source of truth
         heading: record.heading,
         speed: record.speed,
         lastUpdate: new Date(record.timestamp),
