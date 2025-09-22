@@ -27,6 +27,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Debug logging
+  console.log('[Modal] opened with analysis:', analysis);
+  console.log('[Modal] store narrative:', storeAnalysis.narrative);
+  console.log('[Modal] pendingAnalysis:', storeAnalysis.pendingAnalysis);
 
   useEffect(() => {
     setMounted(true);
