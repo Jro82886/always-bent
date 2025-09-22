@@ -142,43 +142,67 @@ export async function GET(request: NextRequest) {
       const positions = entry.positions || [];
       
       // Determine vessel type based on gear type
-      let type = 'unknown';
+      let gear = 'unknown';
       const gearType = vessel.geartype?.toLowerCase() || '';
       
       if (gearType.includes('longline') || gearType.includes('set_longlines')) {
-        type = 'longliner';
+        gear = 'longliner';
       } else if (gearType.includes('drifting_longlines')) {
-        type = 'drifting_longline';
+        gear = 'drifting_longline';
       } else if (gearType.includes('trawl')) {
-        type = 'trawler';
+        gear = 'trawler';
       }
       
-      // Check for fishing events
-      const fishingEvents = entry.events?.filter((e: any) => 
-        e.type === 'fishing' || e.type === 'apparent_fishing'
-      ) || [];
+      // Get last position
+      const lastPos = positions[positions.length - 1];
       
       return {
         id: vessel.id || entry.id,
         name: vessel.shipname || 'Unknown Vessel',
-        type,
+        gear, // Changed from 'type' to 'gear'
         flag: vessel.flag || 'Unknown',
         length: vessel.length || null,
-        positions: positions.map((pos: any) => ({
+        last_pos: lastPos ? {
+          lon: lastPos.lon,
+          lat: lastPos.lat,
+          t: lastPos.timestamp
+        } : null,
+        track: positions.map((pos: any) => ({
+          lon: pos.lon,
           lat: pos.lat,
-          lng: pos.lon,
-          timestamp: pos.timestamp
-        })),
-        fishingEvents: fishingEvents.map((event: any) => ({
-          start: event.start,
-          end: event.end,
-          lat: event.position?.lat,
-          lng: event.position?.lon
+          t: pos.timestamp
         }))
       };
+    }).filter(v => v.last_pos); // Only include vessels with positions
+
+    // Extract fishing events
+    const events = (data.entries || []).flatMap((entry: any) => {
+      const fishingEvents = entry.events?.filter((e: any) => 
+        e.type === 'fishing' || e.type === 'apparent_fishing'
+      ) || [];
+      
+      const vessel = entry.vessel || {};
+      let gear = 'unknown';
+      const gearType = vessel.geartype?.toLowerCase() || '';
+      
+      if (gearType.includes('longline') || gearType.includes('set_longlines')) {
+        gear = 'longliner';
+      } else if (gearType.includes('drifting_longlines')) {
+        gear = 'drifting_longline';
+      } else if (gearType.includes('trawl')) {
+        gear = 'trawler';
+      }
+      
+      return fishingEvents.map((event: any) => ({
+        lon: event.position?.lon,
+        lat: event.position?.lat,
+        t: event.start,
+        gear,
+        score: event.score || 1
+      })).filter(e => e.lon && e.lat);
     });
 
-    const result = { vessels };
+    const result = { vessels, events };
     
     // Cache the result
     gfwCache.set(cacheKey, { data: result, timestamp: Date.now() });
