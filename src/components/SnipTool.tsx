@@ -6,9 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
 import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 // Removed imports from deprecated sst-analyzer
-import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extractor';
-import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
-import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-analyzer';
+// Removed unused imports from deprecated analyzers
 import { buildNarrative } from '@/lib/analysis/narrative-builder';
 import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats, AnalysisResult } from '@/lib/analysis/types';
 import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
