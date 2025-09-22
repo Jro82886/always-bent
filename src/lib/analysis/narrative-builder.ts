@@ -29,13 +29,26 @@ export const COPY = {
 
 // ---- Thresholds (tune easily) ----
 const T = {
-  // °F/°C agnostic internally—assume your sampler already returns °F and mg/m³.
+  // Area size
+  AREA_TOO_SMALL_KM2: 0.5,    // km²
+  AREA_TOO_LARGE_KM2: 250,    // km²
+  
+  // SST thresholds
   GRADIENT_STRONG_F: 2.0,      // strong SST change across snip area (°F)
-  GRADIENT_MODERATE_F: 0.8,    // moderate edge
-  TEMP_GOOD_MIN_F: 68,         // generic pelagic-friendly band; adjust per region/species later
+  GRADIENT_WEAK_F: 0.5,        // weak edge threshold
+  GRADIENT_MODERATE_F: 1.5,    // moderate edge
+  GRADIENT_UNIFORM_F: 0.5,     // below this = uniform
+  TEMP_GOOD_MIN_F: 68,         // optimal pelagic band
   TEMP_GOOD_MAX_F: 74,
-  CHL_LOW: 0.10,               // mg/m³
-  CHL_MOD: 0.30,
+  
+  // Chlorophyll thresholds
+  CHL_VERY_LOW: 0.05,          // mg/m³ - extremely clean
+  CHL_LOW: 0.05,               // mg/m³ - optimal low end
+  CHL_OPTIMAL_MAX: 1.5,        // mg/m³ - optimal high end
+  CHL_HIGH: 3.0,               // mg/m³ - too turbid
+  CHL_GRADIENT: 0.4,           // mg/m³ - significant gradient
+  
+  // Weather
   WIND_FRESH_MIN_KT: 12,       // fresh breeze starts to move water
   SWELL_WORKABLE_MAX_FT: 5,
 };
@@ -54,86 +67,148 @@ const compass = (d?: number) => {
 const inBand = (x: number | null | undefined, lo: number, hi: number) => x !== null && x !== undefined && x >= lo && x <= hi;
 
 // ---- Scoring helpers (0–100) ----
-function scoreThermal(sst?: any): number {
-  if (!sst || sst.mean === null || sst.mean === undefined) return 0;
-  const g = sst.gradient ?? 0;
-  let s = 0;
-  if (g >= T.GRADIENT_STRONG_F) s += 55;
-  else if (g >= T.GRADIENT_MODERATE_F) s += 35;
-  const meanOk = inBand(sst.mean, T.TEMP_GOOD_MIN_F, T.TEMP_GOOD_MAX_F);
-  s += meanOk ? 25 : 10;
-  // more spread can hint at micro-structure
-  const spread = Math.max(0, ((sst.max ?? sst.mean) - (sst.min ?? sst.mean)));
-  s += Math.min(20, spread * 4);
-  return Math.max(0, Math.min(100, Math.round(s)));
-}
-
-function scoreChl(chl?: any): number {
-  if (!chl || chl.mean === null || chl.mean === undefined) return 0;
-  // Favor low-moderate chlorophyll + some gradient (front between clear/off-color)
-  let s = 0;
-  if (chl.mean <= T.CHL_LOW) s += 30;
-  else if (chl.mean <= T.CHL_MOD) s += 20;
-  s += Math.min(30, Math.max(0, (chl.gradient ?? 0) * 40)); // gradient in mg/m³; scaled
-  return Math.max(0, Math.min(60, Math.round(s)));
-}
-
-function scorePresence(ctx?: AnalysisContext): number {
-  if (!ctx) return 0;
-  let s = 0;
-  if (ctx.fleetRecentCount && ctx.fleetRecentCount > 0) s += Math.min(25, 10 + ctx.fleetRecentCount * 3);
-  if (ctx.userInside) s += 5;
-  return Math.min(30, s);
-}
-
-// Final combined score
 function fishinessScore(a: SnipAnalysis, ctx?: AnalysisContext) {
-  const st = scoreThermal(a.sst);
-  const sc = scoreChl(a.chl);
-  const sp = scorePresence(ctx);
-  const score = Math.max(0, Math.min(100, Math.round(st + sc + sp)));
-  let label: 'Low'|'Fair'|'Good'|'Strong';
-  if (score >= 75) label = 'Strong';
-  else if (score >= 55) label = 'Good';
-  else if (score >= 35) label = 'Fair';
-  else label = 'Low';
-  return { score, label, parts: { thermal: st, chlorophyll: sc, presence: sp } };
+  let score = 0;
+  
+  // SST scoring (up to 40 points)
+  if (a.toggles.sst && a.sst && a.sst.mean !== null) {
+    const delta = (a.sst.max ?? a.sst.mean ?? 0) - (a.sst.min ?? a.sst.mean ?? 0);
+    const meanOk = inBand(a.sst.mean, T.TEMP_GOOD_MIN_F, T.TEMP_GOOD_MAX_F);
+    
+    if (delta < T.GRADIENT_UNIFORM_F) {
+      score += 5; // Uniform water
+    } else if (delta >= T.GRADIENT_STRONG_F) {
+      score += 30; // Strong edge
+    } else if (delta >= T.GRADIENT_MODERATE_F) {
+      score += 20; // Moderate edge
+    } else {
+      score += 10; // Weak edge
+    }
+    
+    if (meanOk) score += 10; // Good temperature band
+  }
+  
+  // CHL scoring (up to 40 points)
+  if (a.toggles.chl && a.chl && a.chl.mean !== null) {
+    const mean = a.chl.mean ?? 0;
+    const gradient = a.chl.gradient ?? 0;
+    
+    if (mean < T.CHL_VERY_LOW) {
+      score += 5; // Too clean
+    } else if (mean >= T.CHL_LOW && mean <= T.CHL_OPTIMAL_MAX) {
+      score += 30; // Optimal range
+    } else if (mean > T.CHL_HIGH) {
+      score += 5; // Too turbid
+    } else {
+      score += 15; // Transitional
+    }
+    
+    if (gradient >= T.CHL_GRADIENT) score += 10; // Significant gradient
+  }
+  
+  // Combined conditions bonus (up to 20 points)
+  if (a.toggles.sst && a.toggles.chl && a.sst && a.chl && 
+      a.sst.mean !== null && a.chl.mean !== null) {
+    const sstDelta = (a.sst.max ?? a.sst.mean ?? 0) - (a.sst.min ?? a.sst.mean ?? 0);
+    const chlMean = a.chl.mean ?? 0;
+    
+    if (sstDelta >= T.GRADIENT_STRONG_F && 
+        chlMean >= T.CHL_LOW && chlMean <= T.CHL_OPTIMAL_MAX) {
+      score += 20; // Perfect combo
+    } else if (sstDelta < T.GRADIENT_UNIFORM_F && chlMean < T.CHL_VERY_LOW) {
+      score -= 10; // Bad combo (but don't go below 10)
+    }
+  }
+  
+  // Ensure score is between 10-90
+  score = Math.max(10, Math.min(90, score));
+  
+  // Determine label
+  let label: string;
+  if (score >= 80) label = 'strong chance of activity';
+  else if (score >= 60) label = 'good potential';
+  else if (score >= 40) label = 'moderate potential';
+  else if (score >= 20) label = 'weak signals';
+  else label = 'very weak';
+  
+  return { score, label };
 }
 
 // ---- Line writers (each returns a string or null) ----
+function lineAreaSize(a: SnipAnalysis): string | null {
+  const area = a.polygonMeta?.area_sq_km;
+  if (!area) return null;
+  
+  if (area < T.AREA_TOO_SMALL_KM2) {
+    return `Area is very small (${f1(area)} km²); signals may be noisy. Try a slightly larger box.`;
+  } else if (area > T.AREA_TOO_LARGE_KM2) {
+    return `Area is very broad (${Math.round(area)} km²). Consider focusing on smaller features for sharper analysis.`;
+  }
+  return null; // Area size is fine, no comment needed
+}
+
 function lineSST(a: SnipAnalysis) {
   if (!a.toggles.sst) return COPY.SST_OFF;
   if (!a.sst || a.sst.mean === null || a.sst.mean === undefined) return COPY.SST_NA;
+  
   const { mean, min, max, gradient } = a.sst;
-  const range = `${f1(min)}–${f1(max)}°F`;
-  const g = f1(gradient);
-  // Short factual line
-  const base = `SST ${f1(mean)}°F (range ${range}, Δ ${g}°).`;
-  // Insight
-  let insight = '';
-  if ((gradient ?? 0) >= T.GRADIENT_STRONG_F)      insight = 'Sharp temperature break present—often a productive edge.';
-  else if ((gradient ?? 0) >= T.GRADIENT_MODERATE_F) insight = 'Moderate temp change—watch for bait stacking along this line.';
-  else                                       insight = 'Uniform water—limited structure to concentrate bait.';
-  // Band context
-  const band =
-    inBand(mean, T.TEMP_GOOD_MIN_F, T.TEMP_GOOD_MAX_F)
-      ? 'Temp band is within a favorable range.'
-      : (mean ?? 0) < T.TEMP_GOOD_MIN_F
-        ? 'Water reads cool for typical pelagic activity.'
-        : 'Water reads warm for typical pelagic activity.';
-  return `${base} ${insight} ${band}`;
+  const delta = (max ?? mean ?? 0) - (min ?? mean ?? 0);
+  
+  // Check for uniform water first
+  if (delta < T.GRADIENT_UNIFORM_F) {
+    return `Water is uniform in temperature (Δ ${f1(delta)}°F). Uniform water is usually less productive.`;
+  }
+  
+  // Build narrative based on gradient strength
+  let narrative = '';
+  if (delta < T.GRADIENT_WEAK_F) {
+    narrative = `Water is uniform in temperature (Δ ${f1(delta)}°F). Uniform water is usually less productive.`;
+  } else if (delta >= T.GRADIENT_WEAK_F && delta < T.GRADIENT_MODERATE_F) {
+    narrative = `SST gradient of ~${f1(delta)}°F — weak edge, may hold limited bait.`;
+  } else if (delta >= T.GRADIENT_STRONG_F) {
+    narrative = `Sharp SST gradient of ${f1(delta)}°F — strong edge, favorable for pelagic activity.`;
+  } else {
+    // Between moderate and strong
+    narrative = `SST gradient of ${f1(delta)}°F — moderate edge, watch for bait concentration.`;
+  }
+  
+  // Add temperature band context
+  if (inBand(mean, T.TEMP_GOOD_MIN_F, T.TEMP_GOOD_MAX_F)) {
+    narrative += ` Water temp within productive band (${T.TEMP_GOOD_MIN_F}–${T.TEMP_GOOD_MAX_F}°F). Often associated with pelagic species.`;
+  } else if ((mean ?? 0) < T.TEMP_GOOD_MIN_F) {
+    narrative += ` Water temp outside typical range for target species here.`;
+  } else {
+    narrative += ` Water temp outside typical range for target species here.`;
+  }
+  
+  return narrative;
 }
 
 function lineCHL(a: SnipAnalysis) {
   if (!a.toggles.chl) return COPY.CHL_OFF;
   if (!a.chl || a.chl.mean === null || a.chl.mean === undefined) return COPY.CHL_NA;
+  
   const { mean, min, max, gradient } = a.chl;
-  const base = `Chlorophyll ${f2(mean)} mg/m³ (range ${f2(min)}–${f2(max)}, Δ ${f2(gradient)}).`;
-  let insight = '';
-  if ((mean ?? 0) <= T.CHL_LOW)        insight = 'Clearer water—good visibility; pair with an SST break.';
-  else if ((mean ?? 0) <= T.CHL_MOD)   insight = 'Slight color; workable clarity with potential edge.';
-  else                           insight = 'Off-color water—look for cleaner seams or rips.';
-  return `${base} ${insight}`;
+  
+  // Build narrative based on concentration
+  let narrative = '';
+  if ((mean ?? 0) < T.CHL_VERY_LOW) {
+    narrative = `Extremely clean water (${f2(mean)} mg/m³). Bait unlikely to hold.`;
+  } else if ((mean ?? 0) >= T.CHL_LOW && (mean ?? 0) <= T.CHL_OPTIMAL_MAX) {
+    narrative = `Moderate chlorophyll (${f2(mean)} mg/m³) — favorable feeding zone.`;
+  } else if ((mean ?? 0) > T.CHL_HIGH) {
+    narrative = `Very high chlorophyll (${f2(mean)} mg/m³). Often turbid; predators may avoid.`;
+  } else {
+    // Between optimal and high
+    narrative = `Chlorophyll ${f2(mean)} mg/m³ — transitional water quality.`;
+  }
+  
+  // Add gradient information if significant
+  if ((gradient ?? 0) >= T.CHL_GRADIENT) {
+    narrative += ` Chlorophyll gradient of ${f2(gradient)} mg/m³ — frontal edge may concentrate bait.`;
+  }
+  
+  return narrative;
 }
 
 function lineWeather(ctx?: AnalysisContext) {
@@ -151,40 +226,81 @@ function lineWeather(ctx?: AnalysisContext) {
 }
 
 function linePresence(a: SnipAnalysis, ctx?: AnalysisContext) {
+  if (!a.toggles.fleetTracks && !a.toggles.myTracks) return null;
+  
   const bits: string[] = [];
-  if (ctx?.fleetRecentCount && ctx.fleetRecentCount > 0) {
-    bits.push(`${ctx.fleetRecentCount} fleet vessel${ctx.fleetRecentCount>1?'s':''} in the last 4 days`);
-  } else {
-    bits.push('No recent fleet presence here');
+  if (a.toggles.fleetTracks) {
+    if (ctx?.fleetRecentCount && ctx.fleetRecentCount > 0) {
+      bits.push(`Fleet activity detected (${ctx.fleetRecentCount} tracks). May indicate productive zone`);
+    } else {
+      bits.push('No active vessels detected in this snip');
+    }
   }
-  if (a.toggles.myTracks && ctx?.userInside) bits.push('you are currently inside this area');
-  return `Presence: ${bits.join(' • ')}.`;
+  if (a.toggles.myTracks && ctx?.userInside) {
+    bits.push('you are currently inside this area');
+  }
+  
+  return bits.length > 0 ? `${bits.join('. ')}.` : null;
+}
+
+function lineCombinedConditions(a: SnipAnalysis): string | null {
+  // Only analyze if both SST and CHL are toggled and have data
+  if (!a.toggles.sst || !a.toggles.chl) return null;
+  if (!a.sst || a.sst.mean === null || !a.chl || a.chl.mean === null) return null;
+  
+  const sstDelta = (a.sst.max ?? a.sst.mean ?? 0) - (a.sst.min ?? a.sst.mean ?? 0);
+  const chlMean = a.chl.mean ?? 0;
+  
+  // Check conditions
+  const sstUniform = sstDelta < T.GRADIENT_UNIFORM_F;
+  const sstEdge = sstDelta >= T.GRADIENT_STRONG_F;
+  const chlOptimal = chlMean >= T.CHL_LOW && chlMean <= T.CHL_OPTIMAL_MAX;
+  const chlClean = chlMean < T.CHL_VERY_LOW;
+  
+  if (sstUniform && chlClean) {
+    return "Uniform water + clean chlorophyll — low productivity expected.";
+  } else if (sstEdge && chlOptimal) {
+    return "Strong SST edge aligned with favorable chlorophyll — high-probability zone.";
+  } else if (sstEdge && !chlOptimal) {
+    return "Temp edge present, but chlorophyll weak — mixed signal.";
+  }
+  
+  return null; // No special combined condition
 }
 
 // ---- Public API ----
 export function buildNarrative(a: SnipAnalysis, ctx?: AnalysisContext): string {
   const lines: string[] = [];
 
-  // Core ocean signals
+  // 1. Area size check (if problematic)
+  const areaLine = lineAreaSize(a);
+  if (areaLine) lines.push(areaLine);
+
+  // 2. Core ocean signals
   lines.push(lineSST(a));
   lines.push(lineCHL(a));
 
-  // Commercial (placeholder until GFW clip is live)
-  if (!a.toggles.gfw) lines.push(COPY.GFW_OFF);
-  else if (!a.presence?.gfw)    lines.push(COPY.GFW_NA);
-  else {
-    const c = a.presence.gfw;
-    lines.push(`Commercial vessels (last 4d): Longliners ${c.longliner} • Drifting ${c.drifting_longline} • Trawlers ${c.trawler} • Events ${c.events}.`);
+  // 3. Combined conditions (if applicable)
+  const combinedLine = lineCombinedConditions(a);
+  if (combinedLine) lines.push(combinedLine);
+
+  // 4. Presence/Vessels (if toggled)
+  const presenceLine = linePresence(a, ctx);
+  if (presenceLine) lines.push(presenceLine);
+
+  // 5. Commercial (placeholder until GFW clip is live)
+  if (a.toggles.gfw) {
+    if (!a.presence?.gfw) {
+      lines.push(COPY.GFW_NA);
+    } else {
+      const c = a.presence.gfw;
+      lines.push(`Commercial vessels (last 4d): Longliners ${c.longliner} • Drifting ${c.drifting_longline} • Trawlers ${c.trawler} • Events ${c.events}.`);
+    }
   }
 
-  // Local weather + presence (optional)
-  const w = lineWeather(ctx);
-  if (w) lines.push(w);
-  lines.push(linePresence(a, ctx));
-
-  // Score summary (final line)
+  // 6. AI "Fishiness" Score (always show)
   const { score, label } = fishinessScore(a, ctx);
-  lines.push(`Signal strength: ${label} (${score}/100).`);
+  lines.push(`Signal strength: ${score}/100 — ${label}.`);
 
   // Clean out any nulls/empties, keep 3–6 lines, join with newlines
   return lines.filter(Boolean).slice(0, 6).join('\n');
