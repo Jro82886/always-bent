@@ -5,6 +5,13 @@
  */
 
 import { getInletColor, INLET_COLORS } from '@/lib/inletColors';
+import { createClient } from '@supabase/supabase-js';
+import { INLETS } from '@/lib/inlets';
+
+// Initialize Supabase client for live vessel data
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 export interface Vessel {
   id: string;
@@ -178,6 +185,86 @@ async function fetchGFWVessels(bounds: [[number, number], [number, number]]): Pr
 }
 
 /**
+ * Fetch live fleet vessels from database with fallback to mock data
+ */
+async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]> {
+  // If no Supabase client, use mock data
+  if (!supabase) {
+    console.log('No Supabase client, using mock fleet data');
+    return selectedInletId && selectedInletId !== 'overview' 
+      ? mockFleetVessels.filter(v => v.inlet === selectedInletId)
+      : mockFleetVessels;
+  }
+
+  try {
+    // Fetch vessel positions from last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    let query = supabase
+      .from('vessel_positions')
+      .select('*')
+      .eq('type', 'fleet')
+      .gte('timestamp', sevenDaysAgo.toISOString())
+      .order('timestamp', { ascending: false });
+
+    // Filter by inlet if specific inlet selected
+    if (selectedInletId && selectedInletId !== 'overview') {
+      query = query.eq('inlet_id', selectedInletId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching fleet vessels:', error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.log('No live fleet data, using mock data');
+      return selectedInletId && selectedInletId !== 'overview' 
+        ? mockFleetVessels.filter(v => v.inlet === selectedInletId)
+        : mockFleetVessels;
+    }
+
+    // Group by vessel ID and get latest position
+    const vesselMap = new Map<string, any>();
+    data.forEach(record => {
+      if (!vesselMap.has(record.id) || new Date(record.timestamp) > new Date(vesselMap.get(record.id).timestamp)) {
+        vesselMap.set(record.id, record);
+      }
+    });
+
+    // Convert to Vessel format
+    const vessels: Vessel[] = Array.from(vesselMap.values()).map(record => {
+      const inlet = INLETS.find(i => i.id === record.inlet_id);
+      return {
+        id: record.id,
+        name: record.name || 'Unknown Vessel',
+        position: [record.lng, record.lat],
+        type: 'fleet' as const,
+        inlet: record.inlet_id,
+        inletColor: inlet?.color || '#00C7B7',
+        heading: record.heading,
+        speed: record.speed,
+        lastUpdate: new Date(record.timestamp),
+        track: record.track || [],
+        hasReport: record.has_report || false
+      };
+    });
+
+    console.log(`Fetched ${vessels.length} live fleet vessels`);
+    return vessels;
+
+  } catch (error) {
+    console.warn('Failed to fetch live fleet vessels, falling back to mock data:', error);
+    return selectedInletId && selectedInletId !== 'overview' 
+      ? mockFleetVessels.filter(v => v.inlet === selectedInletId)
+      : mockFleetVessels;
+  }
+}
+
+/**
  * Get all vessels (for Tracking page)
  * @param selectedInletId - Current inlet selection ('overview' or specific inlet)
  */
@@ -187,36 +274,34 @@ export async function getAllVessels(selectedInletId?: string): Promise<{
   commercial: VesselDataResult;
 }> {
   let bounds: [[number, number], [number, number]];
-  let filteredFleet = mockFleetVessels;
   
   if (!selectedInletId || selectedInletId === 'overview') {
     // East Coast overview - show all vessels with their inlet colors
     bounds = [[-82.0, 24.0], [-65.0, 45.0]];
-    // All fleet vessels shown with their respective inlet colors
   } else {
-    // Specific inlet selected - filter fleet to that inlet
+    // Specific inlet selected - create bounds around inlet
     const inlet = INLETS.find(i => i.id === selectedInletId);
     if (inlet) {
-      // Create bounds around inlet
       const padding = 2.0; // degrees
       bounds = [
         [(inlet.lng || inlet.center[0]) - padding, (inlet.lat || inlet.center[1]) - padding],
         [(inlet.lng || inlet.center[0]) + padding, (inlet.lat || inlet.center[1]) + padding]
       ];
-      
-      // Filter fleet vessels to only those from this inlet
-      filteredFleet = mockFleetVessels.filter(v => v.inlet === selectedInletId);
     } else {
       // Fallback to East Coast
       bounds = [[-82.0, 24.0], [-65.0, 45.0]];
     }
   }
   
+  // Fetch fleet vessels with fallback to mock data
+  const fleetVessels = await fetchLiveFleetVessels(selectedInletId);
+  
+  // Fetch commercial vessels
   const commercialData = await fetchGFWVessels(bounds);
   
   return {
     user: mockUserVessel,
-    fleet: filteredFleet,
+    fleet: fleetVessels,
     commercial: commercialData
   };
 }
@@ -230,8 +315,11 @@ export async function getVesselsInBoundsAsync(
 ): Promise<VesselDataResult> {
   const [sw, ne] = bounds;
   
-  // Get fleet vessels in bounds
-  const fleetInBounds = mockFleetVessels.filter(vessel => {
+  // Fetch all fleet vessels (will use live data with fallback)
+  const allFleetVessels = await fetchLiveFleetVessels();
+  
+  // Filter fleet vessels in bounds
+  const fleetInBounds = allFleetVessels.filter(vessel => {
     const [lng, lat] = vessel.position;
     return lng >= sw[0] && lng <= ne[0] && lat >= sw[1] && lat <= ne[1];
   });
