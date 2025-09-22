@@ -930,13 +930,13 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     if (activeLayers.chl) want.push('chl');
     
     void Promise.allSettled([
-      want.length ? sampleScalars({ polygon: polygon.geometry, timeISO, layers: want }) : Promise.resolve({}),
+      want.length ? sampleScalars({ polygon: polygon.geometry, timeISO, layers: want }) : Promise.resolve({ sst: null, chl: null }),
       fetchWindSwell(polygon.geometry),
       clipFleetPresence(polygon.geometry, selectedInletId || 'overview', 96),
     ]).then(([scalarRes, windSwellRes, fleetRes]) => {
       log('Background data fetch complete');
       
-      const scalarData = scalarRes.status === 'fulfilled' ? scalarRes.value : {};
+      const scalarData = scalarRes.status === 'fulfilled' ? scalarRes.value : { sst: null, chl: null };
       const windSwellData = windSwellRes.status === 'fulfilled' ? windSwellRes.value : { wind: null, swell: null };
       const fleetData = fleetRes.status === 'fulfilled' ? fleetRes.value : {
         myVesselInArea: false,
