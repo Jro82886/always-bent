@@ -16,6 +16,13 @@ import InletRegions from '@/components/InletRegions';
 import { useAppState } from '@/store/appState';
 import { getInletById } from '@/lib/inlets';
 import { useLocationPermission } from '@/hooks/useLocationPermission';
+import dynamic from 'next/dynamic';
+import { flags } from '@/lib/flags';
+
+// Dynamic import for ChatDrawer
+const ChatDrawer = dynamic(() => import('@/components/chat/ChatDrawer'), {
+  ssr: false
+});
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
@@ -50,6 +57,9 @@ function TrackingModeContent() {
   const [showFleetTracks, setShowFleetTracks] = useState(false);
   const [showCommercial, setShowCommercial] = useState(false);
   const [showCommercialTracks, setShowCommercialTracks] = useState(false);
+  
+  // Chat drawer state
+  const [showChat, setShowChat] = useState(false);
   
   // User position state
   const [userPosition, setUserPosition] = useState<{lat: number, lng: number, speed: number} | null>(null);
@@ -259,6 +269,7 @@ function TrackingModeContent() {
         setShowCommercialTracks={setShowCommercialTracks}
         userPosition={userPosition}
         onFlyToInlet={handleFlyToInlet}
+        onChatToggle={() => setShowChat(!showChat)}
       />
       
       {/* Right Legend - always visible */}
@@ -315,6 +326,17 @@ function TrackingModeContent() {
           showTracks={showCommercialTracks}
           selectedInletId={selectedInletId || ''}
           onVesselCountsUpdate={setGfwVesselCounts}
+        />
+      )}
+      
+      {/* Chat Drawer Overlay */}
+      {flags.communityDrawer && (
+        <ChatDrawer
+          isOpen={showChat}
+          onClose={() => setShowChat(false)}
+          inletId={selectedInletId}
+          userId={undefined} // TODO: Get from auth
+          userName={undefined} // TODO: Get from auth
         />
       )}
     </div>

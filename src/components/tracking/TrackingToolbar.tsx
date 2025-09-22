@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Wind, Anchor, Users, Ship, Navigation, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { flags } from '@/lib/flags';
 
 interface TrackingToolbarProps {
   selectedInletId: string | null;
@@ -21,6 +22,7 @@ interface TrackingToolbarProps {
   setShowCommercialTracks: (show: boolean) => void;
   userPosition: { lat: number; lng: number; speed: number } | null;
   onFlyToInlet: () => void;
+  onChatToggle?: () => void;
 }
 
 export default function TrackingToolbar({
@@ -39,7 +41,8 @@ export default function TrackingToolbar({
   showCommercialTracks,
   setShowCommercialTracks,
   userPosition,
-  onFlyToInlet
+  onFlyToInlet,
+  onChatToggle
 }: TrackingToolbarProps) {
   const router = useRouter();
   const [weatherData, setWeatherData] = useState<any>(null);
@@ -80,11 +83,16 @@ export default function TrackingToolbar({
   }, [selectedInletId]);
 
   const handleChatClick = () => {
-    // Redirect to Community tab with inlet pre-selected
-    if (selectedInletId && selectedInletId !== 'overview') {
-      router.push(`/legendary/community?inlet=${selectedInletId}`);
+    // Use drawer if available, otherwise redirect
+    if (flags.communityDrawer && onChatToggle) {
+      onChatToggle();
     } else {
-      router.push('/legendary/community');
+      // Redirect to Community tab with inlet pre-selected
+      if (selectedInletId && selectedInletId !== 'overview') {
+        router.push(`/legendary/community?inlet=${selectedInletId}`);
+      } else {
+        router.push('/legendary/community');
+      }
     }
   };
 

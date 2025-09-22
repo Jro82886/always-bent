@@ -6,6 +6,8 @@ export const flags = {
   tomorrow:   process.env.NEXT_PUBLIC_FLAG_TOMORROW === "1",
   // New unified reports system - default false in prod, true in staging
   reportsContract: process.env.NEXT_PUBLIC_FLAG_REPORTS_CONTRACT === "true",
+  // Community chat drawer mode - default false in prod
+  communityDrawer: process.env.NEXT_PUBLIC_FLAG_COMMUNITY_CHAT_DRAWER === "true",
 };
 
 
