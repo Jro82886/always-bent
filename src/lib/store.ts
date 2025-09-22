@@ -61,6 +61,7 @@ interface AppState {
     lastSnipCenter: null | { lat:number; lon:number };
     pendingAnalysis: import('@/lib/analysis/types').SnipAnalysis | null;
     isZoomingToSnip: boolean;
+    showReviewCta: boolean;
   };
 }
 
@@ -149,5 +150,6 @@ export const useAppState = create<AppState>((set, get) => ({
     lastSnipCenter: null as null | { lat:number; lon:number },
     pendingAnalysis: null as import('@/lib/analysis/types').SnipAnalysis | null,
     isZoomingToSnip: false,
+    showReviewCta: false,
   },
 }));

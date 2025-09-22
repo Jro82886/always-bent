@@ -531,6 +531,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         lastSnipBBox: null,
         lastSnipCenter: null,
         isZoomingToSnip: false,
+        showReviewCta: false,
       }
     }));
 
@@ -892,6 +893,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       analysis: {
         ...s.analysis,
         isZoomingToSnip: false,
+        showReviewCta: true,
       }
     }));
     setShowReviewBar(true);
@@ -1023,6 +1025,15 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       setLastAnalysis(finalAnalysis);
       setHasAnalysisResults(true);
       
+      // Store pending analysis and trigger modal
+      set((s) => ({
+        ...s,
+        analysis: {
+          ...s.analysis,
+          pendingAnalysis: analysis,
+        }
+      }));
+      
       // Trigger modal
       if (onAnalysisComplete) {
         onAnalysisComplete(finalAnalysis);
@@ -1056,6 +1067,15 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     setShowReviewBar(false);
     if (map) clearSnipOutlineLayer(map);
     setPendingPolygon(null);
+    // Reset review CTA
+    set((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        showReviewCta: false,
+        pendingAnalysis: null,
+      }
+    }));
     // Optionally snap back a bit
     const cam = analysis.preZoomCamera;
     if (cam && map) {
@@ -1065,7 +1085,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         duration: 800 
       });
     }
-  }, [map, analysis.preZoomCamera]);
+  }, [map, analysis.preZoomCamera, set]);
       
   /* LEGACY CODE - KEPT FOR REFERENCE BUT NOT EXECUTED
       const polygon_legacy = currentPolygon.current;
@@ -1992,7 +2012,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             <div className="flex items-center gap-4">
               <span className="text-sm text-cyan-300 font-medium">
                 Area selected • {pendingPolygon && analysis.lastSnipCenter ? 
-                  `${analysis.lastSnipCenter.lat.toFixed(2)}°${analysis.lastSnipCenter.lat >= 0 ? 'N' : 'S'}, ${Math.abs(analysis.lastSnipCenter.lon).toFixed(2)}°${analysis.lastSnipCenter.lon >= 0 ? 'E' : 'W'}` : 
+                  `${Math.abs(analysis.lastSnipCenter.lat).toFixed(3)}°${analysis.lastSnipCenter.lat >= 0 ? 'N' : 'S'}, ${Math.abs(analysis.lastSnipCenter.lon).toFixed(3)}°${analysis.lastSnipCenter.lon >= 0 ? 'E' : 'W'}` : 
                   'Ready to analyze'}
               </span>
               <button

@@ -157,6 +157,13 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           pitch: cam.pitch, 
           duration: 900 
         });
+      } else {
+        // Fallback to East Coast view
+        mapRef.easeTo({ 
+          center: [-75, 35], 
+          zoom: 5.5, 
+          duration: 900 
+        });
       }
       // Clear snip outline
       const sourceId = 'snip-outline';
@@ -170,6 +177,15 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         mapRef.removeSource(sourceId);
       }
     }
+    // Reset analysis state
+    useAppState.setState((s) => ({
+      ...s,
+      analysis: {
+        ...s.analysis,
+        showReviewCta: false,
+        pendingAnalysis: null,
+      }
+    }));
     onClose?.();
   };
 
