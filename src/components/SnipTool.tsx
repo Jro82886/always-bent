@@ -527,6 +527,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   }, [map]);
   
   // --- DEBUG: Enhanced start snip with loud logs ---
+  // Note: This is defined after startDrawing to avoid hoisting issues
   const debugStartSnip = useCallback(() => {
     console.log("%c[SNIP] Button clicked", "color:#00e1a7;font-weight:bold");
     const debugMap = getMap();
@@ -562,9 +563,12 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       console.warn("[SNIP] Could not set cursor", e);
     }
 
-    // Call the real startDrawing function
-    console.log("[SNIP] Calling startDrawing()...");
-    startDrawing();
+    // For now, just enable drawing directly
+    console.log("[SNIP] Enabling drawing mode...");
+    enableDrawing(debugMap);
+    setStatus('drawing');
+    setIsDrawing(true);
+    startPoint.current = null;
     
     /* TEMP FALLBACK - Remove after draw is fixed
     // Uncomment to test with fake data if drawing doesn't work
@@ -595,7 +599,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }}));
     console.log("[SNIP] TEMP fake analysis injected — click Review or check modal");
     */
-  }, [startDrawing]);
+  }, [enableDrawing, setStatus, setIsDrawing]);
 
   // Helper function to calculate polygon area in km²
   const polygonAreaKm2 = (geom: GeoJSON.Polygon): number => {
