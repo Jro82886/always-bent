@@ -218,38 +218,39 @@ export default function UnifiedCommandCenter({
           </div>
         )}
 
-        {/* SNIP TOOL SECTION - The main action */}
-        <div className="p-4 bg-gradient-to-b from-slate-800/30 to-transparent">
-          <div className="space-y-3">
-            {/* Snip Tool Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Target size={16} className="text-cyan-400" />
-                <span className="text-sm font-semibold text-cyan-300">Ocean Analysis Tool</span>
+        {/* SNIP TOOL SECTION - Only show on Analysis mode */}
+        {currentMode === 'analysis' && (
+          <div className="p-4 bg-gradient-to-b from-slate-800/30 to-transparent">
+            <div className="space-y-3">
+              {/* Snip Tool Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Target size={16} className="text-cyan-400" />
+                  <span className="text-sm font-semibold text-cyan-300">Ocean Analysis Tool</span>
+                </div>
+                <span className="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 text-[10px] font-medium rounded-full border border-cyan-500/20">
+                  SNIP MODE
+                </span>
               </div>
-              <span className="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 text-[10px] font-medium rounded-full border border-cyan-500/20">
-                SNIP MODE
-              </span>
-            </div>
-            
-            {/* Main Snip Button */}
-            <button
-              data-snip-button
-              className="snip-btn snip-primary w-full"
-              aria-label="Draw analysis area"
-              onClick={startSnipSafe}
-            >
-              <span className="snip-icon">▢▢</span>
-              Draw Analysis Area
-              <span className="snip-hint" />
-            </button>
-            
-            {/* Quick instructions */}
-            <div className="text-center text-[11px] text-gray-500">
-              Click and drag to select ocean area for analysis
+              
+              {/* Main Snip Button */}
+              <button
+                data-snip-button
+                className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 text-cyan-300 font-semibold rounded-lg border border-cyan-500/30 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/20 flex items-center justify-center gap-2"
+                aria-label="Draw analysis area"
+                onClick={startSnipSafe}
+              >
+                <span className="text-lg">▢</span>
+                <span>Draw Analysis Area</span>
+              </button>
+              
+              {/* Quick instructions */}
+              <div className="text-center text-[11px] text-gray-500">
+                Click and drag to select ocean area for analysis
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
 
         {/* LEGEND SECTION - Collapsible */}
