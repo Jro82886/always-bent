@@ -39,19 +39,22 @@ export function useInletChat(inletId: string, userId?: string, vesselId?: string
   ).current;
 
   // Extract fresh boats from presence state and vessel positions
-  const extractFreshBoats = async (presenceState: Record<string, PresenceState[]>) => {
+  const extractFreshBoats = async (presenceState: any) => {
     const freshBoats = new Map<string, boolean>();
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     
     // Add boats from presence
-    Object.values(presenceState).forEach(states => {
-      states.forEach(state => {
-        if (new Date(state.last_seen) > twoMinutesAgo) {
-          // Use vessel_id if available, otherwise user_id
-          const key = state.vessel_id || state.user_id;
-          freshBoats.set(key, true);
-        }
-      });
+    Object.values(presenceState).forEach((states: any) => {
+      if (Array.isArray(states)) {
+        states.forEach((state: any) => {
+          // Check if this is our custom presence data
+          if (state.last_seen && new Date(state.last_seen) > twoMinutesAgo) {
+            // Use vessel_id if available, otherwise user_id
+            const key = state.vessel_id || state.user_id;
+            if (key) freshBoats.set(key, true);
+          }
+        });
+      }
     });
     
     // Layer in vessels from fleet API (vessels with position pings but no chat presence)
