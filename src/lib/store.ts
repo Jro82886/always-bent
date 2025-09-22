@@ -64,7 +64,16 @@ export const useAppState = create<AppState>((set, get) => ({
   // Existing state
   selectedInletId: null,
   isoDate: new Date().toISOString().split('T')[0],
-  user: null,
+  user: typeof window !== 'undefined' ? (() => {
+    // Get or create anonymous user for chat
+    const LOCAL_UID_KEY = 'abfi_anon_uid';
+    let id = localStorage.getItem(LOCAL_UID_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem(LOCAL_UID_KEY, id);
+    }
+    return { id, name: 'Guest' };
+  })() : null,
   
   // Legacy state (temporary for compatibility)
   activeRaster: null,

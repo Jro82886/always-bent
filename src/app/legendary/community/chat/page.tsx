@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 // import { MOCK_ROOMS } from '@/mocks/chat'; // TODO: Remove mock rooms
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/lib/store';
-import { getOrCreateEphemeralUser } from '@/lib/auth/ephemeral';
 
 // Dynamically import components to avoid SSR issues
 const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
@@ -33,8 +32,7 @@ const WeatherHeader = dynamic(() => import('@/components/chat/WeatherHeader'), {
 });
 
 export default function ChatPage() {
-  const { selectedInletId } = useAppState();
-  const ephemeralUser = getOrCreateEphemeralUser(); // TODO: Replace with Memberstack user once enabled
+  const { selectedInletId, user } = useAppState();
   const [selectedRoom, setSelectedRoom] = useState('inlet');
   const [showMobileRoom, setShowMobileRoom] = useState(false);
   
@@ -83,7 +81,7 @@ export default function ChatPage() {
               selectedInletId && selectedInletId !== 'overview' ? (
                 <UnifiedChatContainer 
                   inletId={selectedInletId}
-                  userId={ephemeralUser.id}
+                  userId={user?.id}
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center text-slate-400">
@@ -167,7 +165,7 @@ export default function ChatPage() {
               {selectedRoom === 'inlet' && selectedInletId && selectedInletId !== 'overview' ? (
                 <UnifiedChatContainer 
                   inletId={selectedInletId}
-                  userId={ephemeralUser.id}
+                  userId={user?.id}
                 />
               ) : (
                 <ChatWindow 
