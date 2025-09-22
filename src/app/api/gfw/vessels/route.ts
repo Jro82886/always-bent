@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { gfwEnabled } from '@/lib/features/gfw';
 
 export const runtime = 'nodejs';
 const TIMEOUT_MS = 15000;
@@ -133,6 +134,14 @@ function normalize(payload: any) {
 }
 
 export async function GET(req: Request) {
+  if (!gfwEnabled) {
+    return NextResponse.json({
+      ok: true,
+      configured: false,
+      reason: 'disabled-by-flag',
+    });
+  }
+  
   const { inletId, bbox, days } = parseParams(req);
   console.log('[GFW] params', { inletId, bbox, days });
 

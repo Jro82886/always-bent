@@ -892,6 +892,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // END NEW CLEAN ANALYSIS FLOW
       return; // Skip all legacy code below
       
+      /* LEGACY CODE - KEPT FOR REFERENCE BUT NOT EXECUTED
       const polygon_legacy = currentPolygon.current;
       
       // Step 1: Get vessel data from shared service (source of truth)
@@ -1437,7 +1438,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       setIsAnalyzing(false);
       setIsDrawing(false);
     }
-  }, [map, onAnalysisComplete, clearDrawing]);
+    */ // END LEGACY CODE
+  }, [map, onAnalysisComplete, clearDrawing, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled]);
 
   // Zoom out to previous view
   const zoomOut = useCallback(() => {

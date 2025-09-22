@@ -625,7 +625,20 @@ export default function SnipController({ map, onModalStateChange }: SnipControll
       )}
       
       <AnalysisModal
-        analysis={currentAnalysis}
+        analysis={currentAnalysis ? {
+          ...currentAnalysis,
+          narrative: (currentAnalysis as any).narrative || 'Analysis completed',
+          bbox: [0, 0, 0, 0] as [number, number, number, number],
+          timeISO: new Date().toISOString(),
+          toggles: {
+            sst: true,
+            chl: true,
+            gfw: false,
+            myTracks: false,
+            fleetTracks: false,
+            gfwTracks: false
+          }
+        } : null}
         visible={showModal}
         onClose={handleCloseModal}
         onSave={handleSaveAnalysis}

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { flags } from '@/lib/flags';
 import { useAppState } from '@/lib/store';
 import { showToast } from '@/components/ui/Toast';
+import { gfwEnabled } from '@/lib/features/gfw';
 import { isInsideInlet } from '@/lib/geo/inletBounds';
 import mapboxgl from 'mapbox-gl';
 import '@/styles/vessel-glow.css';
@@ -451,35 +452,37 @@ export default function TrackingToolbar({
       </div>
 
       {/* Commercial Vessels Section */}
-      <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
-        <div className="flex items-center gap-2 mb-3">
-          <Ship className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-sm font-medium text-white">Commercial Vessels</h3>
-        </div>
-        
-        <div className="space-y-2">
-          <button
-            onClick={() => setShowCommercial(!showCommercial)}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
-              showCommercial ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
-            }`}
-          >
-            <span>GFW Boats</span>
-            <div className={`w-2 h-2 rounded-full ${showCommercial ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-          </button>
+      {gfwEnabled && (
+        <div className="bg-slate-900/90 backdrop-blur-sm border border-cyan-500/30 rounded-lg p-4 shadow-lg pointer-events-auto w-72">
+          <div className="flex items-center gap-2 mb-3">
+            <Ship className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-sm font-medium text-white">Commercial Vessels</h3>
+          </div>
           
-          <button
-            onClick={() => setShowCommercialTracks(!showCommercialTracks)}
-            disabled={!showCommercial}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
-              showCommercialTracks ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
-            } ${!showCommercial ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <span>Commercial Tracks</span>
-            <div className={`w-2 h-2 rounded-full ${showCommercialTracks ? 'bg-cyan-400' : 'bg-slate-600'}`} />
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => setShowCommercial(!showCommercial)}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
+                showCommercial ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
+              }`}
+            >
+              <span>GFW Boats</span>
+              <div className={`w-2 h-2 rounded-full ${showCommercial ? 'bg-cyan-400' : 'bg-slate-600'}`} />
+            </button>
+            
+            <button
+              onClick={() => setShowCommercialTracks(!showCommercialTracks)}
+              disabled={!showCommercial}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
+                showCommercialTracks ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50'
+              } ${!showCommercial ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <span>Commercial Tracks</span>
+              <div className={`w-2 h-2 rounded-full ${showCommercialTracks ? 'bg-cyan-400' : 'bg-slate-600'}`} />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

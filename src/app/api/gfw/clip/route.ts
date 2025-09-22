@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
+import { gfwEnabled } from '@/lib/features/gfw';
 
 export async function POST(req: Request) {
+  if (!gfwEnabled) {
+    return NextResponse.json({
+      ok: true,
+      configured: false,
+      reason: 'disabled-by-flag',
+      counts: { longliner: 0, drifting_longline: 0, trawler: 0, events: 0 }
+    });
+  }
+  
   try {
     const { polygon, gears } = await req.json();
     if (!polygon) {

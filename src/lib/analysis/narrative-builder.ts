@@ -1,5 +1,6 @@
 import type { SnipAnalysis } from './types';
 import { SST_IDEAL_RANGE_F, SST_STRONG_FRONT_F_PER_KM, CHL_IDEAL_RANGE, CHL_FRONT_PER_KM, FORMAT } from './thresholds';
+import { gfwEnabled } from '@/lib/features/gfw';
 
 export function buildNarrative(a: SnipAnalysis): string {
   const lines: string[] = [];
@@ -37,7 +38,9 @@ export function buildNarrative(a: SnipAnalysis): string {
   }
 
   // GFW
-  if (!a.toggles.gfw) {
+  if (!gfwEnabled) {
+    lines.push(`• **Commercial vessels**: coming soon.`);
+  } else if (!a.toggles.gfw) {
     lines.push(`• **Commercial** (off): information not available — toggle ON to include.`);
   } else if (!a.gfw) {
     lines.push(`• **Commercial**: n/a.`);
