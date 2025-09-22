@@ -3,7 +3,7 @@
  * Implements Jeff's ABFI highlight logic
  */
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabaseClient"
 
 interface AnalysisData {
   geometry: GeoJSON.Polygon;
@@ -186,7 +186,7 @@ export async function saveAnalysisAsReport(analysis: AnalysisData): Promise<void
   
   // Try to save to Supabase if available
   try {
-    const supabase = createClient();
+    const supabase = getSupabase();
     const { error } = await supabase
       .from('bite_reports')
       .insert({

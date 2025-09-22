@@ -2,7 +2,7 @@
  * Profile management functions using Supabase
  */
 
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from "@/lib/supabaseClient"
 
 export interface UserProfile {
   id: string;

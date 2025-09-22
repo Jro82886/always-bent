@@ -3,7 +3,7 @@
 import { MOCK_PRESENCE } from '@/mocks/chat';
 import { getInletById } from '@/lib/inlets';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabaseClient"
 
 interface PresenceBarProps {
   inletId?: string;
@@ -13,7 +13,7 @@ export default function PresenceBar({ inletId = 'ny-montauk' }: PresenceBarProps
   const inlet = getInletById(inletId);
   const glowColor = inlet?.glowColor || '#00DDEB';
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = getSupabase();
   
   // Open or create DM with captain
   async function openOrCreateDM(targetUserId: string) {

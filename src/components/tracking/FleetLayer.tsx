@@ -119,9 +119,13 @@ export default function FleetLayer({
     if (!map || !showFleet) {
       // Clean up layers
       if (map) {
-        if (map.getLayer('fleet-vessels')) map.removeLayer('fleet-vessels');
-        if (map.getLayer('fleet-vessels-badge')) map.removeLayer('fleet-vessels-badge');
-        if (map.getSource('fleet-vessels')) map.removeSource('fleet-vessels');
+        try {
+          if (map.getLayer('fleet-vessels')) map.removeLayer('fleet-vessels');
+          if (map.getLayer('fleet-vessels-badge')) map.removeLayer('fleet-vessels-badge');
+          if (map.getSource('fleet-vessels')) map.removeSource('fleet-vessels');
+        } catch (e) {
+          console.warn('Fleet layer cleanup error:', e);
+        }
       }
       return;
     }
@@ -240,6 +244,25 @@ export default function FleetLayer({
         map.getCanvas().style.cursor = '';
       });
     }
+    
+    // Cleanup function
+    return () => {
+      if (!map) return;
+      
+      try {
+        // Remove event listeners
+        map.off('click', 'fleet-vessels');
+        map.off('mouseenter', 'fleet-vessels');
+        map.off('mouseleave', 'fleet-vessels');
+        
+        // Remove layers
+        if (map.getLayer('fleet-vessels-badge')) map.removeLayer('fleet-vessels-badge');
+        if (map.getLayer('fleet-vessels')) map.removeLayer('fleet-vessels');
+        if (map.getSource('fleet-vessels')) map.removeSource('fleet-vessels');
+      } catch (e) {
+        console.warn('Fleet layer cleanup error:', e);
+      }
+    };
   }, [map, showFleet, onlineVessels, showFleetTracks]);
   
   // Handle vessel selection for tracks

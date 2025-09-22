@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Ship, User, MapPin, Loader2, ChevronRight, Waves, Fish } from 'lucide-react';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from "@/lib/supabaseClient"
 // Removed old auth - external developer handling this now
 // import { saveUserProfile, upsertProfileDirect } from '@/lib/supabase/profiles';
 

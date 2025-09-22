@@ -11,6 +11,7 @@ import { getInletById } from '@/lib/inlets';
 import SnipTool from '@/components/SnipTool';
 import type mapboxgl from 'mapbox-gl';
 import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
+import '@/styles/analysis.css';
 
 interface UnifiedToolbarProps {
   map: mapboxgl.Map | null;

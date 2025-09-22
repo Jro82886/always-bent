@@ -13,7 +13,7 @@ import * as turf from '@turf/turf';
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const supabase = await createClient();
+    const supabase = await getSupabase();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
  * This runs async to generate the full report with historical data
  */
 async function queueBiteAnalysis(bite: any) {
-  const supabase = await createClient();
+  const supabase = await getSupabase();
   
   try {
     // Convert timestamp to date for ocean data query

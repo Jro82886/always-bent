@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabase();
     const { searchParams } = new URL(req.url);
     
     const inlet = searchParams.get('inlet');
@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabase();
     
     // Use user ID from request body (sent from client localStorage)
     const body = await req.json();

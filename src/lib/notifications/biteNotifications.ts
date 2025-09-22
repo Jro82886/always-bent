@@ -4,7 +4,7 @@
  * Avoids notification overload by only alerting on high-value events
  */
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabaseClient"
 
 interface NotificationPreferences {
   enableHighlights: boolean;
@@ -60,7 +60,7 @@ export function shouldNotify(report: any, userInletId?: string): boolean {
   }
   
   // Don't notify for own reports
-  const supabase = createClient();
+  const supabase = getSupabase();
   const userId = (window as any).__ABFI_USER_ID__;
   if (report.user_id === userId) {
     return false;
@@ -123,7 +123,7 @@ export function showHighlightNotification(report: any) {
  * Subscribe to realtime ABFI Highlights
  */
 export function subscribeToHighlights(inletId?: string) {
-  const supabase = createClient();
+  const supabase = getSupabase();
   
   const channel = supabase
     .channel('abfi-highlights')

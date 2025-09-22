@@ -1,8 +1,8 @@
 import { TrendsInput } from '@/types/trends';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabaseClient"
 
 export async function getDbAgg({ inletId, range }: TrendsInput) {
-  const supabase = createClient();
+  const supabase = getSupabase();
   const since = rangeSince(range);
   
   // Activity: hourly for 1d, daily for 7/14d

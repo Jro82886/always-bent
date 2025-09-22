@@ -12,7 +12,7 @@ import {
   getPendingCount,
   type QueuedBite 
 } from './biteDB';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabaseClient"
 
 // Re-export for convenience
 export { getPendingCount } from './biteDB';
@@ -79,7 +79,7 @@ export async function syncBites(manual: boolean = false): Promise<{
     // Get current user
     let user;
     try {
-      const supabase = createClient();
+      const supabase = getSupabase();
       const { data } = await supabase.auth.getUser();
       user = data?.user;
     } catch (authError) {
@@ -116,7 +116,7 @@ export async function syncBites(manual: boolean = false): Promise<{
     // Get session token
     let accessToken;
     try {
-      const supabase = createClient();
+      const supabase = getSupabase();
       const { data: { session } } = await supabase.auth.getSession();
       accessToken = session?.access_token;
     } catch (sessionError) {

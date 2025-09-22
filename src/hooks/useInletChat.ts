@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from "@/lib/supabaseClient"
 import { showToast } from '@/components/ui/Toast';
 import { INLETS } from '@/lib/inlets';
 

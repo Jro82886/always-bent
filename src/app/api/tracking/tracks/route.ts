@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from "@/lib/supabaseClient"
 
 // Initialize Supabase client
 const getSupabaseClient = () => {

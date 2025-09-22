@@ -67,19 +67,28 @@ export default function TrackingToolbar({
       return;
     }
 
+    const ac = new AbortController();
+    let mounted = true;
+
     const fetchWeather = async () => {
+      if (!mounted) return;
       setWeatherLoading(true);
       try {
-        const response = await fetch(`/api/weather?inlet=${selectedInletId}`);
+        const response = await fetch(`/api/weather?inlet=${selectedInletId}`, {
+          signal: ac.signal
+        });
         if (!response.ok) throw new Error('Failed to fetch weather');
         
         const data = await response.json();
+        if (!mounted) return;
         setWeatherData(data);
-      } catch (error) {
-        console.error('Weather fetch error:', error);
-        setWeatherData(null);
+      } catch (error: any) {
+        if (error?.name !== 'AbortError') {
+          console.error('Weather fetch error:', error);
+          if (mounted) setWeatherData(null);
+        }
       } finally {
-        setWeatherLoading(false);
+        if (mounted) setWeatherLoading(false);
       }
     };
 
@@ -87,7 +96,11 @@ export default function TrackingToolbar({
     // Refresh every 30 seconds
     const interval = setInterval(fetchWeather, 30000);
     
-    return () => clearInterval(interval);
+    return () => {
+      mounted = false;
+      ac.abort();
+      clearInterval(interval);
+    };
   }, [selectedInletId]);
 
   const handleChatClick = () => {

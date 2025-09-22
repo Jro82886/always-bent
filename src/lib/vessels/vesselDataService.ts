@@ -5,7 +5,7 @@
  */
 
 import { getInletColor, INLET_COLORS } from '@/lib/inletColors';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from "@/lib/supabaseClient"
 import { INLETS } from '@/lib/inlets';
 import { showToast } from '@/components/ui/Toast';
 import { getInletColor as getInletColorFromSource } from '@/lib/style/fleetColors';

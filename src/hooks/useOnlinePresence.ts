@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabaseClient"
 import { useAppState } from '@/lib/store';
 
 interface OnlineUser {
@@ -17,7 +17,7 @@ interface UseOnlinePresenceReturn {
 export function useOnlinePresence(roomId: string): UseOnlinePresenceReturn {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const { username } = useAppState();
-  const supabase = createClient();
+  const supabase = getSupabase();
 
   useEffect(() => {
     if (!username || !supabase) return;

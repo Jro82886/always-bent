@@ -67,7 +67,7 @@ export const getProfile = async (userId: string) => {
 };
 
 // Export for backward compatibility
-export function createClient() {
+export function getSupabase() {
   return supabase;
 }
 

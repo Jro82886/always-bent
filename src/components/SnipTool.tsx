@@ -460,6 +460,7 @@ function processEdgesForAnalysis(features: any[]): string {
 }
 
 export default function SnipTool({ map, onAnalysisComplete, isActive = false }: SnipToolProps) {
+  const [status, setStatus] = useState<'idle' | 'drawing' | 'analyzing'>('idle');
   const [isDrawing, setIsDrawing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentArea, setCurrentArea] = useState<number>(0);
@@ -469,6 +470,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [showCompleteBanner, setShowCompleteBanner] = useState(false);
   const [isZoomedToSnip, setIsZoomedToSnip] = useState(false);
   const [previousView, setPreviousView] = useState<{ center: [number, number]; zoom: number } | null>(null);
+  const [tooltip, setTooltip] = useState<string | null>(null);
   
   // Get app state for date and layer toggles
   const { 
@@ -483,14 +485,25 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const startPoint = useRef<[number, number] | null>(null);
   const currentPolygon = useRef<any>(null);
 
+  // Helper function to calculate polygon area in km²
+  const polygonAreaKm2 = (geom: GeoJSON.Polygon): number => {
+    const ring = geom.coordinates[0];
+    let area = 0;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      area += (xj + xi) * (yj - yi);
+    }
+    const m2 = Math.abs(area) / 2 * (111_320 ** 2 * Math.cos((ring[0][1] * Math.PI) / 180));
+    return m2 / 1_000_000;
+  };
+
   // Start drawing mode
   const startDrawing = useCallback(() => {
     if (!map) {
-      
       return;
     }
 
-    
+    setStatus('drawing');
     
     // Ensure source and layers exist before starting
     if (!map.getSource('snip-rectangle')) {
@@ -795,11 +808,27 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const completeDrawing = useCallback(async () => {
     if (!map || !currentPolygon.current) return;
     
+    const polygon = currentPolygon.current;
+    
+    // Check minimum area
+    const areaKm2 = polygonAreaKm2(polygon.geometry);
+    if (areaKm2 < 0.5) {
+      setTooltip('Try a larger area for better signal.');
+      setTimeout(() => setTooltip(null), 2200);
+      setStatus('idle');
+      return;
+    }
+    
+    setStatus('analyzing');
     setIsAnalyzing(true);
     
+    // Set timeout guard
+    const timeout = setTimeout(() => {
+      setStatus('idle');
+      setIsAnalyzing(false);
+    }, 6000);
+    
     try {
-      const polygon = currentPolygon.current;
-      
       // NEW CLEAN ANALYSIS FLOW
       const timeISO = isoDate || new Date().toISOString();
       const bbox = turf.bbox(polygon) as [number, number, number, number];
@@ -898,6 +927,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
       
       // Clean up drawing
+      clearTimeout(timeout);
+      setStatus('idle');
       setIsAnalyzing(false);
       setIsDrawing(false);
       clearDrawing();
@@ -905,6 +936,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // END NEW CLEAN ANALYSIS FLOW
     } catch (error) {
       console.error('Error during analysis:', error);
+      clearTimeout(timeout);
+      setStatus('idle');
       setIsAnalyzing(false);
       setIsDrawing(false);
       showToast({

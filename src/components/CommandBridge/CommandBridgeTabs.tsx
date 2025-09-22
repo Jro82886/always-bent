@@ -22,6 +22,7 @@ export function CommandBridgeTabs() {
             key={tab.href} 
             href={tab.href} 
             className={`cb-tab ${active ? 'is-active' : ''}`}
+            prefetch
           >
             {tab.label}
             <span className="cb-underline" />
