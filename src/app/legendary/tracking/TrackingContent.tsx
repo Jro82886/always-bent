@@ -78,12 +78,12 @@ function TrackingModeContent() {
     fishing_events: number;
   }>({ longliner: 0, drifting_longline: 0, trawler: 0, fishing_events: 0 });
   
-  // Fleet vessels state
+  // Fleet vessels state (mapped to match EnhancedTrackingLegend interface)
   const [fleetVessels, setFleetVessels] = useState<Array<{
-    vessel_id: string;
-    name: string;
-    inlet_id: string;
-    has_report: boolean;
+    id: string;
+    inlet?: string;
+    inletColor?: string;
+    hasReport?: boolean;
   }>>([]);
   
   // Handle position updates from VesselLayer

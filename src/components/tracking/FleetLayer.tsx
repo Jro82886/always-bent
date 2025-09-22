@@ -9,13 +9,19 @@ import {
   vesselTrailToGeoJSON,
   type OnlineVessel 
 } from '@/lib/fleet/fleetDataService';
+import { getInletColor } from '@/lib/style/fleetColors';
 
 interface FleetLayerProps {
   map: mapboxgl.Map | null;
   showFleet: boolean;
   showFleetTracks: boolean;
   selectedInletId: string;
-  onFleetUpdate?: (vessels: OnlineVessel[]) => void;
+  onFleetUpdate?: (vessels: Array<{
+    id: string;
+    inlet?: string;
+    inletColor?: string;
+    hasReport?: boolean;
+  }>) => void;
 }
 
 export default function FleetLayer({
@@ -43,7 +49,17 @@ export default function FleetLayer({
       
       const vessels = await fetchOnlineVessels(selectedInletId);
       setOnlineVessels(vessels);
-      if (onFleetUpdate) onFleetUpdate(vessels);
+      
+      // Map to legend format
+      if (onFleetUpdate) {
+        const mappedVessels = vessels.map(v => ({
+          id: v.vessel_id,
+          inlet: v.inlet_id,
+          inletColor: getInletColor(v.inlet_id),
+          hasReport: v.has_report
+        }));
+        onFleetUpdate(mappedVessels);
+      }
     };
     
     // Initial fetch
@@ -129,42 +145,48 @@ export default function FleetLayer({
         const feature = e.features[0];
         const props = feature.properties;
         
+        if (!props) return;
+        
         let popupContent = `
           <div style="padding: 8px; min-width: 200px;">
-            <strong>${props.name}</strong><br/>
+            <strong>${props.name || 'Unknown Vessel'}</strong><br/>
             <div style="margin: 4px 0; color: #666;">
               ${props.speed ? `${Math.round(props.speed)} kt` : '--'} · 
               ${props.heading ? `${Math.round(props.heading)}°` : '--'}
             </div>
             <small style="opacity: 0.7">
-              Last seen: ${new Date(props.last_seen).toLocaleTimeString()}
+              Last seen: ${props.last_seen ? new Date(props.last_seen).toLocaleTimeString() : '--'}
             </small>
         `;
         
         if (props.has_report && props.latest_report) {
-          const report = JSON.parse(props.latest_report);
-          popupContent += `
-            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd;">
-              <div style="font-size: 12px; color: #FFD700; font-weight: bold;">
-                Recent ${report.type === 'bite' ? 'Bite' : 'Snip'} Report
+          try {
+            const report = JSON.parse(props.latest_report);
+            popupContent += `
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd;">
+                <div style="font-size: 12px; color: #FFD700; font-weight: bold;">
+                  Recent ${report.type === 'bite' ? 'Bite' : 'Snip'} Report
+                </div>
+                <div style="font-size: 11px; margin: 4px 0;">
+                  ${report.species?.length ? report.species.join(', ') : 'No species specified'}
+                </div>
+                <a href="/legendary/community/reports?reportId=${report.id}" 
+                   style="display: inline-block; margin-top: 4px; padding: 4px 8px; 
+                          background: #FFD700; color: #000; border-radius: 4px; 
+                          text-decoration: none; font-size: 11px; font-weight: bold;">
+                  Open Report
+                </a>
               </div>
-              <div style="font-size: 11px; margin: 4px 0;">
-                ${report.species?.length ? report.species.join(', ') : 'No species specified'}
-              </div>
-              <a href="/legendary/community/reports?reportId=${report.id}" 
-                 style="display: inline-block; margin-top: 4px; padding: 4px 8px; 
-                        background: #FFD700; color: #000; border-radius: 4px; 
-                        text-decoration: none; font-size: 11px; font-weight: bold;">
-                Open Report
-              </a>
-            </div>
-          `;
+            `;
+          } catch (e) {
+            console.error('Error parsing report:', e);
+          }
         }
         
         if (showFleetTracks) {
           popupContent += `
             <div style="margin-top: 8px;">
-              <button onclick="window.dispatchEvent(new CustomEvent('selectVessel', {detail: '${props.id}'}))"
+              <button onclick="window.dispatchEvent(new CustomEvent('selectVessel', {detail: '${props.id || props.vessel_id}'}))"
                       style="padding: 4px 8px; background: #0ea5e9; color: white; 
                              border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
                 Show Track

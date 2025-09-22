@@ -1,271 +1,223 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { showToast } from '@/components/ui/Toast';
-import { RealtimeChannel } from '@supabase/realtime-js';
+import { INLETS } from '@/lib/inlets';
 
-interface ChatMessage {
-  id: string;
-  user_id: string;
-  user_name?: string;
-  text: string;
-  created_at: string;
-  inlet_id: string;
-}
-
-interface UseInletChatReturn {
-  messages: ChatMessage[];
-  presenceCount: number;
-  status: 'connected' | 'connecting' | 'disconnected';
-  sendMessage: (text: string) => Promise<void>;
-  error: string | null;
-}
-
-// Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
-// Retry configuration
-const RETRY_DELAYS = [1000, 2000, 4000, 8000, 16000, 30000]; // Backoff up to 30s
+export interface ChatMessage {
+  id: string;
+  inlet_id: string;
+  user_id: string;
+  vessel_id?: string | null;
+  text: string;
+  created_at: string;
+}
 
-export function useInletChat(inletId: string | null, userId?: string): UseInletChatReturn {
+interface PresenceState {
+  user_id: string;
+  vessel_id?: string | null;
+  inlet_id: string;
+  last_seen: string;
+  kind: 'web' | 'mobile' | 'pwa';
+}
+
+export function useInletChat(inletId: string, userId?: string, vesselId?: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [presenceCount, setPresenceCount] = useState(0);
-  const [status, setStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
-  const [error, setError] = useState<string | null>(null);
+  const [boatsOnline, setBoatsOnline] = useState<number>(0);
+  const [connected, setConnected] = useState(false);
+  const channelRef = useRef<any>(null);
+  const dbChannelRef = useRef<any>(null);
+  const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
   
-  const channelRef = useRef<RealtimeChannel | null>(null);
-  const retryCountRef = useRef(0);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const currentInletRef = useRef<string | null>(null);
-  const presenceMapRef = useRef<Map<string, any>>(new Map());
+  // Initialize Supabase client
+  const supabase = useRef(
+    supabaseUrl && supabaseAnonKey 
+      ? createClient(supabaseUrl, supabaseAnonKey)
+      : null
+  ).current;
 
-  // Clean up function
-  const cleanup = useCallback(() => {
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-    if (channelRef.current) {
-      channelRef.current.unsubscribe();
-      channelRef.current = null;
-    }
-    presenceMapRef.current.clear();
-    setPresenceCount(0);
-  }, []);
-
-  // Join channel with inlet ID
-  const joinChannel = useCallback((inlet: string) => {
-    if (!supabase || !inlet) return;
-
-    setStatus('connecting');
-    setError(null);
+  // Extract fresh boats from presence state
+  const extractFreshBoats = (presenceState: Record<string, PresenceState[]>) => {
+    const freshBoats = new Map<string, boolean>();
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
     
-    const channelName = `chat:${inlet}`;
-    console.log(`Joining channel: ${channelName}`);
-    
-    // Create channel
-    const channel = supabase.channel(channelName, {
-      config: {
-        presence: {
-          key: userId || 'anonymous'
+    Object.values(presenceState).forEach(states => {
+      states.forEach(state => {
+        if (new Date(state.last_seen) > twoMinutesAgo) {
+          // Use vessel_id if available, otherwise user_id
+          const key = state.vessel_id || state.user_id;
+          freshBoats.set(key, true);
         }
-      }
+      });
     });
+    
+    return freshBoats;
+  };
 
-    // Handle presence sync
-    channel.on('presence', { event: 'sync' }, () => {
-      const state = channel.presenceState();
-      presenceMapRef.current.clear();
-      
-      // Count unique users
-      Object.keys(state).forEach(key => {
-        const presences = state[key] as any[];
-        presences.forEach(presence => {
-          presenceMapRef.current.set(presence.user_id || key, presence);
+  useEffect(() => {
+    if (!supabase || !inletId || inletId === 'overview' || !userId) return;
+
+    const setupChannel = async () => {
+      try {
+        // Create presence channel
+        const channel = supabase.channel(`chat:${inletId}`, {
+          config: {
+            presence: {
+              key: userId
+            }
+          }
         });
-      });
-      
-      setPresenceCount(presenceMapRef.current.size);
-    });
-
-    // Handle new messages
-    channel.on('broadcast', { event: 'message' }, ({ payload }) => {
-      if (payload) {
-        const newMessage: ChatMessage = {
-          id: payload.id || Date.now().toString(),
-          user_id: payload.user_id,
-          user_name: payload.user_name,
-          text: payload.text,
-          created_at: payload.created_at || new Date().toISOString(),
-          inlet_id: inlet
-        };
-        setMessages(prev => [...prev, newMessage]);
-      }
-    });
-
-    // Subscribe and handle connection
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        setStatus('connected');
-        retryCountRef.current = 0;
         
-        // Track presence
-        if (userId) {
-          channel.track({
-            user_id: userId,
-            online_at: new Date().toISOString()
-          });
+        channelRef.current = channel;
+
+        // Handle presence sync
+        channel.on('presence', { event: 'sync' }, () => {
+          const presenceState = channel.presenceState();
+          const freshBoats = extractFreshBoats(presenceState);
+          
+          // TODO: Layer in vessels_latest for boats with tracking pings but no chat presence
+          setBoatsOnline(freshBoats.size);
+        });
+
+        // Subscribe to channel
+        channel.subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            setConnected(true);
+            
+            // Track presence
+            const presenceData: PresenceState = {
+              user_id: userId,
+              vessel_id: vesselId,
+              inlet_id: inletId,
+              kind: 'web',
+              last_seen: new Date().toISOString()
+            };
+            
+            await channel.track(presenceData);
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            setConnected(false);
+          }
+        });
+
+        // Create database channel for message updates
+        const dbChannel = supabase
+          .channel(`chat-db:${inletId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'chat_messages',
+              filter: `inlet_id=eq.${inletId}`
+            },
+            (payload) => {
+              setMessages(prev => [...prev, payload.new as ChatMessage]);
+            }
+          )
+          .subscribe();
+          
+        dbChannelRef.current = dbChannel;
+
+        // Load initial messages
+        const { data: initialMessages, error } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('inlet_id', inletId)
+          .order('created_at', { ascending: true })
+          .limit(200);
+
+        if (error) {
+          console.error('Error loading messages:', error);
+        } else {
+          setMessages(initialMessages || []);
         }
-        
-        // Show success toast if this was a retry
-        if (retryCountRef.current > 0) {
-          showToast({
-            type: 'success',
-            title: 'Reconnected',
-            message: `Reconnected to ${inlet.replace(/-/g, ' ')} chat`,
-            duration: 3000
-          });
-        }
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        handleDisconnect(inlet);
+
+        // Set up heartbeat
+        heartbeatInterval.current = setInterval(() => {
+          if (channelRef.current) {
+            const presenceData: PresenceState = {
+              user_id: userId,
+              vessel_id: vesselId,
+              inlet_id: inletId,
+              kind: 'web',
+              last_seen: new Date().toISOString()
+            };
+            channelRef.current.track(presenceData);
+          }
+        }, 45000); // 45 seconds
+
+      } catch (error) {
+        console.error('Error setting up chat channel:', error);
+        showToast({
+          type: 'error',
+          title: 'Chat Error',
+          message: 'Unable to connect to chat. Please try again.',
+          duration: 5000
+        });
       }
-    });
+    };
 
-    channelRef.current = channel;
-    
-    // Load recent messages from database
-    loadRecentMessages(inlet);
-  }, [userId]);
+    setupChannel();
 
-  // Handle disconnection with retry
-  const handleDisconnect = useCallback((inlet: string) => {
-    setStatus('disconnected');
-    
-    const retryDelay = RETRY_DELAYS[Math.min(retryCountRef.current, RETRY_DELAYS.length - 1)];
-    
-    showToast({
-      type: 'warning',
-      title: 'Connection Lost',
-      message: `Disconnected from chat. Retrying in ${retryDelay / 1000}s...`,
-      duration: 5000
-    });
+    // Cleanup
+    return () => {
+      if (heartbeatInterval.current) {
+        clearInterval(heartbeatInterval.current);
+      }
+      if (channelRef.current) {
+        channelRef.current.untrack();
+        channelRef.current.unsubscribe();
+      }
+      if (dbChannelRef.current) {
+        dbChannelRef.current.unsubscribe();
+      }
+      setMessages([]);
+      setBoatsOnline(0);
+      setConnected(false);
+    };
+  }, [inletId, userId, vesselId, supabase]);
 
-    retryTimeoutRef.current = setTimeout(() => {
-      retryCountRef.current++;
-      joinChannel(inlet);
-    }, retryDelay);
-  }, [joinChannel]);
-
-  // Load recent messages from database
-  const loadRecentMessages = useCallback(async (inlet: string) => {
-    if (!supabase) return;
+  // Send message function
+  const send = async (text: string) => {
+    if (!supabase || !userId || !text.trim()) return;
 
     try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*, profiles:user_id(display_name)')
-        .eq('inlet_id', inlet)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-
-      if (data) {
-        const formattedMessages: ChatMessage[] = data.reverse().map(msg => ({
-          id: msg.id,
-          user_id: msg.user_id,
-          user_name: msg.profiles?.display_name || 'Anonymous',
-          text: msg.text,
-          created_at: msg.created_at,
-          inlet_id: msg.inlet_id
-        }));
-        setMessages(formattedMessages);
-      }
-    } catch (err) {
-      console.error('Failed to load messages:', err);
-      // Don't show error toast - messages will be empty which is fine
-    }
-  }, []);
-
-  // Send message
-  const sendMessage = useCallback(async (text: string) => {
-    if (!supabase || !channelRef.current || !inletId || !text.trim()) return;
-
-    if (status !== 'connected') {
-      showToast({
-        type: 'warning',
-        title: 'Message Queued',
-        message: 'Message will send when reconnected',
-        duration: 4000
-      });
-      // TODO: Implement message queue
-      return;
-    }
-
-    try {
-      // Insert into database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('chat_messages')
         .insert({
           inlet_id: inletId,
-          user_id: userId || 'anonymous',
+          user_id: userId,
+          vessel_id: vesselId,
           text: text.trim()
-        })
-        .select()
-        .single();
+        });
 
-      if (error) throw error;
-
-      // Broadcast to channel
-      await channelRef.current.send({
-        type: 'broadcast',
-        event: 'message',
-        payload: {
-          id: data.id,
-          user_id: data.user_id,
-          user_name: 'You', // Will be replaced by actual name from profiles
-          text: data.text,
-          created_at: data.created_at,
-          inlet_id: data.inlet_id
-        }
-      });
-    } catch (err) {
-      console.error('Failed to send message:', err);
-      showToast({
-        type: 'error',
-        title: 'Send Failed',
-        message: 'Could not send message. Please try again.',
-        duration: 5000
-      });
+      if (error) {
+        console.error('Error sending message:', error);
+        showToast({
+          type: 'error',
+          title: 'Send Failed',
+          message: 'Unable to send message. Please try again.',
+          duration: 3000
+        });
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
-  }, [status, inletId, userId]);
+  };
 
-  // Handle inlet changes
-  useEffect(() => {
-    if (!inletId) {
-      cleanup();
-      return;
-    }
-
-    // If inlet changed, leave old channel and join new
-    if (currentInletRef.current && currentInletRef.current !== inletId) {
-      console.log(`Switching from ${currentInletRef.current} to ${inletId}`);
-      cleanup();
-      setMessages([]); // Clear messages when switching inlets
-    }
-
-    currentInletRef.current = inletId;
-    joinChannel(inletId);
-
-    return cleanup;
-  }, [inletId, joinChannel, cleanup]);
+  // Get inlet name
+  const inlet = INLETS.find(i => i.id === inletId);
+  const inletName = inlet?.name || 'Unknown Inlet';
+  const inletColor = inlet?.color || '#999';
 
   return {
     messages,
-    presenceCount,
-    status,
-    sendMessage,
-    error
+    send,
+    boatsOnline,
+    connected,
+    inletName,
+    inletColor
   };
 }
