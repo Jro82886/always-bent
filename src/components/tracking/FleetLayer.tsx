@@ -22,6 +22,11 @@ interface FleetLayerProps {
     inletColor?: string;
     hasReport?: boolean;
   }>) => void;
+  onTracksUpdate?: (tracks: Array<{
+    vessel_id: string;
+    inlet_id: string;
+    track: Array<[number, number]>;
+  }>) => void;
 }
 
 export default function FleetLayer({
@@ -29,7 +34,8 @@ export default function FleetLayer({
   showFleet,
   showFleetTracks,
   selectedInletId,
-  onFleetUpdate
+  onFleetUpdate,
+  onTracksUpdate
 }: FleetLayerProps) {
   const [onlineVessels, setOnlineVessels] = useState<OnlineVessel[]>([]);
   const [selectedVesselId, setSelectedVesselId] = useState<string | null>(null);
@@ -60,6 +66,28 @@ export default function FleetLayer({
         }));
         onFleetUpdate(mappedVessels);
       }
+      
+      // Fetch tracks for all vessels if tracks are enabled
+      if (showFleetTracks && onTracksUpdate && vessels.length > 0) {
+        const trackPromises = vessels.map(async v => {
+          try {
+            const trail = await fetchVesselTrail(v.vessel_id);
+            if (trail && trail.points.length > 1) {
+              return {
+                vessel_id: v.vessel_id,
+                inlet_id: v.inlet_id,
+                track: trail.points.map(p => [p.lon, p.lat] as [number, number])
+              };
+            }
+          } catch (error) {
+            console.error(`Failed to fetch track for vessel ${v.vessel_id}:`, error);
+          }
+          return null;
+        });
+        
+        const tracks = (await Promise.all(trackPromises)).filter(t => t !== null);
+        onTracksUpdate(tracks as any);
+      }
     };
     
     // Initial fetch
@@ -84,7 +112,7 @@ export default function FleetLayer({
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [showFleet, selectedInletId, onFleetUpdate]);
+  }, [showFleet, selectedInletId, onFleetUpdate, showFleetTracks, onTracksUpdate]);
   
   // Update map layers
   useEffect(() => {

@@ -25,6 +25,10 @@ export default function EnhancedTrackingLegend({
 }: EnhancedTrackingLegendProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { userLoc, userLocStatus } = useAppState();
+  const myTracksEnabled = useAppState(s => s.myTracksEnabled);
+  const setMyTracksEnabled = useAppState(s => s.setMyTracksEnabled);
+  const fleetTracksEnabled = useAppState(s => s.fleetTracksEnabled);
+  const setFleetTracksEnabled = useAppState(s => s.setFleetTracksEnabled);
   
   const isOverview = !selectedInletId || selectedInletId === 'overview';
   const currentInlet = selectedInletId ? getInletById(selectedInletId) : null;
@@ -133,10 +137,12 @@ export default function EnhancedTrackingLegend({
                     <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
                     <span className="text-xs text-slate-300">Position marker</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-0.5 bg-emerald-400" />
-                    <span className="text-xs text-slate-300">Track history</span>
-                  </div>
+                  {myTracksEnabled && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-0.5 bg-emerald-400" />
+                      <span className="text-xs text-slate-300">Track history</span>
+                    </div>
+                  )}
                   <div className="text-[10px] text-slate-400 mt-1">
                     {userPosition.speed.toFixed(1)} kts
                   </div>

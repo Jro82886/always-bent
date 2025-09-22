@@ -11,6 +11,7 @@ import CommercialVesselLayer from '@/components/tracking/CommercialVesselLayer';
 import RecBoatsClustering from '@/components/tracking/RecBoatsClustering';
 import FleetLayer from '@/components/tracking/FleetLayer';
 import GFWVesselLayer from '@/components/tracking/GFWVesselLayer';
+import VesselTracksLayer from '@/components/tracking/VesselTracksLayer';
 import TrackingToolbar from '@/components/tracking/TrackingToolbar';
 import EnhancedTrackingLegend from '@/components/tracking/EnhancedTrackingLegend';
 import GFWLegend from '@/components/tracking/GFWLegend';
@@ -57,6 +58,14 @@ function TrackingModeContent() {
   // Location permission
   const { isGranted: locationGranted } = useLocationPermission();
   
+  // Get track states from Zustand
+  const myTracksEnabled = useAppState(s => s.myTracksEnabled);
+  const setMyTracksEnabled = useAppState(s => s.setMyTracksEnabled);
+  const fleetTracksEnabled = useAppState(s => s.fleetTracksEnabled);
+  const setFleetTracksEnabled = useAppState(s => s.setFleetTracksEnabled);
+  const gfwTracksEnabled = useAppState(s => s.gfwTracksEnabled);
+  const setGfwTracksEnabled = useAppState(s => s.setGfwTracksEnabled);
+  
   // Vessel visibility states (all OFF by default per spec)
   const [showYou, setShowYou] = useState(false);
   const [showTracks, setShowTracks] = useState(false);
@@ -85,6 +94,20 @@ function TrackingModeContent() {
     inlet?: string;
     inletColor?: string;
     hasReport?: boolean;
+  }>>([]);
+  
+  // Fleet tracks state
+  const [fleetTracks, setFleetTracks] = useState<Array<{
+    vessel_id: string;
+    inlet_id: string;
+    track: Array<[number, number]>;
+  }>>([]);
+  
+  // GFW tracks state
+  const [gfwTracks, setGfwTracks] = useState<Array<{
+    id: string;
+    gear_type: string;
+    track: Array<[number, number]>;
   }>>([]);
   
   // Handle position updates from VesselLayer
@@ -259,16 +282,16 @@ function TrackingModeContent() {
         locationGranted={locationGranted}
         showYou={showYou}
         setShowYou={setShowYou}
-        showTracks={showTracks}
-        setShowTracks={setShowTracks}
+        showTracks={myTracksEnabled}
+        setShowTracks={setMyTracksEnabled}
         showFleet={showFleet}
         setShowFleet={setShowFleet}
-        showFleetTracks={showFleetTracks}
-        setShowFleetTracks={setShowFleetTracks}
+        showFleetTracks={fleetTracksEnabled}
+        setShowFleetTracks={setFleetTracksEnabled}
         showCommercial={showCommercial}
         setShowCommercial={setShowCommercial}
-        showCommercialTracks={showCommercialTracks}
-        setShowCommercialTracks={setShowCommercialTracks}
+        showCommercialTracks={gfwTracksEnabled}
+        setShowCommercialTracks={setGfwTracksEnabled}
         userPosition={userPosition}
         onFlyToInlet={handleFlyToInlet}
         onChatToggle={() => setShowChat(!showChat)}
@@ -288,6 +311,7 @@ function TrackingModeContent() {
       {/* GFW Legend - only when commercial vessels are shown */}
       <GFWLegend 
         showCommercial={showCommercial}
+        showCommercialTracks={showCommercialTracks}
         vesselCounts={gfwVesselCounts}
       />
       
@@ -305,9 +329,10 @@ function TrackingModeContent() {
         <FleetLayer
           map={map.current}
           showFleet={showFleet}
-          showFleetTracks={showFleetTracks}
+          showFleetTracks={fleetTracksEnabled}
           selectedInletId={selectedInletId || ''}
           onFleetUpdate={setFleetVessels}
+          onTracksUpdate={setFleetTracks}
         />
       )}
       
@@ -319,6 +344,16 @@ function TrackingModeContent() {
           showCommercial={showCommercial}
           selectedInletId={selectedInletId}
           onVesselCountUpdate={setGfwVesselCounts}
+          onTracksUpdate={setGfwTracks}
+        />
+      )}
+      
+      {/* Vessel Tracks Layer - handles all track rendering */}
+      {mapFullyReady && (
+        <VesselTracksLayer
+          map={map.current}
+          fleetTracks={fleetTracks}
+          gfwTracks={gfwTracks}
         />
       )}
       

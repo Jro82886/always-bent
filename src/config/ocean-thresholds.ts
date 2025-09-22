@@ -1,30 +1,36 @@
-/**
- * Ocean data thresholds and bands for analysis
- * Single source of truth for temperature, chlorophyll, and front detection
- */
+// All thresholds live here so Analysis & Tracking use the same truth.
 
-// Sea Surface Temperature (SST) thresholds in Fahrenheit
-export const SST_TARGET_MIN = 66; // °F
-export const SST_TARGET_MAX = 72; // °F
+export const THRESHOLDS = {
+  // Sea Surface Temperature (°C)
+  SST: {
+    TARGET_MIN: 18.0,   // lower bound for target band (tune per species/season)
+    TARGET_MAX: 24.0,   // upper bound
+    // gradient (front) strength in °C per 10km; adjust to your unit if per km
+    FRONT_STRONG: 1.2,  // strong front ≥ 1.2 °C / 10km
+    FRONT_MODERATE: 0.6 // moderate front ≥ 0.6 °C / 10km
+  },
 
-// Chlorophyll-a concentration thresholds in mg/m³
-export const CHL_MID_BAND_RANGE = {
-  min: 0.12, // mg/m³
-  max: 0.35  // mg/m³
-};
+  // Chlorophyll-a (mg/m³)
+  CHL: {
+    MID_BAND_MIN: 0.12, // favorable mid band min
+    MID_BAND_MAX: 0.35, // favorable mid band max
+    GRADIENT_STRONG: 0.08,  // strong gradient per (arbitrary) unit — tune
+    GRADIENT_MODERATE: 0.04 // moderate gradient — tune
+  },
 
-// Front detection threshold (normalized 0-1)
-export const FRONT_STRONG_THRESHOLD = 0.65;
+  // Presence lookbacks
+  PRESENCE: {
+    USER_HOURS: 48,     // your vessel fixes considered "recent"
+    FLEET_DAYS: 7,      // fleet window for analysis
+    GFW_DAYS: 4         // commercial window for analysis
+  },
 
-// Helper functions
-export function isInSSTTargetBand(tempF: number): boolean {
-  return tempF >= SST_TARGET_MIN && tempF <= SST_TARGET_MAX;
-}
+  // Hotspot decision weights (optional, for Jeff's logic)
+  WEIGHTS: {
+    FRONT: 0.6,         // fronts dominate
+    SST_BAND: 0.25,     // temp band support
+    CHL_BAND: 0.15      // chl band support
+  }
+} as const;
 
-export function isInCHLMidBand(chlMgM3: number): boolean {
-  return chlMgM3 >= CHL_MID_BAND_RANGE.min && chlMgM3 <= CHL_MID_BAND_RANGE.max;
-}
-
-export function isFrontStrong(strength: number): boolean {
-  return strength >= FRONT_STRONG_THRESHOLD;
-}
+export type Thresholds = typeof THRESHOLDS;

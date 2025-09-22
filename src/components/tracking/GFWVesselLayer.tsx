@@ -14,6 +14,11 @@ interface GFWVesselLayerProps {
     trawler: number;
     fishing_events: number;
   }) => void;
+  onTracksUpdate?: (tracks: Array<{
+    id: string;
+    gear_type: string;
+    track: Array<[number, number]>;
+  }>) => void;
 }
 
 // Gear type labels
@@ -43,7 +48,8 @@ export default function GFWVesselLayer({
   map,
   showCommercial,
   selectedInletId,
-  onVesselCountUpdate
+  onVesselCountUpdate,
+  onTracksUpdate
 }: GFWVesselLayerProps) {
   const [isLoading, setIsLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -265,6 +271,18 @@ export default function GFWVesselLayer({
           trawler: vesselCounts.trawler || 0,
           fishing_events: events.length
         });
+      }
+      
+      // Update tracks for VesselTracksLayer
+      if (onTracksUpdate) {
+        const tracks = vessels
+          .filter((v: any) => v.track?.length >= 2)
+          .map((v: any) => ({
+            id: v.id,
+            gear_type: v.gear,
+            track: v.track.map((p: any) => [p.lon, p.lat] as [number, number])
+          }));
+        onTracksUpdate(tracks);
       }
       
     } catch (error: any) {

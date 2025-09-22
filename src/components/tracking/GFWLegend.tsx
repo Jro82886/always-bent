@@ -4,6 +4,7 @@ import { Ship, Anchor, Waves, Fish } from 'lucide-react';
 
 interface GFWLegendProps {
   showCommercial: boolean;
+  showCommercialTracks?: boolean;
   vesselCounts?: {
     longliner: number;
     drifting_longline: number;
@@ -12,7 +13,7 @@ interface GFWLegendProps {
   };
 }
 
-export default function GFWLegend({ showCommercial, vesselCounts }: GFWLegendProps) {
+export default function GFWLegend({ showCommercial, showCommercialTracks, vesselCounts }: GFWLegendProps) {
   if (!showCommercial) return null;
 
   const vesselTypes = [
@@ -74,6 +75,9 @@ export default function GFWLegend({ showCommercial, vesselCounts }: GFWLegendPro
                   {icon}
                 </div>
                 <span className="text-gray-300">{label}</span>
+                {showCommercialTracks && count > 0 && (
+                  <div className="w-8 h-0.5" style={{ backgroundColor: color, opacity: 0.7 }} />
+                )}
               </div>
               <span className="text-gray-400 ml-4">{count}</span>
             </div>

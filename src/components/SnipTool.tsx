@@ -10,7 +10,10 @@ import type { AnalysisResult } from '@/lib/analysis/sst-analyzer';
 import { extractPixelData, analyzePixelData } from '@/lib/analysis/pixel-extractor';
 import { extractRealTileData } from '@/lib/analysis/tile-data-extractor';
 import { generateComprehensiveAnalysis } from '@/lib/analysis/comprehensive-analyzer';
-import { buildNarrativeWithToggles } from '@/lib/analysis/narrative-builder';
+import { buildNarrative } from '@/lib/analysis/narrative-builder';
+import type { SnipAnalysis } from '@/lib/analysis/types';
+import { frontStrength, inSstBand, inChlMidBand } from '@/lib/analysis/hotspot-utils';
+import { THRESHOLDS } from '@/config/ocean-thresholds';
 import { Maximize2, Loader2, Target, TrendingUp, Upload, WifiOff, CheckCircle } from 'lucide-react';
 import { getVesselsInBoundsAsync, getVesselStyle, getVesselTrackingSummary } from '@/lib/vessels/vesselDataService';
 import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
@@ -842,33 +845,52 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         gfw: vesselsInBounds.some(v => v.type === 'commercial') // Check if any commercial vessels found
       };
       
-      // Step 2.5: Call the new raster sampler
-      setAnalysisStep('Analyzing ocean data with real statistics...');
+      // Step 2.5: Call the new endpoints in parallel
+      setAnalysisStep('Analyzing ocean data...');
       
-      let samplerStats = null;
-      let samplerNarrative = '';
-      
-      try {
-        const layers_on = [
-          ...(activeLayers.sst ? ['sst' as const] : []),
-          ...(activeLayers.chl ? ['chl' as const] : []),
-          ...(activeLayers.gfw ? ['gfw' as const] : [])
-        ];
-        
-        const samplerResponse = await fetch('/api/rasters/sample', {
+      const [samplerRes, gfwRes, fleetRes] = await Promise.allSettled([
+        // Ocean data sampling (SST/CHL)
+        activeLayers.sst || activeLayers.chl
+          ? fetch('/api/rasters/sample', { 
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                polygon: polygon.geometry,
+                time: isoDate || new Date().toISOString(),
+                layers: ['sst', 'chl'].filter(k => activeLayers[k as 'sst'|'chl'])
+              })
+            }).then(r => r.json())
+          : Promise.resolve(null),
+          
+        // GFW commercial vessels (4 days)
+        activeLayers.gfw
+          ? fetch('/api/gfw/clip?days=4', { 
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                polygon: polygon.geometry,
+                gears: ['longliner','drifting_longline','trawler']
+              })
+            }).then(r => r.json())
+          : Promise.resolve(null),
+          
+        // Fleet and user presence (always check)
+        fetch('/api/fleet/clip', { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            polygon,
-            time: isoDate || new Date().toISOString().split('T')[0],
-            layers: layers_on.filter(l => l !== 'gfw') // Only SST/CHL for raster sampling
+          body: JSON.stringify({ 
+            polygon: polygon.geometry,
+            inletId: selectedInletId || 'overview',
+            days: 7
           })
-        });
-        
-      if (samplerResponse.ok) {
-        const samplerData = await samplerResponse.json();
-        
-        // Check if no live data is available
+        }).then(r => r.json())
+      ]);
+      
+      // Process sampler results
+      let sstStats = null;
+      let chlStats = null;
+      if (samplerRes.status === 'fulfilled' && samplerRes.value) {
+        const samplerData = samplerRes.value;
         if (samplerData.meta?.noDataAvailable) {
           showToast({
             type: 'error',
@@ -876,35 +898,22 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             message: samplerData.message || 'No live data is available at this time, please check an alternate day',
             duration: 7000
           });
-          // Proceed without sampler stats
         } else {
-          samplerStats = samplerData.stats;
+          sstStats = samplerData.sst;
+          chlStats = samplerData.chl;
         }
-          
-          // Build GFW summary
-          const gfwSummary = activeLayers.gfw ? {
-            total: vesselsInBounds.filter(v => v.type === 'commercial').length,
-            byType: vesselsInBounds
-              .filter(v => v.type === 'commercial')
-              .reduce((acc, v) => {
-                const type = v.vesselType || 'unknown';
-                acc[type] = (acc[type] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>)
-          } : null;
-          
-          // Generate narrative with toggle logic
-          samplerNarrative = buildNarrativeWithToggles(
-            samplerStats,
-            layers_on,
-            gfwSummary
-          );
-          
-          console.log('Sampler stats:', samplerStats);
-          console.log('Narrative:', samplerNarrative);
-        }
-      } catch (error) {
-        console.error('Sampler failed, continuing with legacy analysis:', error);
+      }
+      
+      // Process GFW results
+      let gfwData = null;
+      if (gfwRes.status === 'fulfilled' && gfwRes.value) {
+        gfwData = gfwRes.value;
+      }
+      
+      // Process fleet/user results
+      let presenceData = { user: { present: false }, fleet: { count: 0, vessels: [], consecutiveDays: 0, daysWithPresence: [] } };
+      if (fleetRes.status === 'fulfilled' && fleetRes.value) {
+        presenceData = fleetRes.value;
       }
       
       // Step 3: Extract REAL ocean data from tiles!
@@ -1052,9 +1061,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       setAnalysisStep('Generating comprehensive analysis...');
       
-      // Get selected inlet for marine data
-      const selectedInletId = localStorage.getItem('abfi_selected_inlet') || undefined;
-      
       // Generate the comprehensive written analysis
       const comprehensiveAnalysis = await generateComprehensiveAnalysis(
         polygon as GeoJSON.Feature<GeoJSON.Polygon>,
@@ -1121,27 +1127,101 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         // Tracks will be shown if user enables them on tracking page
       }
       
-      // Add edge analysis info to the result
+      // Build hotspots array (only real detections)
+      const hotspots: SnipAnalysis['hotspots'] = [];
+      
+      // Check for SST front
+      if (sstStats && sstStats.gradient) {
+        const sstFrontStrength = frontStrength(sstStats.gradient);
+        if (sstFrontStrength) {
+          hotspots.push({
+            type: 'front',
+            strength: sstFrontStrength,
+            geometry: polygon.geometry, // TODO: compute actual front geometry
+            notes: `SST gradient ${sstStats.gradient.toFixed(2)}°C/km`
+          });
+        }
+      }
+      
+      // Check for SST band
+      if (sstStats && inSstBand(sstStats.mean)) {
+        hotspots.push({
+          type: 'sst-band',
+          strength: 'moderate',
+          geometry: polygon.geometry,
+          notes: `SST in target range (${THRESHOLDS.SST.TARGET_MIN}-${THRESHOLDS.SST.TARGET_MAX}°C)`
+        });
+      }
+      
+      // Check for CHL band
+      if (chlStats && inChlMidBand(chlStats.mean)) {
+        hotspots.push({
+          type: 'chl-band',
+          strength: 'moderate',
+          geometry: polygon.geometry,
+          notes: `CHL in favorable range (${THRESHOLDS.CHL.MID_BAND_MIN}-${THRESHOLDS.CHL.MID_BAND_MAX} mg/m³)`
+        });
+      }
+      
+      // Build the SnipAnalysis object
+      const snippedBounds = turf.bbox(polygon);
+      const snipAnalysis: SnipAnalysis = {
+        polygon: polygon.geometry,
+        bbox: snippedBounds as [number, number, number, number],
+        timeISO: new Date().toISOString(),
+        sst: sstStats,
+        chl: chlStats,
+        gfw: gfwData,
+        presence: presenceData,
+        hotspots: hotspots.length > 0 ? hotspots : undefined,
+        toggles: {
+          sst: activeLayers.sst || false,
+          chl: activeLayers.chl || false,
+          gfw: activeLayers.gfw || false
+        },
+        narrative: buildNarrative({
+          polygon: polygon.geometry,
+          bbox: snippedBounds as [number, number, number, number],
+          timeISO: new Date().toISOString(),
+          sst: sstStats,
+          chl: chlStats,
+          gfw: gfwData,
+          presence: presenceData,
+          hotspots: hotspots.length > 0 ? hotspots : undefined,
+          toggles: {
+            sst: activeLayers.sst || false,
+            chl: activeLayers.chl || false,
+            gfw: activeLayers.gfw || false
+          },
+          narrative: ''
+        })
+      };
+      
+      // Add legacy fields for compatibility with existing modal
       const finalAnalysis = {
-        ...analysisWithVessels,
+        ...analysis,
+        ...snipAnalysis,
+        vesselTracks: vesselData.summary,
+        comprehensiveAnalysis: comprehensiveAnalysis,
         edgeAnalysis: analysis.features && analysis.features.length > 0 
           ? processEdgesForAnalysis(analysis.features) 
           : undefined,
-        vessels: vesselsInBounds, // Add actual vessel data for legend
-        // Add sampler data if available
-        ...(samplerStats ? {
-          stats: {
-            ...analysis.stats,
-            ...samplerStats // Override with real sampler stats
-          },
-          samplerStats,
-          narrative: samplerNarrative,
-          layers_on: [
-            ...(activeLayers.sst ? ['sst'] : []),
-            ...(activeLayers.chl ? ['chl'] : []),
-            ...(activeLayers.gfw ? ['gfw'] : [])
-          ]
-        } : {})
+        vessels: vesselsInBounds,
+        stats: {
+          ...analysis.stats,
+          ...(sstStats ? {
+            avg_temp_f: sstStats.mean * 9/5 + 32,
+            min_temp_f: sstStats.min * 9/5 + 32,
+            max_temp_f: sstStats.max * 9/5 + 32,
+            temp_range_f: (sstStats.max - sstStats.min) * 9/5
+          } : {})
+        },
+        samplerStats: { sst: sstStats, chl: chlStats },
+        layers_on: [
+          ...(activeLayers.sst ? ['sst'] : []),
+          ...(activeLayers.chl ? ['chl'] : []),
+          ...(activeLayers.gfw ? ['gfw'] : [])
+        ]
       };
       
       // Step 6: Store analysis but DON'T show modal yet

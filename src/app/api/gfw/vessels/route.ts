@@ -69,17 +69,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached.data);
     }
 
-    // If no token, return error
+    // If no token, return configured: false
     if (!GFW_TOKEN) {
       console.error('GFW_API_TOKEN not configured');
-      return NextResponse.json(
-        { 
-          error: 'GFW API not configured',
-          message: 'Vessel tracking service not available',
-          vessels: []
-        },
-        { status: 503 }
-      );
+      return NextResponse.json({
+        configured: false,
+        vessels: [],
+        events: []
+      });
     }
 
     // Parse bbox

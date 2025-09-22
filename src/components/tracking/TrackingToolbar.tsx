@@ -57,8 +57,9 @@ export default function TrackingToolbar({
   const [weatherLoading, setWeatherLoading] = useState(false);
   
   // Get user location state from store
-  const { userLoc, userLocStatus, setUserLoc, setUserLocStatus, restrictToInlet } = useAppState();
+  const { userLoc, userLocStatus, setUserLoc, setUserLocStatus, restrictToInlet, myTracksEnabled, appendMyTrack } = useAppState();
   const watchIdRef = useRef<number | null>(null);
+  const lastTrackUpdateRef = useRef<number>(0);
 
   // Fetch weather data when inlet changes
   useEffect(() => {
@@ -198,9 +199,15 @@ export default function TrackingToolbar({
         }
 
         // Update state
-        setUserLoc({ lat, lon, accuracy, updatedAt: Date.now() });
+        const newLoc = { lat, lon, accuracy, updatedAt: Date.now() };
+        setUserLoc(newLoc);
         setUserLocStatus('active');
         setShowYou(true);
+        
+        // Append to track if enabled
+        if (myTracksEnabled) {
+          appendMyTrack(lon, lat);
+        }
         
         // Draw the dot (no camera movement)
         drawOrUpdateUserDot(lon, lat, accuracy);
@@ -245,6 +252,55 @@ export default function TrackingToolbar({
       onHideMe();
     }
   }, [showYou, map]);
+
+  // Effect to handle continuous tracking when enabled
+  useEffect(() => {
+    if (showYou && myTracksEnabled && userLocStatus === 'active' && !watchIdRef.current) {
+      // Start watching position for track updates
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (position) => {
+          const now = Date.now();
+          const { latitude: lat, longitude: lon, accuracy } = position.coords;
+          
+          // Update location
+          const newLoc = { lat, lon, accuracy, updatedAt: now };
+          setUserLoc(newLoc);
+          
+          // Update track every 30 seconds
+          if (now - lastTrackUpdateRef.current >= 30000) {
+            appendMyTrack(lon, lat);
+            lastTrackUpdateRef.current = now;
+          }
+          
+          // Update dot on map
+          if (map) {
+            drawOrUpdateUserDot(lon, lat, accuracy);
+          }
+        },
+        (error) => {
+          console.error('Track watch error:', error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+    
+    // Cleanup watch when disabled
+    if ((!showYou || !myTracksEnabled) && watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [showYou, myTracksEnabled, userLocStatus, map, setUserLoc, appendMyTrack]);
 
   return (
     <div className="absolute left-4 top-24 z-10 space-y-4 pointer-events-none">

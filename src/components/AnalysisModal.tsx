@@ -258,6 +258,52 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
             </div>
           )}
           
+          {/* Presence Summary - New Section */}
+          {(analysis as any)?.presence && (
+            <div className="col-span-2 bg-gradient-to-br from-slate-900/90 to-slate-800/90 rounded-xl p-4 border border-cyan-500/30">
+              <h3 className="text-cyan-300 font-bold mb-3 flex items-center gap-2">
+                <Activity size={20} className="text-cyan-400" />
+                Vessel Activity Summary
+              </h3>
+              <div className="space-y-2 text-sm">
+                {/* Your Vessel */}
+                <div className="flex items-start gap-2">
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full mt-1.5" />
+                  <div className="text-gray-300">
+                    <span className="font-medium text-emerald-400">Your Vessel:</span>{' '}
+                    {(analysis as any).presence.user?.present 
+                      ? `Your vessel recorded ${(analysis as any).presence.user.points?.length || 0} fixes here in the last 24-48h.`
+                      : 'No recent positions from your vessel in this area.'}
+                  </div>
+                </div>
+                
+                {/* Fleet Vessels */}
+                <div className="flex items-start gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full mt-1.5" />
+                  <div className="text-gray-300">
+                    <span className="font-medium text-blue-400">Fleet ({selectedInletId || 'All'}):</span>{' '}
+                    {(analysis as any).presence.fleet && (analysis as any).presence.fleet.count > 0
+                      ? `There have been ${(analysis as any).presence.fleet.count} vessels from your inlet in this area over the last ${(analysis as any).presence.fleet.daysWithPresence?.length || 0} days (${(analysis as any).presence.fleet.consecutiveDays} consecutive days).`
+                      : 'No vessels from your inlet have been in this area.'}
+                  </div>
+                </div>
+                
+                {/* Commercial Vessels */}
+                {(analysis as any)?.gfw && (
+                  <div className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-red-400 rounded-full mt-1.5" />
+                    <div className="text-gray-300">
+                      <span className="font-medium text-red-400">Commercial (GFW):</span>{' '}
+                      {(analysis as any).gfw.counts ? 
+                        `Detected ${(analysis as any).gfw.counts.longliner} longliners, ${(analysis as any).gfw.counts.drifting_longline} drifting longline, ${(analysis as any).gfw.counts.trawler} trawlers in the last 4 days.`
+                        : 'No recent commercial activity detected.'}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           {/* Comprehensive Analysis - Full Width at Top */}
           {(comprehensiveAnalysis || (analysis as any)?.narrative) && (
             <div className="col-span-2 bg-gradient-to-br from-slate-900/90 to-slate-800/90 rounded-xl p-4 border border-cyan-500/30">
@@ -281,6 +327,31 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
                   {comprehensiveAnalysis.recommendation}
                 </div>
               )}
+            </div>
+          )}
+          
+          {/* Hotspots Alert if detected - full width */}
+          {(analysis as any)?.hotspots && (analysis as any).hotspots.length > 0 && (
+            <div className="col-span-2 bg-gradient-to-r from-cyan-500/20 via-green-500/20 to-cyan-500/20 rounded-xl p-4 border-2 border-cyan-400/50">
+              <h3 className="text-cyan-300 font-bold mb-2 flex items-center gap-2">
+                <Target size={20} className="text-cyan-300 drop-shadow-[0_0_10px_rgba(103,232,249,0.9)]" />
+                HOTSPOTS DETECTED
+              </h3>
+              <div className="space-y-2">
+                {(analysis as any).hotspots.map((hotspot: any, idx: number) => (
+                  <div key={idx} className="text-white">
+                    <span className="font-semibold capitalize">{hotspot.type.replace('-', ' ')}</span> - 
+                    <span className={`ml-2 ${
+                      hotspot.strength === 'strong' ? 'text-red-400' : 
+                      hotspot.strength === 'moderate' ? 'text-yellow-400' : 
+                      'text-green-400'
+                    }`}>
+                      {hotspot.strength} strength
+                    </span>
+                    {hotspot.notes && <span className="text-gray-300 text-sm ml-2">({hotspot.notes})</span>}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           

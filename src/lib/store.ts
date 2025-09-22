@@ -28,6 +28,19 @@ interface AppState {
   restrictToInlet: boolean;
   restrictOverride?: boolean | null;
   setRestrictOverride: (v: boolean | null) => void;
+  
+  // Vessel tracks state
+  myTracksEnabled: boolean;
+  myTrackCoords: Array<[number, number, number]>; // [lon, lat, timestamp]
+  fleetTracksEnabled: boolean;
+  gfwTracksEnabled: boolean;
+  
+  // Track setters
+  setMyTracksEnabled: (v: boolean) => void;
+  setFleetTracksEnabled: (v: boolean) => void;
+  setGfwTracksEnabled: (v: boolean) => void;
+  appendMyTrack: (lon: number, lat: number) => void;
+  clearMyTrack: () => void;
 }
 
 // Initialize restriction from env or localStorage
@@ -67,4 +80,23 @@ export const useAppState = create<AppState>((set, get) => ({
       set({ restrictOverride: v, restrictToInlet: v });
     }
   },
+  
+  // Vessel tracks
+  myTracksEnabled: false,
+  myTrackCoords: [],
+  fleetTracksEnabled: false,
+  gfwTracksEnabled: false,
+  
+  setMyTracksEnabled: (v) => set({ myTracksEnabled: v }),
+  setFleetTracksEnabled: (v) => set({ fleetTracksEnabled: v }),
+  setGfwTracksEnabled: (v) => set({ gfwTracksEnabled: v }),
+  
+  appendMyTrack: (lon, lat) => set((state) => {
+    const ts = Date.now();
+    const newCoords = [...state.myTrackCoords, [lon, lat, ts] as [number, number, number]];
+    // Keep only last 24h @ 30s intervals ≈ 2880 points
+    return { myTrackCoords: newCoords.slice(-2880) };
+  }),
+  
+  clearMyTrack: () => set({ myTrackCoords: [] }),
 }));
