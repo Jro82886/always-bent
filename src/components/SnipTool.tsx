@@ -339,7 +339,7 @@ function visualizeVesselsOnMap(map: mapboxgl.Map, vessels: any[], selectedInlet?
   // Create vessel markers and tracks matching the tracking page style
   vessels.forEach(vessel => {
     
-    const style = getVesselStyle(vessel, selectedInlet);
+    const style = getVesselStyle(vessel);
     
     // Add vessel track if available
     if (vessel.track && vessel.track.length > 1) {
@@ -824,11 +824,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       // Build vessel data in expected format
       const vesselData = {
         tracks: vesselsInBounds.flatMap(v => v.track || [[v.position[0], v.position[1]]]),
-        summary: vesselTracksData.summary || vesselSummary.summary,
-        total: vesselSummary.totalVessels,
-        userVessels: vesselSummary.userVessels,
-        fleetVessels: vesselSummary.fleetVessels,
-        commercialVessels: vesselSummary.commercialVessels,
+        summary: vesselTracksData.summary || vesselSummary,
+        total: vesselsInBounds.length,
+        userVessels: vesselsInBounds.filter(v => v.type === 'user').length,
+        fleetVessels: vesselsInBounds.filter(v => v.type === 'fleet').length,
+        commercialVessels: vesselsInBounds.filter(v => v.type === 'commercial').length,
         reports: vesselTracksData.reports || []
       };
       

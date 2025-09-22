@@ -100,7 +100,7 @@ export function buildNarrativeWithToggles(
         }
         sections.push(`Commercial vessels: ${parts.join(', ')}`);
       } else {
-        sections.push(`${gfw.total} commercial vessel${gfw.total > 1 ? 's' : ''} detected`);
+        sections.push(`${gfw.total} commercial vessel${(gfw.total ?? 0) > 1 ? 's' : ''} detected`);
       }
     } else {
       sections.push('No commercial vessels in area');

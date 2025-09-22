@@ -195,7 +195,7 @@ async function queueBiteAnalysis(bite: any) {
     // Create a small polygon around the bite point (approx 1km radius)
     const point = turf.point([bite.lon, bite.lat]);
     const buffered = turf.buffer(point, 1, { units: 'kilometers' });
-    const polygon = turf.feature(buffered.geometry as GeoJSON.Polygon);
+    const polygon = turf.feature(buffered?.geometry as GeoJSON.Polygon);
     
     // Call the raster sampler for real stats
     let samplerStats = null;

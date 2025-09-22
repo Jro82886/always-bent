@@ -368,20 +368,23 @@ export function getVesselStyle(vessel: Vessel): {
   color: string;
   icon: string;
   size: number;
+  glow?: string;
 } {
   switch (vessel.type) {
     case 'user':
-      return { color: '#10B981', icon: 'user', size: 24 };
+      return { color: '#10B981', icon: 'user', size: 24, glow: 'rgba(16, 185, 129, 0.5)' };
     case 'fleet':
+      const fleetColor = vessel.inlet ? getInletColor(vessel.inlet) : '#3B82F6';
       return { 
-        color: vessel.inlet ? getInletColor(vessel.inlet) : '#3B82F6', 
+        color: fleetColor, 
         icon: 'fleet', 
-        size: 20 
+        size: 20,
+        glow: fleetColor + '80' // Add alpha for glow
       };
     case 'commercial':
-      return { color: '#F59E0B', icon: 'commercial', size: 20 };
+      return { color: '#F59E0B', icon: 'commercial', size: 20, glow: 'rgba(245, 158, 11, 0.5)' };
     default:
-      return { color: '#6B7280', icon: 'default', size: 18 };
+      return { color: '#6B7280', icon: 'default', size: 18, glow: 'rgba(107, 114, 128, 0.5)' };
   }
 }
 

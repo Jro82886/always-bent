@@ -17,7 +17,7 @@ export function BiteSpeciesEditor({
 }: BiteSpeciesEditorProps) {
   const [selectedSpecies, setSelectedSpecies] = useState<string[]>(initialSpecies);
   const [isSaving, setIsSaving] = useState(false);
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const saveSpecies = useCallback(async (species: string[]) => {
     setIsSaving(true);

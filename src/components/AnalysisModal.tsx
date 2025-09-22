@@ -39,18 +39,18 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
         kind: 'snip',
         layers_on: getActiveLayers(),
         stats: {
-          sst_mean: analysis?.stats?.mean_temp_f || 0,
-          sst_min: analysis?.stats?.min_temp_f || 0,
-          sst_max: analysis?.stats?.max_temp_f || 0,
-          chl_midband_pct: analysis?.layerAnalysis?.chl?.midband_pct || 0,
+          sst_mean: (analysis as any)?.samplerStats?.sst_mean || analysis?.stats?.avg_temp_f || 0,
+          sst_min: (analysis as any)?.samplerStats?.sst_min || analysis?.stats?.min_temp_f || 0,
+          sst_max: (analysis as any)?.samplerStats?.sst_max || analysis?.stats?.max_temp_f || 0,
+          chl_midband_pct: (analysis as any)?.samplerStats?.chl_midband_pct || 0,
         },
-        narrative: analysis?.comprehensiveAnalysis || 'Ocean intelligence analysis completed',
+        narrative: (analysis as any)?.narrative || 'Ocean intelligence analysis completed',
         effective_date: new Date().toISOString().split('T')[0],
         client: { app: 'abfi', build: '1.0.0' },
         // Include additional analysis data
         features: analysis?.features || [],
-        vessel_summary: analysis?.vesselTracks || '',
-        edge_analysis: analysis?.edgeAnalysis || null,
+        vessel_summary: (analysis as any)?.vesselTracks || '',
+        edge_analysis: (analysis as any)?.edgeAnalysis || null,
       };
       
       const response = await fetch('/api/reports', {
@@ -64,7 +64,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           payload_json: snipPayload,
           meta: {
             area_km2: analysis?.stats?.area_km2 || 0,
-            bounds: analysis?.bounds || null,
+            bounds: (analysis as any)?.bounds || null,
           }
         })
       });

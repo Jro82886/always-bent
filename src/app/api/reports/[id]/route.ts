@@ -142,7 +142,7 @@ export async function PATCH(
       const species = parseResult.data.species;
       
       // Validate against allowed species
-      const invalidSpecies = species.filter(s => !ALLOWED_SPECIES.includes(s as any));
+      const invalidSpecies = species.filter((s: string) => !ALLOWED_SPECIES.includes(s as any));
       if (invalidSpecies.length > 0) {
         return NextResponse.json({ 
           error: `Invalid species: ${invalidSpecies.join(', ')}`,
