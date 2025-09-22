@@ -1,0 +1,22 @@
+/* DEV ONLY: neutralize potential blockers */
+/* Remove this file after debugging! */
+#chat-drawer, 
+.right-drawer, 
+.modal-backdrop, 
+.full-veil, 
+.snip-review-banner,
+.review-bar,
+[data-review-cta] {
+  pointer-events: none !important;
+}
+
+/* Make sure map is clickable */
+.mapboxgl-canvas {
+  pointer-events: auto !important;
+  z-index: 1;
+}
+
+/* Debug visibility */
+.snipping-active {
+  outline: 2px solid rgba(0, 225, 167, 0.5) !important;
+}

@@ -25,6 +25,13 @@ import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
 import { useAppState } from '@/lib/store';
 import { showToast } from '@/components/ui/Toast';
 
+// --- DEBUG: helper to safely get map ---
+function getMap(): mapboxgl.Map | null {
+  const m = (globalThis as any).mapboxMap ?? (globalThis as any).map ?? null;
+  if (!m) console.warn("[SNIP][DEBUG] No global mapboxMap. Ensure you expose it on map load.");
+  return m;
+}
+
 interface SnipToolProps {
   map: mapboxgl.Map | null;
   onAnalysisComplete: (analysis: AnalysisResult) => void;
@@ -518,6 +525,77 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     setIsDrawing(false);
     console.log('[SnipFlow] Drawing disabled');
   }, [map]);
+  
+  // --- DEBUG: Enhanced start snip with loud logs ---
+  const debugStartSnip = useCallback(() => {
+    console.log("%c[SNIP] Button clicked", "color:#00e1a7;font-weight:bold");
+    const debugMap = getMap();
+    if (!debugMap) return;
+
+    // Clear any stale state
+    try {
+      useAppState.setState((s: any) => ({
+        ...s,
+        analysis: {
+          ...(s.analysis ?? {}),
+          isZoomingToSnip: false,
+          showReviewCta: false,
+          pendingAnalysis: null,
+          narrative: "",
+          lastSnipPolygon: null,
+          lastSnipBBox: null,
+          lastSnipCenter: null,
+          preZoomCamera: null,
+        },
+      }));
+      console.log("[SNIP] Store reset: analysis state cleared");
+    } catch (e) {
+      console.warn("[SNIP] Store reset failed", e);
+    }
+
+    // Force cursor + ensure map is interactable
+    try {
+      const canvas = debugMap.getCanvas();
+      canvas.style.cursor = "crosshair";
+      console.log("[SNIP] Cursor set to crosshair");
+    } catch (e) {
+      console.warn("[SNIP] Could not set cursor", e);
+    }
+
+    // Call the real startDrawing function
+    console.log("[SNIP] Calling startDrawing()...");
+    startDrawing();
+    
+    /* TEMP FALLBACK - Remove after draw is fixed
+    // Uncomment to test with fake data if drawing doesn't work
+    const fake = {
+      polygon: { type: "Polygon", coordinates: [[[ -75, 38 ], [ -75, 38.2 ], [ -74.8, 38.2 ], [ -74.8, 38 ], [ -75, 38 ]]] } as GeoJSON.Polygon,
+      bbox: [ -75, 38, -74.8, 38.2 ] as [number, number, number, number],
+      timeISO: new Date().toISOString(),
+      sst: { mean: 72.1, min: 71.8, max: 72.9, gradient: 1.1 },
+      chl: { mean: 0.19, min: 0.12, max: 0.24, gradient: 0.04 },
+      presence: null,
+      wind: null,
+      swell: null,
+      toggles: { sst:true, chl:true, gfw:false, myTracks:true, fleetTracks:true, gfwTracks:false },
+      polygonMeta: { 
+        bbox: [ -75, 38, -74.8, 38.2 ] as [number, number, number, number], 
+        area_sq_km: 123.4, 
+        centroid: { lat: 38.1, lon: -74.9 } 
+      },
+      obtainedVia: 'snip' as const
+    };
+    // Store it + open modal so you can test end-to-end
+    useAppState.setState(s => ({ 
+      ...s, 
+      analysis: { 
+        ...(s.analysis||{}), 
+        pendingAnalysis: fake, 
+        showReviewCta: true 
+      }}));
+    console.log("[SNIP] TEMP fake analysis injected — click Review or check modal");
+    */
+  }, [startDrawing]);
 
   // Helper function to calculate polygon area in km²
   const polygonAreaKm2 = (geom: GeoJSON.Polygon): number => {
@@ -2146,7 +2224,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       <div className="hidden">
         <button
           data-snip-button
-          onClick={startDrawing}
+          onClick={() => {
+            console.log("%c[SNIP] onClick reached", "color:#46E6D4");
+            debugStartSnip();
+          }}
           className="hidden"
         >
           Start Snipping

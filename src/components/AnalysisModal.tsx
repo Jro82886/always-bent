@@ -80,12 +80,16 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     
     // Re-enable drawing mode after modal closes
     setTimeout(() => {
+      console.log("[SNIP] Re-enable drawing after modal close (Done)");
+      const map = (window as any).mapboxMap || (window as any).map;
+      map?.getCanvas()?.style && (map.getCanvas().style.cursor = "crosshair");
+      
       const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
       if (snipButton) {
         console.log('[SnipFlow] Re-enabling drawing mode from Done button');
         snipButton.click();
       }
-    }, 500);
+    }, 400);
   };
 
   const onSaveReport = async () => {
@@ -233,6 +237,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     
     // Re-enable drawing mode after a short delay
     setTimeout(() => {
+      console.log("[SNIP] Re-enable drawing after modal close (Back to Overview)");
+      const map = (window as any).mapboxMap || (window as any).map;
+      map?.getCanvas()?.style && (map.getCanvas().style.cursor = "crosshair");
+      
       const snipButton = document.querySelector('[data-snip-button]') as HTMLButtonElement;
       if (snipButton) {
         console.log('[SnipFlow] Re-enabling drawing mode from Back to Overview');

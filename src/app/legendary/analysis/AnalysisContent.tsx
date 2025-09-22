@@ -262,6 +262,8 @@ function AnalysisModeContent() {
       // Copernicus credentials are backend-only, frontend doesn't need them
       
       (window as any).map = mapInstance;
+      (globalThis as any).mapboxMap = mapInstance; // DEV: expose for debugging
+      console.log("[DEBUG] mapboxMap exposed on window");
     });
 
     // 🔒 Additional error handling (backup)
