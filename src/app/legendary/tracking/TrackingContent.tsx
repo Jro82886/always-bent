@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import '@/styles/mapbox-controls.css';
 import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import VesselLayerClean from '@/components/tracking/VesselLayerClean';
@@ -173,6 +174,16 @@ function TrackingModeContent() {
           duration: 1500
         });
       }
+      
+      // Add zoom controls (bottom-right)
+      if (!(map.current as any).__navCtl) {
+        const nav = new mapboxgl.NavigationControl({ 
+          showCompass: false, 
+          visualizePitch: false 
+        });
+        map.current!.addControl(nav, 'bottom-right');
+        (map.current as any).__navCtl = nav; // prevent double-add
+      }
 
       setMapFullyReady(true);
       console.log('Map fully ready');
@@ -193,39 +204,34 @@ function TrackingModeContent() {
     };
   }, []); // Empty dependency array - only run once!
 
-  // Update map view when inlet changes
+  // Update data when inlet changes (NO camera movement)
   useEffect(() => {
-    if (!map.current || !mapFullyReady) return;
+    if (!mapFullyReady) return;
     
-    console.log('Inlet changed, updating map view');
-    
-    if (inlet) {
-      console.log('Flying to inlet:', inlet.name);
-      // Zoom to specific inlet
-      map.current.flyTo({
-        center: [inlet.lng!, inlet.lat!],
-        zoom: inlet.zoom,
-        duration: 2000
-      });
-    } else {
-      console.log('Returning to East Coast overview');
-      // Return to East Coast overview
-      map.current.fitBounds(EAST_COAST_BOUNDS, {
-        padding: 40,
-        duration: 2000
-      });
-    }
+    console.log('Inlet changed, updating data only');
+    // Data updates happen in other components (weather, fleet, etc.)
+    // No camera movement on dropdown change
   }, [inlet, mapFullyReady]);
 
   // Handle fly to inlet zoom
   const handleFlyToInlet = () => {
-    if (!map.current || !inlet) return;
+    if (!map.current) return;
     
-    map.current.flyTo({
-      center: [inlet.lng!, inlet.lat!],
-      zoom: inlet.zoom,
-      duration: 2000
-    });
+    if (inlet) {
+      // Use center and zoom for inlet view
+      map.current.flyTo({
+        center: inlet.center,
+        zoom: inlet.zoom,
+        duration: 1200,
+        essential: true
+      });
+    } else {
+      // No inlet selected - go to East Coast overview
+      map.current.fitBounds(EAST_COAST_BOUNDS, {
+        padding: 40,
+        duration: 1200
+      });
+    }
   };
 
   // Clean up global map when component is truly destroyed (page navigation)

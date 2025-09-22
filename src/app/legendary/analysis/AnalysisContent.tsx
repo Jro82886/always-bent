@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import PageWithSuspense from '@/components/PageWithSuspense';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import '@/styles/mapbox-controls.css';
 import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
 import CHLLayer from '@/components/layers/CHLLayer';

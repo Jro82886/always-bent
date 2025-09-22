@@ -1,0 +1,44 @@
+/* Command Bridge Tab Styling with Active Highlight */
+
+.cb-tabs { 
+  display: flex; 
+  gap: 14px; 
+  align-items: center; 
+}
+
+.cb-tab {
+  position: relative; 
+  padding: 8px 12px; 
+  border-radius: 10px;
+  color: #a9bfd1; 
+  text-decoration: none; 
+  transition: background 0.2s, color 0.2s;
+}
+
+.cb-tab:hover { 
+  color: #e6f8ff; 
+}
+
+.cb-tab.is-active {
+  color: #e6f8ff;
+  background: linear-gradient(90deg, rgba(0, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.18) inset;
+}
+
+.cb-tab .cb-underline {
+  position: absolute; 
+  left: 12px; 
+  right: 12px; 
+  bottom: 4px; 
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0));
+  opacity: 0; 
+  transform: scaleX(0.7); 
+  transition: opacity 0.2s, transform 0.2s; 
+  border-radius: 2px;
+}
+
+.cb-tab.is-active .cb-underline { 
+  opacity: 1; 
+  transform: scaleX(1); 
+}

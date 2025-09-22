@@ -1,16 +1,28 @@
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { INLETS } from '@/lib/inlets';
+import * as turf from '@turf/turf';
 
 /**
  * Get the GeoJSON polygon for a specific inlet
+ * For now, creates a bounding box around the inlet center
  */
 export function getInletPolygon(inletId: string): GeoJSON.Polygon | GeoJSON.MultiPolygon | null {
   if (!inletId || inletId === 'overview') return null;
   
   const inlet = INLETS.find(i => i.id === inletId);
-  if (!inlet?.geometry) return null;
+  if (!inlet) return null;
   
-  return inlet.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
+  // Create a bounding box based on zoom level
+  // This is a temporary solution until we have actual inlet geometries
+  const center = inlet.center;
+  const radiusNm = inlet.zoom < 7 ? 100 : inlet.zoom < 7.5 ? 80 : inlet.zoom < 8 ? 60 : 40;
+  const radiusKm = radiusNm * 1.852; // Convert nautical miles to km
+  
+  // Create a circular buffer around the inlet center
+  const point = turf.point(center);
+  const buffered = turf.buffer(point, radiusKm, { units: 'kilometers' });
+  
+  return buffered?.geometry as GeoJSON.Polygon | null;
 }
 
 /**

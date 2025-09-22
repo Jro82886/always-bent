@@ -8,6 +8,7 @@ import { useAppState } from '@/lib/store';
 import { showToast } from '@/components/ui/Toast';
 import { isInsideInlet } from '@/lib/geo/inletBounds';
 import mapboxgl from 'mapbox-gl';
+import '@/styles/vessel-glow.css';
 
 interface TrackingToolbarProps {
   selectedInletId: string | null;
@@ -321,8 +322,12 @@ export default function TrackingToolbar({
                 <div className="text-slate-400">Locating...</div>
               )}
               {userLocStatus === 'active' && userLoc && (
-                <div className="text-cyan-400">
-                  Active • updated {Math.round((Date.now() - userLoc.updatedAt) / 1000)}s ago
+                <div className="flex items-center gap-2">
+                  <div className="vessel-status flex items-center gap-2">
+                    <span className="vessel-dot" />
+                    <span className="text-slate-400 text-xs">Position marker</span>
+                  </div>
+                  <span className="vessel-status-active text-xs">Active</span>
                 </div>
               )}
               {userLocStatus === 'denied' && (
