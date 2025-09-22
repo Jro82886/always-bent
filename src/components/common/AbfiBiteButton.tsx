@@ -44,20 +44,34 @@ export default function AbfiBiteButton({ compact = false, context = 'tracking' a
     }
   };
 
+  // Keyboard: B triggers (when not typing in an input)
+  // Mount once per page; safe in multiple instances due to idempotent handler
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const editing = tag === 'input' || tag === 'textarea' || (e.target as HTMLElement)?.isContentEditable;
+      if (!editing && (e.key === 'b' || e.key === 'B')) {
+        e.preventDefault();
+        handlePress();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handlePress]);
+
   return (
     <button
       onClick={handlePress}
       disabled={busy}
-      className={`relative inline-flex items-center gap-2 ${compact ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'} rounded-md border border-cyan-500/40 text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 transition disabled:opacity-60`}
+      className="abfi-pill"
+      title="Record a bite (B)"
       aria-label="Log ABFI Bite"
+      data-abfi-button
     >
-      <Target className={compact ? 'w-3 h-3' : 'w-4 h-4'} />
-      <span>{busy ? 'Logging…' : 'ABFI'}</span>
-
+      <span className="dot" />
+      <span>{busy ? 'Logging…' : 'ABFI Bite'}</span>
       {pendingBitesCount > 0 && (
-        <span className="absolute -top-1 -right-1 text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-400 text-gray-900 border border-cyan-300/60 shadow">
-          {pendingBitesCount}
-        </span>
+        <span className="abfi-badge">{pendingBitesCount}</span>
       )}
     </button>
   );

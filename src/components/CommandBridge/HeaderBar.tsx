@@ -11,6 +11,7 @@ import '@/styles/command-bridge-tabs.css';
 import { useAppState } from '@/lib/store';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import AbfiBiteButton from '@/components/common/AbfiBiteButton';
+import '@/styles/abfi.css';
 
 interface HeaderBarProps {
   activeMode?: string;

@@ -1,0 +1,64 @@
+/* ABFI pill polish */
+.abfi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem .9rem;
+  border-radius: 999px;
+  background: rgba(0, 225, 167, .12);
+  border: 1px solid rgba(0,225,167,.45);
+  box-shadow:
+    0 0 12px rgba(0,225,167,.25),
+    inset 0 0 14px rgba(0,225,167,.10);
+  font-weight: 700;
+  letter-spacing: .25px;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  position: relative;
+  isolation: isolate;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s;
+}
+
+.abfi-pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00E1A7;
+  box-shadow: 0 0 12px #00E1A7;
+}
+
+@keyframes abfiPulse {
+  0%{opacity:.3; transform:scale(.98)}
+  70%{opacity:.8; transform:scale(1)}
+  100%{opacity:.3; transform:scale(.98)}
+}
+.abfi-pill::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  background: radial-gradient(60% 60% at 50% 50%, rgba(0,225,167,.20), transparent 70%);
+  animation: abfiPulse 2.2s ease-in-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.abfi-pill:hover { transform: translateY(-1px); }
+.abfi-pill:active { transform: translateY(0); }
+.abfi-pill:disabled { opacity: .6; cursor: not-allowed; }
+
+.abfi-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  margin-left: .35rem;
+  font-size: .75rem;
+  border-radius: 999px;
+  background: #0B1320;
+  color: #00E1A7;
+  border: 1px solid rgba(0,225,167,.4);
+}
+
+
