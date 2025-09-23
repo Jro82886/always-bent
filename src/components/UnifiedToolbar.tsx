@@ -9,6 +9,7 @@ import {
 import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 import SnipTool from '@/components/SnipTool';
+import NewSnipTool from '@/components/snip/NewSnipTool';
 import type mapboxgl from 'mapbox-gl';
 import type { AnalysisResult } from '@/lib/analysis/types';
 import '@/styles/analysis.css';
@@ -229,11 +230,15 @@ export default function UnifiedToolbar({ map }: UnifiedToolbarProps) {
       {/* Hidden Snip Tool (activated by button) */}
       {map && (
         <div className="hidden">
-          <SnipTool 
-            map={map} 
-            onAnalysisComplete={handleAnalysisComplete}
-            isActive={snipActive}
-          />
+          {process.env.NEXT_PUBLIC_FLAG_NEW_SNIP === '1' ? (
+            <NewSnipTool map={map} />
+          ) : (
+            <SnipTool 
+              map={map} 
+              onAnalysisComplete={handleAnalysisComplete}
+              isActive={snipActive}
+            />
+          )}
         </div>
       )}
     </div>
