@@ -36,7 +36,6 @@ export default function NewSnipTool({ map }: Props) {
   // Get store actions
   const setAnalysis = useAppState(s => s.setAnalysis);
   const resetAnalysisTransient = useAppState(s => s.resetAnalysisTransient);
-  const activeLayers = useAppState(s => s.activeLayers);
   const myTracksEnabled = useAppState(s => s.myTracksEnabled);
   const fleetTracksEnabled = useAppState(s => s.fleetTracksEnabled);
   const gfwTracksEnabled = useAppState(s => s.gfwTracksEnabled);
@@ -96,9 +95,16 @@ export default function NewSnipTool({ map }: Props) {
 
     // 4) Build minimal analysis scaffold
     const timeISO = new Date().toISOString();
+    
+    // Check which layers are active by looking at the map
+    const activeLayers = {
+      sst: map!.getLayer('sst-lyr') && map!.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
+      chl: map!.getLayer('chl-lyr') && map!.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+    };
+    
     const toggles = {
-      sst: !!activeLayers?.sst,
-      chl: !!activeLayers?.chl,
+      sst: activeLayers.sst || false,
+      chl: activeLayers.chl || false,
       gfw: false, // GFW is disabled for now
       myTracks: myTracksEnabled,
       fleetTracks: fleetTracksEnabled,
@@ -112,9 +118,18 @@ export default function NewSnipTool({ map }: Props) {
       timeISO,
       sst: null,
       chl: null,
-      gfw: null,
+      wind: null,
+      swell: null,
+      presence: null,
       toggles,
+      polygonMeta: {
+        bbox: res.bbox,
+        area_sq_km: 0, // Will be calculated when Review is clicked
+        centroid: res.center,
+      },
       notes: undefined,
+      narrative: undefined,
+      obtainedVia: 'snip',
     };
 
     // 5) Update state to show Review CTA
@@ -125,7 +140,7 @@ export default function NewSnipTool({ map }: Props) {
     });
 
     setArm(false);
-  }, [map, setAnalysis, activeLayers, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled]);
+  }, [map, setAnalysis, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled]);
 
   if (!map) {
     return (
