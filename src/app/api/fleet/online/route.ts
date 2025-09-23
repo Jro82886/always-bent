@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -13,11 +13,12 @@ export async function GET(request: NextRequest) {
   }
   
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error('Supabase configuration missing');
-    return NextResponse.json([]); // Soft fail - return empty array
+    // Build/Runtime guard: if envs missing, do not crash
+    return NextResponse.json([]);
   }
   
-  // Using imported supabase client
+  // Create Supabase client (server-side) with service role key
+  const supabase = createClient(supabaseUrl, supabaseServiceKey)
   
   try {
     // Get vessels online in the last 10 minutes
