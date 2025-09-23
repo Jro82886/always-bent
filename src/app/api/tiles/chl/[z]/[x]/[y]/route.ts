@@ -10,7 +10,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const y = resolvedParams.y.replace('.png',''); // sanitize
   
   // EXACTLY like SST - use Copernicus WMTS
-  const base = process.env.CMEMS_CHL_WMTS_TEMPLATE;
+  // Prefer NEXT_PUBLIC version (NRT data) over CMEMS version (MY data)
+  const base = process.env.NEXT_PUBLIC_CHL_WMTS_TEMPLATE || process.env.CMEMS_CHL_WMTS_TEMPLATE;
   
   // Debug logging
 
@@ -70,11 +71,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     [timeParam]; // Only try the specific date requested
 
   for (const tryTime of datesToTry) {
+    // Extract just the date part (YYYY-MM-DD) for TIME substitution
+    const dateOnly = tryTime.split('T')[0];
     let target = base
       .replace('{z}', z)
       .replace('{x}', x)
       .replace('{y}', y)
-      .replace('{TIME}', tryTime);
+      .replace('{TIME}', dateOnly);
     
     // Support style override (e.g., viridis test)
     if (qStyle && qStyle !== 'turbo') {

@@ -13,8 +13,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const x = resolvedParams.x;
   const y = resolvedParams.y.replace('.png',''); // sanitize
   const isSst = req.nextUrl.pathname.includes('/sst/');
+  // Try both naming conventions for backward compatibility
   const tplKey = isSst ? 'CMEMS_SST_WMTS_TEMPLATE' : 'CMEMS_CHL_WMTS_TEMPLATE';
-  const base = process.env[tplKey];
+  const publicTplKey = isSst ? 'NEXT_PUBLIC_SST_WMTS_TEMPLATE' : 'NEXT_PUBLIC_CHL_WMTS_TEMPLATE';
+  const base = process.env[tplKey] || process.env[publicTplKey];
 
   // DEBUG LOGGING
   
@@ -72,11 +74,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     [timeParam]; // Only try the specific date requested
 
   for (const tryTime of datesToTry) {
+    // Extract just the date part (YYYY-MM-DD) for TIME substitution
+    const dateOnly = tryTime.split('T')[0];
     const target = base
       .replace('{z}', z)
       .replace('{x}', x)
     .replace('{y}', y)
-    .replace('{TIME}', tryTime);
+    .replace('{TIME}', dateOnly);
     
     // Attempt to fetch from upstream
 

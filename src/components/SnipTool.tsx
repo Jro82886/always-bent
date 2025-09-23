@@ -2306,17 +2306,25 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         </div>
       )}
       
-      <div className="hidden">
-        <button
-          data-snip-button
-          onClick={() => {
-            console.log('%c[SNIP] onClick', 'color:#0bd');
-            startSnip();
-          }}
-          className="hidden"
-        >
-          Start Snipping
-        </button>
+      {/* Main Draw Analysis Area Button - Bottom Center */}
+      {!isDrawing && !isAnalyzing && !showReviewBar && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[1000]">
+          <button
+            data-snip-button
+            onClick={() => {
+              console.log('%c[SNIP] Draw Analysis Area clicked', 'color:#0bd');
+              startSnip();
+            }}
+            className="px-6 py-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 
+                     text-cyan-300 font-semibold rounded-lg border border-cyan-500/30 
+                     transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/20 
+                     flex items-center gap-2 backdrop-blur-md"
+          >
+            <Target size={18} />
+            <span>Draw Analysis Area</span>
+          </button>
+        </div>
+      )}
         
         {/* Enhanced guide positioned near the rectangle */}
         {/* Completion banner removed - analysis modal handles notification */}

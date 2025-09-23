@@ -246,17 +246,15 @@ export default function UnifiedCommandCenter({
                 </span>
               </div>
               
-              {/* OLD SNIP BUTTON - HIDDEN - Use the bottom center button instead!
+              {/* Alternative Snip Button - In Command Center */}
               <button
-                data-snip-button
                 className="w-full px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 text-cyan-300 font-semibold rounded-lg border border-cyan-500/30 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/20 flex items-center justify-center gap-2"
                 aria-label="Draw analysis area"
                 onClick={startSnipSafe}
               >
                 <span className="text-lg">▢</span>
-                <span>Draw Analysis Area (OLD - BROKEN)</span>
+                <span>Draw Analysis Area</span>
               </button>
-              */}
               
               {/* Quick instructions */}
               <div className="text-center text-[11px] text-gray-500">
