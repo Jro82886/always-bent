@@ -49,8 +49,8 @@ function AnalysisModeContent() {
   // Track if analysis modal is open to hide BITE button
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   
-  // NUCLEAR OVERLAY - Enable with env var or always for now
-  const [showSnipOverlay, setShowSnipOverlay] = useState(true); // Always on for now
+  // NUCLEAR OVERLAY - Only show when drawing
+  const [showSnipOverlay, setShowSnipOverlay] = useState(false); // OFF by default!
   
   // Commercial vessels toggle (OFF by default for energy saving)
   const [showCommercial, setShowCommercial] = useState(false);
@@ -458,26 +458,29 @@ function AnalysisModeContent() {
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
-          {/* NUCLEAR SNIP OVERLAY - Bulletproof drawing */}
+          {/* TEMPORARILY DISABLED - Need to fix overlay interference
+          {!showSnipOverlay && (
+            <button
+              onClick={() => setShowSnipOverlay(true)}
+              className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold rounded-lg shadow-2xl transition-all hover:scale-105"
+            >
+              Draw Analysis Area (NEW)
+            </button>
+          )}
+          
           {map.current && showSnipOverlay && (
             <SnipOverlay
               onBox={(bbox) => {
                 console.log('[SNIP OVERLAY] Got bbox:', bbox);
-                // Zoom to the drawn area
+                setShowSnipOverlay(false);
                 map.current?.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { 
                   padding: 40, 
                   duration: 600 
                 });
-                // TODO: Show Review CTA or open modal
-                // For now, just hide overlay after drawing
-                setShowSnipOverlay(false);
-                setTimeout(() => {
-                  // Re-enable for next draw
-                  setShowSnipOverlay(true);
-                }, 2000);
               }}
             />
           )}
+          */}
           
           {/* New User Tutorial - Shows once after welcome */}
           {showingTutorial && !tutorialCompleted && map.current && (
