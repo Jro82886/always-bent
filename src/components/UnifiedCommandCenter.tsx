@@ -4,7 +4,34 @@ import { useState, useEffect, useCallback } from 'react';
 import { Target, ChevronDown, ChevronUp, Map, Navigation, GraduationCap, 
          Thermometer, Wind, Waves, Compass, Eye, Cloud, Activity } from 'lucide-react';
 import { useAppState } from '@/lib/store';
-import { InletWeather, formatWind, formatWaves, assessFishingConditions } from '@/lib/weather/noaa';
+// Weather types and formatters
+interface InletWeather {
+  conditions?: any;
+}
+
+const formatWind = (speed: number, direction: number) => {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const index = Math.round(direction / 45) % 8;
+  return `${Math.round(speed)} kt ${dirs[index]}`;
+};
+
+const formatWaves = (height: number, period: number) => {
+  return `${Math.round(height)}ft @ ${Math.round(period)}s`;
+};
+
+const assessFishingConditions = (conditions: any) => {
+  if (!conditions) return null;
+  // Simple assessment based on wind/waves
+  const windSpeed = conditions.wind_speed || 0;
+  const waveHeight = conditions.wave_height || 0;
+  
+  let rating = 'good';
+  if (windSpeed > 20 || waveHeight > 6) rating = 'poor';
+  else if (windSpeed > 15 || waveHeight > 4) rating = 'fair';
+  else if (windSpeed < 10 && waveHeight < 3) rating = 'excellent';
+  
+  return { rating };
+};
 import { getInletById } from '@/lib/inlets';
 
 interface UnifiedCommandCenterProps {

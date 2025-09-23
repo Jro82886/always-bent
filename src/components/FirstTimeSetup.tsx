@@ -82,7 +82,7 @@ export default function FirstTimeSetup() {
       setFadeIn(false);
       setTimeout(() => {
         setIsVisible(false);
-        router.push('/legendary?mode=analysis');
+        router.push('/legendary/analysis');
       }, 300);
     }, 100);
   };
@@ -202,7 +202,7 @@ export default function FirstTimeSetup() {
                 localStorage.setItem('abfi_setup_complete', 'true');
                 localStorage.setItem('abfi_show_tutorial', 'true');
                 setIsVisible(false);
-                router.push('/legendary?mode=analysis');
+                router.push('/legendary/analysis');
               }}
               className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium py-3 px-6 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center gap-2"
             >
