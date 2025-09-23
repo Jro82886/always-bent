@@ -51,7 +51,7 @@ function AnalysisModeContent() {
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
   
   // Get analysis state from store
-  const { analysis, set } = useAppState();
+  const { analysis, setAnalysis, resetAnalysisTransient } = useAppState();
   
   // NUCLEAR OVERLAY - Only show when drawing
   const [showSnipOverlay, setShowSnipOverlay] = useState(false); // OFF by default!
@@ -470,8 +470,43 @@ function AnalysisModeContent() {
                   Area selected • Ready to analyze
                 </span>
                 <button
-                  onClick={() => {
-                    console.log('[Analysis] Opening modal with pending analysis');
+                  onClick={async () => {
+                    console.log('[Analysis] Review clicked, fetching data and building narrative');
+                    
+                    if (!analysis?.pendingAnalysis) return;
+                    
+                    // Fetch SST/CHL data if toggled
+                    const { sample } = require('@/lib/analysis/sampler');
+                    const updatedAnalysis = { ...analysis.pendingAnalysis };
+                    
+                    // Fetch in parallel if toggled
+                    const promises = [];
+                    if (updatedAnalysis.toggles.sst) {
+                      promises.push(sample('sst', updatedAnalysis.polygon).then(data => {
+                        updatedAnalysis.sst = data;
+                      }));
+                    }
+                    if (updatedAnalysis.toggles.chl) {
+                      promises.push(sample('chl', updatedAnalysis.polygon).then(data => {
+                        updatedAnalysis.chl = data;
+                      }));
+                    }
+                    
+                    // Wait for data
+                    await Promise.all(promises);
+                    
+                    // Build narrative with fetched data
+                    const { buildNarrative } = require('@/lib/analysis/narrative-builder');
+                    const narrative = buildNarrative(updatedAnalysis);
+                    updatedAnalysis.narrative = narrative;
+                    
+                    console.log('[Analysis] Data fetched, narrative built:', narrative);
+                    
+                    // Update state with complete analysis
+                    setAnalysis({
+                      pendingAnalysis: updatedAnalysis
+                    });
+                    
                     setIsAnalysisModalOpen(true);
                   }}
                   className="px-4 py-2 bg-emerald-500/90 hover:bg-emerald-500 text-slate-900 font-semibold rounded-lg 
@@ -482,14 +517,7 @@ function AnalysisModeContent() {
                 <button
                   onClick={() => {
                     // Reset the analysis state
-                    set((s) => ({
-                      ...s,
-                      analysis: {
-                        ...s.analysis,
-                        showReviewCta: false,
-                        pendingAnalysis: null,
-                      }
-                    }));
+                    resetAnalysisTransient();
                   }}
                   className="px-3 py-2 text-gray-400 hover:text-white transition-colors"
                 >
@@ -502,18 +530,14 @@ function AnalysisModeContent() {
           {/* Analysis Modal - Shows when review is clicked */}
           {isAnalysisModalOpen && analysis?.pendingAnalysis && (
             <AnalysisModal
-              analysis={analysis.pendingAnalysis}
+              analysis={{
+                ...analysis.pendingAnalysis,
+                narrative: analysis.pendingAnalysis.narrative || 'Analyzing ocean conditions...'
+              }}
               onClose={() => {
                 setIsAnalysisModalOpen(false);
                 // Reset the analysis state
-                set((s) => ({
-                  ...s,
-                  analysis: {
-                    ...s.analysis,
-                    showReviewCta: false,
-                    pendingAnalysis: null,
-                  }
-                }));
+                resetAnalysisTransient();
               }}
             />
           )}
