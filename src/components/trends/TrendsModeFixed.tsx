@@ -129,11 +129,14 @@ export default function TrendsMode() {
   
   const [timeRange, setTimeRange] = useState<TimeRange>('1d');
   const [trendsData, setTrendsData] = useState<TrendsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false to show UI immediately
   const [error, setError] = useState<string | null>(null);
   
   const fetchTrendsData = async () => {
-    if (!selectedInletId) return;
+    if (!selectedInletId) {
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     setError(null);
@@ -270,8 +273,18 @@ export default function TrendsMode() {
         {/* Section Header - separated from pills */}
         <SectionHeader title="OCEAN INTELLIGENCE OVERVIEW" />
         
+        {/* Show inlet selection message if no inlet selected */}
+        {!selectedInletId && !loading && (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <MapPin className="h-12 w-12 text-cyan-400 mx-auto mb-4 opacity-50" />
+              <p className="text-gray-400 text-lg">Please select an inlet to view trends</p>
+            </div>
+          </div>
+        )}
+        
         {/* Always show some content for debugging */}
-        {!trendsData && !loading && !error && (
+        {!trendsData && !loading && !error && selectedInletId && (
           <div className="px-4 md:px-6 pb-8">
             <div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2">
               <Card className="h-[260px]">
