@@ -164,10 +164,10 @@ export function storeInCache(key: string, data: any): void {
  */
 export async function processBatch<T, R>(
   items: T[],
-  processor: (item: T) => Promise<R>,
+  processor: (item: T) => Promise<R | null>,
   maxConcurrent: number = MAX_CONCURRENT
-): Promise<R[]> {
-  const results: R[] = [];
+): Promise<(R | null)[]> {
+  const results: (R | null)[] = [];
   
   for (let i = 0; i < items.length; i += maxConcurrent) {
     const batch = items.slice(i, i + maxConcurrent);
