@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { gfwEnabled } from '@/lib/features/gfw';
 
 export const runtime = 'nodejs';
-const TIMEOUT_MS = 15000;
+const TIMEOUT_MS = 30000; // 30 seconds as per brief
 
 type Ok<T> = { ok: true; data: T };
 type Err = { ok: false; stage: string; error: string };
@@ -78,56 +78,76 @@ function gfwUpstreamUrl({ inletId, bbox, days }: { inletId?: string; bbox?: stri
   return `${base}?${params}`;
 }
 
-// Normalize GFW response to our expected format
-function normalize(payload: any) {
-  const vessels = (payload?.entries ?? []).map((entry: any) => {
-    const vessel = entry.vessel || {};
-    const positions = entry.positions || [];
+// Normalize GFW response to our expected format (as per brief)
+function normalizeGFW(up: any) {
+  console.log('[GFW] Raw upstream shape:', {
+    hasEntries: !!up?.entries,
+    entriesCount: up?.entries?.length || 0,
+    firstEntry: up?.entries?.[0] ? Object.keys(up.entries[0]) : null
+  });
+
+  const vessels = (up?.entries ?? up?.vessels ?? []).map((entry: any) => {
+    // Handle various possible structures
+    const v = entry.vessel || entry;
+    const positions = entry.positions || v.positions || v.track || v.coords || [];
     
-    // Get gear type
-    let gear = 'unknown';
-    const gearType = vessel.geartype?.toLowerCase() || '';
+    // Get gear type - be flexible with naming
+    let gear: 'trawler' | 'longliner' | 'drifting_longline' = 'trawler';
+    const gearStr = (v.geartype || v.gear || v.type || v.activity || '').toLowerCase();
     
-    if (gearType.includes('longline') || gearType.includes('set_longlines')) {
-      gear = 'longliner';
-    } else if (gearType.includes('drifting_longlines')) {
+    if (gearStr.includes('drifting')) {
       gear = 'drifting_longline';
-    } else if (gearType.includes('trawl')) {
+    } else if (gearStr.includes('longline') || gearStr.includes('set_longline')) {
+      gear = 'longliner';
+    } else if (gearStr.includes('trawl')) {
       gear = 'trawler';
     }
     
     // Get last position
-    const lastPos = positions[positions.length - 1];
+    const last = positions[positions.length - 1];
     
     return {
-      id: vessel.id || entry.id || crypto.randomUUID(),
-      name: vessel.shipname || 'Unknown Vessel',
+      id: String(v.id || entry.id || v.vessel_id || crypto.randomUUID()),
+      name: v.shipname || v.name || v.callsign || v.mmsi || 'Unknown',
       gear,
-      last_pos: lastPos ? {
-        lon: lastPos.lon,
-        lat: lastPos.lat,
-        t: lastPos.timestamp
-      } : null,
-      track: positions.map((pos: any) => ({
-        lon: pos.lon,
-        lat: pos.lat,
-        t: pos.timestamp
+      last_pos: last ? {
+        lon: Number(last.lon || last.longitude),
+        lat: Number(last.lat || last.latitude),
+        t: String(last.timestamp || last.t || last.time || new Date().toISOString())
+      } : { lon: 0, lat: 0, t: new Date().toISOString() },
+      track: positions.map((p: any) => ({
+        lon: Number(p.lon || p.longitude),
+        lat: Number(p.lat || p.latitude),
+        t: String(p.timestamp || p.t || p.time || '')
       }))
     };
-  }).filter((v: any) => v.last_pos); // Only vessels with positions
+  }).filter((v: any) => v.last_pos && v.last_pos.lon !== 0);
   
-  // Extract fishing events
-  const events = (payload?.entries ?? []).flatMap((entry: any) => {
-    const fishingEvents = entry.events?.filter((e: any) => 
-      e.type === 'fishing' || e.type === 'apparent_fishing'
-    ) || [];
-    
-    return fishingEvents.map((event: any) => ({
-      lon: event.position?.lon,
-      lat: event.position?.lat,
-      t: event.start,
-      type: 'fishing'
-    })).filter((e: any) => e.lon && e.lat);
+  // Extract events
+  const events = Array.isArray(up?.events) ? up.events : 
+    (up?.entries ?? []).flatMap((entry: any) => {
+      const fishingEvents = entry.events?.filter((e: any) => 
+        e.type === 'fishing' || e.type === 'apparent_fishing'
+      ) || [];
+      
+      return fishingEvents.map((event: any) => ({
+        lon: Number(event.position?.lon || event.lon),
+        lat: Number(event.position?.lat || event.lat),
+        t: event.start || event.timestamp,
+        type: 'fishing'
+      })).filter((e: any) => e.lon && e.lat);
+    });
+  
+  console.log('[GFW] Normalized:', { 
+    vesselsCount: vessels.length,
+    firstVessel: vessels[0] ? {
+      id: vessels[0].id,
+      name: vessels[0].name,
+      gear: vessels[0].gear,
+      hasLastPos: !!vessels[0].last_pos,
+      trackLength: vessels[0].track.length
+    } : null,
+    eventsCount: events.length 
   });
   
   return { vessels, events };
@@ -136,22 +156,62 @@ function normalize(payload: any) {
 export async function GET(req: Request) {
   if (!gfwEnabled) {
     return NextResponse.json({
-      ok: true,
       configured: false,
       reason: 'disabled-by-flag',
+      vessels: [],
+      events: []
     });
   }
   
   const { inletId, bbox, days } = parseParams(req);
   console.log('[GFW] params', { inletId, bbox, days });
 
+  // Demo mode fallback
+  if (process.env.NEXT_PUBLIC_GFW_DEMO === '1') {
+    console.log('[GFW] Demo mode active');
+    return NextResponse.json({
+      vessels: [{
+        id: 'demo-1',
+        name: 'Demo Longliner',
+        gear: 'longliner',
+        last_pos: { lon: -74.9, lat: 38.3, t: new Date().toISOString() },
+        track: [
+          { lon: -75, lat: 38.2, t: new Date(Date.now() - 3600000).toISOString() },
+          { lon: -74.95, lat: 38.25, t: new Date(Date.now() - 1800000).toISOString() },
+          { lon: -74.9, lat: 38.3, t: new Date().toISOString() }
+        ]
+      }, {
+        id: 'demo-2',
+        name: 'Demo Trawler',
+        gear: 'trawler',
+        last_pos: { lon: -74.7, lat: 38.5, t: new Date().toISOString() },
+        track: [
+          { lon: -74.8, lat: 38.4, t: new Date(Date.now() - 3600000).toISOString() },
+          { lon: -74.75, lat: 38.45, t: new Date(Date.now() - 1800000).toISOString() },
+          { lon: -74.7, lat: 38.5, t: new Date().toISOString() }
+        ]
+      }],
+      events: []
+    });
+  }
+
   const token = process.env.GFW_API_TOKEN;
   if (!token) {
-    return ok({ configured: false, vessels: [], events: [] });
+    console.log('[GFW] No token configured');
+    return NextResponse.json({ 
+      configured: false, 
+      vessels: [], 
+      events: [] 
+    });
   }
 
   if (!inletId && !bbox) {
-    return err('params', 'missing inlet_id/inletId or bbox', 200);
+    console.log('[GFW] Missing params');
+    return NextResponse.json({ 
+      error: 'missing inlet_id/inletId or bbox',
+      vessels: [], 
+      events: [] 
+    });
   }
 
   const url = gfwUpstreamUrl({ inletId, bbox, days });
@@ -170,7 +230,12 @@ export async function GET(req: Request) {
 
     if (!res.ok) {
       const text = await res.text().catch(() => '<no body>');
-      return err('upstream', `status=${res.status} body=${text.slice(0, 400)}`, 200);
+      console.error('[GFW] upstream error:', res.status, text.slice(0, 400));
+      return NextResponse.json({ 
+        error: `upstream ${res.status}`,
+        vessels: [], 
+        events: [] 
+      });
     }
 
     const raw = await res.json().catch(async () => {
@@ -178,11 +243,17 @@ export async function GET(req: Request) {
       throw new Error(`non-json body: ${t.slice(0, 200)}`);
     });
 
-    const data = normalize(raw);
-    console.log('[GFW] normalize', { vessels: data.vessels.length, events: data.events.length });
+    const data = normalizeGFW(raw);
+    console.log('[GFW] Success - returning', { vessels: data.vessels.length, events: data.events.length });
 
-    return ok(data);
+    // Return the normalized data directly (not wrapped)
+    return NextResponse.json(data);
   } catch (e: any) {
-    return err('catch', e?.message || String(e));
+    console.error('[GFW] Exception:', e?.message || String(e));
+    return NextResponse.json({ 
+      error: e?.message || String(e),
+      vessels: [], 
+      events: [] 
+    });
   }
 }
