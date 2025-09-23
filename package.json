@@ -35,6 +35,7 @@
     "date-fns": "^4.1.0",
     "fast-xml-parser": "^5.2.5",
     "idb": "^8.0.3",
+    "jose": "^6.1.0",
     "lucide-react": "^0.544.0",
     "mapbox-gl": "^3.14.0",
     "nanoid": "^5.1.5",
