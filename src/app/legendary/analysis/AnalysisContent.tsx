@@ -27,6 +27,7 @@ import { useInletFromURL } from '@/hooks/useInletFromURL';
 import '@/styles/mapSmoothing.css';
 // CLEAN SNIP OVERLAY - Working version
 import CleanSnipOverlay from '@/components/snip/CleanSnipOverlay';
+import AnalysisModal from '@/components/AnalysisModal';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
@@ -48,6 +49,9 @@ function AnalysisModeContent() {
   
   // Track if analysis modal is open to hide BITE button
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
+  
+  // Get analysis state from store
+  const { analysis, set } = useAppState();
   
   // NUCLEAR OVERLAY - Only show when drawing
   const [showSnipOverlay, setShowSnipOverlay] = useState(false); // OFF by default!
@@ -458,17 +462,60 @@ function AnalysisModeContent() {
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
-          {/* WORKING SNIP IMPLEMENTATION */}
-          {!showSnipOverlay && (
-            <button
-              onClick={() => {
-                console.log('[Analysis] Activating snip overlay');
-                setShowSnipOverlay(true);
+          {/* Review CTA - Shows after snip completes */}
+          {analysis?.showReviewCta && analysis?.pendingAnalysis && (
+            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-cyan-500/30 p-4">
+              <div className="flex items-center gap-4">
+                <span className="text-gray-300">
+                  Area selected • Ready to analyze
+                </span>
+                <button
+                  onClick={() => {
+                    console.log('[Analysis] Opening modal with pending analysis');
+                    setIsAnalysisModalOpen(true);
+                  }}
+                  className="px-4 py-2 bg-emerald-500/90 hover:bg-emerald-500 text-slate-900 font-semibold rounded-lg 
+                           shadow-[0_0_20px_#00e1a780] transition-all transform hover:scale-105"
+                >
+                  Review analysis
+                </button>
+                <button
+                  onClick={() => {
+                    // Reset the analysis state
+                    set((s) => ({
+                      ...s,
+                      analysis: {
+                        ...s.analysis,
+                        showReviewCta: false,
+                        pendingAnalysis: null,
+                      }
+                    }));
+                  }}
+                  className="px-3 py-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Analysis Modal - Shows when review is clicked */}
+          {isAnalysisModalOpen && analysis?.pendingAnalysis && (
+            <AnalysisModal
+              analysis={analysis.pendingAnalysis}
+              onClose={() => {
+                setIsAnalysisModalOpen(false);
+                // Reset the analysis state
+                set((s) => ({
+                  ...s,
+                  analysis: {
+                    ...s.analysis,
+                    showReviewCta: false,
+                    pendingAnalysis: null,
+                  }
+                }));
               }}
-              className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold rounded-lg shadow-2xl transition-all hover:scale-105"
-            >
-              Draw Analysis Area
-            </button>
+            />
           )}
           
           {/* Clean Snip Overlay - Only renders when active */}
