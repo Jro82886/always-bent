@@ -2,6 +2,7 @@
 
 // DO NOT touch window/mapbox here
 import dynamic from 'next/dynamic';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const AnalysisContent = dynamic(() => import('./AnalysisContent'), {
   ssr: false,
@@ -22,9 +23,9 @@ export default function AnalysisPage() {
     (typeof window !== 'undefined' && window.location.search.includes('debug=true'));
 
   return (
-    <>
+    <ErrorBoundary>
       <AnalysisContent />
       {showDebug && <SnipToolDebug />}
-    </>
+    </ErrorBoundary>
   );
 }
