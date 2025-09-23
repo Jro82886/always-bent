@@ -28,6 +28,7 @@ import '@/styles/mapSmoothing.css';
 // CLEAN SNIP OVERLAY - Working version
 import CleanSnipOverlay from '@/components/snip/CleanSnipOverlay';
 import AnalysisModal from '@/components/AnalysisModal';
+import SnipTool from '@/components/SnipTool';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
@@ -631,6 +632,17 @@ function AnalysisModeContent() {
 
           {/* Offline Manager - Handles offline capabilities */}
           <OfflineManager />
+          
+          {/* SnipTool - Handles polygon drawing for analysis */}
+          {map.current && (
+            <SnipTool 
+              map={map.current}
+              onAnalysisComplete={(analysis) => {
+                // Analysis complete handler - modal will open from SnipTool
+                console.log('[Analysis] Complete:', analysis);
+              }}
+            />
+          )}
           
       </>
       
