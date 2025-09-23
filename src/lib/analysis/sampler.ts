@@ -16,24 +16,35 @@ export async function sample(
     
     if (!response.ok) {
       console.error(`[Sampler] HTTP ${response.status} for ${layer}`);
+      // Check if it's a "no data available" response
+      const errorData = await response.json().catch(() => null);
+      if (errorData?.noDataAvailable) {
+        console.warn(`[Sampler] No live data available for ${layer}`);
+      }
       return null;
     }
     
     const json = await response.json().catch(() => ({}));
     
-    // Extract the relevant layer data
-    const data = json[layer];
+    // Extract stats from the actual API response format
+    const stats = json.stats || {};
+    const prefix = layer === 'sst' ? 'sst_' : 'chl_';
     
-    if (!data || typeof data.mean !== 'number') {
-      console.warn(`[Sampler] No valid data for ${layer}:`, data);
+    const mean = stats[`${prefix}mean`];
+    const min = stats[`${prefix}min`];
+    const max = stats[`${prefix}max`];
+    
+    // Check if we have valid data
+    if (typeof mean !== 'number' || json.meta?.nodata_pct === 1) {
+      console.warn(`[Sampler] No valid data for ${layer}, nodata_pct:`, json.meta?.nodata_pct);
       return null;
     }
     
     return {
-      mean: data.mean,
-      min: data.min,
-      max: data.max,
-      gradient: data.gradient || (data.max - data.min)
+      mean,
+      min,
+      max,
+      gradient: max - min
     };
   } catch (error) {
     console.error(`[Sampler] Error sampling ${layer}:`, error);
