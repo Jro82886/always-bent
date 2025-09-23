@@ -2376,7 +2376,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           )}
         </div>
       )}
-      </div>
     </>
   );
 }
