@@ -25,6 +25,8 @@ import { OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import '@/styles/mapSmoothing.css';
+// NUCLEAR OVERLAY - Temporary but bulletproof
+import SnipOverlay from '@/components/SnipOverlay';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
@@ -46,6 +48,9 @@ function AnalysisModeContent() {
   
   // Track if analysis modal is open to hide BITE button
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
+  
+  // NUCLEAR OVERLAY - Enable with env var or always for now
+  const [showSnipOverlay, setShowSnipOverlay] = useState(true); // Always on for now
   
   // Commercial vessels toggle (OFF by default for energy saving)
   const [showCommercial, setShowCommercial] = useState(false);
@@ -452,6 +457,27 @@ function AnalysisModeContent() {
           
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
+          
+          {/* NUCLEAR SNIP OVERLAY - Bulletproof drawing */}
+          {map.current && showSnipOverlay && (
+            <SnipOverlay
+              onBox={(bbox) => {
+                console.log('[SNIP OVERLAY] Got bbox:', bbox);
+                // Zoom to the drawn area
+                map.current?.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { 
+                  padding: 40, 
+                  duration: 600 
+                });
+                // TODO: Show Review CTA or open modal
+                // For now, just hide overlay after drawing
+                setShowSnipOverlay(false);
+                setTimeout(() => {
+                  // Re-enable for next draw
+                  setShowSnipOverlay(true);
+                }, 2000);
+              }}
+            />
+          )}
           
           {/* New User Tutorial - Shows once after welcome */}
           {showingTutorial && !tutorialCompleted && map.current && (
