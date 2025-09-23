@@ -480,14 +480,14 @@ function AnalysisModeContent() {
                     const updatedAnalysis = { ...analysis.pendingAnalysis };
                     
                     // Fetch in parallel if toggled
-                    const promises = [];
+                    const promises: Promise<void>[] = [];
                     if (updatedAnalysis.toggles.sst) {
-                      promises.push(sample('sst', updatedAnalysis.polygon).then(data => {
+                      promises.push(sample('sst', updatedAnalysis.polygon).then((data: any) => {
                         updatedAnalysis.sst = data;
                       }));
                     }
                     if (updatedAnalysis.toggles.chl) {
-                      promises.push(sample('chl', updatedAnalysis.polygon).then(data => {
+                      promises.push(sample('chl', updatedAnalysis.polygon).then((data: any) => {
                         updatedAnalysis.chl = data;
                       }));
                     }
@@ -534,6 +534,7 @@ function AnalysisModeContent() {
                 ...analysis.pendingAnalysis,
                 narrative: analysis.pendingAnalysis.narrative || 'Analyzing ocean conditions...'
               }}
+              visible={true}
               onClose={() => {
                 setIsAnalysisModalOpen(false);
                 // Reset the analysis state
