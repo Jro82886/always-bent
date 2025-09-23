@@ -40,6 +40,10 @@ export default function SnipToolLite({ map, onOpenAnalysis, getToggles }: Props)
     map.dragRotate.disable();
     map.doubleClickZoom.disable();
     map.keyboard.disable();
+    map.touchZoomRotate.disable();
+    map.touchPitch?.disable();
+    // Also disable internal interactivity
+    (map as any)._interactive = false;
     map.getCanvas().style.cursor = 'crosshair';
   }, [map]);
 
@@ -52,6 +56,10 @@ export default function SnipToolLite({ map, onOpenAnalysis, getToggles }: Props)
     map.dragRotate.enable();
     map.doubleClickZoom.enable();
     map.keyboard.enable();
+    map.touchZoomRotate.enable();
+    map.touchPitch?.enable();
+    // Re-enable internal interactivity
+    (map as any)._interactive = true;
     map.getCanvas().style.cursor = '';
   }, [map]);
 
@@ -149,27 +157,56 @@ export default function SnipToolLite({ map, onOpenAnalysis, getToggles }: Props)
   useEffect(() => {
     if (!map || snip.state !== 'arming') return;
 
-    const handleMouseDown = (e: mapboxgl.MapMouseEvent) => {
+    const canvas = map.getCanvas();
+    
+    // Use native DOM events on canvas to intercept BEFORE map handlers
+    const handleMouseDown = (e: MouseEvent) => {
       e.preventDefault();
-      const point = e.lngLat.toArray() as [number, number];
-      startPoint.current = point;
+      e.stopPropagation();
+      
+      // Convert screen coords to map coords
+      const rect = canvas.getBoundingClientRect();
+      const point = new (window as any).mapboxgl.Point(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+      const lngLat = map.unproject(point);
+      const coords = lngLat.toArray() as [number, number];
+      
+      startPoint.current = coords;
       isDrawing.current = true;
       setSnip(prev => ({ ...prev, state: 'drawing' }));
-      console.log('[SnipLite] Drawing started at', point);
+      console.log('[SnipLite] Drawing started at', coords);
     };
 
-    const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
+    const handleMouseMove = (e: MouseEvent) => {
       if (!isDrawing.current || !startPoint.current) return;
       e.preventDefault();
-      const endPoint = e.lngLat.toArray() as [number, number];
+      e.stopPropagation();
+      
+      const rect = canvas.getBoundingClientRect();
+      const point = new (window as any).mapboxgl.Point(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+      const lngLat = map.unproject(point);
+      const endPoint = lngLat.toArray() as [number, number];
       drawOutline(startPoint.current, endPoint);
     };
 
-    const handleMouseUp = (e: mapboxgl.MapMouseEvent) => {
+    const handleMouseUp = (e: MouseEvent) => {
       if (!isDrawing.current || !startPoint.current) return;
       e.preventDefault();
+      e.stopPropagation();
       
-      const endPoint = e.lngLat.toArray() as [number, number];
+      const rect = canvas.getBoundingClientRect();
+      const point = new (window as any).mapboxgl.Point(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+      const lngLat = map.unproject(point);
+      const endPoint = lngLat.toArray() as [number, number];
+      
       const result = drawOutline(startPoint.current, endPoint);
       
       if (!result) return;
@@ -233,16 +270,16 @@ export default function SnipToolLite({ map, onOpenAnalysis, getToggles }: Props)
       }
     };
 
-    // Add listeners
-    map.on('mousedown', handleMouseDown);
-    map.on('mousemove', handleMouseMove);
-    map.on('mouseup', handleMouseUp);
+    // Add listeners - use capture phase to intercept before map
+    canvas.addEventListener('mousedown', handleMouseDown, true);
+    canvas.addEventListener('mousemove', handleMouseMove, true);
+    canvas.addEventListener('mouseup', handleMouseUp, true);
     window.addEventListener('keydown', handleEscape);
 
     return () => {
-      map.off('mousedown', handleMouseDown);
-      map.off('mousemove', handleMouseMove);
-      map.off('mouseup', handleMouseUp);
+      canvas.removeEventListener('mousedown', handleMouseDown, true);
+      canvas.removeEventListener('mousemove', handleMouseMove, true);
+      canvas.removeEventListener('mouseup', handleMouseUp, true);
       window.removeEventListener('keydown', handleEscape);
     };
   }, [map, snip.state, drawOutline, clearOutline, freezeGestures, unfreezeGestures]);
