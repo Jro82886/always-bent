@@ -38,50 +38,26 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
         return;
       }
 
-      // Check if we have live WMTS template
-      // Note: This is baked in at build time, so it might be undefined in dev
-      const wmtsTemplate = process.env.NEXT_PUBLIC_SST_WMTS_TEMPLATE;
-      let url: string;
-      
-      if (wmtsTemplate) {
-        // Use live Copernicus WMTS
-        let timeStr: string;
-        if (selectedDate === 'today') {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          timeStr = yesterday.toISOString().split('T')[0];
-        } else if (selectedDate === 'yesterday') {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          timeStr = yesterday.toISOString().split('T')[0];
-        } else if (selectedDate === '2days') {
-          const twoDaysAgo = new Date();
-          twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-          timeStr = twoDaysAgo.toISOString().split('T')[0];
-        } else {
-          timeStr = selectedDate;
-        }
-        
-        // Replace {TIME} placeholder in template
-        url = wmtsTemplate.replace('{TIME}', timeStr);
+      // Use EXACTLY the same approach as CHL (which works!)
+      let dateParam = '';
+      if (selectedDate === 'today') {
+        dateParam = '?time=latest';
+      } else if (selectedDate === 'yesterday') {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        dateParam = `?time=${yesterday.toISOString().split('T')[0]}`;
+      } else if (selectedDate === '2days') {
+        const twoDaysAgo = new Date();
+        twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+        dateParam = `?time=${twoDaysAgo.toISOString().split('T')[0]}`;
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) {
+        dateParam = `?time=${selectedDate}`;
       } else {
-        // Fall back to proxy endpoint
-        let dateParam = '';
-        if (selectedDate === 'today') {
-          dateParam = '?time=latest';
-        } else if (selectedDate === 'yesterday') {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          dateParam = `?time=${yesterday.toISOString().split('T')[0]}`;
-        } else if (selectedDate === '2days') {
-          const twoDaysAgo = new Date();
-          twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-          dateParam = `?time=${twoDaysAgo.toISOString().split('T')[0]}`;
-        } else if (/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) {
-          dateParam = `?time=${selectedDate}`;
-        }
-        url = `/api/tiles/sst/{z}/{x}/{y}.png${dateParam}`;
+        dateParam = '?time=latest';
       }
+      
+      // Use proxy endpoint EXACTLY like CHL
+      const url = `/api/tiles/sst/{z}/{x}/{y}${dateParam}`;
       
       
 
@@ -89,12 +65,12 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
         if (map.getLayer(lyrId)) map.removeLayer(lyrId);
         if (map.getSource(srcId)) (map as any).removeSource(srcId);
 
-        (map as any).addSource(srcId, { 
+        map.addSource(srcId, { 
           type: 'raster', 
           tiles: [url], 
-          tileSize,
-          maxzoom: 12 // Allow overzooming for smoother high zoom
-        } as any);
+          tileSize: 256,  // Match CHL
+          attribution: '© Copernicus Marine Service'
+        });
         map.addLayer({
           id: lyrId,
           type: 'raster',
