@@ -3,7 +3,7 @@ import { useCallback, useState, useEffect } from 'react';
 import type mapboxgl from 'mapbox-gl';
 import RectDraw from './RectDraw';
 import { SnipResult } from './types';
-import { useAppStore } from '@/lib/store';
+import { useAppState } from '@/lib/store';
 import type { SnipAnalysis } from '@/lib/analysis/types';
 
 type Props = {
@@ -34,12 +34,12 @@ export default function NewSnipTool({ map }: Props) {
   const [arm, setArm] = useState(false);
   
   // Get store actions
-  const setAnalysis = useAppStore(s => s.setAnalysis);
-  const resetAnalysisTransient = useAppStore(s => s.resetAnalysisTransient);
-  const activeLayers = useAppStore(s => s.activeLayers);
-  const myTracksEnabled = useAppStore(s => s.myTracksEnabled);
-  const fleetTracksEnabled = useAppStore(s => s.fleetTracksEnabled);
-  const gfwTracksEnabled = useAppStore(s => s.gfwTracksEnabled);
+  const setAnalysis = useAppState(s => s.setAnalysis);
+  const resetAnalysisTransient = useAppState(s => s.resetAnalysisTransient);
+  const activeLayers = useAppState(s => s.activeLayers);
+  const myTracksEnabled = useAppState(s => s.myTracksEnabled);
+  const fleetTracksEnabled = useAppState(s => s.fleetTracksEnabled);
+  const gfwTracksEnabled = useAppState(s => s.gfwTracksEnabled);
 
   const onStart = useCallback(() => {
     if (!map) {

@@ -55,6 +55,7 @@ export type GFWClip = {
 
 export type SnipAnalysis = {
   polygon: GeoJSON.Polygon;
+  bbox?: [number, number, number, number];
   timeISO: string;
   
   // Environmental
