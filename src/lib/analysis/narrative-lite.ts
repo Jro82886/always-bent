@@ -6,7 +6,7 @@ export function buildNarrative(a: SnipAnalysis): string {
   // SST
   if (!a.toggles.sst) {
     lines.push('SST (off): information not available — toggle ON to include.');
-  } else if (!a.sst) {
+  } else if (!a.sst || a.sst.mean == null || a.sst.min == null || a.sst.max == null) {
     lines.push('SST: no data returned for the selected time.');
   } else {
     const span = (a.sst.max - a.sst.min);
@@ -22,10 +22,10 @@ export function buildNarrative(a: SnipAnalysis): string {
   // CHL
   if (!a.toggles.chl) {
     lines.push('Chlorophyll (off): information not available — toggle ON to include.');
-  } else if (!a.chl) {
+  } else if (!a.chl || a.chl.mean == null || a.chl.min == null || a.chl.max == null) {
     lines.push('Chlorophyll: no data returned for the selected time.');
   } else {
-    const gradient = a.chl.max - a.chl.min;
+    const gradient = (a.chl.max - a.chl.min);
     lines.push(`Chlorophyll ${a.chl.mean.toFixed(2)} mg/m³ (Δ ${gradient.toFixed(2)}).`);
     
     if (a.chl.mean > 0.5) {
@@ -35,8 +35,8 @@ export function buildNarrative(a: SnipAnalysis): string {
   
   // GFW (stubbed for now)
   if (a.toggles.gfw) {
-    const counts = a.presence?.counts || { longliner: 0, drifting_longline: 0, trawler: 0, events: 0 };
-    lines.push(`Commercial vessels (last 4d): L ${counts.longliner} • D ${counts.drifting_longline} • T ${counts.trawler} • events ${counts.events}.`);
+    const gfw = a.presence?.gfw || { longliner: 0, drifting_longline: 0, trawler: 0, events: 0 };
+    lines.push(`Commercial vessels (last 4d): L ${gfw.longliner} • D ${gfw.drifting_longline} • T ${gfw.trawler} • events ${gfw.events}.`);
   }
   
   // Track toggles mentioned

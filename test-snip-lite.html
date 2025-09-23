@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test SnipToolLite</title>
+</head>
+<body>
+  <h2>SnipToolLite Test Instructions</h2>
+  
+  <h3>✅ What's Fixed:</h3>
+  <ul>
+    <li><strong>SST Layer</strong>: Added missing NEXT_PUBLIC_SST_WMTS_TEMPLATE env var</li>
+    <li><strong>Snip Tool</strong>: Complete rewrite with clean state machine</li>
+    <li><strong>No more map grabbing</strong>: Uses gesture freeze only, no capture listeners</li>
+  </ul>
+
+  <h3>🧪 How to Test:</h3>
+  <ol>
+    <li>Open Analysis mode</li>
+    <li>Toggle SST ON - verify layer appears</li>
+    <li>Toggle CHL ON - verify layer appears</li>
+    <li>Click "Draw Analysis Area" OR press Shift+S</li>
+    <li>Cursor becomes crosshair, map won't pan</li>
+    <li>Drag rectangle - green outline appears</li>
+    <li>Release mouse - smooth zoom to selection</li>
+    <li>"Review Analysis" button appears at bottom</li>
+    <li>Click Review - modal opens with narrative</li>
+    <li>ESC key cancels at any time</li>
+  </ol>
+
+  <h3>🔍 Console Tests:</h3>
+  <pre>
+// Test SST layer visibility
+const map = window.mapboxMap;
+console.log('SST layer:', map?.getLayer('sst-lyr'));
+console.log('SST visible:', map?.getLayoutProperty('sst-lyr', 'visibility'));
+
+// Test CHL layer
+console.log('CHL layer:', map?.getLayer('chl-lyr'));
+console.log('CHL visible:', map?.getLayoutProperty('chl-lyr', 'visibility'));
+
+// Test sampler endpoint
+fetch('/api/rasters/sample', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    polygon: {
+      type: 'Polygon',
+      coordinates: [[
+        [-74.5, 38.3],
+        [-74.4, 38.3],
+        [-74.4, 38.4],
+        [-74.5, 38.4],
+        [-74.5, 38.3]
+      ]]
+    },
+    time: new Date().toISOString(),
+    layers: ['sst', 'chl']
+  })
+}).then(r => r.json()).then(console.log);
+
+// Manually arm the tool
+window.armSnipTool?.();
+  </pre>
+
+  <h3>⚡ Key Improvements:</h3>
+  <ul>
+    <li>State machine prevents race conditions</li>
+    <li>Proper cleanup of all event listeners</li>
+    <li>No stopPropagation on canvas (was causing map grab)</li>
+    <li>Review CTA appears reliably after zoom</li>
+    <li>Narrative always returns text (no blank modal)</li>
+  </ul>
+</body>
+</html>
