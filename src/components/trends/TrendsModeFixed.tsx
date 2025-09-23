@@ -173,8 +173,8 @@ export default function TrendsMode() {
       {/* Command Bridge Header */}
       <HeaderBar activeMode="trends" />
       
-      {/* Main content area with plenty of breathing room */}
-      <div className="pt-32 h-full overflow-y-auto">
+      {/* Main content area - adjusted for header height */}
+      <div className="pt-16 lg:pt-16 h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] overflow-y-auto">
         {/* Pills Bar - directly under command tabs */}
         <PillsBar>
           {trendsData?.envBar && (
@@ -269,6 +269,26 @@ export default function TrendsMode() {
         
         {/* Section Header - separated from pills */}
         <SectionHeader title="OCEAN INTELLIGENCE OVERVIEW" />
+        
+        {/* Always show some content for debugging */}
+        {!trendsData && !loading && !error && (
+          <div className="px-4 md:px-6 pb-8">
+            <div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2">
+              <Card className="h-[260px]">
+                <CardHeader title="Swell" color="text-teal-300" />
+                <div className="text-center text-gray-400 mt-8">Swell data will appear here</div>
+              </Card>
+              <Card className="h-[260px]">
+                <CardHeader title="Wind" color="text-blue-300" />
+                <div className="text-center text-gray-400 mt-8">Wind data will appear here</div>
+              </Card>
+              <Card className="h-[220px]">
+                <CardHeader title="Pressure" color="text-purple-300" />
+                <div className="text-center text-gray-400 mt-8">Pressure data will appear here</div>
+              </Card>
+            </div>
+          </div>
+        )}
         
         {/* Loading state */}
         {loading && (
