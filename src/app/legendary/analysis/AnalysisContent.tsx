@@ -25,8 +25,8 @@ import { OCEAN_FOCUSED_BOUNDS } from '@/lib/imagery/bounds';
 import { getInletById, DEFAULT_INLET } from '@/lib/inlets';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import '@/styles/mapSmoothing.css';
-// NUCLEAR OVERLAY - Temporary but bulletproof
-import SnipOverlay from '@/components/SnipOverlay';
+// CLEAN SNIP OVERLAY - Working version
+import CleanSnipOverlay from '@/components/snip/CleanSnipOverlay';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
@@ -458,29 +458,48 @@ function AnalysisModeContent() {
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
-          {/* TEMPORARILY DISABLED - Need to fix overlay interference
+          {/* WORKING SNIP IMPLEMENTATION */}
           {!showSnipOverlay && (
             <button
-              onClick={() => setShowSnipOverlay(true)}
+              onClick={() => {
+                console.log('[Analysis] Activating snip overlay');
+                setShowSnipOverlay(true);
+              }}
               className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold rounded-lg shadow-2xl transition-all hover:scale-105"
             >
-              Draw Analysis Area (NEW)
+              Draw Analysis Area
             </button>
           )}
           
-          {map.current && showSnipOverlay && (
-            <SnipOverlay
-              onBox={(bbox) => {
-                console.log('[SNIP OVERLAY] Got bbox:', bbox);
+          {/* Clean Snip Overlay - Only renders when active */}
+          {map.current && (
+            <CleanSnipOverlay
+              map={map.current}
+              isActive={showSnipOverlay}
+              onComplete={(bbox) => {
+                console.log('[Analysis] Snip complete, bbox:', bbox);
                 setShowSnipOverlay(false);
-                map.current?.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { 
-                  padding: 40, 
-                  duration: 600 
-                });
+                
+                // Zoom to the drawn area
+                setTimeout(() => {
+                  map.current?.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { 
+                    padding: 80, 
+                    duration: 1000 
+                  });
+                }, 100);
+                
+                // TODO: Show Review CTA after zoom completes
+                setTimeout(() => {
+                  console.log('[Analysis] Ready for review');
+                  // Open your analysis modal here
+                }, 1200);
+              }}
+              onCancel={() => {
+                console.log('[Analysis] Snip canceled');
+                setShowSnipOverlay(false);
               }}
             />
           )}
-          */}
           
           {/* New User Tutorial - Shows once after welcome */}
           {showingTutorial && !tutorialCompleted && map.current && (
