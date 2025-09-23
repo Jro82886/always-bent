@@ -206,7 +206,7 @@ export default function TrendsMode() {
                 <MoonPill 
                   icon={Wind} 
                   label="Wind" 
-                  value={`${trendsData.envBar.weather.windKt} kt ${trendsData.envBar.weather.windDir || ''}`}
+                  value={`${Math.round(trendsData.envBar.weather.windKt)} kt ${trendsData.envBar.weather.windDir || ''}`}
                   tooltip="Wind speed in knots and cardinal direction."
                 />
               )}
@@ -214,7 +214,7 @@ export default function TrendsMode() {
                 <MoonPill 
                   icon={Gauge} 
                   label="Pressure" 
-                  value={`${trendsData.envBar.weather.pressureHpa} mb ${trendArrow(trendsData.envBar.weather.pressureTrend || 'steady')}`}
+                  value={`${Math.round(trendsData.envBar.weather.pressureHpa)} mb ${trendArrow(trendsData.envBar.weather.pressureTrend || 'steady')}`}
                   tooltip="Barometric pressure (mb). ↑ rising, ↓ falling, → steady."
                 />
               )}
