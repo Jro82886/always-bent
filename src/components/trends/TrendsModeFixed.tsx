@@ -64,12 +64,17 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-function Card({ children, className = "" }: { children: React.ReactNode, className?: string }) {
-  return (
+function Card({ children, className = "", tooltip }: { children: React.ReactNode, className?: string, tooltip?: string }) {
+  const content = (
     <div className={`abfi-card-bg abfi-glow abfi-glow-hover rounded-xl p-5 ${className}`}>
       {children}
     </div>
   );
+  
+  if (tooltip) {
+    return <Tooltip content={tooltip}>{content}</Tooltip>;
+  }
+  return content;
 }
 
 function CardHeader({ title, right, color = "text-cyan-300" }: { 
@@ -198,7 +203,7 @@ export default function TrendsMode() {
                 <MoonPill 
                   icon={Thermometer} 
                   label="SST" 
-                  value={`${toF(trendsData.envBar.weather.sstC)}°F`}
+                  value={`${Math.round(toF(trendsData.envBar.weather.sstC))}°F`}
                   tooltip="Sea surface temperature in °F from Stormio. Converted from °C."
                 />
               )}
@@ -287,15 +292,24 @@ export default function TrendsMode() {
         {!trendsData && !loading && !error && selectedInletId && (
           <div className="px-4 md:px-6 pb-8">
             <div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2">
-              <Card className="h-[260px]">
+              <Card 
+                className="h-[260px]"
+                tooltip="Wave height, period, and direction data from offshore buoys. Essential for planning safe trips and understanding fishing conditions."
+              >
                 <CardHeader title="Swell" color="text-teal-300" />
                 <div className="text-center text-gray-400 mt-8">Swell data will appear here</div>
               </Card>
-              <Card className="h-[260px]">
+              <Card 
+                className="h-[260px]"
+                tooltip="Real-time wind speed and direction. Affects water clarity, bait movement, and fish behavior. Updated every 30 minutes."
+              >
                 <CardHeader title="Wind" color="text-blue-300" />
                 <div className="text-center text-gray-400 mt-8">Wind data will appear here</div>
               </Card>
-              <Card className="h-[220px]">
+              <Card 
+                className="h-[220px]"
+                tooltip="Barometric pressure and trends. Falling pressure often triggers feeding activity. One of the most important factors for predicting fish behavior."
+              >
                 <CardHeader title="Pressure" color="text-purple-300" />
                 <div className="text-center text-gray-400 mt-8">Pressure data will appear here</div>
               </Card>
@@ -330,7 +344,10 @@ export default function TrendsMode() {
           <div className="px-4 md:px-6 pb-8">
             <div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2">
               {/* Tide Schedule */}
-              <Card className="h-[260px]">
+              <Card 
+                className="h-[260px]"
+                tooltip="Shows upcoming high and low tides for your selected inlet. Data updates every 30 minutes from Stormio marine API. Critical for timing your fishing trips around tidal movements."
+              >
                 <CardHeader title="Tide Schedule" color="text-teal-300" />
                 {trendsData.tideChart.events.length > 0 ? (
                   <div className="h-[calc(100%-4rem)]">
@@ -350,7 +367,10 @@ export default function TrendsMode() {
               </Card>
               
               {/* Bite Prediction */}
-              <Card className="h-[260px]">
+              <Card 
+                className="h-[260px]"
+                tooltip="AI-powered bite predictions based on moon phase, tides, barometric pressure, and wind conditions. Best fishing windows are calculated using proven saltwater algorithms. Accuracy improves as more community data is collected."
+              >
                 <CardHeader 
                   title="Bite Prediction" 
                   color="text-amber-300"
@@ -392,7 +412,10 @@ export default function TrendsMode() {
               </Card>
               
               {/* Today's Activity */}
-              <Card className="h-[220px]">
+              <Card 
+                className="h-[220px]"
+                tooltip="Real-time fishing activity from the ABFI community. Shows when and where fish are being caught. As more anglers use the app and report catches, this becomes a powerful tool for finding active bite windows."
+              >
                 <CardHeader 
                   title={`${timeRange === '1d' ? "Today's" : timeRange === '7d' ? 'Weekly' : '2-Week'} ABFI Community Activity`}
                   color="text-emerald-300"
@@ -409,7 +432,10 @@ export default function TrendsMode() {
               </Card>
               
               {/* Species Distribution */}
-              <Card className="h-[220px]">
+              <Card 
+                className="h-[220px]"
+                tooltip="Shows what species are being caught by the ABFI community. Updated in real-time as anglers log their catches. Helps you understand seasonal patterns and target the right species at the right time."
+              >
                 <CardHeader 
                   title="ABFI Community Species Activity"
                   color="text-emerald-300"
