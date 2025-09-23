@@ -172,7 +172,9 @@ async function sampleLayer(
       const { tileCol, tileRow } = lonLat2pixel(lon, lat, zoom);
       tilesSet.add(`${tileCol},${tileRow}`);
       
-      return fetchPixelValue(wmtsLayer, lon, lat, zoom, timeISO);
+      // Convert ISO to YYYY-MM-DD for Copernicus WMTS
+      const timeDate = timeISO.split('T')[0]; // Extract YYYY-MM-DD
+      return fetchPixelValue(wmtsLayer, lon, lat, zoom, timeDate);
     },
     8 // max concurrent
   );

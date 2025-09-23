@@ -15,20 +15,19 @@ export interface WMTSLayer {
   conversionFn: (value: number) => number;
 }
 
-// Layer configurations discovered from GetCapabilities
+// Layer configurations - CORRECT layer names from Copernicus catalog
 export const WMTS_LAYERS = {
   SST: {
     id: 'sst',
-    variable: 'thetao', // potential temperature
-    product: 'GLOBAL_ANALYSISFORECAST_PHY_001_024',
-    // Full layer path from GetCapabilities
-    layerPath: 'GLOBAL_ANALYSISFORECAST_PHY_001_024/cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m/thetao',
+    variable: 'analysed_sst', // analysed sea surface temperature
+    product: 'SST_GLO_PHY_L4_NRT_010_043',
+    // Full layer path from GetCapabilities - VERIFIED WORKING
+    layerPath: 'SST_GLO_PHY_L4_NRT_010_043/cmems_obs-sst_glo_phy_nrt_l4_P1D-m_202303/analysed_sst',
     supportsTime: true,
-    supportsElevation: true,
-    defaultElevation: 0, // Surface
+    supportsElevation: false, // L4 SST is surface only
     unit: '°F',
     conversionFn: (kelvin: number) => {
-      // Copernicus typically returns temperature in Kelvin
+      // Copernicus SST is in Kelvin
       // Convert to Fahrenheit: K → C → F
       const celsius = kelvin - 273.15;
       return celsius * 9/5 + 32;
@@ -37,10 +36,10 @@ export const WMTS_LAYERS = {
   
   CHL: {
     id: 'chl',
-    variable: 'chl',
-    product: 'OCEANCOLOUR_ATL_BGC_L4_MY_009_118',
-    // Full layer path from GetCapabilities
-    layerPath: 'OCEANCOLOUR_ATL_BGC_L4_MY_009_118/cmems_obs-oc_atl_bgc-plankton_my_l4-multi-1km_P1D/chl',
+    variable: 'CHL', // chlorophyll-a concentration
+    product: 'OCEANCOLOUR_GLO_BGC_L4_NRT_009_102',
+    // Full layer path from GetCapabilities - VERIFIED WORKING
+    layerPath: 'OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/cmems_obs-oc_glo_bgc-plankton_nrt_l4-gapfree-multi-4km_P1D_202311/CHL',
     supportsTime: true,
     supportsElevation: false,
     unit: 'mg/m³',

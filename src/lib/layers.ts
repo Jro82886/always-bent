@@ -105,6 +105,7 @@ function expandUrlTemplate(
   const defaultDate = new Date().toISOString().slice(0, 10);
   return template
     .replaceAll("{DATE}", date || defaultDate)
+    .replaceAll("{TIME}", date || defaultDate)  // Copernicus uses {TIME} for date
     .replaceAll("{BBOX4326}", bbox);
 }
 
