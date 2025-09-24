@@ -80,26 +80,37 @@ function AnalysisModeContent() {
     setTutorialCompleted(completed === 'true');
   }, []);
   
-  // Watch for inlet changes and fly to selected inlet
+  // Watch for inlet changes and prevent auto camera moves after initial mount
+  const didInitRef = useRef(false);
   useEffect(() => {
     if (!map.current || !selectedInletId) return;
-    
+
+    // Optional kill switch via env flag
+    const allowAuto = String(process.env.NEXT_PUBLIC_INLET_AUTO_ZOOM || '').toLowerCase() === 'true';
+
     const inlet = getInletById(selectedInletId);
-    
-    if (inlet && inlet.lat && inlet.lng) {
-      // Fly to specific inlet when selected
-      map.current.flyTo({
-        center: [inlet.lng, inlet.lat],
-        zoom: inlet.zoom || 10,
-        duration: 2000
-      });
-    } else if (selectedInletId === 'overview') {
-      // Return to East Coast overview
-      map.current.fitBounds(EAST_COAST_BOUNDS, {
-        padding: 40,
-        duration: 2000
-      });
+
+    // Only apply camera move on very first mount (initial positioning)
+    if (!didInitRef.current) {
+      didInitRef.current = true;
+      if (!allowAuto) return; // respect disabled auto-zoom even on first run
+
+      if (inlet && inlet.lat && inlet.lng) {
+        map.current.flyTo({
+          center: [inlet.lng, inlet.lat],
+          zoom: inlet.zoom || 10,
+          duration: 1200
+        });
+      } else if (selectedInletId === 'overview') {
+        map.current.fitBounds(EAST_COAST_BOUNDS, {
+          padding: 40,
+          duration: 1200
+        });
+      }
+      return;
     }
+
+    // After first render: do nothing (selector should not change the view)
   }, [selectedInletId]);
   
   // Get boat name from localStorage
