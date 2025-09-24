@@ -169,7 +169,7 @@ export const useAppState = create<AppState>((set, get) => ({
     isZoomingToSnip: false,
     showReviewCta: false,
     narrative: '' as string,
-    isModalOpen: false as boolean,
+    // isModalOpen flag temporarily disabled due to hotfix revert
   },
   
   // Analysis setters
