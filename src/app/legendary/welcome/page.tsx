@@ -130,7 +130,7 @@ export default function LegendaryWelcomePage() {
     
     // Navigate to command bridge (analysis mode)
     setTimeout(() => {
-      router.replace('/legendary?mode=analysis');
+      router.replace('/legendary/analysis');
     }, 500);
   };
   

@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const TrackingContent = dynamic(() => import('./TrackingContent'), {
@@ -13,5 +14,9 @@ const TrackingContent = dynamic(() => import('./TrackingContent'), {
 });
 
 export default function TrackingPage() {
-  return <TrackingContent />;
+  return (
+    <ErrorBoundary>
+      <TrackingContent />
+    </ErrorBoundary>
+  );
 }

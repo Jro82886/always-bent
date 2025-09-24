@@ -11,7 +11,7 @@ export default function Root() {
     
     if (boatName) {
       // Existing user - go to analysis (main app)
-      router.push('/legendary?mode=analysis');
+      router.push('/legendary/analysis');
     } else {
       // New user - show welcome screen (trunk entry)
       router.push('/legendary');

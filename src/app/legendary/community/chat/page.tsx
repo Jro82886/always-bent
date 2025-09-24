@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import dynamic from 'next/dynamic';
 // import { MOCK_ROOMS } from '@/mocks/chat'; // TODO: Remove mock rooms
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/lib/store';
+import { initChatClient } from '@/lib/services/chat';
 
 // Dynamically import components to avoid SSR issues
 const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
@@ -12,20 +13,15 @@ const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
   loading: () => <div className="w-64 bg-slate-900 animate-pulse" />
 });
 
-const ChatWindow = dynamic(() => import('@/components/chat/ChatWindow'), {
+// Use live chat window (useRealtimeChat) — no mocks
+const ChatWindow = dynamic(() => import('@/components/chat/ChatWindowLive'), {
   ssr: false,
   loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
 });
 
-const UnifiedChatContainer = dynamic(() => import('@/components/chat/UnifiedChatContainer'), {
-  ssr: false,
-  loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
-});
+// Deprecated for MVP: unifying on useRealtimeChat via ChatWindowLive
 
-const ContextPanel = dynamic(() => import('@/components/chat/ContextPanel'), {
-  ssr: false,
-  loading: () => <div className="w-80 bg-slate-900 animate-pulse" />
-});
+// Temporarily remove ContextPanel to avoid spinner placeholder until wired
 
 const WeatherHeader = dynamic(() => import('@/components/chat/WeatherHeader'), {
   ssr: false
@@ -35,6 +31,33 @@ export default function ChatPage() {
   const { selectedInletId, user } = useAppState();
   const [selectedRoom, setSelectedRoom] = useState('inlet');
   const [showMobileRoom, setShowMobileRoom] = useState(false);
+  const roomIdForInlet = selectedInletId && selectedInletId !== 'overview' 
+    ? `inlet:${selectedInletId}` 
+    : null;
+  const clientRef = useRef<ReturnType<typeof initChatClient> | null>(null);
+
+  // Auto-join/leave rooms on inlet change (no new helpers; reuse existing client)
+  useEffect(() => {
+    const client = initChatClient();
+    clientRef.current = client;
+
+    // Always join global tuna (idempotent via unsubscribe/subscribe in client)
+    client.subscribe('global:tuna', () => {});
+
+    // Join inlet-scoped rooms if we have an inlet
+    if (roomIdForInlet) {
+      // Inlet main
+      client.subscribe(roomIdForInlet, () => {});
+      // Inshore / Offshore
+      client.subscribe(`${roomIdForInlet}:inshore`, () => {});
+      client.subscribe(`${roomIdForInlet}:offshore`, () => {});
+    }
+
+    return () => {
+      // Leave all on unmount; client handles internal state
+      client.unsubscribe();
+    };
+  }, [roomIdForInlet]);
   
   // Only inlet chat is supported for now
   const currentRoom = selectedRoom === 'inlet' ? { id: 'inlet', name: 'Inlet Chat' } : null;
@@ -78,10 +101,10 @@ export default function ChatPage() {
           />
           <div className="flex-1">
             {selectedRoom === 'inlet' ? (
-              selectedInletId && selectedInletId !== 'overview' ? (
-                <UnifiedChatContainer 
-                  inletId={selectedInletId}
-                  userId={user?.id}
+              roomIdForInlet ? (
+                <ChatWindow 
+                  roomId={roomIdForInlet}
+                  showWeatherHeader={false}
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center text-slate-400">
@@ -98,10 +121,7 @@ export default function ChatPage() {
               />
             )}
           </div>
-          <ContextPanel 
-            roomId={selectedRoom}
-            inletId={selectedInletId || 'ny-montauk'}
-          />
+          {/* ContextPanel temporarily removed to avoid spinner; will re-enable after wiring */}
         </div>
       </div>
 
@@ -162,10 +182,10 @@ export default function ChatPage() {
               </div>
             </div>
             <div className="flex-1">
-              {selectedRoom === 'inlet' && selectedInletId && selectedInletId !== 'overview' ? (
-                <UnifiedChatContainer 
-                  inletId={selectedInletId}
-                  userId={user?.id}
+              {selectedRoom === 'inlet' && roomIdForInlet ? (
+                <ChatWindow 
+                  roomId={roomIdForInlet}
+                  showWeatherHeader={false}
                 />
               ) : (
                 <ChatWindow 
