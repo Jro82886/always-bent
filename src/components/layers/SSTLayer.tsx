@@ -77,13 +77,13 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           source: srcId,
           layout: { visibility: 'visible' },
           paint: { 
-            'raster-opacity': 0.85,  // Slightly transparent for depth
-            'raster-resampling': 'linear',
-            'raster-fade-duration': 200,  // Faster fade
-            'raster-contrast': -0.1,  // Muted contrast
-            'raster-saturation': -0.3,  // Desaturated for darker, muted colors
-            'raster-brightness-min': 0.2,  // Darker blacks
-            'raster-brightness-max': 0.9   // Muted highlights
+            'raster-opacity': 0.95,
+            'raster-resampling': 'nearest',
+            'raster-fade-duration': 0,
+            'raster-contrast': 0,
+            'raster-saturation': 0,
+            'raster-brightness-min': 0,
+            'raster-brightness-max': 1
           },
         } as any);
 
@@ -92,6 +92,20 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           const top = style.layers[style.layers.length - 1]?.id;
           if (top && top !== lyrId) map.moveLayer(lyrId, top);
         }
+
+        // Enforce nearest at runtime and ensure canvas uses pixelated rendering
+        try {
+          map.setPaintProperty(lyrId, 'raster-resampling', 'nearest');
+          const canvas = map.getCanvas?.();
+          if (canvas) (canvas as any).style.imageRendering = 'pixelated';
+          if (process.env.NODE_ENV !== 'production') {
+            const sst = map.getPaintProperty(lyrId, 'raster-resampling');
+            if (sst !== 'nearest') {
+              // eslint-disable-next-line no-console
+              console.warn('Pixelation OFF: SST raster-resampling is not nearest');
+            }
+          }
+        } catch {}
       } catch (error) {
         // Layer update error handled
       }
