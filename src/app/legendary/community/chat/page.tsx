@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import dynamic from 'next/dynamic';
 // import { MOCK_ROOMS } from '@/mocks/chat'; // TODO: Remove mock rooms
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/lib/store';
+import { initChatClient } from '@/lib/services/chat';
 
 // Dynamically import components to avoid SSR issues
 const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
@@ -20,10 +21,7 @@ const ChatWindow = dynamic(() => import('@/components/chat/ChatWindowLive'), {
 
 // Deprecated for MVP: unifying on useRealtimeChat via ChatWindowLive
 
-const ContextPanel = dynamic(() => import('@/components/chat/ContextPanel'), {
-  ssr: false,
-  loading: () => <div className="w-80 bg-slate-900 animate-pulse" />
-});
+// Temporarily remove ContextPanel to avoid spinner placeholder until wired
 
 const WeatherHeader = dynamic(() => import('@/components/chat/WeatherHeader'), {
   ssr: false
@@ -36,6 +34,30 @@ export default function ChatPage() {
   const roomIdForInlet = selectedInletId && selectedInletId !== 'overview' 
     ? `inlet:${selectedInletId}` 
     : null;
+  const clientRef = useRef<ReturnType<typeof initChatClient> | null>(null);
+
+  // Auto-join/leave rooms on inlet change (no new helpers; reuse existing client)
+  useEffect(() => {
+    const client = initChatClient();
+    clientRef.current = client;
+
+    // Always join global tuna (idempotent via unsubscribe/subscribe in client)
+    client.subscribe('global:tuna', () => {});
+
+    // Join inlet-scoped rooms if we have an inlet
+    if (roomIdForInlet) {
+      // Inlet main
+      client.subscribe(roomIdForInlet, () => {});
+      // Inshore / Offshore
+      client.subscribe(`${roomIdForInlet}:inshore`, () => {});
+      client.subscribe(`${roomIdForInlet}:offshore`, () => {});
+    }
+
+    return () => {
+      // Leave all on unmount; client handles internal state
+      client.unsubscribe();
+    };
+  }, [roomIdForInlet]);
   
   // Only inlet chat is supported for now
   const currentRoom = selectedRoom === 'inlet' ? { id: 'inlet', name: 'Inlet Chat' } : null;
@@ -99,10 +121,7 @@ export default function ChatPage() {
               />
             )}
           </div>
-          <ContextPanel 
-            roomId={selectedRoom === 'inlet' ? (roomIdForInlet || 'inlet') : selectedRoom}
-            inletId={selectedInletId || 'ny-montauk'}
-          />
+          {/* ContextPanel temporarily removed to avoid spinner; will re-enable after wiring */}
         </div>
       </div>
 
