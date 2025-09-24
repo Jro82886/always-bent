@@ -50,7 +50,7 @@ export default function WeatherCard() {
       setError(null);
       
       try {
-        const response = await fetch(`/api/weather?inlet=${selectedInletId}`);
+        const response = await fetch(`/api/weather?inlet=${selectedInletId}`, { cache: 'no-store' });
         
         if (!response.ok) {
           throw new Error('Failed to fetch weather data');

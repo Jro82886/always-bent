@@ -592,3 +592,47 @@ html, body, #__next {
           box-shadow: 0 0 6px #22C55E77;
         }
       }
+
+/* Map chrome safe-area and stacking containers */
+:root{
+  --map-safe-right: 16px;
+  --map-safe-bottom: calc(16px + env(safe-area-inset-bottom));
+  --map-beta-height: 56px; /* Beta Feedback pill height */
+  --map-zoom-height: 96px; /* Zoom control stack approx */
+}
+
+.has-beta .map-chrome {
+  --map-safe-bottom: calc(16px + var(--map-beta-height) + env(safe-area-inset-bottom));
+}
+
+/* Ensure Mapbox controls sit above safe inset */
+.mapboxgl-ctrl-bottom-right {
+  right: var(--map-safe-right) !important;
+  bottom: var(--map-safe-bottom) !important;
+}
+
+.map-chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* children opt-in */
+}
+.map-chrome__bottom {
+  position: absolute;
+  right: var(--map-safe-right);
+  bottom: var(--map-safe-bottom);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.map-chrome__bottom > * { pointer-events: auto; }
+
+.map-chrome__topRight {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+.map-chrome__topRight > * { pointer-events: auto; }
