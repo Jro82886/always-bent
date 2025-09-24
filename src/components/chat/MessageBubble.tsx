@@ -9,7 +9,7 @@ interface MessageBubbleProps {
 }
 
 export default function MessageBubble({ message, currentUserId }: MessageBubbleProps) {
-  const isOwn = message.user_id === currentUserId;
+  const isOwn = message.user === currentUserId;
   
   return (
     <div className={`message-bubble ${isOwn ? 'own' : 'other'}`}>
@@ -17,7 +17,7 @@ export default function MessageBubble({ message, currentUserId }: MessageBubbleP
         {message.text}
       </div>
       <div className="message-time">
-        {new Date(message.created_at).toLocaleTimeString([], { 
+        {new Date(message.createdAt).toLocaleTimeString([], { 
           hour: '2-digit', 
           minute: '2-digit' 
         })}

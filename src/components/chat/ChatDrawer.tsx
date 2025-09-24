@@ -1,12 +1,15 @@
 'use client';
 
 import { X } from 'lucide-react';
-// Legacy hook quarantined; drawer should not import it anymore
+// Live hooks/services
+import { useRealtimeChat } from '@/hooks/useRealtimeChat';
+import { useOnlinePresence } from '@/hooks/useOnlinePresence';
 import { flags } from '@/lib/flags';
 import ChatHeader from './ChatHeader';
 import ChatMessageList from './ChatMessageList';
 import ChatInput from './ChatInput';
 import '@/styles/chat.css';
+import { getInletById } from '@/lib/inlets';
 
 interface ChatDrawerProps {
   isOpen: boolean;
@@ -25,15 +28,14 @@ export default function ChatDrawer({
 }: ChatDrawerProps) {
   if (!isOpen || !flags.communityDrawer || !inletId || inletId === 'overview') return null;
 
-  // Use unified inlet chat hook
-  const { 
-    messages, 
-    send, 
-    boatsOnline, 
-    connected, 
-    inletName, 
-    inletColor 
-  } = useInletChat(inletId, userId);
+  // Map inlet to roomId and use realtime hooks
+  const roomId = `inlet:${inletId}`;
+  const { messages, sendMessage, isConnected } = useRealtimeChat(roomId);
+  const { onlineUsers } = useOnlinePresence(roomId);
+  const boatsOnline = onlineUsers.length;
+  const inlet = getInletById(inletId);
+  const inletName = inlet?.name ?? 'Inlet';
+  const inletColor = inlet?.color ?? '#999';
 
   return (
     <>
@@ -91,8 +93,8 @@ export default function ChatDrawer({
           <ChatInput 
             inletName={inletName}
             inletColor={inletColor}
-            onSend={send}
-            disabled={!connected}
+            onSend={sendMessage}
+            disabled={!isConnected}
           />
         )}
       </div>
