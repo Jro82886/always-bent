@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Target, Waves, Thermometer, Activity, Save, Share2, Fish } from 'lucide-react';
+import FullBreakdownCard from '@/components/analysis/FullBreakdownCard';
+import { toFullBreakdownV1 } from '@/lib/analysis/toFullBreakdown';
 import { getAnalysisQuote } from '@/lib/philosophy';
 // Removed import from deprecated SnipController
 import { showToast } from '@/components/ui/Toast';
@@ -345,20 +347,14 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
 
           </div>
 
-          {/* Narrative Section */}
-          <div className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 rounded-xl p-4 border border-cyan-500/30">
-            <h3 className="text-cyan-300 font-bold mb-3 flex items-center gap-2">
-              <Activity size={20} className="text-cyan-400" />
-              Ocean Intelligence Analysis
-            </h3>
-            <div className="text-gray-300 text-sm leading-relaxed space-y-2">
-              {(analysis.narrative || storeAnalysis.narrative || 'Analysis loading...').split('\n').filter(Boolean).map((line, idx) => (
-                <div key={idx} className="py-1">
-                  {line}
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Extended Analysis Card (v1) */}
+          <FullBreakdownCard
+            data={toFullBreakdownV1(analysis)}
+            onSave={onSaveReport}
+            onSnipAgain={onSnipAnother}
+            onDone={onDone}
+            provenance={{ server_time_utc: new Date().toISOString(), request_id: Math.random().toString(36).slice(2) }}
+          />
 
           {/* Area Stats */}
           <div className="mt-4 text-center text-xs text-gray-500">
