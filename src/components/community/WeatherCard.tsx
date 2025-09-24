@@ -39,7 +39,12 @@ export default function WeatherCard() {
 
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!selectedInletId) return;
+      if (!selectedInletId) {
+        setWeatherData(null);
+        setError(null);
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       setError(null);
