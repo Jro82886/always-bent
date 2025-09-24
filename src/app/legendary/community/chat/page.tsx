@@ -12,15 +12,13 @@ const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
   loading: () => <div className="w-64 bg-slate-900 animate-pulse" />
 });
 
-const ChatWindow = dynamic(() => import('@/components/chat/ChatWindow'), {
+// Use live chat window (useRealtimeChat) — no mocks
+const ChatWindow = dynamic(() => import('@/components/chat/ChatWindowLive'), {
   ssr: false,
   loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
 });
 
-const UnifiedChatContainer = dynamic(() => import('@/components/chat/UnifiedChatContainer'), {
-  ssr: false,
-  loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
-});
+// Deprecated for MVP: unifying on useRealtimeChat via ChatWindowLive
 
 const ContextPanel = dynamic(() => import('@/components/chat/ContextPanel'), {
   ssr: false,
@@ -35,6 +33,9 @@ export default function ChatPage() {
   const { selectedInletId, user } = useAppState();
   const [selectedRoom, setSelectedRoom] = useState('inlet');
   const [showMobileRoom, setShowMobileRoom] = useState(false);
+  const roomIdForInlet = selectedInletId && selectedInletId !== 'overview' 
+    ? `inlet:${selectedInletId}` 
+    : null;
   
   // Only inlet chat is supported for now
   const currentRoom = selectedRoom === 'inlet' ? { id: 'inlet', name: 'Inlet Chat' } : null;
@@ -78,10 +79,10 @@ export default function ChatPage() {
           />
           <div className="flex-1">
             {selectedRoom === 'inlet' ? (
-              selectedInletId && selectedInletId !== 'overview' ? (
-                <UnifiedChatContainer 
-                  inletId={selectedInletId}
-                  userId={user?.id}
+              roomIdForInlet ? (
+                <ChatWindow 
+                  roomId={roomIdForInlet}
+                  showWeatherHeader={false}
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center text-slate-400">
@@ -99,7 +100,7 @@ export default function ChatPage() {
             )}
           </div>
           <ContextPanel 
-            roomId={selectedRoom}
+            roomId={selectedRoom === 'inlet' ? (roomIdForInlet || 'inlet') : selectedRoom}
             inletId={selectedInletId || 'ny-montauk'}
           />
         </div>
@@ -162,10 +163,10 @@ export default function ChatPage() {
               </div>
             </div>
             <div className="flex-1">
-              {selectedRoom === 'inlet' && selectedInletId && selectedInletId !== 'overview' ? (
-                <UnifiedChatContainer 
-                  inletId={selectedInletId}
-                  userId={user?.id}
+              {selectedRoom === 'inlet' && roomIdForInlet ? (
+                <ChatWindow 
+                  roomId={roomIdForInlet}
+                  showWeatherHeader={false}
                 />
               ) : (
                 <ChatWindow 
