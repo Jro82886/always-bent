@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Target, Waves, Thermometer, Activity, Save, Share2, Fish } from 'lucide-react';
-import FullBreakdownCard from '@/components/analysis/FullBreakdownCard';
+import FullBreakdownCard, { FullBreakdownData } from '@/components/analysis/FullBreakdownCard';
 import { toFullBreakdownV1 } from '@/lib/analysis/toFullBreakdown';
 import { getAnalysisQuote } from '@/lib/philosophy';
 // Removed import from deprecated SnipController
@@ -29,6 +29,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [fullData, setFullData] = useState<FullBreakdownData | null>(null);
   
   // Debug logging
   console.log('[Modal] opened with analysis:', analysis);
@@ -48,6 +49,21 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       setTimeout(() => setIsVisible(false), 300);
     }
   }, [visible, analysis, mounted]);
+
+  // Build Extended Analysis view model (async) from current analysis
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!analysis) { setFullData(null); return; }
+      try {
+        const d = await toFullBreakdownV1(analysis);
+        if (!cancelled) setFullData(d);
+      } catch {
+        if (!cancelled) setFullData(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [analysis]);
 
   const cleanupSnipVisualization = (map: any) => {
     // Clean up snip outline layer if present
@@ -348,13 +364,19 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           </div>
 
           {/* Extended Analysis Card (v1) */}
-          <FullBreakdownCard
-            data={toFullBreakdownV1(analysis)}
-            onSave={onSaveReport}
-            onSnipAgain={onSnipAnother}
-            onDone={onDone}
-            provenance={{ server_time_utc: new Date().toISOString(), request_id: Math.random().toString(36).slice(2) }}
-          />
+          {fullData ? (
+            <FullBreakdownCard
+              data={fullData}
+              onSave={onSaveReport}
+              onSnipAgain={onSnipAnother}
+              onDone={onDone}
+              provenance={{ server_time_utc: new Date().toISOString(), request_id: Math.random().toString(36).slice(2) }}
+            />
+          ) : (
+            <div className="bg-gradient-to-br from-slate-900/90 to-slate-800/90 rounded-xl p-4 border border-cyan-500/30 text-sm text-gray-400">
+              Building analysis…
+            </div>
+          )}
 
           {/* Area Stats */}
           <div className="mt-4 text-center text-xs text-gray-500">
