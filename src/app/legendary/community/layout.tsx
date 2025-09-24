@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useAppState } from '@/lib/store';
 import CommunityWrapper from './CommunityWrapper';
 
 // Dynamic import for WeatherCard
@@ -12,6 +13,20 @@ const WeatherCard = dynamic(() => import('@/components/community/WeatherCard'), 
     <div className="bg-slate-900/50 backdrop-blur rounded-xl border border-cyan-500/20 p-6">
       <div className="h-32 animate-pulse bg-slate-800/50 rounded"></div>
     </div>
+  )
+});
+
+const PresenceBar = dynamic(() => import('@/components/chat/PresenceBar'), {
+  ssr: false,
+  loading: () => (
+    <div className="abfi-card-bg rounded-xl p-4"><div className="h-16 animate-pulse bg-slate-800/50 rounded"/></div>
+  )
+});
+
+const HighlightCarousel = dynamic(() => import('@/components/chat/HighlightCarousel'), {
+  ssr: false,
+  loading: () => (
+    <div className="abfi-card-bg rounded-xl p-4"><div className="h-24 animate-pulse bg-slate-800/50 rounded"/></div>
   )
 });
 
@@ -26,6 +41,8 @@ export default function CommunityLayout({
   const pathname = usePathname();
   const isChat = pathname.includes('/chat');
   const isReports = pathname.includes('/reports');
+  const { selectedInletId } = useAppState();
+  const inletId = selectedInletId || 'ny-montauk';
 
   return (
     <CommunityWrapper>
@@ -68,7 +85,13 @@ export default function CommunityLayout({
         </div>
         
         {/* Weather Sidebar - Desktop Only */}
-        <div className="hidden lg:block w-80 bg-slate-950/50 border-l border-cyan-500/20 p-4 overflow-y-auto">
+        <div className="hidden lg:block w-80 bg-slate-950/50 border-l border-cyan-500/20 p-4 overflow-y-auto space-y-4">
+          {isChat && (
+            <>
+              <PresenceBar roomId={isChat ? 'inlet:' + inletId : 'global:tuna'} inletId={inletId} showDM={false} />
+              <HighlightCarousel />
+            </>
+          )}
           <WeatherCard />
         </div>
       </div>
