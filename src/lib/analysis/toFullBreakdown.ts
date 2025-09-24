@@ -1,7 +1,7 @@
 import { computeSpeciesOutlook } from '@/lib/analysis/speciesOutlook';
 import { buildReadout } from '@/lib/analysis/readout';
 
-export function toFullBreakdownV1(s: any) {
+export async function toFullBreakdownV1(s: any) {
   const samp = s?.sst || s?.chl ? { sst: s.sst, chl: s.chl } : s?.sample || {};
   const outlook = computeSpeciesOutlook(samp);
 
@@ -13,7 +13,7 @@ export function toFullBreakdownV1(s: any) {
       }
     : undefined;
 
-  const data = {
+  const data: any = {
     version: 1,
     snip: {
       id: s?.id || 'snip',
@@ -33,6 +33,24 @@ export function toFullBreakdownV1(s: any) {
     confidence: s?.confidence ?? 'medium',
     data_gaps: s?.gaps ?? []
   };
+
+  // Vessels (last 24h) – best effort
+  try {
+    if (s?.bbox) {
+      const res = await fetch('/api/analysis/vessels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bbox: s.bbox, since_hours: 24 })
+      });
+      if (res.ok) {
+        const v = await res.json();
+        data.vessels = v;
+        data.version = 1.1;
+        // bump outlook using activity score
+        data.species_outlook = computeSpeciesOutlook(samp, { activityScore: v.activity_score });
+      }
+    }
+  } catch {}
 
   return data;
 }

@@ -14,6 +14,7 @@ export interface FullBreakdownData {
     water_temp_f?: { avg: number; min: number; max: number };
     water_color_summary?: string;
   };
+  vessels?: { since_hours: number; gfw_count: number; fleet_count: number; activity_score: number; activity_text: string };
   species_outlook?: { tuna?: string; mahi?: string; billfish?: string };
   hotspot?: { show: boolean; label: string; confidence: 'low'|'medium'|'high' };
   confidence: 'low' | 'medium' | 'high';
@@ -57,10 +58,22 @@ export default function FullBreakdownCard({ data, onSave, onSnipAgain, onDone, p
         </ul>
       </section>
 
-      <section>
-        <h3 className="font-semibold">Vessels</h3>
-        <p className="text-sm text-neutral-400">Vessels section coming soon…</p>
-      </section>
+      {(() => {
+        const v = data.vessels;
+        if (!v) return null;
+        const show = (v.gfw_count ?? 0) > 0 || (v.fleet_count ?? 0) > 0 || v.activity_text;
+        if (!show) return null;
+        return (
+          <section>
+            <h3 className="font-semibold">Vessels (last {v.since_hours ?? 24}h)</h3>
+            <ul className="text-sm space-y-1 mt-1">
+              <li>GFW vessels: {v.gfw_count ?? 0}</li>
+              <li>Fleet vessels: {v.fleet_count ?? 0}</li>
+              <li>Activity: {v.activity_text || 'n/a'}</li>
+            </ul>
+          </section>
+        );
+      })()}
 
       <section>
         <h3 className="font-semibold">What It Means</h3>
