@@ -1,8 +1,28 @@
-import { redirect } from 'next/navigation';
+"use client";
 
-// Simple redirect - no dynamic needed
+import { useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 
+// Community entry: decide once and redirect
 export default function CommunityPage() {
-  // Default to reports tab when visiting /legendary/community
-  redirect('/legendary/community/reports');
+  const params = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const reportId = params.get('report');
+    let last = null as string | null;
+    try { last = localStorage.getItem('abfi.community.last'); } catch {}
+
+    const dest = reportId
+      ? `/legendary/community/reports?report=${encodeURIComponent(reportId)}`
+      : last === 'reports'
+        ? '/legendary/community/reports'
+        : '/legendary/community/chat';
+
+    router.replace(dest);
+  // run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
 }
