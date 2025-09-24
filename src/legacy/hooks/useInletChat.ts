@@ -1,3 +1,9 @@
+/**
+ * 🚫 LEGACY — DO NOT USE
+ * Retained only for reference after rewiring to useRealtimeChat/useOnlinePresence.
+ * This hook manages its own messages state and opens separate channels.
+ * If imported, it can cause duplicate subscriptions and stale UI.
+ */
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from "@/lib/supabaseClient"
 import { showToast } from '@/components/ui/Toast';

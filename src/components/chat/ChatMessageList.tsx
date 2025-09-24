@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import MessageBubble from './MessageBubble';
-import type { ChatMessage } from '@/hooks/useInletChat';
+import type { ChatMessage } from '@/lib/services/chat';
 
 interface ChatMessageListProps {
   messages: ChatMessage[];

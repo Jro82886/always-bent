@@ -1,7 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
-import { useInletChat } from '@/hooks/useInletChat';
+// Legacy hook quarantined; drawer should not import it anymore
 import { flags } from '@/lib/flags';
 import ChatHeader from './ChatHeader';
 import ChatMessageList from './ChatMessageList';

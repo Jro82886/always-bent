@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { ChatMessage } from '@/hooks/useInletChat';
+import type { ChatMessage } from '@/lib/services/chat';
 
 interface MessageBubbleProps {
   message: ChatMessage;

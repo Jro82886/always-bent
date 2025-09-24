@@ -1,6 +1,6 @@
 'use client';
 
-import { useInletChat } from '@/hooks/useInletChat';
+// Legacy inlet-only chat removed from UI; using ChatWindowLive elsewhere
 import ChatHeader from './ChatHeader';
 import ChatMessageList from './ChatMessageList';
 import ChatInput from './ChatInput';
@@ -17,15 +17,13 @@ export default function UnifiedChatContainer({
   userId,
   className = ''
 }: UnifiedChatContainerProps) {
-  // Use unified inlet chat hook
-  const { 
-    messages, 
-    send, 
-    boatsOnline, 
-    connected, 
-    inletName, 
-    inletColor 
-  } = useInletChat(inletId, userId);
+  // Component is unused after MVP; keep placeholder props to avoid build errors
+  const messages: any[] = [];
+  const send = async () => {};
+  const boatsOnline = 0;
+  const connected = false;
+  const inletName = 'Inlet';
+  const inletColor = '#999';
 
   return (
     <div className={`flex flex-col h-full ${className}`}>
