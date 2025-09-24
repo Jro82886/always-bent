@@ -10,8 +10,8 @@
     "polys:rebuild": "echo 'deprecated: build_copernicus_sst_polys.py removed' && exit 0",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc -p . --noEmit",
     "prepare": "husky",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
@@ -20,7 +20,8 @@
     "lint:contracts": "bash scripts/lint-contracts.sh",
     "check:routes": "node scripts/check-routes.js",
     "check:guardrails": "node scripts/check-guardrails.js",
-    "prebuild": "node scripts/type-check-quick.js && npm run check:routes && npm run check:guardrails"
+    "prebuild": "node scripts/type-check-quick.js && npm run check:routes && npm run check:guardrails",
+    "schema:check": "node scripts/schema-check.cjs"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
