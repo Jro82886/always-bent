@@ -93,14 +93,27 @@ export async function GET(req: NextRequest) {
       lastUpdate: stormData.lastIso || new Date().toISOString()
     };
     
-    return NextResponse.json(weatherData);
+    return new NextResponse(JSON.stringify(weatherData), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, max-age=0',
+        'CDN-Cache-Control': 'no-store',
+        'Vercel-CDN-Cache-Control': 'no-store',
+      }
+    });
     
   } catch (error) {
     console.error('Weather API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch weather data' },
-      { status: 500 }
-    );
+    return new NextResponse(JSON.stringify({ error: 'Failed to fetch weather data' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, max-age=0',
+        'CDN-Cache-Control': 'no-store',
+        'Vercel-CDN-Cache-Control': 'no-store',
+      }
+    });
   }
 }
 

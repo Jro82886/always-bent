@@ -306,17 +306,26 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    return NextResponse.json(response);
+    return new NextResponse(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, max-age=0',
+        'CDN-Cache-Control': 'no-store',
+        'Vercel-CDN-Cache-Control': 'no-store',
+      }
+    });
     
   } catch (error: any) {
     console.error('[SAMPLE] Error:', error);
-    return NextResponse.json(
-      { 
-        ok: false,
-        error: 'Failed to sample raster data',
-        stats: {}
-      },
-      { status: 500 }
-    );
+    return new NextResponse(JSON.stringify({ ok: false, error: 'Failed to sample raster data', stats: {} }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, max-age=0',
+        'CDN-Cache-Control': 'no-store',
+        'Vercel-CDN-Cache-Control': 'no-store',
+      }
+    });
   }
 }

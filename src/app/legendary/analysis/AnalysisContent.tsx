@@ -428,6 +428,17 @@ function AnalysisModeContent() {
           msImageRendering?: string;
         }}
       />
+
+      {/* Map chrome overlay containers */}
+      <div className="map-chrome">
+        <div className="map-chrome__topRight">
+          {/* Move gear/settings button to top-right overlay */}
+          <SettingsPanel />
+        </div>
+        <div className="map-chrome__bottom">
+          {/* bottom stacking CTAs reserved */}
+        </div>
+      </div>
       
       {/* Unified Command Bar - Navigation + Boat Info */}
       {/* Command Bridge Header */}
@@ -631,8 +642,7 @@ function AnalysisModeContent() {
             }} />
           )}
           
-          {/* Settings Panel - Bottom right corner */}
-          <SettingsPanel />
+          {/* Settings Panel moved to top-right via map chrome */}
           
           {/* Weather Conditions - Only show after tutorial is complete */}
           {/* Weather now integrated into UnifiedCommandCenter */}

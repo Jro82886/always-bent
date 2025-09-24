@@ -46,9 +46,13 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     if (visible && analysis) {
       setIsVisible(true);
       setIsAnimating(true);
+      // mark modal open in global store
+      useAppState.setState(s => ({ analysis: { ...s.analysis, isModalOpen: true } }));
     } else if (!visible) {
       setIsAnimating(false);
       setTimeout(() => setIsVisible(false), 300);
+      // mark modal closed
+      useAppState.setState(s => ({ analysis: { ...s.analysis, isModalOpen: false } }));
     }
   }, [visible, analysis, mounted]);
 
