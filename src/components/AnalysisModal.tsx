@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { X, Target, Waves, Thermometer, Activity, Save, Share2, Fish } from 'lucide-react';
 import FullBreakdownCard, { FullBreakdownData } from '@/components/analysis/FullBreakdownCard';
@@ -24,6 +25,7 @@ interface AnalysisModalProps {
 export default function AnalysisModal({ analysis, visible, onClose, onSave }: AnalysisModalProps) {
   const mapRef = (window as any).abfiMap || (window as any).map;
   const { selectedInletId, analysis: storeAnalysis } = useAppState();
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [reportId, setReportId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -112,6 +114,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     
     setIsSaving(true);
     try {
+      // Freeze the exact data shown in the card when available
+      const payloadToSave = fullData ?? analysis;
       const response = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,7 +123,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
           type: 'snip',
           status: 'complete',
           inlet_id: selectedInletId || undefined,
-          payload_json: analysis
+          source: 'online',
+          payload_json: payloadToSave
         })
       });
       
@@ -138,6 +143,10 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       });
       
       if (onSave) onSave();
+      // Navigate to Reports page with this report highlighted
+      try {
+        router.push(`/legendary/community/reports?reportId=${report.id}`);
+      } catch {}
     } catch (error) {
       console.error('Failed to save report:', error);
       showToast({
