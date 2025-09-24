@@ -44,9 +44,11 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     if (visible && analysis) {
       setIsVisible(true);
       setIsAnimating(true);
+      useAppState.setState(s => ({ analysis: { ...s.analysis, isModalOpen: true } }));
     } else if (!visible) {
       setIsAnimating(false);
       setTimeout(() => setIsVisible(false), 300);
+      useAppState.setState(s => ({ analysis: { ...s.analysis, isModalOpen: false } }));
     }
   }, [visible, analysis, mounted]);
 
@@ -104,6 +106,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
   const onDone = () => {
     cleanupSnipVisualization(mapRef);
     onClose?.();
+    useAppState.setState(s => ({ analysis: { ...s.analysis, isModalOpen: false } }));
     reEnable();
   };
 

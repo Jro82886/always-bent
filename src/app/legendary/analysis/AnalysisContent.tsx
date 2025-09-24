@@ -463,8 +463,8 @@ function AnalysisModeContent() {
           {/* Coastline Smoother - ONLY on Analysis tab */}
           {map.current && <CoastlineSmoother map={map.current} enabled={sstActive} />}
           
-          {/* Review CTA - Shows after snip completes */}
-          {analysis?.showReviewCta && analysis?.pendingAnalysis && (
+          {/* Review CTA - Shows after snip completes (hidden when modal open) */}
+          {(!useAppState.getState().analysis.isModalOpen) && analysis?.showReviewCta && analysis?.pendingAnalysis && (
             <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900/95 backdrop-blur-md rounded-lg shadow-2xl border border-cyan-500/30 p-4">
               <div className="flex items-center gap-4">
                 <span className="text-gray-300">
@@ -620,8 +620,8 @@ function AnalysisModeContent() {
             }} />
           )}
           
-          {/* Settings Panel - Bottom right corner */}
-          <SettingsPanel />
+          {/* Settings Panel - Bottom right corner (hide map-level CTAs when modal open) */}
+          {!useAppState.getState().analysis.isModalOpen && <SettingsPanel />}
           
           {/* Weather Conditions - Only show after tutorial is complete */}
           {/* Weather now integrated into UnifiedCommandCenter */}
