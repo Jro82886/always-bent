@@ -116,16 +116,24 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     try {
       // Freeze the exact data shown in the card when available
       const payloadToSave = fullData ?? analysis;
+      // Prefer frozen FullBreakdown JSON if available
+      const sot: any = fullData ?? analysis;
+      const body = {
+        source: 'snip',
+        type: 'snip',
+        version: sot?.version ?? 1.0,
+        snip_id: sot?.snip?.id ?? null,
+        inlet_id: selectedInletId || sot?.snip?.inlet || undefined,
+        analysis_json: sot, // spec: freeze SoT exactly as shown
+        // Backend compatibility: keep existing contract field
+        payload_json: sot,
+        status: 'complete'
+      };
+
       const response = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'snip',
-          status: 'complete',
-          inlet_id: selectedInletId || undefined,
-          source: 'online',
-          payload_json: payloadToSave
-        })
+        body: JSON.stringify(body)
       });
       
       if (!response.ok) {
@@ -133,7 +141,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       }
       
       const report = await response.json();
-      setReportId(report.id);
+      const newId = report.report_id || report.id;
+      setReportId(newId);
       
       showToast({
         type: 'success',
@@ -145,7 +154,8 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
       if (onSave) onSave();
       // Navigate to Reports page with this report highlighted
       try {
-        router.push(`/legendary/community/reports?reportId=${report.id}`);
+        // Route to Reprott (single view or list filtered)
+        router.push(`/legendary/reprott/reports/${newId}`);
       } catch {}
     } catch (error) {
       console.error('Failed to save report:', error);
