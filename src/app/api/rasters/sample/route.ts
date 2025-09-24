@@ -48,6 +48,8 @@ interface SampleResponse {
     } | null;
     chl?: LayerStats | null;
   };
+  requested_at?: string;
+  req_id?: string;
   error?: string;
 }
 
@@ -237,7 +239,8 @@ export async function POST(request: NextRequest) {
     
     const response: SampleResponse = {
       ok: true,
-      stats: {}
+      stats: {},
+      requested_at: new Date().toISOString(),
     };
     
     // Generate poly hash for logging
@@ -245,6 +248,7 @@ export async function POST(request: NextRequest) {
       polygon.type === 'Polygon' ? polygon.coordinates : polygon.geometry?.coordinates
     );
     const polyHash = crypto.createHash('md5').update(polyString).digest('hex').substring(0, 8);
+    response.req_id = polyHash;
     
     // Process each requested layer
     for (const layer of layers) {

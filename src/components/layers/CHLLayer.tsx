@@ -69,11 +69,25 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
         type: 'raster',
         source: 'chl-src',
         paint: {
-          'raster-opacity': 0.85,  // Good visibility without overpowering
-          'raster-opacity-transition': { duration: 300 },
-          'raster-resampling': 'linear'  // Sharp rendering, no blur
+          'raster-opacity': 0.95,
+          'raster-opacity-transition': { duration: 0 },
+          'raster-resampling': 'nearest'
         }
       });
+
+      // Enforce nearest at runtime and ensure canvas uses pixelated rendering
+      try {
+        map.setPaintProperty('chl-lyr', 'raster-resampling', 'nearest');
+        const canvas = map.getCanvas?.();
+        if (canvas) (canvas as any).style.imageRendering = 'pixelated';
+        if (process.env.NODE_ENV !== 'production') {
+          const chl = map.getPaintProperty('chl-lyr', 'raster-resampling');
+          if (chl !== 'nearest') {
+            // eslint-disable-next-line no-console
+            console.warn('Pixelation OFF: CHL raster-resampling is not nearest');
+          }
+        }
+      } catch {}
 
       // CRITICAL LAYER ORDERING - CHL must be visible above water!
       const layers = map.getStyle().layers;
