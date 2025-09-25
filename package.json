@@ -22,7 +22,11 @@
     "check:guardrails": "node scripts/check-guardrails.js",
     "prebuild": "node scripts/type-check-quick.js && npm run check:routes && npm run check:guardrails",
     "schema:check": "node scripts/schema-check.cjs",
-    "check:smooth-rendering": "node scripts/check-smooth-rendering.js"
+    "check:smooth-rendering": "node scripts/check-smooth-rendering.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -54,17 +58,23 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.55.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@turf/turf": "^7.2.0",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "husky": "^9.1.7",
+    "jsdom": "^27.0.0",
     "lint-staged": "^16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }
