@@ -19,9 +19,10 @@ export function buildReadout(opts: {
     lines.push(`Water color is ${col} (CHL ~${chl.mean.toFixed(3)} mg/m³).`);
   }
   if (lines.length === 0) {
-    lines.push('Live metrics not available; showing template placeholders.');
+    lines.push('Ocean data layers (SST/CHL) are not currently active. Enable layers to see live analysis.');
+  } else {
+    lines.push('Target edges and temperature breaks for the highest probability sets.');
   }
-  lines.push('Target edges and temperature breaks for the highest probability sets.');
   return lines.join(' ');
 }
 

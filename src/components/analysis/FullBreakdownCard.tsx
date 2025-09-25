@@ -15,6 +15,15 @@ export interface FullBreakdownData {
     water_color_summary?: string;
   };
   vessels?: { since_hours: number; gfw_count: number; fleet_count: number; activity_score: number; activity_text: string };
+  weather?: { 
+    wind?: { speed_kn: number; direction_deg: number };
+    swell?: { height_ft: number; period_s: number; direction_deg: number };
+  };
+  reports?: Array<{ 
+    species: string;
+    date: string;
+    distance_nm?: number;
+  }>;
   species_outlook?: { tuna?: string; mahi?: string; billfish?: string };
   hotspot?: { show: boolean; label: string; confidence: 'low'|'medium'|'high' };
   confidence: 'low' | 'medium' | 'high';
@@ -58,22 +67,68 @@ export default function FullBreakdownCard({ data, onSave, onSnipAgain, onDone, p
         </ul>
       </section>
 
-      {(() => {
-        const v = data.vessels;
-        if (!v) return null;
-        const show = (v.gfw_count ?? 0) > 0 || (v.fleet_count ?? 0) > 0 || v.activity_text;
-        if (!show) return null;
-        return (
-          <section>
-            <h3 className="font-semibold">Vessels (last {v.since_hours ?? 24}h)</h3>
-            <ul className="text-sm space-y-1 mt-1">
-              <li>GFW vessels: {v.gfw_count ?? 0}</li>
-              <li>Fleet vessels: {v.fleet_count ?? 0}</li>
-              <li>Activity: {v.activity_text || 'n/a'}</li>
-            </ul>
-          </section>
-        );
-      })()}
+      <section>
+        <h3 className="font-semibold">Vessels (last {data.vessels?.since_hours ?? 24}h)</h3>
+        {data.vessels ? (
+          <ul className="text-sm space-y-1 mt-1">
+            <li>Commercial vessels (GFW): {data.vessels.gfw_count || 0}</li>
+            <li>Fleet vessels: {data.vessels.fleet_count || 0}</li>
+            {(data.vessels.gfw_count > 0 || data.vessels.fleet_count > 0) ? (
+              <>
+                <li>Activity level: {data.vessels.activity_text}</li>
+                {data.vessels.activity_score >= 3 && (
+                  <li className="text-green-400">⚡ {data.vessels.activity_text} - fish are likely in the area</li>
+                )}
+              </>
+            ) : (
+              <li className="text-neutral-400">No vessels detected in the last {data.vessels.since_hours}h - continuing to monitor for activity</li>
+            )}
+          </ul>
+        ) : (
+          <p className="text-sm text-neutral-400 italic">
+            Vessel tracking system initializing...
+          </p>
+        )}
+      </section>
+
+      <section>
+        <h3 className="font-semibold">Current Conditions</h3>
+        {data.weather && (data.weather.wind || data.weather.swell) ? (
+          <ul className="text-sm space-y-1 mt-1">
+            {data.weather.wind ? (
+              <li>Wind: {data.weather.wind.speed_kn}kn from {data.weather.wind.direction_deg}°</li>
+            ) : (
+              <li className="text-neutral-400">Wind data pending...</li>
+            )}
+            {data.weather.swell ? (
+              <li>Swell: {data.weather.swell.height_ft}ft @ {data.weather.swell.period_s}s from {data.weather.swell.direction_deg}°</li>
+            ) : (
+              <li className="text-neutral-400">Swell data pending...</li>
+            )}
+          </ul>
+        ) : (
+          <p className="text-sm text-neutral-400 italic">
+            Weather data integration in progress...
+          </p>
+        )}
+      </section>
+
+      <section>
+        <h3 className="font-semibold">Recent Reports (7 days)</h3>
+        {data.reports && data.reports.length > 0 ? (
+          <ul className="text-sm space-y-1 mt-1">
+            {data.reports.map((report, i) => (
+              <li key={i} className="text-green-400">
+                🎣 {report.species} - {report.date} {report.distance_nm && `(${report.distance_nm}nm away)`}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-neutral-400">
+            No bite reports in this area yet - be the first to report!
+          </p>
+        )}
+      </section>
 
       <section>
         <h3 className="font-semibold">What It Means</h3>
@@ -165,9 +220,38 @@ export default function FullBreakdownCard({ data, onSave, onSnipAgain, onDone, p
         </button>
       </div>
 
+      <div className="pt-4 border-t border-neutral-700">
+        <h4 className="text-xs font-semibold text-neutral-400 mb-2">Data Status</h4>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className={data.metrics.water_temp_f ? "text-green-400" : "text-neutral-500"}>
+              {data.metrics.water_temp_f ? "●" : "○"} SST
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={data.metrics.water_color_summary ? "text-green-400" : "text-neutral-500"}>
+              {data.metrics.water_color_summary ? "●" : "○"} Chlorophyll
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={data.vessels ? "text-green-400" : "text-yellow-400"}>
+              {data.vessels ? "●" : "◐"} Vessels
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={data.weather ? "text-yellow-400" : "text-neutral-500"}>
+              {data.weather ? "◐" : "○"} Weather
+            </span>
+          </div>
+        </div>
+        <p className="text-xs text-neutral-500 mt-2">
+          ● Live &nbsp; ◐ Partial &nbsp; ○ Pending
+        </p>
+      </div>
+
       {provenance && (
         <div className="pt-2 text-xs text-neutral-500">
-          Data: live • {provenance.server_time_utc} • req {provenance.request_id?.slice(0, 8)}
+          Analysis: {new Date(provenance.server_time_utc).toLocaleTimeString()} • {provenance.request_id?.slice(0, 8)}
         </div>
       )}
     </div>

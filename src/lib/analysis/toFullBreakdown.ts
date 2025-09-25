@@ -29,6 +29,12 @@ export async function toFullBreakdownV1(s: SamplerInput): Promise<FullBreakdownD
       }
     : undefined;
 
+  // Check for data gaps
+  const gaps: string[] = [];
+  if (!samp?.sst) gaps.push('SST layer not active - enable to see temperature analysis');
+  if (!samp?.chl) gaps.push('CHL layer not active - enable to see water color analysis');
+  // Note: Weather and vessel gaps will be added by their respective fetch attempts
+
   const data: FullBreakdownData = {
     version: 1,
     snip: {
@@ -47,7 +53,7 @@ export async function toFullBreakdownV1(s: SamplerInput): Promise<FullBreakdownD
     ai_readout: buildReadout({ sstF, chl: samp?.chl }),
     hotspot: s?.hotspot ?? { show: false, label: '', confidence: 'medium' },
     confidence: s?.confidence ?? 'medium',
-    data_gaps: s?.gaps ?? []
+    data_gaps: gaps
   };
 
   // Vessels (last 24h) – best effort
