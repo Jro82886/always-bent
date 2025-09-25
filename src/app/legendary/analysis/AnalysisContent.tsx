@@ -595,21 +595,7 @@ function AnalysisModeContent() {
             </div>
           )}
           
-          {/* LEGACY MODAL DISABLED - Using DynamicAnalysisModal only */}
-          {false && isAnalysisModalOpen && analysis?.pendingAnalysis && (
-            <AnalysisModal
-              analysis={{
-                ...analysis.pendingAnalysis,
-                narrative: analysis.pendingAnalysis.narrative || 'Analyzing ocean conditions...'
-              }}
-              visible={true}
-              onClose={() => {
-                setIsAnalysisModalOpen(false);
-                // Reset the analysis state
-                resetAnalysisTransient();
-              }}
-            />
-          )}
+          {/* LEGACY MODAL COMPLETELY REMOVED - DynamicAnalysisModal only */}
           
           {/* Dynamic Analysis Modal - ALWAYS SHOW REAL DATA */}
           {(() => {
