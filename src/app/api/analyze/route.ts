@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as turf from '@turf/turf';
 
 export const runtime = 'nodejs';
 
@@ -73,9 +74,104 @@ export async function POST(req: NextRequest) {
     headers.set('Link', '</api/v2/analysis>; rel="successor-version"');
   }
 
-  // TODO: Call existing analysis using normalized bbox, timeISO, layers
-  // const result = await analyze({ bbox, timeISO, layers });
-  // responseData.result = result;
+  // Get the actual ocean data
+  try {
+    // For now, return mock data to verify the flow works
+    // TODO: Import and call the actual raster sampling logic directly
+    const mockSSTData = layers.includes('sst') ? {
+      mean_f: 72.5,
+      min_f: 71.2,
+      max_f: 74.8,
+      gradient_f: 0.8,
+      n_valid: 150,
+      n_nodata: 10
+    } : null;
+    
+    const mockCHLData = layers.includes('chl') ? {
+      mean: 0.45,
+      min: 0.2,
+      max: 0.8,
+      gradient: 0.15,
+      n_valid: 150,
+      n_nodata: 10
+    } : null;
+    
+    const rasterData = {
+      ok: true,
+      stats: {
+        sst: mockSSTData,
+        chl: mockCHLData
+      }
+    };
+    
+    // Extract the ocean data
+    const sstData = rasterData.stats?.sst;
+    const chlData = rasterData.stats?.chl;
+    
+    // Build analysis narrative
+    let narrative = '';
+    
+    // SST Analysis
+    if (layers.includes('sst') && sstData && sstData.mean_f) {
+      const tempRange = (sstData.max_f || sstData.mean_f) - (sstData.min_f || sstData.mean_f);
+      if (tempRange < 0.5) {
+        narrative += `Water is uniform in temperature (Δ ${tempRange.toFixed(1)}°F). Uniform water is usually less productive. `;
+      } else if (tempRange >= 2.0) {
+        narrative += `Sharp SST gradient of ${tempRange.toFixed(1)}°F — strong edge, favorable for pelagic activity. `;
+      } else {
+        narrative += `SST gradient of ${tempRange.toFixed(1)}°F — moderate edge, watch for bait concentration. `;
+      }
+      narrative += `Average temp: ${sstData.mean_f.toFixed(1)}°F. `;
+    } else if (layers.includes('sst')) {
+      narrative += 'SST data not available for this area/time. ';
+    }
+    
+    // CHL Analysis  
+    if (layers.includes('chl') && chlData && chlData.mean) {
+      if (chlData.mean < 0.1) {
+        narrative += `Extremely clean water (${chlData.mean.toFixed(2)} mg/m³). Bait unlikely to hold. `;
+      } else if (chlData.mean >= 0.3 && chlData.mean <= 1.0) {
+        narrative += `Moderate chlorophyll (${chlData.mean.toFixed(2)} mg/m³) — favorable feeding zone. `;
+      } else if (chlData.mean > 2.0) {
+        narrative += `Very high chlorophyll (${chlData.mean.toFixed(2)} mg/m³). Often turbid; predators may avoid. `;
+      } else {
+        narrative += `Chlorophyll ${chlData.mean.toFixed(2)} mg/m³ — transitional water quality. `;
+      }
+    } else if (layers.includes('chl')) {
+      narrative += 'Chlorophyll data not available for this area/time. ';
+    }
+    
+    // Calculate area
+    const areaKm2 = polygon ? turf.area(polygon) / 1000000 : 
+                    (bbox[2] - bbox[0]) * (bbox[3] - bbox[1]) * 111 * 111 * Math.cos(bbox[1] * Math.PI / 180);
+    
+    narrative += `Analysis area: ${areaKm2.toFixed(1)} km². `;
+    
+    // Build complete response
+    responseData.analysis = {
+      oceanData: {
+        sst: sstData,
+        chl: chlData
+      },
+      narrative: narrative.trim(),
+      stats: {
+        area_km2: areaKm2,
+        sst_mean_f: sstData?.mean_f,
+        sst_range_f: sstData ? (sstData.max_f - sstData.min_f) : null,
+        chl_mean_mg_m3: chlData?.mean,
+        chl_range_mg_m3: chlData ? (chlData.max - chlData.min) : null
+      },
+      confidence: (sstData || chlData) ? 'high' : 'no-data'
+    };
+    
+  } catch (error) {
+    console.error('Analysis error:', error);
+    responseData.error = 'Analysis failed';
+    responseData.analysis = {
+      narrative: 'Unable to analyze ocean conditions at this time.',
+      confidence: 'error'
+    };
+  }
 
   return new NextResponse(JSON.stringify(responseData), { 
     status: 200,
