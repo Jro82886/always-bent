@@ -4,30 +4,54 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAppState } from '@/lib/store';
 
 export default function OfflineManager() {
+  const SW_ENABLED = process.env.NEXT_PUBLIC_ENABLE_SW === 'true';
   const [isOffline, setIsOffline] = useState(false);
   const [swRegistration, setSwRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [syncPending, setSyncPending] = useState(false);
   const { selectedInletId } = useAppState();
 
-  // Register service worker
+  // Register/Unregister service worker based on env flag
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('Service Worker registered:', registration);
-          setSwRegistration(registration);
-          
-          // Check for updates every hour
-          setInterval(() => {
-            registration.update();
-          }, 3600000);
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    // If disabled, proactively unregister existing SW and clear caches (prevents stale chunks)
+    if (!SW_ENABLED) {
+      (async () => {
+        try {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const r of regs) await r.unregister();
+          if (window.caches) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+          // Reload once to pick up fresh HTML without SW
+          const KEY = 'abfi:sw-cleared';
+          if (!sessionStorage.getItem(KEY)) {
+            sessionStorage.setItem(KEY, '1');
+            location.reload();
+          }
+        } catch (e) {
+          // no-op
+        }
+      })();
+      return;
     }
-  }, []);
+
+    // Enabled: register SW normally
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.log('Service Worker registered:', registration);
+        setSwRegistration(registration);
+        // Check for updates every hour
+        setInterval(() => {
+          registration.update();
+        }, 3600000);
+      })
+      .catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+  }, [SW_ENABLED]);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -131,6 +155,7 @@ export default function OfflineManager() {
   }, [isOffline, saveOfflineData, cacheTilesForInlet]);
 
   // UI indicator for offline status
+  if (!SW_ENABLED) return null;
   if (!isOffline && !syncPending) return null;
 
   return (
