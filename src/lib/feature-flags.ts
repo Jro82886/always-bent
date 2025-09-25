@@ -47,6 +47,33 @@ class FeatureFlagManager {
         enabled: process.env.NODE_ENV === 'production',
         rolloutPercentage: 10, // Monitor 10% of users
       },
+      // Premium features (safe to enable)
+      {
+        name: 'premium-features',
+        enabled: process.env.NEXT_PUBLIC_PREMIUM_FEATURES !== 'false',
+      },
+      {
+        name: 'rum',
+        enabled: process.env.NEXT_PUBLIC_RUM_ENABLED !== 'false',
+        rolloutPercentage: 100,
+      },
+      {
+        name: 'smart-cache',
+        enabled: process.env.NEXT_PUBLIC_SMART_CACHE !== 'false',
+      },
+      {
+        name: 'smart-retry',
+        enabled: process.env.NEXT_PUBLIC_SMART_RETRY !== 'false',
+      },
+      {
+        name: 'performance-optimizer',
+        enabled: process.env.NEXT_PUBLIC_PERFORMANCE_OPTIMIZER !== 'false',
+      },
+      {
+        name: 'read-replicas',
+        enabled: process.env.NEXT_PUBLIC_READ_REPLICAS === 'true', // Off by default
+        rolloutPercentage: 10, // Start with 10% of traffic
+      },
     ];
     
     flags.forEach(flag => {
