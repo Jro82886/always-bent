@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Build response with appropriate headers
-  const responseData = {
+  const responseData: any = {
     ok: true,
     normalized: { bbox, timeISO, layers },
     // For MVP verification - echo back what we received
