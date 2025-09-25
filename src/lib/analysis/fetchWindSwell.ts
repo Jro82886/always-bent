@@ -1,28 +1,41 @@
 import type { WindStats, SwellStats } from './types';
+import { getInletById } from '@/lib/inlets';
 
 /**
- * For MVP: sample wind/swell at polygon centroid only.
- * Replace with polygon mean later if needed.
+ * Fetch wind/swell data from Stormio via our weather API
+ * Uses the inlet associated with the polygon, or falls back to nearest inlet
  */
-export async function fetchWindSwell(polygon: GeoJSON.Polygon): Promise<{
+export async function fetchWindSwell(polygon: GeoJSON.Polygon, inletId?: string): Promise<{
   wind: WindStats | null;
   swell: SwellStats | null;
 }> {
   try {
-    // Get centroid
-    const coords = polygon.coordinates[0];
-    const [lon, lat] = coords.reduce(
-      (acc, [x, y]) => [acc[0] + x, acc[1] + y],
-      [0, 0]
-    ).map(sum => sum / coords.length);
-
-    // TODO: Call real weather API with centroid
-    // For now return stub data so flow never blocks
+    // Use provided inlet or default to overview
+    const inlet = inletId || 'overview';
     
-    return {
-      wind: { speed_kn: 12, direction_deg: 135 },
-      swell: { height_ft: 4.2, period_s: 9, direction_deg: 90 },
+    // Call our weather API which integrates with Stormio
+    const response = await fetch(`/api/weather?inlet=${inlet}`);
+    
+    if (!response.ok) {
+      console.error('[fetchWindSwell] Weather API error:', response.status);
+      return { wind: null, swell: null };
+    }
+    
+    const data = await response.json();
+    
+    // Extract wind and swell from the weather response
+    const wind: WindStats = {
+      speed_kn: data.wind?.speed || null,
+      direction_deg: data.wind?.direction || null
     };
+    
+    const swell: SwellStats = {
+      height_ft: data.swellHeight || null,
+      period_s: data.swellPeriod || null,
+      direction_deg: data.swellDirection || null
+    };
+    
+    return { wind, swell };
   } catch (e) {
     console.error('[fetchWindSwell] fail', e);
     return { wind: null, swell: null };

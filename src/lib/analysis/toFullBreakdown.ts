@@ -74,6 +74,31 @@ export async function toFullBreakdownV1(s: SamplerInput): Promise<FullBreakdownD
     }
   } catch {}
 
+  // Weather data from Stormio – best effort
+  try {
+    if (s?.inlet) {
+      const weatherRes = await fetch(`/api/weather?inlet=${s.inlet}`);
+      if (weatherRes.ok) {
+        const weatherData = await weatherRes.json();
+        data.weather = {
+          wind: weatherData.wind ? {
+            speed_kn: weatherData.wind.speed,
+            direction_deg: weatherData.wind.direction
+          } : undefined,
+          swell: weatherData.waves ? {
+            height_ft: weatherData.waves.height || weatherData.swellHeight,
+            period_s: weatherData.waves.period || weatherData.swellPeriod,
+            direction_deg: weatherData.waves.direction || weatherData.swellDirection
+          } : undefined
+        };
+        data.version = 1.2;
+      }
+    }
+  } catch (e) {
+    console.error('[toFullBreakdown] Weather fetch error:', e);
+    gaps.push('Weather data temporarily unavailable');
+  }
+
   return data;
 }
 
