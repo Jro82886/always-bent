@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cloud, Waves, Thermometer, Wind, Navigation, Loader2, WifiOff, Wifi, MapPin } from 'lucide-react';
+import { Cloud, Waves, Thermometer, Wind, Navigation, Loader2, WifiOff, Wifi, MapPin, AlertCircle } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 import { useWeather } from '@/lib/hooks/queries';
@@ -28,77 +28,37 @@ interface WeatherData {
 
 export default function LiveWeatherWidget() {
   const { selectedInletId } = useAppState();
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { data: apiData, isLoading: loading, error } = useWeather(selectedInletId);
   const [online, setOnline] = useState(true);
   const [expanded, setExpanded] = useState(false);
   
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
 
-  // Fetch weather data
-  useEffect(() => {
-    const fetchWeather = async () => {
-      if (!selectedInletId) {
-        setWeatherData(null);
-        setLoading(false);
-        return;
-      }
-      
-      setLoading(true);
-      try {
-        // Fetch real weather data from API using inlet ID
-        const response = await fetch(`/api/weather?inlet=${selectedInletId}`);
-        
-        if (!response.ok) {
-          throw new Error('Weather API error');
-        }
-        
-        const data = await response.json();
-        
-        // Parse the API response into our format
-        const weatherData: WeatherData = {
-          waves: {
-            height: data.waves?.height || 2.5,
-            period: data.waves?.period || 10,
-            direction: data.waves?.direction || 0
-          },
-          water: {
-            temp: data.water?.temperature || 75
-          },
-          wind: {
-            speed: data.wind?.speed || 10,
-            direction: data.wind?.direction || 0
-          },
-          conditions: {
-            rating: determineRating(data),
-            description: generateDescription(data)
-          },
-          lastUpdate: new Date()
-        };
-        
-        setWeatherData(weatherData);
-        setOnline(true);
-      } catch (error) {
-        console.error('Weather fetch error:', error);
-        // Use fallback data if API fails
-        setWeatherData({
-          waves: { height: 2.5, period: 10, direction: 0 },
-          water: { temp: 75 },
-          wind: { speed: 10, direction: 0 },
-          conditions: { rating: 'FAIR', description: 'Weather data unavailable' },
-          lastUpdate: new Date()
-        });
-        setOnline(false);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Transform API data to our interface
+  const weatherData: WeatherData | null = apiData ? {
+    waves: {
+      height: apiData.waves?.height || 2.5,
+      period: apiData.waves?.period || 10,
+      direction: apiData.waves?.direction || 0
+    },
+    water: {
+      temp: apiData.water?.temperature || 75
+    },
+    wind: {
+      speed: apiData.wind?.speed || 10,
+      direction: apiData.wind?.direction || 0
+    },
+    conditions: {
+      rating: determineRating(apiData),
+      description: generateDescription(apiData)
+    },
+    lastUpdate: new Date()
+  } : null;
 
-    fetchWeather();
-    // Refresh every 30 minutes
-    const interval = setInterval(fetchWeather, 30 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [inlet, selectedInletId]);
+  // Update online status based on error
+  useEffect(() => {
+    setOnline(!error);
+  }, [error]);
   
   // Helper functions for weather conditions
   const determineRating = (data: any): 'POOR' | 'FAIR' | 'GOOD' | 'EXCELLENT' => {
@@ -175,7 +135,23 @@ export default function LiveWeatherWidget() {
     );
   }
 
-  if (!weatherData) return null;
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-sm border border-red-500/20">
+        <AlertCircle className="w-3 h-3 text-red-400" />
+        <span className="text-xs text-red-400">Weather unavailable</span>
+      </div>
+    );
+  }
+
+  if (!weatherData) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-sm border border-cyan-500/20">
+        <Cloud className="w-3 h-3 text-cyan-400" />
+        <span className="text-xs text-cyan-400">No weather data</span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">

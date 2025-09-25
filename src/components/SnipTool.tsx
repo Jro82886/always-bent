@@ -1380,12 +1380,14 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       // Wait for SST tiles to render if layer is active
       if (sstLayer) {
+        console.log('[SST] Layer active, waiting for tiles to paint...');
         await waitForSSTRasterPaint(map, sstLayer.id);
+        console.log('[SST] Map idle - checking canvas readability...');
         
         // Check if canvas is readable (CORS)
         const canvas = map.getCanvas();
         if (!isCanvasReadable(canvas)) {
-          console.error('[ABFI] SST canvas is tainted (CORS). Check tile proxy headers.');
+          console.error('[SST] Canvas is tainted (CORS). Check tile proxy headers.');
           showToast({
             type: 'error',
             title: 'SST Analysis Failed',
@@ -1394,7 +1396,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           });
           // Continue with analysis but mark SST as unavailable
           activeLayers.sst = false;
+        } else {
+          console.log('[SST] Canvas is readable - proceeding with analysis');
         }
+      } else {
+        console.log('[SST] No SST layer visible - skipping SST analysis');
       }
       
       // Step 2.5: Call the new endpoints in parallel
