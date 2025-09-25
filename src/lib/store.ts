@@ -201,3 +201,9 @@ export const useAppState = create<AppState>((set, get) => ({
     }
   })),
 }));
+
+// EXPOSE TO WINDOW FOR DEBUGGING
+if (typeof window !== 'undefined') {
+  (window as any).__ABFI_STORE__ = useAppState;
+  console.log('[STORE] Exposed to window.__ABFI_STORE__');
+}

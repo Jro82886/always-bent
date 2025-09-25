@@ -632,7 +632,7 @@ function AnalysisModeContent() {
           })()}
           
           {/* Debug helper - shows VM state */}
-          {process.env.NODE_ENV === 'development' && (
+          {true && (
             <>
               <pre style={{position:'fixed', bottom:8, left:8, zIndex:99999, background:'rgba(0,0,0,.8)', color:'#0f0', padding:8, fontSize:11, maxWidth:400, overflow:'auto'}}>
                 VM: {JSON.stringify(useAppState((s) => s.analysisVM), null, 2)}
