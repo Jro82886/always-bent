@@ -22,7 +22,7 @@ export function sanitizeHtml(dirty: string, options: SanitizeOptions = {}): stri
     KEEP_CONTENT: !options.stripDangerousTags
   };
 
-  return purify.sanitize(dirty, config);
+  return purify.sanitize(dirty, config) as string;
 }
 
 // SQL Injection Prevention (even though we use prepared statements)

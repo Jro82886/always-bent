@@ -42,20 +42,25 @@ export const AnalyzeSchema = z.object({
 export const WeatherSchema = z.object({
   wind: z.object({
     speed: z.number(),
-    direction: z.number(),
-    gusts: z.number().optional()
+    direction: z.number()
   }),
   waves: z.object({
     height: z.number(),
     period: z.number(),
-    direction: z.number().optional()
+    direction: z.number()
   }),
-  temperature: z.object({
-    air: z.number(),
-    water: z.number()
+  water: z.object({
+    temperature: z.number()
   }),
-  conditions: z.string(),
-  updated_at: z.string()
+  pressure: z.object({
+    value: z.number(),
+    trend: z.string()
+  }).optional(),
+  source: z.object({
+    id: z.string(),
+    status: z.string()
+  }).optional(),
+  lastUpdate: z.string()
 });
 
 // Centralized fetch with timeout, retry, and validation
@@ -96,7 +101,7 @@ export async function apiFetch<T extends z.ZodTypeAny>(
         if (e instanceof z.ZodError) {
           return { 
             ok: false, 
-            error: new Error(`Invalid response format: ${e.errors.map(err => err.message).join(', ')}`)
+            error: new Error(`Invalid response format: ${e.issues.map(err => err.message).join(', ')}`)
           };
         }
         

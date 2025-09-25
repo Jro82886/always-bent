@@ -27,7 +27,7 @@ Sentry.init({
   beforeSend(event, hint) {
     // Filter out known non-issues
     if (event.exception) {
-      const error = hint.originalException;
+      const error = hint.originalException as Error;
       
       // Ignore network errors that are expected
       if (error?.message?.includes('NetworkError')) {

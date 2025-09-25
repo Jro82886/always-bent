@@ -13,6 +13,7 @@ import { useAppState } from '@/lib/store';
 import type { SnipAnalysis } from '@/lib/analysis/types';
 import { INLETS } from '@/lib/inlets';
 import { centroidOf, fmtDeg } from '@/lib/geo/format';
+import { toSamplerInput } from '@/lib/analysis/convertStats';
 import '@/styles/analysis-glow.css';
 
 interface AnalysisModalProps {
@@ -58,7 +59,21 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
     (async () => {
       if (!analysis) { setFullData(null); return; }
       try {
-        const d = await toFullBreakdownV1(analysis);
+        // Create a safe input for toFullBreakdownV1
+        const safeInput = {
+          ...analysis,
+          sst: analysis.sst ? {
+            mean: analysis.sst.mean ?? 0,
+            min: analysis.sst.min ?? 0,
+            max: analysis.sst.max ?? 0
+          } : undefined,
+          chl: analysis.chl ? {
+            mean: analysis.chl.mean ?? 0,
+            min: analysis.chl.min ?? 0,
+            max: analysis.chl.max ?? 0
+          } : undefined
+        };
+        const d = await toFullBreakdownV1(safeInput);
         if (!cancelled) setFullData(d);
       } catch {
         if (!cancelled) setFullData(null);

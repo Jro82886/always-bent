@@ -5,11 +5,12 @@ import { Target, ChevronDown, ChevronUp, Map, Navigation, GraduationCap,
          Thermometer, Wind, Waves, Compass, Eye, Cloud, Activity } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { fetchWeather } from '@/lib/api';
-import type { WeatherData } from '@/types/domain';
+import type { WeatherAPIResponse, LegacyWeatherConditions } from '@/types/weather';
+import { weatherToLegacyConditions } from '@/types/weather';
 
 // Weather types and formatters
 interface InletWeather {
-  conditions?: WeatherData;
+  conditions?: LegacyWeatherConditions;
 }
 
 const formatWind = (speed: number, direction: number) => {
@@ -117,7 +118,9 @@ export default function UnifiedCommandCenter({
       try {
         const result = await fetchWeather(selectedInletId);
         if (result.ok) {
-          setWeather({ conditions: result.data });
+          // Convert API response to legacy format
+          const legacyConditions = weatherToLegacyConditions(result.data as any);
+          setWeather({ conditions: legacyConditions });
         } else {
           console.error('Weather fetch error:', result.error);
         }

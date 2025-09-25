@@ -93,6 +93,11 @@ export async function GET(req: NextRequest) {
       lastUpdate: stormData.lastIso || new Date().toISOString()
     };
     
+    // DEV LOG: Log actual weather response shape
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[WEATHER API] Actual response:', JSON.stringify(weatherData, null, 2));
+    }
+    
     return new NextResponse(JSON.stringify(weatherData), {
       status: 200,
       headers: {

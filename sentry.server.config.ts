@@ -15,7 +15,7 @@ Sentry.init({
   beforeSend(event, hint) {
     // Filter out known non-issues
     if (event.exception) {
-      const error = hint.originalException;
+      const error = hint.originalException as Error;
       
       // Ignore expected errors
       if (error?.message?.includes('NEXT_NOT_FOUND')) {
