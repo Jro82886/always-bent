@@ -1,7 +1,23 @@
 import { computeSpeciesOutlook } from '@/lib/analysis/speciesOutlook';
 import { buildReadout } from '@/lib/analysis/readout';
+import type { FullBreakdownData } from '@/components/analysis/FullBreakdownCard';
 
-export async function toFullBreakdownV1(s: any) {
+interface SamplerInput {
+  id?: string;
+  inlet?: string;
+  timeISO?: string;
+  region_text?: string;
+  bbox?: number[];
+  polygonMeta?: { area_sq_km?: number };
+  sst?: { mean: number; min: number; max: number };
+  chl?: { mean: number; min: number; max: number };
+  sample?: { sst?: any; chl?: any };
+  hotspot?: { show: boolean; label: string; confidence: 'low' | 'medium' | 'high' };
+  confidence?: 'low' | 'medium' | 'high';
+  gaps?: string[];
+}
+
+export async function toFullBreakdownV1(s: SamplerInput): Promise<FullBreakdownData> {
   const samp = s?.sst || s?.chl ? { sst: s.sst, chl: s.chl } : s?.sample || {};
   const outlook = computeSpeciesOutlook(samp);
 
@@ -13,7 +29,7 @@ export async function toFullBreakdownV1(s: any) {
       }
     : undefined;
 
-  const data: any = {
+  const data: FullBreakdownData = {
     version: 1,
     snip: {
       id: s?.id || 'snip',
