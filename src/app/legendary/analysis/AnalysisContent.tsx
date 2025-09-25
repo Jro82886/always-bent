@@ -602,9 +602,15 @@ function AnalysisModeContent() {
             const vm = useAppState((s) => s.analysisVM);
             const isOpen = useAppState((s) => s.isDynamicModalOpen);
             
-            // Only render if we have valid VM data
-            if (!vm || !isOpen) return null;
+            console.log('[MODAL CHECK] vm:', vm, 'isOpen:', isOpen);
             
+            // Only render if we have valid VM data
+            if (!vm || !isOpen) {
+              console.log('[MODAL CHECK] Not rendering because:', !vm ? 'no VM' : 'not open');
+              return null;
+            }
+            
+            console.log('[MODAL CHECK] Rendering DynamicAnalysisModal');
             return (
               <DynamicAnalysisModal
                 vm={vm}
