@@ -8,7 +8,7 @@ export async function sampleScalars({
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ 
       polygon: { type: 'Feature', geometry: polygon, properties: {} }, 
-      time: timeISO, 
+      timeISO: timeISO, 
       layers 
     }),
   });
@@ -37,32 +37,28 @@ export async function sampleScalars({
   // Transform response to our expected format
   const result: { sst?: ScalarStats|null; chl?: ScalarStats|null } = {};
   
-  if (layers.includes('sst') && data.stats) {
-    if (data.stats.sst_mean !== undefined) {
-      result.sst = {
-        mean: data.stats.sst_mean,
-        min: data.stats.sst_min,
-        max: data.stats.sst_max,
-        gradient: data.stats.front_strength_mean || null,
-        units: '°F'
-      };
-    } else {
-      result.sst = { mean: null, min: null, max: null, gradient: null, units: '°F', reason: 'No data' };
-    }
+  if (layers.includes('sst') && data.stats?.sst) {
+    result.sst = {
+      mean: data.stats.sst.mean_f || null,
+      min: data.stats.sst.min_f || null,
+      max: data.stats.sst.max_f || null,
+      gradient: data.stats.sst.gradient_f || null,
+      units: '°F'
+    };
+  } else if (layers.includes('sst')) {
+    result.sst = { mean: null, min: null, max: null, gradient: null, units: '°F', reason: 'No data' };
   }
   
-  if (layers.includes('chl') && data.stats) {
-    if (data.stats.chl_mean !== undefined) {
-      result.chl = {
-        mean: data.stats.chl_mean,
-        min: data.stats.chl_min,
-        max: data.stats.chl_max,
-        gradient: null, // CHL gradient not provided by API
-        units: 'mg/m³'
-      };
-    } else {
-      result.chl = { mean: null, min: null, max: null, gradient: null, units: 'mg/m³', reason: 'No data' };
-    }
+  if (layers.includes('chl') && data.stats?.chl) {
+    result.chl = {
+      mean: data.stats.chl.mean || null,
+      min: data.stats.chl.min || null,
+      max: data.stats.chl.max || null,
+      gradient: data.stats.chl.gradient || null,
+      units: 'mg/m³'
+    };
+  } else if (layers.includes('chl')) {
+    result.chl = { mean: null, min: null, max: null, gradient: null, units: 'mg/m³', reason: 'No data' };
   }
   
   return result;

@@ -7,9 +7,9 @@ export async function toFullBreakdownV1(s: any) {
 
   const sstF = samp?.sst
     ? {
-        avg: ((samp.sst.mean * 9) / 5 + 32),
-        min: ((samp.sst.min * 9) / 5 + 32),
-        max: ((samp.sst.max * 9) / 5 + 32),
+        avg: samp.sst.mean, // Already in Fahrenheit from API
+        min: samp.sst.min,
+        max: samp.sst.max,
       }
     : undefined;
 
