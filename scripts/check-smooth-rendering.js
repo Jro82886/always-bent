@@ -9,11 +9,11 @@ function grep(pattern) {
   }
 }
 
-const sst = grep("'raster-resampling': 'linear'\n'\n' src/components/layers/SSTLayer.tsx");
-const chl = grep("'raster-resampling': 'linear'\n'\n' src/components/layers/CHLLayer.tsx");
+const sst = grep("'raster-resampling': 'nearest'");
+const chl = grep("'raster-resampling': 'nearest'");
 
 if (sst.includes("SSTLayer.tsx") || chl.includes("CHLLayer.tsx")) {
-  console.error('\n[PIXELATION] Found linear resampling in SST/CHL layers. Please use \'nearest\'.');
+  console.error('\n[SMOOTH RENDERING] Found nearest resampling in SST/CHL layers. Please use \'linear\' for smooth rendering.');
   process.exit(1);
 }
 

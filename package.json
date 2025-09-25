@@ -22,7 +22,7 @@
     "check:guardrails": "node scripts/check-guardrails.js",
     "prebuild": "node scripts/type-check-quick.js && npm run check:routes && npm run check:guardrails",
     "schema:check": "node scripts/schema-check.cjs",
-    "check:pixelation": "node scripts/check-pixelation.js"
+    "check:smooth-rendering": "node scripts/check-smooth-rendering.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

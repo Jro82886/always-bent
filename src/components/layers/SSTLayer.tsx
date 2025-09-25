@@ -78,7 +78,7 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           layout: { visibility: 'visible' },
           paint: { 
             'raster-opacity': 0.95,
-            'raster-resampling': 'nearest',
+            'raster-resampling': 'linear',
             'raster-fade-duration': 0,
             'raster-contrast': 0,
             'raster-saturation': 0,
@@ -93,16 +93,16 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           if (top && top !== lyrId) map.moveLayer(lyrId, top);
         }
 
-        // Enforce nearest at runtime and ensure canvas uses pixelated rendering
+        // Enforce linear (smooth) rendering at runtime
         try {
-          map.setPaintProperty(lyrId, 'raster-resampling', 'nearest');
+          map.setPaintProperty(lyrId, 'raster-resampling', 'linear');
           const canvas = map.getCanvas?.();
-          if (canvas) (canvas as any).style.imageRendering = 'pixelated';
+          if (canvas) (canvas as any).style.imageRendering = 'auto';
           if (process.env.NODE_ENV !== 'production') {
             const sst = map.getPaintProperty(lyrId, 'raster-resampling');
-            if (sst !== 'nearest') {
+            if (sst !== 'linear') {
               // eslint-disable-next-line no-console
-              console.warn('Pixelation OFF: SST raster-resampling is not nearest');
+              console.warn('Smooth rendering OFF: SST raster-resampling is not linear');
             }
           }
         } catch {}

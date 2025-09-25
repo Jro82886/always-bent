@@ -71,20 +71,20 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
         paint: {
           'raster-opacity': 0.95,
           'raster-opacity-transition': { duration: 0 },
-          'raster-resampling': 'nearest'
+          'raster-resampling': 'linear'
         }
       });
 
-      // Enforce nearest at runtime and ensure canvas uses pixelated rendering
+      // Enforce linear (smooth) rendering at runtime
       try {
-        map.setPaintProperty('chl-lyr', 'raster-resampling', 'nearest');
+        map.setPaintProperty('chl-lyr', 'raster-resampling', 'linear');
         const canvas = map.getCanvas?.();
-        if (canvas) (canvas as any).style.imageRendering = 'pixelated';
+        if (canvas) (canvas as any).style.imageRendering = 'auto';
         if (process.env.NODE_ENV !== 'production') {
           const chl = map.getPaintProperty('chl-lyr', 'raster-resampling');
-          if (chl !== 'nearest') {
+          if (chl !== 'linear') {
             // eslint-disable-next-line no-console
-            console.warn('Pixelation OFF: CHL raster-resampling is not nearest');
+            console.warn('Smooth rendering OFF: CHL raster-resampling is not linear');
           }
         }
       } catch {}

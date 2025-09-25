@@ -26,6 +26,10 @@ interface LayerStats {
   mean: number;
   min: number;
   max: number;
+  p10: number;
+  p50: number;
+  p90: number;
+  stddev: number;
   gradient: number;
   n_valid: number;
   n_nodata: number;
@@ -194,11 +198,31 @@ async function sampleLayer(
     return null;
   }
   
+  // Sort values for percentiles
+  const sorted = [...values].sort((a, b) => a - b);
+  
+  // Calculate percentiles
+  const getPercentile = (arr: number[], p: number) => {
+    const index = Math.ceil(arr.length * p / 100) - 1;
+    return arr[Math.max(0, Math.min(index, arr.length - 1))];
+  };
+  
+  // Calculate mean
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  
+  // Calculate standard deviation
+  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+  const stddev = Math.sqrt(variance);
+  
   // Calculate stats
   const stats: LayerStats = {
-    mean: values.reduce((a, b) => a + b, 0) / values.length,
-    min: Math.min(...values),
-    max: Math.max(...values),
+    mean: mean,
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    p10: getPercentile(sorted, 10),
+    p50: getPercentile(sorted, 50),
+    p90: getPercentile(sorted, 90),
+    stddev: stddev,
     gradient: calculateRobustGradient(values),
     n_valid: values.length,
     n_nodata: nodata,
@@ -276,6 +300,10 @@ export async function POST(request: NextRequest) {
             mean_f: stats.mean,
             min_f: stats.min,
             max_f: stats.max,
+            p10_f: stats.p10,
+            p50_f: stats.p50,
+            p90_f: stats.p90,
+            stddev_f: stats.stddev,
             gradient_f: stats.gradient,
             n_valid: stats.n_valid,
             n_nodata: stats.n_nodata,
