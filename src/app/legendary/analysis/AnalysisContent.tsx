@@ -498,39 +498,81 @@ function AnalysisModeContent() {
                     
                     if (!analysis?.pendingAnalysis) return;
                     
-                    // Fetch SST/CHL data if toggled
-                    const { sample } = require('@/lib/analysis/sampler');
+                    // Fetch SST/CHL data using the live API
                     const updatedAnalysis = { ...analysis.pendingAnalysis };
                     
-                    // Fetch in parallel if toggled
-                    const promises: Promise<void>[] = [];
-                    if (updatedAnalysis.toggles.sst) {
-                      promises.push(sample('sst', updatedAnalysis.polygon).then((data: any) => {
-                        updatedAnalysis.sst = data;
-                      }));
-                    }
-                    if (updatedAnalysis.toggles.chl) {
-                      promises.push(sample('chl', updatedAnalysis.polygon).then((data: any) => {
-                        updatedAnalysis.chl = data;
-                      }));
-                    }
+                    // Determine which layers to fetch based on toggles
+                    const layers: string[] = [];
+                    if (updatedAnalysis.toggles.sst || sstActive) layers.push('sst');
+                    if (updatedAnalysis.toggles.chl || chlActive) layers.push('chl');
                     
-                    // Wait for data
-                    await Promise.all(promises);
+                    if (layers.length > 0) {
+                      try {
+                        // Call the live rasters/sample API
+                        const response = await fetch('/api/rasters/sample', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            polygon: updatedAnalysis.polygon,
+                            timeISO: isoDate || new Date().toISOString(),
+                            layers
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          console.log('[Analysis] Live data fetched:', data);
+                          
+                          // Map the response to the expected format
+                          if (data.stats?.sst) {
+                            updatedAnalysis.sst = {
+                              mean: data.stats.sst.mean_f,
+                              min: data.stats.sst.min_f,
+                              max: data.stats.sst.max_f,
+                              gradient: data.stats.sst.gradient_f,
+                              p10: data.stats.sst.p10_f,
+                              p50: data.stats.sst.p50_f,
+                              p90: data.stats.sst.p90_f,
+                              stddev: data.stats.sst.stddev_f
+                            };
+                          }
+                          
+                          if (data.stats?.chl) {
+                            updatedAnalysis.chl = {
+                              mean: data.stats.chl.mean,
+                              min: data.stats.chl.min,
+                              max: data.stats.chl.max,
+                              gradient: data.stats.chl.gradient,
+                              p10: data.stats.chl.p10,
+                              p50: data.stats.chl.p50,
+                              p90: data.stats.chl.p90,
+                              stddev: data.stats.chl.stddev
+                            };
+                          }
+                        }
+                      } catch (error) {
+                        console.error('[Analysis] Failed to fetch live data:', error);
+                      }
+                    }
                     
                     // Build narrative with fetched data
                     const { buildNarrative } = require('@/lib/analysis/narrative-builder');
                     const narrative = buildNarrative(updatedAnalysis);
                     updatedAnalysis.narrative = narrative;
                     
-                    console.log('[Analysis] Data fetched, narrative built:', narrative);
+                    console.log('[Analysis] Data processed, narrative built');
+                    console.log('[Analysis] SST data:', updatedAnalysis.sst);
+                    console.log('[Analysis] CHL data:', updatedAnalysis.chl);
                     
-                    // Update state with complete analysis
+                    // Update state with complete analysis INCLUDING SST/CHL data
                     setAnalysis({
                       pendingAnalysis: updatedAnalysis
                     });
                     
-                    setIsAnalysisModalOpen(true);
+                    // Small delay to ensure state is updated before opening modal
+                    setTimeout(() => {
+                      setIsAnalysisModalOpen(true);
+                    }, 100);
                   }}
                   className="px-4 py-2 bg-emerald-500/90 hover:bg-emerald-500 text-slate-900 font-semibold rounded-lg 
                            shadow-[0_0_20px_#00e1a780] transition-all transform hover:scale-105"
