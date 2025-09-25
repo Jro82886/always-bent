@@ -30,6 +30,7 @@ import CleanSnipOverlay from '@/components/snip/CleanSnipOverlay';
 // import AnalysisModal from '@/components/AnalysisModal'; // LEGACY REMOVED
 import DynamicAnalysisModal from '@/components/DynamicAnalysisModal';
 import SnipTool from '@/components/SnipTool';
+import { AskABFI } from '@/components/AskABFI';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
@@ -435,6 +436,12 @@ function AnalysisModeContent() {
         <div className="map-chrome__topRight">
           {/* Move gear/settings button to top-right overlay */}
           <SettingsPanel />
+          
+          {/* AI First Mate - Always visible on right */}
+          <AskABFI 
+            inlet={getInletById(selectedInletId) || DEFAULT_INLET}
+            dateISO={isoDate || new Date().toISOString().split('T')[0]}
+          />
         </div>
         <div className="map-chrome__bottom">
           {/* bottom stacking CTAs reserved */}
