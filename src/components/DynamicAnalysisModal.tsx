@@ -118,7 +118,7 @@ export default function DynamicAnalysisModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" style={{ zIndex: 9999 }}>
       <section className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full mx-4 border border-cyan-500/20 max-h-[90vh] overflow-y-auto">
         <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
