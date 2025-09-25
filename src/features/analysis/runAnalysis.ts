@@ -1,4 +1,6 @@
-export async function runAnalysis(polygon: GeoJSON.Polygon, timeISO: string) {
+import type { AnalyzeAPIResponse } from '@/types/analyze';
+
+export async function runAnalysis(polygon: GeoJSON.Polygon, timeISO: string): Promise<AnalyzeAPIResponse> {
   const body = { polygon, timeISO, layers: ['sst','chl'] };
   const r = await fetch('/api/analyze', {
     method: 'POST',

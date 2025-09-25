@@ -11,6 +11,8 @@ import { buildNarrative } from '@/lib/analysis/narrative-builder';
 import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats, AnalysisResult } from '@/lib/analysis/types';
 import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
 import { runAnalysis } from '@/features/analysis/runAnalysis';
+import { toVM, type AnalysisVM } from '@/types/analyze';
+import { vmToSnipLegacy } from '@/lib/analysis/adapter';
 import { fetchWindSwell } from '@/lib/analysis/fetchWindSwell';
 import { clipFleetPresence } from '@/lib/analysis/clipFleetPresence';
 import { computePolygonMeta } from '@/lib/analysis/computePolygonMeta';
@@ -504,6 +506,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   const [currentArea, setCurrentArea] = useState<number>(0);
   const [analysisStep, setAnalysisStep] = useState<string>('');
   const [lastAnalysis, setLastAnalysis] = useState<AnalysisResult | null>(null);
+  const [lastAnalysisVM, setLastAnalysisVM] = useState<AnalysisVM | null>(null);
   const [hasAnalysisResults, setHasAnalysisResults] = useState(false);
   const [showReviewBar, setShowReviewBar] = useState(false);
   const [pendingPolygon, setPendingPolygon] = useState<GeoJSON.Feature<GeoJSON.Polygon> | null>(null);
@@ -1251,15 +1254,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       created_at: new Date().toISOString()
     } as any);
     
-    // Open modal with placeholder
-    const placeholderLegacy = createLegacyAnalysis(baseAnalysis, narrativeText);
-    setLastAnalysis(placeholderLegacy);
-    setHasAnalysisResults(true);
-    
-    log('Opening modal with placeholder:', placeholderLegacy);
-    if (onAnalysisComplete) {
-      onAnalysisComplete(placeholderLegacy);
-    }
+    // Don't open with placeholder - wait for real data
+    log('Modal will open after real analysis data is ready');
     
     // --- NOW resolve samplers in background ---
     try {
@@ -1267,6 +1263,67 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       console.log('[SNIP] Calling /api/analyze with:', { polygon, timeISO });
       const analyzeResult = await runAnalysis(polygon, timeISO);
       console.log('[SNIP] Analyze result:', analyzeResult);
+      
+      // Convert to view model and then to legacy format
+      const analysisVM = toVM(analyzeResult);
+      if (analysisVM) {
+        setLastAnalysisVM(analysisVM);
+        console.log('[SNIP] Analysis VM:', analysisVM);
+        
+        // Convert to legacy format for the modal
+        const legacyAnalysis = vmToSnipLegacy(
+          analysisVM,
+          polygon,
+          timeISO,
+          {
+            sst: activeLayers.sst,
+            chl: activeLayers.chl,
+            gfw: activeLayers.gfw,
+            myTracks: myTracksEnabled,
+            fleetTracks: fleetTracksEnabled,
+            gfwTracks: gfwTracksEnabled
+          }
+        );
+        
+        // Update the store with real data in legacy format
+        set((s) => ({
+          ...s,
+          analysis: {
+            ...s.analysis,
+            pendingAnalysis: legacyAnalysis,
+            narrative: analysisVM.narrative
+          }
+        }));
+        
+        console.log('[SNIP] Set pendingAnalysis with real data:', legacyAnalysis);
+        
+        // Now open the modal with real data
+        setHasAnalysisResults(true);
+        if (onAnalysisComplete) {
+          // Create a legacy AnalysisResult for compatibility
+          const legacyResult: AnalysisResult = {
+            polygon: { type: 'Feature', geometry: polygon, properties: {} } as any,
+            features: [],
+            hotspot: null,
+            stats: {
+              avg_temp_f: analysisVM.sst?.meanF ?? 0,
+              min_temp_f: analysisVM.sst?.minF ?? 0,
+              max_temp_f: analysisVM.sst?.maxF ?? 0,
+              temp_range_f: analysisVM.sst ? (analysisVM.sst.maxF - analysisVM.sst.minF) : 0,
+              area_km2: analysisVM.areaKm2
+            },
+            layerAnalysis: {},
+            narrative: analysisVM.narrative,
+            type: 'snip' as const,
+            id: crypto.randomUUID(),
+            user_id: 'current-user',
+            created_at: new Date().toISOString()
+          } as any;
+          
+          setLastAnalysis(legacyResult);
+          onAnalysisComplete(legacyResult);
+        }
+      }
       
       const want: Array<'sst'|'chl'> = [];
       if (activeLayers.sst) want.push('sst');
@@ -1321,11 +1378,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       }
     }));
     
-    // Update modal with real data (it should re-render automatically)
-    const finalLegacyAnalysis = createLegacyAnalysis(baseAnalysis, narrativeText);
-    setLastAnalysis(finalLegacyAnalysis);
-    
-    log('Updated modal with final analysis:', finalLegacyAnalysis);
+    // The modal is already open with real data from the analyze endpoint
+    log('Analysis complete with real ocean data');
     
     // Clean up
     setStatus('idle');
