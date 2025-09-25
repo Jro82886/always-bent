@@ -24,6 +24,9 @@ import { getVesselsInBoundsAsync, getVesselStyle, getVesselTrackingSummary } fro
 import { getPendingCount, syncBites } from '@/lib/offline/biteSync';
 import { useAppState } from '@/lib/store';
 import { showToast } from '@/components/ui/Toast';
+import { resolveSSTLayer, findSSTId } from '@/lib/map/findSST';
+import { waitForSSTRasterPaint } from '@/lib/map/waitForPaint';
+import { isCanvasReadable } from '@/lib/map/canvasSafe';
 
 // --- DEBUG: helper to safely get map ---
 function getMap(): mapboxgl.Map | null {
@@ -1033,7 +1036,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
     // Check active layers
     const activeLayers = {
-      sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
+      sst: resolveSSTLayer(map) !== null,
       chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
       gfw: map.getLayer('gfw-vessels-dots') && map.getLayoutProperty('gfw-vessels-dots', 'visibility') === 'visible'
     };
@@ -1138,7 +1141,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
     // Check active layers from map
     const activeLayers = {
-      sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
+      sst: resolveSSTLayer(map) !== null,
       chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
       gfw: false // hidden for now
     };
@@ -1364,14 +1367,35 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         reports: vesselTracksData.reports || []
       };
       
-      // Step 2: Check active layers
+      // Step 2: Check active layers with improved SST detection
+      const sstLayer = resolveSSTLayer(map);
+      const chlLayerId = 'chl-lyr'; // Will be canonicalized in Phase 3
       
       const activeLayers = {
-        sst: map.getLayer('sst-lyr') && map.getLayoutProperty('sst-lyr', 'visibility') === 'visible',
-        chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+        sst: sstLayer !== null,
+        chl: map.getLayer(chlLayerId) && map.getLayoutProperty(chlLayerId, 'visibility') === 'visible',
         ocean: map.getLayer('ocean-layer') && map.getLayoutProperty('ocean-layer', 'visibility') === 'visible',
         gfw: vesselsInBounds.some(v => v.type === 'commercial') // Check if any commercial vessels found
       };
+      
+      // Wait for SST tiles to render if layer is active
+      if (sstLayer) {
+        await waitForSSTRasterPaint(map, sstLayer.id);
+        
+        // Check if canvas is readable (CORS)
+        const canvas = map.getCanvas();
+        if (!isCanvasReadable(canvas)) {
+          console.error('[ABFI] SST canvas is tainted (CORS). Check tile proxy headers.');
+          showToast({
+            type: 'error',
+            title: 'SST Analysis Failed',
+            message: 'Unable to read SST data due to CORS restrictions. Please check proxy configuration.',
+            duration: 7000
+          });
+          // Continue with analysis but mark SST as unavailable
+          activeLayers.sst = false;
+        }
+      }
       
       // Step 2.5: Call the new endpoints in parallel
       setAnalysisStep('Analyzing ocean data...');

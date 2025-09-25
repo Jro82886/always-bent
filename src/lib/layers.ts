@@ -3,6 +3,7 @@
 
 import type mapboxgl from "mapbox-gl";
 import { firstSymbolLayerId } from "@/lib/overlay";
+import { LAYER_IDS } from "@/lib/layerIds";
 
 /* ---------------------------------- Types --------------------------------- */
 
@@ -121,7 +122,11 @@ export function getBBOX4326(map: mapboxgl.Map): string {
 /* ------------------------- Id builders + guards --------------------------- */
 
 const srcId = (id: string) => (id === "sst" ? "sst-src" : `src:${id}`);
-const lyrId = (id: string) => (id === "sst" ? "sst-lyr" : `lyr:${id}`);
+const lyrId = (id: string) => {
+  if (id === "sst") return LAYER_IDS.sst;
+  if (id === "chl") return LAYER_IDS.chl;
+  return `lyr:${id}`;
+};
 
 const sourceExists = (map: mapboxgl.Map, id: string) => !!(map as any).getSource(id);
 const layerExists = (map: mapboxgl.Map, id: string) => !!map.getLayer(id);

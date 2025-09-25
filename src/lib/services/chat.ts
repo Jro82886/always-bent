@@ -92,18 +92,63 @@ export function initChatClient(): ChatClient {
     },
     async send(msg) {
       if (!channel || !currentInlet) return;
-      let finalMsg = msg;
-      if (!finalMsg.id) {
-        finalMsg = { ...msg, id: `temp_${Date.now()}_${nanoid(6)}`, temp: true };
+      
+      // Save to database first
+      try {
+        const { data, error } = await supabaseClient
+          .from('chat_messages')
+          .insert({
+            inlet_id: msg.inletId,
+            user_id: msg.user, // This should be a UUID in production
+            text: msg.text
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Failed to save message:', error);
+          // Continue with broadcast even if save fails
+        }
+        
+        // Use DB-generated ID if available
+        const finalMsg = {
+          ...msg,
+          id: data?.id || `temp_${Date.now()}_${nanoid(6)}`,
+          createdAt: data?.created_at ? new Date(data.created_at).getTime() : Date.now(),
+        };
+        
+        // Broadcast to other users
+        await channel.send({ type: "broadcast", event: "message", payload: finalMsg });
+      } catch (error) {
+        console.error('Chat send error:', error);
       }
-      if (!finalMsg.createdAt) {
-        finalMsg = { ...finalMsg, createdAt: Date.now() };
-      }
-      await channel.send({ type: "broadcast", event: "message", payload: finalMsg });
     },
-    async loadRecent() {
-      // No DB yet; return empty for now
-      return [];
+    async loadRecent(inletId) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('chat_messages')
+          .select('*')
+          .eq('inlet_id', inletId)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        
+        if (error) {
+          console.error('Failed to load messages:', error);
+          return [];
+        }
+        
+        // Convert to ChatMessage format
+        return (data || []).reverse().map(msg => ({
+          id: msg.id,
+          user: msg.user_id, // Will need username lookup in production
+          inletId: msg.inlet_id,
+          text: msg.text,
+          createdAt: new Date(msg.created_at).getTime()
+        }));
+      } catch (error) {
+        console.error('Load messages error:', error);
+        return [];
+      }
     },
   };
 }

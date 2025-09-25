@@ -18,11 +18,19 @@ export async function GET(req: NextRequest) {
     const supabase = createRouteHandlerClient({ cookies });
     const { searchParams } = new URL(req.url);
     
-    // Get current user
+    // Get current user (with dev fallback)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    
+    // Dev mode: use stub user if no auth
+    const effectiveUser = user || (process.env.NODE_ENV === 'development' ? {
+      id: 'dev-user-001',
+      email: 'dev@always-bent.com'
+    } : null);
+    
+    if (!effectiveUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const user = effectiveUser;
     
     // Parse filters
     const inlet = searchParams.get("inlet");
@@ -86,11 +94,19 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies });
     
-    // Get current user
+    // Get current user (with dev fallback)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    
+    // Dev mode: use stub user if no auth
+    const effectiveUser = user || (process.env.NODE_ENV === 'development' ? {
+      id: 'dev-user-001',
+      email: 'dev@always-bent.com'
+    } : null);
+    
+    if (!effectiveUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const user = effectiveUser;
     
     // Parse request body
     const body = await req.json();
