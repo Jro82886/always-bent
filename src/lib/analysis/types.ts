@@ -14,6 +14,10 @@ export type ScalarStats = {
   min: number | null;
   max: number | null;
   gradient: number | null; // absolute °/km or mg/m³ per km
+  p10?: number | null; // 10th percentile
+  p50?: number | null; // median
+  p90?: number | null; // 90th percentile
+  stddev?: number | null; // standard deviation
   units: '°F' | 'mg/m³';
   reason?: string; // when null values, e.g. "NoData" or "layer off"
 };
