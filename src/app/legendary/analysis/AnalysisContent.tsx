@@ -595,8 +595,8 @@ function AnalysisModeContent() {
             </div>
           )}
           
-          {/* Analysis Modal - Shows when review is clicked */}
-          {isAnalysisModalOpen && analysis?.pendingAnalysis && (
+          {/* LEGACY MODAL DISABLED - Using DynamicAnalysisModal only */}
+          {false && isAnalysisModalOpen && analysis?.pendingAnalysis && (
             <AnalysisModal
               analysis={{
                 ...analysis.pendingAnalysis,
