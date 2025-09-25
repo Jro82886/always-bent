@@ -33,32 +33,6 @@ export default function LiveWeatherWidget() {
   const [expanded, setExpanded] = useState(false);
   
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
-
-  // Transform API data to our interface
-  const weatherData: WeatherData | null = apiData ? {
-    waves: {
-      height: apiData.waves?.height || 2.5,
-      period: apiData.waves?.period || 10,
-      direction: apiData.waves?.direction || 0
-    },
-    water: {
-      temp: apiData.water?.temperature || 75
-    },
-    wind: {
-      speed: apiData.wind?.speed || 10,
-      direction: apiData.wind?.direction || 0
-    },
-    conditions: {
-      rating: determineRating(apiData),
-      description: generateDescription(apiData)
-    },
-    lastUpdate: new Date()
-  } : null;
-
-  // Update online status based on error
-  useEffect(() => {
-    setOnline(!error);
-  }, [error]);
   
   // Helper functions for weather conditions
   const determineRating = (data: any): 'POOR' | 'FAIR' | 'GOOD' | 'EXCELLENT' => {
@@ -88,6 +62,27 @@ export default function LiveWeatherWidget() {
     return conditions.join(' • ');
   };
 
+  // Transform API data to our interface
+  const weatherData: WeatherData | null = apiData ? {
+    waves: {
+      height: apiData.waves?.height || 2.5,
+      period: apiData.waves?.period || 10,
+      direction: apiData.waves?.direction || 0
+    },
+    water: {
+      temp: apiData.water?.temperature || 75
+    },
+    wind: {
+      speed: apiData.wind?.speed || 10,
+      direction: apiData.wind?.direction || 0
+    },
+    conditions: {
+      rating: determineRating(apiData),
+      description: generateDescription(apiData)
+    },
+    lastUpdate: new Date()
+  } : null;
+
   // Monitor online status
   useEffect(() => {
     const handleOnline = () => setOnline(true);
@@ -101,6 +96,11 @@ export default function LiveWeatherWidget() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+  
+  // Update online status based on error
+  useEffect(() => {
+    setOnline(!error);
+  }, [error]);
 
   const getRatingColor = (rating: string) => {
     switch (rating) {

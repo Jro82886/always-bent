@@ -35,5 +35,6 @@ export function resolveSSTLayer(map: mapboxgl.Map) {
 
 // Temporary helper to find any SST layer ID (will be removed after canonicalization)
 export function findSSTId(map: mapboxgl.Map) {
-  return SST_IDS.find(id => !!map.getLayer(id)) ?? null;
+  const ALL_SST_IDS = [CANON_SST, ...LEGACY];
+  return ALL_SST_IDS.find(id => !!map.getLayer(id)) ?? null;
 }
