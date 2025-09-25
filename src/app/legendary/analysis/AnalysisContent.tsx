@@ -533,7 +533,8 @@ function AnalysisModeContent() {
                               p10: data.stats.sst.p10_f,
                               p50: data.stats.sst.p50_f,
                               p90: data.stats.sst.p90_f,
-                              stddev: data.stats.sst.stddev_f
+                              stddev: data.stats.sst.stddev_f,
+                              units: '°F' as const
                             };
                           }
                           
@@ -546,7 +547,8 @@ function AnalysisModeContent() {
                               p10: data.stats.chl.p10,
                               p50: data.stats.chl.p50,
                               p90: data.stats.chl.p90,
-                              stddev: data.stats.chl.stddev
+                              stddev: data.stats.chl.stddev,
+                              units: 'mg/m³' as const
                             };
                           }
                         }
