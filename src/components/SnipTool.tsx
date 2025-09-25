@@ -1452,6 +1452,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       let chlStats = null;
       if (samplerRes.status === 'fulfilled' && samplerRes.value) {
         const samplerData = samplerRes.value;
+        console.log('[SNIP] Sampler response:', samplerData);
         if (samplerData.meta?.noDataAvailable) {
           showToast({
             type: 'error',
@@ -1460,8 +1461,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
             duration: 7000
           });
         } else {
-          sstStats = samplerData.sst;
-          chlStats = samplerData.chl;
+          console.log('[SNIP] SST data:', samplerData.stats?.sst || samplerData.sst);
+          console.log('[SNIP] CHL data:', samplerData.stats?.chl || samplerData.chl);
+          // API returns data in stats object
+          sstStats = samplerData.stats?.sst || samplerData.sst;
+          chlStats = samplerData.stats?.chl || samplerData.chl;
         }
       }
       
