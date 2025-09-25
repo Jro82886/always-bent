@@ -1007,6 +1007,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     // Store polygon in ref for Review button
     const poly = polygon?.geometry?.type === 'Polygon' ? polygon.geometry : null;
     currentPolygonRef.current = poly;
+    console.log('[COMPLETE_DRAWING] Stored polygon in ref:', poly);
     
     // Check minimum area
     const areaKm2 = polygonAreaKm2(polygon.geometry);
@@ -2329,10 +2330,12 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
                   'Ready to analyze'}
               </span>
               <button
-                disabled={!currentPolygonRef.current}
-                onClick={onReviewClick}
+                onClick={() => {
+                  console.log('[REVIEW_BUTTON] Clicked!');
+                  onReviewClick();
+                }}
                 className="px-4 py-2 bg-emerald-500/90 hover:bg-emerald-500 text-slate-900 font-semibold rounded-lg 
-                         shadow-[0_0_20px_#00e1a780] transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                         shadow-[0_0_20px_#00e1a780] transition-all transform hover:scale-105"
               >
                 Review analysis
               </button>
