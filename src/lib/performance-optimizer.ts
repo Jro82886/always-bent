@@ -126,13 +126,13 @@ export class PerformanceOptimizer {
 }
 
 // Component lazy loading with fallback
+// Note: This should only be used in Client Components
 export function lazyLoadComponent<T extends React.ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   fallback?: React.ReactNode
 ) {
   return dynamic(importFn, {
     loading: () => fallback || null,
-    ssr: false, // Only load on client
   });
 }
 
