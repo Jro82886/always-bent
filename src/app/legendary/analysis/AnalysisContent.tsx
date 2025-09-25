@@ -637,36 +637,6 @@ function AnalysisModeContent() {
             );
           })()}
           
-          {/* Debug helper - shows VM state */}
-          {true && (
-            <>
-              <pre style={{position:'fixed', bottom:8, left:8, zIndex:99999, background:'rgba(0,0,0,.8)', color:'#0f0', padding:8, fontSize:11, maxWidth:400, overflow:'auto'}}>
-                VM: {JSON.stringify(useAppState((s) => s.analysisVM), null, 2)}
-                Open: {String(useAppState((s) => s.isDynamicModalOpen))}
-              </pre>
-              <button 
-                onClick={() => {
-                  const s = useAppState.getState();
-                  console.log('Current state:', { vm: s.analysisVM, open: s.isDynamicModalOpen });
-                  if (!s.analysisVM) {
-                    // Set mock data if no VM
-                    s.setAnalysisVM({
-                      areaKm2: 100,
-                      hasSST: true,
-                      hasCHL: true,
-                      sst: { meanF: 72.5, minF: 71, maxF: 74, gradFperMile: 0.8 },
-                      chl: { mean: 0.45 },
-                      narrative: 'TEST: Dynamic modal is working!'
-                    });
-                  }
-                  s.openDynamicModal();
-                }}
-                style={{position:'fixed', bottom:60, left:8, zIndex:99999, background:'#f00', color:'white', padding:'8px 16px', borderRadius:4}}
-              >
-                TEST: Open Dynamic Modal
-              </button>
-            </>
-          )}
           
           {/* Clean Snip Overlay - Only renders when active */}
           {map.current && (
