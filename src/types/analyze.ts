@@ -1,4 +1,57 @@
 // types/analyze.ts
+export type AnalyzeAPI = {
+  areaKm2: number
+  hasSST: boolean
+  hasCHL: boolean
+  sst?: { 
+    meanC: number
+    minC: number
+    maxC: number
+    gradientCperKm: number
+  }
+  chl?: { 
+    mean: number 
+  }
+}
+
+export type AnalysisVM = {
+  areaKm2: number
+  hasSST: boolean
+  hasCHL: boolean
+  sst?: { 
+    meanF: number
+    minF: number
+    maxF: number
+    gradFperMile: number
+  }
+  chl?: { 
+    mean: number 
+  }
+  narrative?: string
+  confidence?: 'high' | 'no-data' | 'error'
+}
+
+export const toVM = (a: AnalyzeAPI): AnalysisVM => {
+  const c2f = (c: number) => (c * 9) / 5 + 32
+  const km2mile = (km: number) => km * 0.621371
+  
+  return {
+    areaKm2: a.areaKm2,
+    hasSST: a.hasSST,
+    hasCHL: a.hasCHL,
+    sst: a.sst && {
+      meanF: c2f(a.sst.meanC),
+      minF: c2f(a.sst.minC),
+      maxF: c2f(a.sst.maxC),
+      gradFperMile: ((a.sst.gradientCperKm * 9) / 5) / km2mile(1),
+    },
+    chl: a.chl && { 
+      mean: a.chl.mean 
+    },
+  }
+}
+
+// Keep the old types for backward compatibility during migration
 export type AnalyzeAPIResponse = {
   ok: boolean
   analysis?: {
@@ -31,17 +84,7 @@ export type AnalyzeAPIResponse = {
   error?: string
 }
 
-export type AnalysisVM = {
-  areaKm2: number
-  sst?: { meanF: number; minF: number; maxF: number; gradFperMile: number }
-  chl?: { mean: number; min: number; max: number }
-  hasSST: boolean
-  hasCHL: boolean
-  narrative: string
-  confidence: 'high' | 'no-data' | 'error'
-}
-
-export const toVM = (response: AnalyzeAPIResponse): AnalysisVM | null => {
+export const toVMFromResponse = (response: AnalyzeAPIResponse): AnalysisVM | null => {
   if (!response.ok || !response.analysis) return null
 
   const { oceanData, stats, narrative, confidence } = response.analysis
@@ -59,9 +102,7 @@ export const toVM = (response: AnalyzeAPIResponse): AnalysisVM | null => {
       gradFperMile: sstData.gradient_f || 0
     } : undefined,
     chl: chlData && chlData.mean !== undefined ? {
-      mean: chlData.mean,
-      min: chlData.min || chlData.mean,
-      max: chlData.max || chlData.mean
+      mean: chlData.mean
     } : undefined,
     narrative,
     confidence
