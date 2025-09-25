@@ -1045,8 +1045,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       sstLayer,
       chlLayer: chlLayer ? 'exists' : 'not found',
       chlVisibility,
-      mapLayers: Array.from((map as any).style._order || []).filter((id: string) => 
-        id.includes('sst') || id.includes('chl')
+      mapLayers: Array.from((map as any).style._order || []).filter((id: any) => 
+        typeof id === 'string' && (id.includes('sst') || id.includes('chl'))
       )
     });
     
@@ -1166,8 +1166,8 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       sstLayer,
       chlLayer: chlLayer ? 'exists' : 'not found',
       chlVisibility,
-      mapLayers: Array.from((map as any).style._order || []).filter((id: string) => 
-        id.includes('sst') || id.includes('chl')
+      mapLayers: Array.from((map as any).style._order || []).filter((id: any) => 
+        typeof id === 'string' && (id.includes('sst') || id.includes('chl'))
       )
     });
     
