@@ -29,7 +29,8 @@ import '@/styles/mapSmoothing.css';
 import CleanSnipOverlay from '@/components/snip/CleanSnipOverlay';
 // import AnalysisModal from '@/components/AnalysisModal'; // LEGACY REMOVED
 import DynamicAnalysisModal from '@/components/DynamicAnalysisModal';
-import SnipTool from '@/components/SnipTool';
+// import SnipTool from '@/components/SnipTool'; // OLD - 2400 lines
+import SnipTool from '@/components/SimpleSnipTool'; // NEW - 120 lines
 import { AskABFI } from '@/components/AskABFI';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
