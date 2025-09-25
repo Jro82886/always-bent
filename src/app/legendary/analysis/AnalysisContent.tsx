@@ -44,7 +44,7 @@ function AnalysisModeContent() {
   const map = useRef<mapboxgl.Map | null>(null);
   
   // Get selected inlet and date from global state
-  const { selectedInletId, isoDate } = useAppState();
+  const { selectedInletId, isoDate, activeRaster, setActiveRaster } = useAppState();
   
   // Sync inlet from URL on mount
   useInletFromURL();
