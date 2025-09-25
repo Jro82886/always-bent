@@ -60,14 +60,14 @@ export default function DynamicAnalysisModal({
   }
 
   const { areaKm2, sst, chl, hasSST, hasCHL, narrative } = vm
-  const oceanLayersActive = sstOn && chlOn
+  const oceanLayersActive = sstOn || chlOn  // Changed from AND to OR
   const haveData = (!!sst && hasSST) || (!!chl && hasCHL)
 
   // Build content and validate it's not static
   let content = ''
   
   if (!oceanLayersActive) {
-    content = 'SST and CHL layers must be enabled to see ocean analysis.'
+    content = 'Ocean data layers must be enabled to see analysis.'
   } else if (!haveData) {
     const missing = []
     if (!hasSST) missing.push('SST')
@@ -142,7 +142,7 @@ export default function DynamicAnalysisModal({
               onClick={onEnableLayers}
               className="px-6 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
             >
-              Enable SST + CHL Layers
+              Enable Ocean Layers
             </button>
           </div>
         )}
