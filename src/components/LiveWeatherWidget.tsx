@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Cloud, Waves, Thermometer, Wind, Navigation, Loader2, WifiOff, Wifi, MapPin } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
+import { useWeather } from '@/lib/hooks/queries';
 
 interface WeatherData {
   waves: {

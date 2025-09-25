@@ -7,6 +7,7 @@ import GuardsClient from '@/components/GuardsClient';
 import BiteSyncInitializer from '@/components/BiteSyncInitializer';
 import BetaFeedback from '@/components/BetaFeedback';
 import { ToastContainer } from '@/components/ui/Toast';
+import VersionIndicator from '@/components/VersionIndicator';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
           <BetaFeedback />
           <ToastContainer />
+          <VersionIndicator />
         </QueryProvider>
       </body>
     </html>
