@@ -25,8 +25,8 @@ export function vmToSnipLegacy(
   // Convert CHL data to ScalarStats format
   const chlStats: ScalarStats | null = vm.chl ? {
     mean: vm.chl.mean,
-    min: vm.chl.min,
-    max: vm.chl.max,
+    min: vm.chl.mean, // CHL only has mean in VM
+    max: vm.chl.mean, // CHL only has mean in VM
     gradient: 0, // Not provided in VM
     units: 'mg/m³' as const,
     reason: undefined

@@ -612,24 +612,32 @@ function AnalysisModeContent() {
           )}
           
           {/* Dynamic Analysis Modal - Shows real data when enabled */}
-          {process.env.NEXT_PUBLIC_DYNAMIC_MODAL === '1' && (
-            <DynamicAnalysisModal
-              vm={useAppState((s) => s.analysisVM)}
-              sstOn={activeRaster === 'sst'}
-              chlOn={activeRaster === 'chl'}
-              isOpen={useAppState((s) => s.isDynamicModalOpen)}
-              onClose={() => {
-                const { closeDynamicModal, resetAnalysisTransient } = useAppState.getState();
-                closeDynamicModal();
-                resetAnalysisTransient();
-              }}
-              onEnableLayers={() => {
-                setActiveRaster('sst'); // Enable SST
-                // Note: This UI only supports one layer at a time currently
-                // For full SST+CHL, would need UI updates
-              }}
-            />
-          )}
+          {process.env.NEXT_PUBLIC_DYNAMIC_MODAL === '1' && (() => {
+            const vm = useAppState((s) => s.analysisVM);
+            const isOpen = useAppState((s) => s.isDynamicModalOpen);
+            
+            // Only render if we have valid VM data
+            if (!vm || !isOpen) return null;
+            
+            return (
+              <DynamicAnalysisModal
+                vm={vm}
+                sstOn={activeRaster === 'sst'}
+                chlOn={activeRaster === 'chl'}
+                isOpen={isOpen}
+                onClose={() => {
+                  const { closeDynamicModal, resetAnalysisTransient } = useAppState.getState();
+                  closeDynamicModal();
+                  resetAnalysisTransient();
+                }}
+                onEnableLayers={() => {
+                  setActiveRaster('sst'); // Enable SST
+                  // Note: This UI only supports one layer at a time currently
+                  // For full SST+CHL, would need UI updates
+                }}
+              />
+            );
+          })()}
           
           {/* Clean Snip Overlay - Only renders when active */}
           {map.current && (
