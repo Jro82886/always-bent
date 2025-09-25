@@ -1,5 +1,9 @@
 import { z } from "zod";
+import * as Sentry from '@sentry/nextjs';
 import type { Result } from "@/types/domain";
+import { dedupedFetch } from './request-dedup';
+import { withCircuitBreaker } from './circuit-breaker';
+import { sanitizeJson } from './sanitize';
 
 // Schema definitions for API responses
 export const AnalyzeSchema = z.object({
