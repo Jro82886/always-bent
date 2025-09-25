@@ -4,14 +4,11 @@ import { useAppState } from '@/lib/store'
 
 export function AskABFI({ inlet, dateISO }: { inlet: any; dateISO: string }) {
   const vm = useAppState(s => s.analysisVM)
-  const { sstLayerVisible, chlLayerVisible } = useAppState((s) => ({
-    sstLayerVisible: s.sstLayerVisible,
-    chlLayerVisible: s.chlLayerVisible
-  }))
+  const activeRaster = useAppState(s => s.activeRaster)
   
   // Use actual layer visibility
-  const sstOn = sstLayerVisible
-  const chlOn = chlLayerVisible
+  const sstOn = activeRaster === 'sst'
+  const chlOn = activeRaster === 'chl'
   
   const { loading, markdown, actions, error, run } = useAIExplain()
 

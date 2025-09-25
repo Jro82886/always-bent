@@ -14,12 +14,9 @@ export default function DynamicAnalysisModal({
   vm, isOpen, onClose, onEnableLayers
 }: Props) {
   // Read layer state directly from store
-  const { sstLayerVisible, chlLayerVisible } = useAppState((s) => ({
-    sstLayerVisible: s.sstLayerVisible,
-    chlLayerVisible: s.chlLayerVisible
-  }))
-  const sstOn = sstLayerVisible
-  const chlOn = chlLayerVisible
+  const activeRaster = useAppState((s) => s.activeRaster)
+  const sstOn = activeRaster === 'sst'
+  const chlOn = activeRaster === 'chl'
   // Track quality on mount
   useEffect(() => {
     if (isOpen && vm) {

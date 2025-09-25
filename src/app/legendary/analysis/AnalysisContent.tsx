@@ -629,9 +629,7 @@ function AnalysisModeContent() {
                 }}
                 onEnableLayers={() => {
                   // Enable SST layer
-                  const { setSstLayerVisible } = useAppState.getState();
-                  setSstLayerVisible(true);
-                  setActiveRaster('sst'); // Also update activeRaster for UI consistency
+                  setActiveRaster('sst');
                 }}
               />
             );
