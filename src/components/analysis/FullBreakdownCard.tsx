@@ -78,24 +78,48 @@ export default function FullBreakdownCard({ data, onSave, onSnipAgain, onDone, p
       <section>
         <h3 className="font-semibold">What It Means</h3>
         <ul className="list-disc ml-5 text-sm">
-          <li>Interpret SST and CHL values in plain language.</li>
-          <li>Note if break/edge is present.</li>
-          <li>Add simple guidance lines.</li>
+          {data.metrics.water_temp_f && (
+            <li>
+              Water temperature ranges from {data.metrics.water_temp_f.min.toFixed(0)}°F to{' '}
+              {data.metrics.water_temp_f.max.toFixed(0)}°F, averaging {data.metrics.water_temp_f.avg.toFixed(0)}°F
+              {data.metrics.water_temp_f.max - data.metrics.water_temp_f.min > 2 && ' - significant temperature break detected'}
+            </li>
+          )}
+          {data.metrics.water_color_summary && (
+            <li>Water color is {data.metrics.water_color_summary}, indicating {data.metrics.water_color_summary === 'clear blue' ? 'offshore conditions' : data.metrics.water_color_summary === 'green' ? 'nutrient-rich water' : 'transitional zone'}</li>
+          )}
+          {data.species_outlook && (
+            <li>Current conditions favor {Object.entries(data.species_outlook).filter(([_, v]) => v === 'good').map(([k]) => k).join(', ') || 'opportunistic fishing'}</li>
+          )}
         </ul>
       </section>
 
       <section>
         <h3 className="font-semibold">Where To Look</h3>
         <ul className="list-disc ml-5 text-sm">
-          <li>Short bullet #1</li>
-          <li>Short bullet #2</li>
-          <li>Short bullet #3</li>
+          {data.metrics.water_temp_f && data.metrics.water_temp_f.max - data.metrics.water_temp_f.min > 2 && (
+            <li>Focus on temperature breaks and color changes</li>
+          )}
+          {data.metrics.water_color_summary === 'mixed' && (
+            <li>Work the edges between blue and green water</li>
+          )}
+          {data.vessels && data.vessels.gfw_count > 0 && (
+            <li>Commercial vessels indicate productive areas</li>
+          )}
+          <li>Check structure and current edges in the area</li>
         </ul>
         <h3 className="font-semibold mt-2">How To Fish</h3>
         <ul className="list-disc ml-5 text-sm">
-          <li>Short bullet #1</li>
-          <li>Short bullet #2</li>
-          <li>Short bullet #3</li>
+          {data.metrics.water_temp_f && data.metrics.water_temp_f.avg > 75 && (
+            <li>Troll along temperature breaks at varying speeds</li>
+          )}
+          {data.metrics.water_color_summary === 'clear blue' && (
+            <li>Use lighter leaders and natural baits in clear water</li>
+          )}
+          {data.metrics.water_color_summary === 'green' && (
+            <li>Try chunking or live baiting in nutrient-rich areas</li>
+          )}
+          <li>Work different depths based on thermocline</li>
         </ul>
       </section>
 
