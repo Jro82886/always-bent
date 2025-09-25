@@ -2,7 +2,6 @@
 // This only IMPROVES performance, can't break anything!
 
 import dynamic from 'next/dynamic';
-import { useEffect, useRef } from 'react';
 
 export class PerformanceOptimizer {
   private static imageObserver: IntersectionObserver | null = null;
@@ -126,41 +125,13 @@ export class PerformanceOptimizer {
   }
 }
 
-// React hooks for performance optimization
-export function useImageLazyLoad(imageSrc: string) {
-  const imgRef = useRef<HTMLImageElement>(null);
-  const [loaded, setLoaded] = useState(false);
-  
-  useEffect(() => {
-    if (!imgRef.current) return;
-    
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          const img = entry.target as HTMLImageElement;
-          img.src = imageSrc;
-          img.onload = () => setLoaded(true);
-          observer.unobserve(img);
-        }
-      },
-      { rootMargin: '50px' }
-    );
-    
-    observer.observe(imgRef.current);
-    
-    return () => observer.disconnect();
-  }, [imageSrc]);
-  
-  return { imgRef, loaded };
-}
-
 // Component lazy loading with fallback
 export function lazyLoadComponent<T extends React.ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   fallback?: React.ReactNode
 ) {
   return dynamic(importFn, {
-    loading: () => <>{fallback || <div>Loading...</div>}</>,
+    loading: () => fallback || null,
     ssr: false, // Only load on client
   });
 }

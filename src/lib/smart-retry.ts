@@ -1,7 +1,7 @@
 // Smart Retry with Exponential Backoff
 // This CAN'T break anything - it only helps when things fail!
 
-interface RetryOptions {
+export interface RetryOptions {
   maxAttempts?: number;
   initialDelay?: number;
   maxDelay?: number;
@@ -125,44 +125,3 @@ export const RetryStrategies = {
     factor: 2,
   },
 };
-
-// React hook for retryable operations
-import { useCallback, useState } from 'react';
-
-export function useRetry<T>(
-  operation: () => Promise<T>,
-  options?: RetryOptions
-) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [data, setData] = useState<T | null>(null);
-  const [attempts, setAttempts] = useState(0);
-  
-  const execute = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setAttempts(0);
-    
-    try {
-      const result = await SmartRetry.execute(
-        operation,
-        {
-          ...options,
-          onRetry: (err, attempt) => {
-            setAttempts(attempt);
-            options?.onRetry?.(err, attempt);
-          },
-        }
-      );
-      setData(result);
-      return result;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [operation, options]);
-  
-  return { execute, loading, error, data, attempts };
-}

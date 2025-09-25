@@ -117,29 +117,3 @@ export class SmartCache {
 
 // Global instance
 export const smartCache = new SmartCache();
-
-// React hook for easy use
-import { useEffect, useState } from 'react';
-
-export function useSmartCache<T>(
-  key: string,
-  fetcher: () => Promise<T>,
-  options?: {
-    staleAfter?: number;
-    expireAfter?: number;
-    fallback?: T;
-  }
-) {
-  const [data, setData] = useState<T | undefined>(options?.fallback);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  
-  useEffect(() => {
-    smartCache.get(key, fetcher, options)
-      .then(setData)
-      .catch(setError)
-      .finally(() => setLoading(false));
-  }, [key]);
-  
-  return { data, loading, error };
-}
