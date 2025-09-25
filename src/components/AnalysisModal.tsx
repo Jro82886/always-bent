@@ -309,7 +309,7 @@ export default function AnalysisModal({ analysis, visible, onClose, onSave }: An
               Snip
             </span>
             <span className="text-xs text-gray-400 ml-2">
-              {new Date(analysis.timeISO).toLocaleString()}
+              {new Date(analysis.timeISO).toLocaleDateString()}
             </span>
             {analysis.polygonMeta && (
               <span className="text-xs text-gray-400 ml-2">
