@@ -611,8 +611,8 @@ function AnalysisModeContent() {
             />
           )}
           
-          {/* Dynamic Analysis Modal - Shows real data when enabled */}
-          {process.env.NEXT_PUBLIC_DYNAMIC_MODAL === '1' && (() => {
+          {/* Dynamic Analysis Modal - ALWAYS SHOW REAL DATA */}
+          {(() => {
             const vm = useAppState((s) => s.analysisVM);
             const isOpen = useAppState((s) => s.isDynamicModalOpen);
             

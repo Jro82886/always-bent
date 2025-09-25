@@ -1271,13 +1271,12 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         const store = useAppState.getState();
         store.setAnalysisVM(vm);
         
-        if (process.env.NEXT_PUBLIC_DYNAMIC_MODAL === '1') {
-          store.openDynamicModal();
-          console.log('[SNIP] Dynamic modal opened with real data');
-        }
+        // ALWAYS use dynamic modal - no more static garbage!
+        store.openDynamicModal();
+        console.log('[SNIP] Dynamic modal opened with real data');
         
-        // Legacy modal support (temporary)
-        setHasAnalysisResults(true);
+        // Legacy modal DISABLED - only use dynamic
+        // setHasAnalysisResults(true);
       } catch (err) {
         console.error('[SNIP] Analysis error:', err);
         setStatus('idle');
