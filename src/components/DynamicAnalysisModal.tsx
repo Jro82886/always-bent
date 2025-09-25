@@ -1,19 +1,25 @@
 import React, { useEffect } from 'react'
 import type { AnalysisVM } from '@/types/analyze'
 import { assertNoStaticCopy, assertValidAnalysisData, trackAnalysisQuality } from '@/lib/antiStatic'
+import { useAppState } from '@/lib/store'
 
 type Props = {
   vm: AnalysisVM  // NOT null - required real data
-  sstOn: boolean
-  chlOn: boolean
   isOpen: boolean
   onClose: () => void
   onEnableLayers: () => void
 }
 
 export default function DynamicAnalysisModal({
-  vm, sstOn, chlOn, isOpen, onClose, onEnableLayers
+  vm, isOpen, onClose, onEnableLayers
 }: Props) {
+  // Read layer state directly from store
+  const { sstLayerVisible, chlLayerVisible } = useAppState((s) => ({
+    sstLayerVisible: s.sstLayerVisible,
+    chlLayerVisible: s.chlLayerVisible
+  }))
+  const sstOn = sstLayerVisible
+  const chlOn = chlLayerVisible
   // Track quality on mount
   useEffect(() => {
     if (isOpen && vm) {

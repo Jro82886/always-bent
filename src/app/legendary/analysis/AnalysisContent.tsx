@@ -621,8 +621,6 @@ function AnalysisModeContent() {
             return (
               <DynamicAnalysisModal
                 vm={vm}
-                sstOn={activeRaster === 'sst'}
-                chlOn={activeRaster === 'chl'}
                 isOpen={isOpen}
                 onClose={() => {
                   const { closeDynamicModal, resetAnalysisTransient } = useAppState.getState();
@@ -630,9 +628,10 @@ function AnalysisModeContent() {
                   resetAnalysisTransient();
                 }}
                 onEnableLayers={() => {
-                  setActiveRaster('sst'); // Enable SST
-                  // Note: This UI only supports one layer at a time currently
-                  // For full SST+CHL, would need UI updates
+                  // Enable SST layer
+                  const { setSstLayerVisible } = useAppState.getState();
+                  setSstLayerVisible(true);
+                  setActiveRaster('sst'); // Also update activeRaster for UI consistency
                 }}
               />
             );
