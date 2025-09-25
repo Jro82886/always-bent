@@ -528,6 +528,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   // Use refs for mouse tracking
   const startPoint = useRef<[number, number] | null>(null);
   const currentPolygon = useRef<any>(null);
+  const currentPolygonRef = useRef<GeoJSON.Polygon | null>(null);
   
   // Helper functions for enabling/disabling drawing (single source of truth)
   const enableDrawing = useCallback((mapInstance?: mapboxgl.Map) => {
@@ -1003,6 +1004,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
     const polygon = currentPolygon.current;
     
+    // Store polygon in ref for Review button
+    const poly = polygon?.geometry?.type === 'Polygon' ? polygon.geometry : null;
+    currentPolygonRef.current = poly;
+    
     // Check minimum area
     const areaKm2 = polygonAreaKm2(polygon.geometry);
     if (areaKm2 < 0.5) {
@@ -1147,8 +1152,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
   
   // Handle review click
   const onReviewClick = useCallback(async () => {
-    const polygon = analysis.lastSnipPolygon;
-    if (!map || !polygon) return;
+    const poly = 
+      currentPolygonRef.current ??
+      analysis.lastSnipPolygon;
+    if (!poly) return console.warn('[ABFI] No polygon found');
+    const polygon = poly; // Use this throughout the function
     
     const log = (...args: any[]) => console.log('[SnipFlow]', ...args);
     log('Review clicked, opening modal immediately');
@@ -2333,9 +2341,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
                   'Ready to analyze'}
               </span>
               <button
+                disabled={!currentPolygonRef.current}
                 onClick={onReviewClick}
                 className="px-4 py-2 bg-emerald-500/90 hover:bg-emerald-500 text-slate-900 font-semibold rounded-lg 
-                         shadow-[0_0_20px_#00e1a780] transition-all transform hover:scale-105"
+                         shadow-[0_0_20px_#00e1a780] transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Review analysis
               </button>
