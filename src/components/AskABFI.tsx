@@ -4,11 +4,14 @@ import { useAppState } from '@/lib/store'
 
 export function AskABFI({ inlet, dateISO }: { inlet: any; dateISO: string }) {
   const vm = useAppState(s => s.analysisVM)
-  const activeRaster = useAppState(s => s.activeRaster)
+  const { sstLayerVisible, chlLayerVisible } = useAppState((s) => ({
+    sstLayerVisible: s.sstLayerVisible,
+    chlLayerVisible: s.chlLayerVisible
+  }))
   
-  // Determine which layers are on
-  const sstOn = activeRaster === 'sst'
-  const chlOn = activeRaster === 'chl'
+  // Use actual layer visibility
+  const sstOn = sstLayerVisible
+  const chlOn = chlLayerVisible
   
   const { loading, markdown, actions, error, run } = useAIExplain()
 
@@ -20,7 +23,7 @@ export function AskABFI({ inlet, dateISO }: { inlet: any; dateISO: string }) {
   }, [vm, sstOn, chlOn, inlet?.id, dateISO])
 
   return (
-    <aside className="fixed right-0 top-0 w-[340px] h-full z-[9998] bg-gray-900 text-gray-100 border-l border-gray-700 p-4 overflow-y-auto">
+    <aside className="fixed right-0 top-[400px] w-[340px] h-[calc(100%-400px)] z-[30] bg-gray-900 text-gray-100 border-l border-gray-700 border-t p-4 overflow-y-auto rounded-tl-lg">
       <h3 className="text-lg font-bold mb-2 text-cyan-400">ABFI First Mate</h3>
       
       {loading && (
