@@ -11,7 +11,7 @@ import { buildNarrative } from '@/lib/analysis/narrative-builder';
 import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats, AnalysisResult } from '@/lib/analysis/types';
 import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
 import { runAnalyzeV2 } from '@/features/analysis/runAnalysisV2';
-import { toVM, type AnalysisVM } from '@/types/analyze';
+import type { AnalysisVM } from '@/types/analyze';
 import { fetchWindSwell } from '@/lib/analysis/fetchWindSwell';
 import { clipFleetPresence } from '@/lib/analysis/clipFleetPresence';
 import { computePolygonMeta } from '@/lib/analysis/computePolygonMeta';
@@ -1169,9 +1169,9 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     const dateOnly = timeISO.split('T')[0]; // Extract just the date for ocean data
     
     // Check active layers from map
-    const sstLayer = resolveSSTLayer(map);
-    const chlLayer = map.getLayer('chl-lyr');
-    const chlVisibility = chlLayer ? map.getLayoutProperty('chl-lyr', 'visibility') : 'none';
+    const sstLayer = map ? resolveSSTLayer(map) : null;
+    const chlLayer = map?.getLayer('chl-lyr');
+    const chlVisibility = chlLayer && map ? map.getLayoutProperty('chl-lyr', 'visibility') : 'none';
     
     console.log('[SNIP] Layer detection:', {
       sstLayer,
@@ -1266,22 +1266,10 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
       // --- NEW CLEAN FLOW ---
       try {
-        // Call the analyze endpoint
-        console.log('[SNIP] Calling /api/analyze with polygon');
-        const api = await runAnalyzeV2(polygon);
-        console.log('[SNIP] API response:', api);
-        
-        // Convert to view model
-        const vm = toVM(api);
-        console.log('[SNIP] Converted to VM:', vm);
-        
-        // Set the VM and open dynamic modal
-        const store = useAppState.getState();
-        store.setAnalysisVM(vm);
-        
-        // ALWAYS use dynamic modal - no more static garbage!
-        store.openDynamicModal();
-        console.log('[SNIP] Dynamic modal opened with real data');
+        // Call the analyze endpoint - it handles VM and modal internally
+        console.log('[SNIP] Calling runAnalyzeV2 with polygon');
+        await runAnalyzeV2(polygon);
+        console.log('[SNIP] Analysis complete, modal should be open');
         
         // Legacy modal DISABLED - only use dynamic
         // setHasAnalysisResults(true);
