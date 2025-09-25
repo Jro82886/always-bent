@@ -1,0 +1,23 @@
+{
+  "rules": {
+    "no-restricted-imports": ["error", {
+      "paths": [
+        { 
+          "name": "@/components/AnalysisModal", 
+          "message": "BANNED: Use DynamicAnalysisModal only. Legacy modal with static text is forbidden." 
+        },
+        { 
+          "name": "@/lib/analysis/types", 
+          "importNames": ["SnipAnalysis"],
+          "message": "BANNED: Use AnalysisVM from '@/types/analyze'. Legacy types are forbidden." 
+        }
+      ],
+      "patterns": [
+        {
+          "group": ["**/AnalysisModal", "*AnalysisModal*"],
+          "message": "BANNED: Legacy AnalysisModal imports are forbidden. Use DynamicAnalysisModal."
+        }
+      ]
+    }]
+  }
+}

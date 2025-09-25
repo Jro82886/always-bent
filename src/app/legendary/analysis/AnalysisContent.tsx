@@ -27,7 +27,7 @@ import { useInletFromURL } from '@/hooks/useInletFromURL';
 import '@/styles/mapSmoothing.css';
 // CLEAN SNIP OVERLAY - Working version
 import CleanSnipOverlay from '@/components/snip/CleanSnipOverlay';
-import AnalysisModal from '@/components/AnalysisModal';
+// import AnalysisModal from '@/components/AnalysisModal'; // LEGACY REMOVED
 import DynamicAnalysisModal from '@/components/DynamicAnalysisModal';
 import SnipTool from '@/components/SnipTool';
 

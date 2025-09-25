@@ -4,9 +4,23 @@
  */
 
 const BANNED_STATIC_PHRASES = [
+  // Original legacy modal text
+  "Prediction Report",
   "No bite reports in this area yet",
   "Current conditions favor opportunistic fishing",
   "Check structure and current edges in the area",
+  "Where To Look",
+  "How To Fish",
+  "Work different depths based on thermocline",
+  "Species Outlook",
+  "Tuna: unlikely",
+  "Mahi: unlikely", 
+  "Billfish: unlikely",
+  "Movement (24-72h)",
+  "Currents placeholder",
+  "AI Read-Out",
+  
+  // Generic placeholders
   "Ocean data layers are not currently active",
   "Enable layers to see live analysis",
   "Analyzing ocean conditions...",
