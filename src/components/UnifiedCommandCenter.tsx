@@ -4,9 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { Target, ChevronDown, ChevronUp, Map, Navigation, GraduationCap, 
          Thermometer, Wind, Waves, Compass, Eye, Cloud, Activity } from 'lucide-react';
 import { useAppState } from '@/lib/store';
+import { fetchWeather } from '@/lib/api';
+import type { WeatherData } from '@/types/domain';
+
 // Weather types and formatters
 interface InletWeather {
-  conditions?: any;
+  conditions?: WeatherData;
 }
 
 const formatWind = (speed: number, direction: number) => {
@@ -109,13 +112,15 @@ export default function UnifiedCommandCenter({
   useEffect(() => {
     if (!selectedInletId) return;
 
-    const fetchWeather = async () => {
+    const fetchWeatherData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/weather?inlet=${selectedInletId}`);
-        if (!response.ok) throw new Error('Failed to fetch weather');
-        const data = await response.json();
-        setWeather(data);
+        const result = await fetchWeather(selectedInletId);
+        if (result.ok) {
+          setWeather({ conditions: result.data });
+        } else {
+          console.error('Weather fetch error:', result.error);
+        }
       } catch (err) {
         console.error('Weather fetch error:', err);
       } finally {
@@ -123,8 +128,8 @@ export default function UnifiedCommandCenter({
       }
     };
 
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 10 * 60 * 1000);
+    fetchWeatherData();
+    const interval = setInterval(fetchWeatherData, 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, [selectedInletId]);
 
