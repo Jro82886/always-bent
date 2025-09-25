@@ -34,7 +34,22 @@ function checkRateLimit(key: string, limit: number = 60, windowMs: number = 6000
   return true;
 }
 
+// Resource limits
+const MAX_BODY_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_URL_LENGTH = 2048;
+
 export function middleware(req: NextRequest) {
+  // Check URL length
+  if (req.url.length > MAX_URL_LENGTH) {
+    return new NextResponse("URL too long", { status: 414 });
+  }
+  
+  // Check body size for POST/PUT requests
+  const contentLength = req.headers.get("content-length");
+  if (contentLength && parseInt(contentLength) > MAX_BODY_SIZE) {
+    return new NextResponse("Payload too large", { status: 413 });
+  }
+  
   const response = NextResponse.next();
   
   // Security headers

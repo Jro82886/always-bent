@@ -1,10 +1,10 @@
 {
   "name": "Always Bent Fishing Intelligence",
   "short_name": "ABFI",
-  "description": "Real-time fishing intelligence and bite tracking",
+  "description": "Real-time ocean intelligence for serious anglers",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0F172A",
+  "background_color": "#0b0d14",
   "theme_color": "#00DDEB",
   "orientation": "portrait",
   "icons": [
@@ -15,23 +15,12 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512.png", 
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["sports", "navigation", "productivity"],
-  "shortcuts": [
-    {
-      "name": "Log Bite",
-      "url": "/legendary/analysis",
-      "description": "Quick access to bite button"
-    },
-    {
-      "name": "Fleet Tracking",
-      "url": "/legendary/tracking",
-      "description": "View fleet positions"
-    }
-  ]
+  "categories": ["sports", "navigation", "weather"],
+  "prefer_related_applications": false
 }
