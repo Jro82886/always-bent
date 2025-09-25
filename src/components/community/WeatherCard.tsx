@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cloud, Waves, Thermometer, Wind, Gauge, TrendingUp, TrendingDown, Minus, Loader2, AlertCircle } from 'lucide-react';
+import { Cloud, Waves, Thermometer, Wind, Gauge, TrendingUp, TrendingDown, Minus, Loader2, AlertCircle, MapPin } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 
@@ -102,6 +102,17 @@ export default function WeatherCard() {
       <div className="bg-slate-900/50 backdrop-blur rounded-xl border border-cyan-500/20 p-6">
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedInletId) {
+    return (
+      <div className="bg-slate-900/50 backdrop-blur rounded-xl border border-cyan-500/20 p-6">
+        <div className="flex items-center justify-center py-8 text-cyan-400">
+          <MapPin className="w-5 h-5 mr-2" />
+          <span className="text-sm">Select an inlet to view weather</span>
         </div>
       </div>
     );

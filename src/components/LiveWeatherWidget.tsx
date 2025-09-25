@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Cloud, Waves, Thermometer, Wind, Navigation, Loader2, WifiOff, Wifi } from 'lucide-react';
+import { Cloud, Waves, Thermometer, Wind, Navigation, Loader2, WifiOff, Wifi, MapPin } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 
@@ -37,7 +37,11 @@ export default function LiveWeatherWidget() {
   // Fetch weather data
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!inlet) return;
+      if (!selectedInletId) {
+        setWeatherData(null);
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       try {
@@ -157,6 +161,15 @@ export default function LiveWeatherWidget() {
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-sm border border-cyan-500/20">
         <Loader2 className="w-3 h-3 text-cyan-400 animate-spin" />
         <span className="text-xs text-cyan-400">Loading weather...</span>
+      </div>
+    );
+  }
+
+  if (!selectedInletId) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-sm border border-cyan-500/20">
+        <MapPin className="w-3 h-3 text-cyan-400" />
+        <span className="text-xs text-cyan-400">Select inlet for weather</span>
       </div>
     );
   }
