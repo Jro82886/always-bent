@@ -10,9 +10,8 @@ import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 import { buildNarrative } from '@/lib/analysis/narrative-builder';
 import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats, AnalysisResult } from '@/lib/analysis/types';
 import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
-import { runAnalysis } from '@/features/analysis/runAnalysis';
+import { runAnalyzeV2 } from '@/features/analysis/runAnalysisV2';
 import { toVM, type AnalysisVM } from '@/types/analyze';
-import { vmToSnipLegacy } from '@/lib/analysis/adapter';
 import { fetchWindSwell } from '@/lib/analysis/fetchWindSwell';
 import { clipFleetPresence } from '@/lib/analysis/clipFleetPresence';
 import { computePolygonMeta } from '@/lib/analysis/computePolygonMeta';
@@ -1257,90 +1256,44 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     // Don't open with placeholder - wait for real data
     log('Modal will open after real analysis data is ready');
     
-    // --- NOW resolve samplers in background ---
-    try {
-      // Call the analyze endpoint first
-      console.log('[SNIP] Calling /api/analyze with:', { polygon, timeISO });
-      const analyzeResult = await runAnalysis(polygon, timeISO);
-      console.log('[SNIP] Analyze result:', analyzeResult);
-      
-      // Convert to view model and then to legacy format
-      const analysisVM = toVM(analyzeResult);
-      if (analysisVM) {
-        setLastAnalysisVM(analysisVM);
-        console.log('[SNIP] Analysis VM:', analysisVM);
+      // --- NEW CLEAN FLOW ---
+      try {
+        // Call the analyze endpoint
+        console.log('[SNIP] Calling /api/analyze with polygon');
+        const api = await runAnalyzeV2(polygon);
+        console.log('[SNIP] API response:', api);
         
-        // Convert to legacy format for the modal
-        const legacyAnalysis = vmToSnipLegacy(
-          analysisVM,
-          polygon,
-          timeISO,
-          {
-            sst: activeLayers.sst || false,
-            chl: activeLayers.chl || false,
-            gfw: activeLayers.gfw || false,
-            myTracks: myTracksEnabled,
-            fleetTracks: fleetTracksEnabled,
-            gfwTracks: gfwTracksEnabled
-          }
-        );
+        // Convert to view model
+        const vm = toVM(api);
+        console.log('[SNIP] Converted to VM:', vm);
         
-        // Update the store with real data in legacy format
-        set((s) => ({
-          ...s,
-          analysis: {
-            ...s.analysis,
-            pendingAnalysis: legacyAnalysis,
-            narrative: analysisVM.narrative
-          }
-        }));
+        // Set the VM and open dynamic modal
+        const store = useAppState.getState();
+        store.setAnalysisVM(vm);
         
-        console.log('[SNIP] Set pendingAnalysis with real data:', legacyAnalysis);
-        
-        // Set the VM for the dynamic modal
-        const { setAnalysisVM, openDynamicModal } = useAppState.getState();
-        setAnalysisVM(analysisVM);
-        
-        // Open the dynamic modal if enabled
         if (process.env.NEXT_PUBLIC_DYNAMIC_MODAL === '1') {
-          openDynamicModal();
+          store.openDynamicModal();
+          console.log('[SNIP] Dynamic modal opened with real data');
         }
         
-        // Also open legacy modal for backward compatibility
+        // Legacy modal support (temporary)
         setHasAnalysisResults(true);
-        if (onAnalysisComplete) {
-          // Create a legacy AnalysisResult for compatibility
-          const legacyResult: AnalysisResult = {
-            polygon: { type: 'Feature', geometry: polygon, properties: {} } as any,
-            features: [],
-            hotspot: null,
-            stats: {
-              avg_temp_f: analysisVM.sst?.meanF ?? 0,
-              min_temp_f: analysisVM.sst?.minF ?? 0,
-              max_temp_f: analysisVM.sst?.maxF ?? 0,
-              temp_range_f: analysisVM.sst ? (analysisVM.sst.maxF - analysisVM.sst.minF) : 0,
-              area_km2: analysisVM.areaKm2
-            },
-            layerAnalysis: {},
-            narrative: analysisVM.narrative,
-            type: 'snip' as const,
-            id: crypto.randomUUID(),
-            user_id: 'current-user',
-            created_at: new Date().toISOString()
-          } as any;
-          
-          setLastAnalysis(legacyResult);
-          onAnalysisComplete(legacyResult);
-        }
+      } catch (err) {
+        console.error('[SNIP] Analysis error:', err);
+        setStatus('idle');
+        setIsAnalyzing(false);
       }
       
-      const want: Array<'sst'|'chl'> = [];
-      if (activeLayers.sst) want.push('sst');
-      if (activeLayers.chl) want.push('chl');
-      
-      if (want.length > 0) {
-        log('Background fetching raster data for:', want);
-        console.log('[SNIP] Fetching ocean data with params:', {
+      // Clean up
+      setStatus('idle');
+      setIsAnalyzing(false);
+      setIsDrawing(false);
+      clearDrawing();
+  }, [map, analysis, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled, pendingPolygon, onAnalysisComplete, clearDrawing, set]);
+
+  // [ALL LEGACY CODE REMOVED - Using clean runAnalyzeV2 flow]
+
+  // Other hooks and effects...
           polygon,
           timeISO,
           layers: want,
