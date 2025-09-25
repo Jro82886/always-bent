@@ -1276,9 +1276,9 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
           polygon,
           timeISO,
           {
-            sst: activeLayers.sst,
-            chl: activeLayers.chl,
-            gfw: activeLayers.gfw,
+            sst: activeLayers.sst || false,
+            chl: activeLayers.chl || false,
+            gfw: activeLayers.gfw || false,
             myTracks: myTracksEnabled,
             fleetTracks: fleetTracksEnabled,
             gfwTracks: gfwTracksEnabled
