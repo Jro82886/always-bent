@@ -10,6 +10,7 @@ import { getVesselTracksInArea } from '@/lib/analysis/trackAnalyzer';
 import { buildNarrative } from '@/lib/analysis/narrative-builder';
 import type { SnipAnalysis, LayerToggles, SnipReportPayload, ScalarStats, AnalysisResult } from '@/lib/analysis/types';
 import { sampleScalars, clipGFW } from '@/lib/analysis/fetchers';
+import { runAnalysis } from '@/features/analysis/runAnalysis';
 import { fetchWindSwell } from '@/lib/analysis/fetchWindSwell';
 import { clipFleetPresence } from '@/lib/analysis/clipFleetPresence';
 import { computePolygonMeta } from '@/lib/analysis/computePolygonMeta';
@@ -1262,6 +1263,11 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
     // --- NOW resolve samplers in background ---
     try {
+      // Call the analyze endpoint first
+      console.log('[SNIP] Calling /api/analyze with:', { polygon, timeISO });
+      const analyzeResult = await runAnalysis(polygon, timeISO);
+      console.log('[SNIP] Analyze result:', analyzeResult);
+      
       const want: Array<'sst'|'chl'> = [];
       if (activeLayers.sst) want.push('sst');
       if (activeLayers.chl) want.push('chl');
