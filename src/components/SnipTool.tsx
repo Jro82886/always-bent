@@ -1032,7 +1032,9 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     
     const bbox = turf.bbox(polygon) as [number, number, number, number];
     const center = centroidOf(polygon.geometry);
+    // Ensure we only use the date part for ocean data (YYYY-MM-DD)
     const timeISO = isoDate || new Date().toISOString();
+    const dateOnly = timeISO.split('T')[0]; // Extract just the date
     
     // Check active layers
     const activeLayers = {
@@ -1138,6 +1140,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     setIsAnalyzing(true);
     
     const timeISO = isoDate || new Date().toISOString();
+    const dateOnly = timeISO.split('T')[0]; // Extract just the date for ocean data
     
     // Check active layers from map
     const activeLayers = {
@@ -1414,7 +1417,7 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
                 polygon: polygon.geometry,
-                time: isoDate || new Date().toISOString(),
+                timeISO: dateOnly + 'T00:00:00Z', // Use midnight UTC for consistent daily data
                 layers: ['sst', 'chl'].filter(k => activeLayers[k as 'sst'|'chl'])
               })
             }).then(r => r.json())
