@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import * as turf from '@turf/turf';
@@ -109,7 +109,10 @@ export default function CleanSnipTool({ map, onAnalysisComplete }: Props) {
     setAnalysis({
       lastSnipPolygon: currentPolygon,
       lastSnipBBox: turf.bbox(currentPolygon) as [number, number, number, number],
-      lastSnipCenter: turf.centroid(currentPolygon).geometry.coordinates
+      lastSnipCenter: {
+        lon: turf.centroid(currentPolygon).geometry.coordinates[0],
+        lat: turf.centroid(currentPolygon).geometry.coordinates[1]
+      }
     });
   }, [currentPolygon, map, onMouseMove]);
 
