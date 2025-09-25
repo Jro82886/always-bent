@@ -28,6 +28,7 @@ import '@/styles/mapSmoothing.css';
 // CLEAN SNIP OVERLAY - Working version
 import CleanSnipOverlay from '@/components/snip/CleanSnipOverlay';
 import AnalysisModal from '@/components/AnalysisModal';
+import DynamicAnalysisModal from '@/components/DynamicAnalysisModal';
 import SnipTool from '@/components/SnipTool';
 
 // Mapbox token will be set in useEffect to avoid SSR issues
@@ -606,6 +607,26 @@ function AnalysisModeContent() {
                 setIsAnalysisModalOpen(false);
                 // Reset the analysis state
                 resetAnalysisTransient();
+              }}
+            />
+          )}
+          
+          {/* Dynamic Analysis Modal - Shows real data when enabled */}
+          {process.env.NEXT_PUBLIC_DYNAMIC_MODAL === '1' && (
+            <DynamicAnalysisModal
+              vm={useAppState((s) => s.analysisVM)}
+              sstOn={activeRaster === 'sst'}
+              chlOn={activeRaster === 'chl'}
+              isOpen={useAppState((s) => s.isDynamicModalOpen)}
+              onClose={() => {
+                const { closeDynamicModal, resetAnalysisTransient } = useAppState.getState();
+                closeDynamicModal();
+                resetAnalysisTransient();
+              }}
+              onEnableLayers={() => {
+                setActiveRaster('sst'); // Enable SST
+                // Note: This UI only supports one layer at a time currently
+                // For full SST+CHL, would need UI updates
               }}
             />
           )}

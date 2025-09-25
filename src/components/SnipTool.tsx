@@ -1297,7 +1297,16 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
         
         console.log('[SNIP] Set pendingAnalysis with real data:', legacyAnalysis);
         
-        // Now open the modal with real data
+        // Set the VM for the dynamic modal
+        const { setAnalysisVM, openDynamicModal } = useAppState.getState();
+        setAnalysisVM(analysisVM);
+        
+        // Open the dynamic modal if enabled
+        if (process.env.NEXT_PUBLIC_DYNAMIC_MODAL === '1') {
+          openDynamicModal();
+        }
+        
+        // Also open legacy modal for backward compatibility
         setHasAnalysisResults(true);
         if (onAnalysisComplete) {
           // Create a legacy AnalysisResult for compatibility

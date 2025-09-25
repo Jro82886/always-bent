@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { AnalysisVM } from '@/types/analyze';
 
 interface UserLocation {
   lat: number;
@@ -70,6 +71,13 @@ interface AppState {
     showReviewCta: boolean;
     narrative: string;
   };
+  
+  // New dynamic modal state
+  analysisVM: AnalysisVM | null;
+  isDynamicModalOpen: boolean;
+  setAnalysisVM: (vm: AnalysisVM | null) => void;
+  openDynamicModal: () => void;
+  closeDynamicModal: () => void;
   
   // Analysis setters
   setAnalysis: (partial: Partial<AppState['analysis']>) => void;
@@ -171,6 +179,13 @@ export const useAppState = create<AppState>((set, get) => ({
     narrative: '' as string,
     // isModalOpen flag temporarily disabled due to hotfix revert
   },
+  
+  // New dynamic modal state
+  analysisVM: null,
+  isDynamicModalOpen: false,
+  setAnalysisVM: (vm) => set({ analysisVM: vm }),
+  openDynamicModal: () => set({ isDynamicModalOpen: true }),
+  closeDynamicModal: () => set({ isDynamicModalOpen: false }),
   
   // Analysis setters
   setAnalysis: (partial) => set((s) => ({ 
