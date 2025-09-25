@@ -270,6 +270,16 @@ function lineCombinedConditions(a: SnipAnalysis): string | null {
 
 // ---- Public API ----
 export function buildNarrative(a: SnipAnalysis, ctx?: AnalysisContext): string {
+  console.log('[NARRATIVE] Building with analysis:', {
+    toggles: a.toggles,
+    sst: a.sst,
+    chl: a.chl,
+    hasSST: !!a.sst,
+    hasCHL: !!a.chl,
+    sstMean: a.sst?.mean,
+    chlMean: a.chl?.mean
+  });
+  
   const lines: string[] = [];
 
   // 1. Area size check (if problematic)

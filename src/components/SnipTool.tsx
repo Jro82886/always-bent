@@ -1037,11 +1037,26 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     const dateOnly = timeISO.split('T')[0]; // Extract just the date
     
     // Check active layers
+    const sstLayer = resolveSSTLayer(map);
+    const chlLayer = map.getLayer('chl-lyr');
+    const chlVisibility = chlLayer ? map.getLayoutProperty('chl-lyr', 'visibility') : 'none';
+    
+    console.log('[SNIP] completeDrawing - Layer detection:', {
+      sstLayer,
+      chlLayer: chlLayer ? 'exists' : 'not found',
+      chlVisibility,
+      mapLayers: Array.from((map as any).style._order || []).filter((id: string) => 
+        id.includes('sst') || id.includes('chl')
+      )
+    });
+    
     const activeLayers = {
-      sst: resolveSSTLayer(map) !== null,
-      chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+      sst: sstLayer !== null,
+      chl: chlLayer && chlVisibility === 'visible',
       gfw: map.getLayer('gfw-vessels-dots') && map.getLayoutProperty('gfw-vessels-dots', 'visibility') === 'visible'
     };
+    
+    console.log('[SNIP] completeDrawing - Active layers:', activeLayers);
     
     // Create base analysis immediately
     const baseAnalysis: SnipAnalysis = {
@@ -1143,11 +1158,26 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
     const dateOnly = timeISO.split('T')[0]; // Extract just the date for ocean data
     
     // Check active layers from map
+    const sstLayer = resolveSSTLayer(map);
+    const chlLayer = map.getLayer('chl-lyr');
+    const chlVisibility = chlLayer ? map.getLayoutProperty('chl-lyr', 'visibility') : 'none';
+    
+    console.log('[SNIP] Layer detection:', {
+      sstLayer,
+      chlLayer: chlLayer ? 'exists' : 'not found',
+      chlVisibility,
+      mapLayers: Array.from((map as any).style._order || []).filter((id: string) => 
+        id.includes('sst') || id.includes('chl')
+      )
+    });
+    
     const activeLayers = {
-      sst: resolveSSTLayer(map) !== null,
-      chl: map.getLayer('chl-lyr') && map.getLayoutProperty('chl-lyr', 'visibility') === 'visible',
+      sst: sstLayer !== null,
+      chl: chlLayer && chlVisibility === 'visible',
       gfw: false // hidden for now
     };
+    
+    console.log('[SNIP] Active layers detected:', activeLayers);
     
     // --- Base analysis object ---
     const baseAnalysis: SnipAnalysis = {
@@ -1238,7 +1268,22 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       
       if (want.length > 0) {
         log('Background fetching raster data for:', want);
+        console.log('[SNIP] Fetching ocean data with params:', {
+          polygon,
+          timeISO,
+          layers: want,
+          dateOnly: timeISO.split('T')[0]
+        });
+        
         const scalarResult = await sampleScalars({ polygon, timeISO, layers: want });
+        
+        console.log('[SNIP] Ocean data result:', {
+          scalarResult,
+          sstData: scalarResult.sst,
+          chlData: scalarResult.chl,
+          sstMean: scalarResult.sst?.mean,
+          chlMean: scalarResult.chl?.mean
+        });
         
         if (activeLayers.sst && scalarResult.sst) {
           baseAnalysis.sst = scalarResult.sst;
