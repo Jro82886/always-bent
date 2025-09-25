@@ -1290,65 +1290,6 @@ export default function SnipTool({ map, onAnalysisComplete, isActive = false }: 
       setIsDrawing(false);
       clearDrawing();
   }, [map, analysis, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled, pendingPolygon, onAnalysisComplete, clearDrawing, set]);
-
-  // [ALL LEGACY CODE REMOVED - Using clean runAnalyzeV2 flow]
-
-  // Other hooks and effects...
-          polygon,
-          timeISO,
-          layers: want,
-          dateOnly: timeISO.split('T')[0]
-        });
-        
-        const scalarResult = await sampleScalars({ polygon, timeISO, layers: want });
-        
-        console.log('[SNIP] Ocean data result:', {
-          scalarResult,
-          sstData: scalarResult.sst,
-          chlData: scalarResult.chl,
-          sstMean: scalarResult.sst?.mean,
-          chlMean: scalarResult.chl?.mean
-        });
-        
-        if (activeLayers.sst && scalarResult.sst) {
-          baseAnalysis.sst = scalarResult.sst;
-        }
-        if (activeLayers.chl && scalarResult.chl) {
-          baseAnalysis.chl = scalarResult.chl;
-        }
-        
-        log('Raster data received:', scalarResult);
-      }
-    } catch (err) {
-      console.warn('[SnipFlow] sampler error', err);
-      // Continue with null values
-    }
-    
-    // --- Rebuild narrative with real data ---
-    narrativeText = buildNarrative(baseAnalysis);
-    log('Final narrative built:', narrativeText);
-    
-    const finalAnalysisWithNarrative = { ...baseAnalysis, narrative: narrativeText };
-    
-    // Update store with real data
-    set((s) => ({
-      ...s,
-      analysis: {
-        ...s.analysis,
-        pendingAnalysis: finalAnalysisWithNarrative,
-        narrative: narrativeText,
-      }
-    }));
-    
-    // The modal is already open with real data from the analyze endpoint
-    log('Analysis complete with real ocean data');
-    
-    // Clean up
-    setStatus('idle');
-    setIsAnalyzing(false);
-    setIsDrawing(false);
-    clearDrawing();
-  }, [map, analysis, isoDate, selectedInletId, myTracksEnabled, fleetTracksEnabled, gfwTracksEnabled, pendingPolygon, onAnalysisComplete, clearDrawing, set]);
   
   // Handle cancel click
   const onCancelClick = useCallback(() => {
