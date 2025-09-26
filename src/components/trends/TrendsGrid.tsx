@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
+import { resolveInlet, getDemoMessage } from '@/lib/inlet';
 
 interface TrendsData {
   tides: { events: Array<{ type: 'high' | 'low'; time: string; height_m: number }> };
@@ -16,8 +17,12 @@ export default function TrendsGrid() {
   const { selectedInletId } = useAppState();
   const [data, setData] = useState<TrendsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const demoMessage = getDemoMessage();
   
-  const inlet = getInletById(selectedInletId);
+  let inlet = getInletById(selectedInletId);
+  if (!inlet) {
+    inlet = resolveInlet(null);
+  }
 
   useEffect(() => {
     const fetchTrends = async () => {
@@ -29,7 +34,7 @@ export default function TrendsGrid() {
       try {
         const [lng, lat] = inlet.center;
         const params = new URLSearchParams({
-          inlet: selectedInletId || '',
+          inlet: inlet.slug || '',
           lat: lat.toString(),
           lng: lng.toString(),
           rangeDays: '14'
@@ -71,6 +76,11 @@ export default function TrendsGrid() {
           <p className="text-sm text-slate-400">
             Live trends for {inlet.name} — built from today's tide feed and recent ABFI bite reports.
           </p>
+        )}
+        {demoMessage && (
+          <div className="text-xs text-cyan-200/60 italic mt-2">
+            {demoMessage}
+          </div>
         )}
       </div>
 

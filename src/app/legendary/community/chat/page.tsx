@@ -8,6 +8,7 @@ import { useAppState } from '@/lib/store';
 import { initChatClient } from '@/lib/services/chat';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import PaneFallback from '@/components/chat/PaneFallback';
+import { resolveInletSlug, getDemoMessage } from '@/lib/inlet';
 
 // Dynamically import components to avoid SSR issues
 const ChatTabs = dynamic(() => import('@/components/chat/ChatTabs'), {
@@ -52,9 +53,8 @@ export default function ChatPage() {
   const getChannelId = () => {
     switch (selectedTab) {
       case 'inlet':
-        return selectedInletId && selectedInletId !== 'overview' 
-          ? `inlet:${selectedInletId}` 
-          : null;
+        const inletSlug = resolveInletSlug(selectedInletId && selectedInletId !== 'overview' ? selectedInletId : null);
+        return inletSlug ? `inlet:${inletSlug}` : null;
       case 'offshore':
         return 'offshore:tuna';
       case 'inshore':
@@ -65,6 +65,7 @@ export default function ChatPage() {
   };
   
   const channelId = getChannelId();
+  const demoMessage = getDemoMessage();
 
   // Auto-join/leave rooms on channel change
   useEffect(() => {
@@ -104,6 +105,11 @@ export default function ChatPage() {
                 counts={counts}
               />
               <PresenceStrip text={presenceText} />
+              {demoMessage && selectedTab === 'inlet' && (
+                <div className="text-xs text-cyan-200/60 italic px-2">
+                  {demoMessage}
+                </div>
+              )}
               {selectedTab === 'inlet' && !channelId ? (
                 <div className="abfi-scroll grid place-items-center">
                   <div className="text-center text-cyan-200/80">

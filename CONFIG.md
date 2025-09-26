@@ -14,6 +14,15 @@ These variables control frontend behavior and are safe to expose in the browser:
   - `0` = Fetch real reports highlights from Supabase
   - `1` = Show mock highlights for demo purposes
 
+- **`NEXT_PUBLIC_DEMO_FORCE_INLET`** (default: `0`)
+  - `0` = Normal inlet selection behavior
+  - `1` = Always use default inlet (Ocean City, MD) for demo
+  - Prevents crashes when no inlet is selected
+  
+- **`NEXT_PUBLIC_DEMO_DEFAULT_INLET`** (default: `ocean-city-md`)
+  - The inlet slug to use when demo mode is enabled
+  - Only applies when `NEXT_PUBLIC_DEMO_FORCE_INLET=1`
+
 ### Server-Side Configuration
 
 These secrets must be kept secure and are only available in API routes:
