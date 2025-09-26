@@ -25,16 +25,19 @@ export async function POST(req: NextRequest) {
       const sampleModule = await import('../rasters/sample/route');
       const sampleHandler = sampleModule.POST;
       
-      // Create a mock request
-      const sampleRequest = new Request('http://localhost/api/rasters/sample', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          polygon,
-          timeISO: date,
-          layers: layersArray
-        })
-      });
+      // Create a NextRequest
+      const sampleRequest = new NextRequest(
+        new URL('http://localhost/api/rasters/sample'),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            polygon,
+            timeISO: date,
+            layers: layersArray
+          })
+        }
+      );
       
       console.log('[ANALYZE] Calling raster sample directly with:', { 
         polygon: 'type' in polygon ? polygon.type : 'Feature',
