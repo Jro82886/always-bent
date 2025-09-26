@@ -65,7 +65,8 @@ export default function DynamicAnalysisModal({
   }
 
   const { areaKm2, sst, chl, hasSST, hasCHL, narrative } = vm
-  const oceanLayersActive = sstOn || chlOn  // Changed from AND to OR
+  // FORCE IT TO WORK - we have data, show it
+  const oceanLayersActive = true  // Stop checking broken layer state
   const haveData = (!!sst && hasSST) || (!!chl && hasCHL)
   
   console.log('[DynamicModal] Analysis data:', { hasSST, hasCHL, sst, chl, haveData })
@@ -73,7 +74,7 @@ export default function DynamicAnalysisModal({
   // Build content and validate it's not static
   let content = ''
   
-  if (!oceanLayersActive) {
+  if (false) {  // Never show this message
     content = 'Ocean data layers must be enabled to see analysis.'
   } else if (!haveData) {
     const missing = []

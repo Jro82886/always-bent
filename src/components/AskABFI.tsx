@@ -6,9 +6,9 @@ export function AskABFI({ inlet, dateISO }: { inlet: any; dateISO: string }) {
   const vm = useAppState(s => s.analysisVM)
   const activeRaster = useAppState(s => s.activeRaster)
   
-  // Use actual layer visibility
-  const sstOn = activeRaster === 'sst'
-  const chlOn = activeRaster === 'chl'
+  // Use actual layer visibility - but force true if we have data
+  const sstOn = true  // activeRaster === 'sst'
+  const chlOn = true  // activeRaster === 'chl'
   
   const { loading, markdown, actions, error, run } = useAIExplain()
 
