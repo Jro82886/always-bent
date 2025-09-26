@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
-import SnipTool from '@/components/SnipTool';
-import NewSnipTool from '@/components/snip/NewSnipTool';
+import SnipTool from '@/components/SimpleSnipTool';
+// import NewSnipTool from '@/components/snip/NewSnipTool'; // Removed - using SimpleSnipTool
 import type mapboxgl from 'mapbox-gl';
 import type { AnalysisResult } from '@/lib/analysis/types';
 import '@/styles/analysis.css';
@@ -231,7 +231,7 @@ export default function UnifiedToolbar({ map }: UnifiedToolbarProps) {
       {map && (
         <div className="hidden">
           {process.env.NEXT_PUBLIC_FLAG_NEW_SNIP === '1' ? (
-            <NewSnipTool map={map} />
+            <SnipTool map={map} />
           ) : (
             <SnipTool 
               map={map} 

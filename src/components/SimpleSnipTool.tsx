@@ -233,17 +233,6 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
 
   return (
     <>
-      {/* Draw Button - Always visible for now */}
-      {!drawing && !reviewing && (
-        <div className="fixed top-20 right-4 z-[100]">
-          <button
-            onClick={startDrawing}
-            className="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-lg shadow-lg"
-          >
-            🎯 Draw Analysis Area
-          </button>
-        </div>
-      )}
 
       {/* Drawing Instructions */}
       {drawing && (
