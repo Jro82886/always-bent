@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         
       console.log('[ANALYZE] Calling raster sample with:', { 
         url: `${baseUrl}/api/rasters/sample`,
-        polygon: polygon.type || polygon.geometry?.type,
+        polygon: 'type' in polygon ? polygon.type : 'Feature',
         date,
         layers: layersArray 
       });
