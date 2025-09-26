@@ -67,6 +67,7 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     drawRef.current = draw;
 
     const onCreate = (e: any) => {
+      console.log('[SimpleSnip] Draw create event:', e);
       const g = e.features?.[0]?.geometry;
       if (g?.type === 'Polygon') { 
         polyRef.current = g;
@@ -80,7 +81,10 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
         map.dragRotate.enable();
         map.doubleClickZoom.enable();
         map.touchZoomRotate.enable();
-        console.log('[SimpleSnip] Polygon created:', g);
+        console.log('[SimpleSnip] Polygon created, reviewing:', true);
+        console.log('[SimpleSnip] Polygon geometry:', g);
+      } else {
+        console.log('[SimpleSnip] Not a polygon:', g);
       }
     };
     
@@ -128,7 +132,11 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
   }, [map]);
 
   async function review() {
-    if (!polyRef.current) return;
+    console.log('[SimpleSnip] Review clicked, polygon:', polyRef.current);
+    if (!polyRef.current) {
+      console.error('[SimpleSnip] No polygon to analyze!');
+      return;
+    }
     
     console.log('[SimpleSnip] Starting analysis...');
     setReviewing(false);
@@ -206,6 +214,11 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
   useEffect(() => {
     console.log('[SimpleSnipTool] Mounted, map:', !!map);
   }, [map]);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('[SimpleSnipTool] State:', { drawing, reviewing, hasPolygon: !!polyRef.current });
+  }, [drawing, reviewing]);
 
   return (
     <>
