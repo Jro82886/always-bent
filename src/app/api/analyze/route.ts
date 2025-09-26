@@ -21,7 +21,13 @@ export async function POST(req: NextRequest) {
       if (want.sst) layersArray.push('sst');
       if (want.chl) layersArray.push('chl');
       
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      // Use the deployment URL in production
+      const baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        
+      console.log('[ANALYZE] Calling raster sample at:', `${baseUrl}/api/rasters/sample`);
+      
       const sample = await fetch(`${baseUrl}/api/rasters/sample`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34,6 +40,7 @@ export async function POST(req: NextRequest) {
       
       if (sample.ok) {
         const response = await sample.json();
+        console.log('[ANALYZE] Raster sample response:', JSON.stringify(response, null, 2));
         
         // Extract real data from the response
         if (response.stats?.sst) {
@@ -52,20 +59,25 @@ export async function POST(req: NextRequest) {
         }
       } else {
         const errorText = await sample.text();
-        console.error('Raster sample failed:', sample.status, errorText);
-        // Use mock data as fallback
-        data = {
-          sst: { meanC: 22.5, minC: 21.9, maxC: 23.1, gradientCperKm: 0.1 },
-          chl: { mean: 0.45 }
-        };
+        console.error('[ANALYZE] Raster sample failed:', {
+          status: sample.status,
+          error: errorText,
+          url: `${baseUrl}/api/rasters/sample`,
+          payload: { polygon, timeISO: date, layers: layersArray }
+        });
+        // Return error instead of mock data
+        return NextResponse.json({ 
+          error: `Raster sampling failed: ${sample.status}`,
+          details: errorText
+        }, { status: 500 });
       }
-    } catch (e) {
-      console.error('Raster sample error:', e);
-      // Use mock data as fallback
-      data = {
-        sst: { meanC: 22.5, minC: 21.9, maxC: 23.1, gradientCperKm: 0.1 },
-        chl: { mean: 0.45 }
-      };
+    } catch (e: any) {
+      console.error('[ANALYZE] Raster sample error:', e);
+      // Return error instead of mock data
+      return NextResponse.json({ 
+        error: 'Failed to connect to ocean data service',
+        details: e.message
+      }, { status: 500 });
     }
 
     // Now data has the correct structure

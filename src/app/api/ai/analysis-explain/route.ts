@@ -34,7 +34,52 @@ End with: *Data from Copernicus ocean observations. Conditions change rapidly - 
 
 async function callOpenAI(user: string): Promise<string> {
   const key = process.env.LLM_API_KEY
-  if (!key) throw new Error('Missing LLM_API_KEY')
+  if (!key) {
+    // Return a basic analysis if no API key
+    const data = JSON.parse(user);
+    const { analysisVM } = data;
+    
+    if (!analysisVM.sst && !analysisVM.chl) {
+      return "## Ocean Analysis\n\nNo ocean data available for this area.";
+    }
+    
+    let analysis = "## Temperature Analysis\n";
+    if (analysisVM.sst) {
+      analysis += `Water temperatures averaging ${analysisVM.sst.meanF.toFixed(1)}°F, `;
+      analysis += `ranging from ${analysisVM.sst.minF.toFixed(1)}°F to ${analysisVM.sst.maxF.toFixed(1)}°F. `;
+      if (analysisVM.sst.gradFperMile > 0.5) {
+        analysis += `Notable temperature gradient of ${analysisVM.sst.gradFperMile.toFixed(1)}°F/mile detected.\n\n`;
+      } else {
+        analysis += "Uniform temperature distribution.\n\n";
+      }
+    }
+    
+    analysis += "## Water Quality\n";
+    if (analysisVM.chl) {
+      analysis += `Chlorophyll concentration at ${analysisVM.chl.mean.toFixed(2)} mg/m³ indicates `;
+      if (analysisVM.chl.mean < 0.2) {
+        analysis += "clear blue water with low productivity.\n\n";
+      } else if (analysisVM.chl.mean < 1.5) {
+        analysis += "productive green water favorable for baitfish.\n\n";
+      } else {
+        analysis += "highly productive but possibly turbid water.\n\n";
+      }
+    }
+    
+    analysis += "## Fishing Insights\n";
+    analysis += "Based on current conditions, ";
+    if (analysisVM.sst?.gradFperMile > 0.5 && analysisVM.chl?.mean > 0.3) {
+      analysis += "the temperature break combined with productive water creates favorable edge conditions. Target the warm side of the break.\n\n";
+    } else if (analysisVM.sst?.meanF > 70 && analysisVM.chl?.mean > 0.2) {
+      analysis += "warm water with moderate productivity suggests active feeding conditions.\n\n";
+    } else {
+      analysis += "conditions are stable. Focus on structure and known productive areas.\n\n";
+    }
+    
+    analysis += "*Data from Copernicus ocean observations. Conditions change rapidly - combine with local knowledge.*";
+    
+    return analysis;
+  }
 
   const r = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',

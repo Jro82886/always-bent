@@ -10,7 +10,14 @@ export async function runAnalyze(polygon: GeoJSON.Polygon, dateISO: string) {
   if (!res.ok) {
     const errorText = await res.text();
     console.error('[analyzeClient] API error:', res.status, errorText);
-    throw new Error(`analyze ${res.status}: ${errorText}`);
+    
+    // Try to parse error details
+    try {
+      const errorData = JSON.parse(errorText);
+      console.error('[analyzeClient] Error details:', errorData);
+    } catch {}
+    
+    throw new Error(`Analysis failed: ${res.status}`);
   }
   
   const api = await res.json();
