@@ -349,45 +349,55 @@ export async function POST(request: NextRequest) {
       const stats = await sampleLayer(layer, polygon, timeISO);
       
       if (stats) {
-        // Format response based on layer
-        if (layer === 'sst') {
-          const sstResponse = {
-            mean_f: stats.mean,
-            min_f: stats.min,
-            max_f: stats.max,
-            p10_f: stats.p10,
-            p50_f: stats.p50,
-            p90_f: stats.p90,
-            stddev_f: stats.stddev,
-            gradient_f: stats.gradient,
-            n_valid: stats.n_valid,
-            n_nodata: stats.n_nodata,
-            zoom_used: stats.zoom_used,
-            tiles_touched: stats.tiles_touched
-          };
-          response.stats.sst = sstResponse;
-          storeInCache(cacheKey, sstResponse);
+        // Check if it's an error response
+        if ('error' in stats) {
+          // Handle error - set null for this layer
+          if (layer === 'sst') {
+            response.stats.sst = null;
+          } else {
+            response.stats.chl = null;
+          }
+          console.error(`[SAMPLE] ${layer} error: ${stats.error}`);
         } else {
-          response.stats.chl = stats;
-          storeInCache(cacheKey, stats);
+          // Format response based on layer
+          if (layer === 'sst') {
+            const sstResponse = {
+              mean_f: stats.mean,
+              min_f: stats.min,
+              max_f: stats.max,
+              p10_f: stats.p10,
+              p50_f: stats.p50,
+              p90_f: stats.p90,
+              stddev_f: stats.stddev,
+              gradient_f: stats.gradient,
+              n_valid: stats.n_valid,
+              n_nodata: stats.n_nodata,
+              zoom_used: stats.zoom_used,
+              tiles_touched: stats.tiles_touched
+            };
+            response.stats.sst = sstResponse;
+            storeInCache(cacheKey, sstResponse);
+          } else {
+            response.stats.chl = stats;
+            storeInCache(cacheKey, stats);
+          }
+          // Log the operation
+          logSampling(
+            layer,
+            timeISO,
+            polyHash,
+            stats.zoom_used,
+            stats.n_valid + stats.n_nodata,
+            stats
+          );
+          
+          // Success log as specified in brief
+          if (layer === 'sst') {
+            console.log(`[SAMPLE] layer=sst status=200 pixels=${stats.n_valid} meanF=${stats.mean.toFixed(1)}`);
+          } else if (layer === 'chl') {
+            console.log(`[SAMPLE] layer=chl status=200 pixels=${stats.n_valid} mean=${stats.mean.toFixed(3)}`);
+          }
         }
-        
-      // Log the operation
-      logSampling(
-        layer,
-        timeISO,
-        polyHash,
-        stats.zoom_used,
-        stats.n_valid + stats.n_nodata,
-        stats
-      );
-      
-      // Success log as specified in brief
-      if (layer === 'sst' && stats) {
-        console.log(`[SAMPLE] layer=sst status=200 pixels=${stats.n_valid} meanF=${stats.mean.toFixed(1)}`);
-      } else if (layer === 'chl' && stats) {
-        console.log(`[SAMPLE] layer=chl status=200 pixels=${stats.n_valid} mean=${stats.mean.toFixed(3)}`);
-      }
       } else {
         // No valid data
         if (layer === 'sst') {
