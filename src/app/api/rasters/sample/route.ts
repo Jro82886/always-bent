@@ -101,6 +101,10 @@ async function fetchPixelValue(
       clearTimeout(timeout);
       
       if (!response.ok) {
+        console.error(`[SAMPLE] WMTS request failed: ${response.status} ${response.statusText}`);
+        console.error(`[SAMPLE] URL: ${url.replace(/\/\/[^@]+@/, '//***:***@')}`); // Log URL with redacted auth
+        const errorText = await response.text();
+        console.error(`[SAMPLE] Error body: ${errorText.substring(0, 200)}`);
         return null;
       }
       

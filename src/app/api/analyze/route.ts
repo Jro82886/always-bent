@@ -26,7 +26,12 @@ export async function POST(req: NextRequest) {
         ? `https://${process.env.VERCEL_URL}`
         : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         
-      console.log('[ANALYZE] Calling raster sample at:', `${baseUrl}/api/rasters/sample`);
+      console.log('[ANALYZE] Calling raster sample with:', { 
+        url: `${baseUrl}/api/rasters/sample`,
+        polygon: polygon.type || polygon.geometry?.type,
+        date,
+        layers: layersArray 
+      });
       
       const sample = await fetch(`${baseUrl}/api/rasters/sample`, {
         method: 'POST',
