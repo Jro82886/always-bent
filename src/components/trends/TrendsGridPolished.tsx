@@ -209,7 +209,7 @@ export default function TrendsGridPolished() {
           </div>
           
           <div className="space-y-3">
-            {displayData.tides.map((tide, i) => (
+            {displayData.tides.map((tide: any, i: number) => (
               <div key={i} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${tide.type === 'high' ? 'bg-cyan-400' : 'bg-slate-500'}`} />
@@ -241,7 +241,7 @@ export default function TrendsGridPolished() {
               <div>
                 <div className="text-sm text-slate-400 mb-3">Species Activity</div>
                 <ul className="flex flex-wrap gap-2">
-                  {displayData.species.map(s => (
+                  {displayData.species.map((s: any) => (
                     <li key={s.name} className="px-2.5 py-1 rounded-lg bg-white/8 text-cyan-100 text-sm abfi-glow">
                       {s.name} · {s.pct}%
                     </li>
