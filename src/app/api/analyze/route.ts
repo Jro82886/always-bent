@@ -34,7 +34,6 @@ export async function POST(req: NextRequest) {
       
       if (sample.ok) {
         const response = await sample.json();
-        console.log('Raster sample response:', response);
         
         // Extract real data from the response
         if (response.stats?.sst) {

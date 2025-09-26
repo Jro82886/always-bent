@@ -14,7 +14,6 @@ export function AskABFI({ inlet, dateISO }: { inlet: any; dateISO: string }) {
 
   useEffect(() => {
     if (vm) {
-      console.log('[AskABFI] Running AI analysis with:', { vm, sstOn, chlOn, inlet, dateISO })
       run(vm, { sstOn, chlOn }, inlet, dateISO)
     }
   }, [vm, sstOn, chlOn, inlet?.id, dateISO])

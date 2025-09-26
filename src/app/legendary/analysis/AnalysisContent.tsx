@@ -6,7 +6,6 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@/styles/mapbox-controls.css';
 import '@/styles/analysis-snip.css';
-import '@/styles/analysis-debug.css'; // TEMP debug CSS
 import { setVis } from '@/map/layerVis';
 import SSTLayer from '@/components/layers/SSTLayer';
 import CHLLayer from '@/components/layers/CHLLayer';
@@ -288,8 +287,6 @@ function AnalysisModeContent() {
       // Copernicus credentials are backend-only, frontend doesn't need them
       
       (window as any).map = mapInstance;
-      (globalThis as any).mapboxMap = mapInstance; // DEV: expose for debugging
-      console.log("[DEBUG] mapboxMap exposed on window");
     });
 
     // 🔒 Additional error handling (backup)

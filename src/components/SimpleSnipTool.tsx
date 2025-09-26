@@ -221,15 +221,6 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     }
   }
 
-  // Add debug logging
-  useEffect(() => {
-    console.log('[SimpleSnipTool] Mounted, map:', !!map);
-  }, [map]);
-
-  // Debug state changes
-  useEffect(() => {
-    console.log('[SimpleSnipTool] State:', { drawing, reviewing, hasPolygon: !!polyRef.current });
-  }, [drawing, reviewing]);
 
   return (
     <>
