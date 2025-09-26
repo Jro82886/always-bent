@@ -32,6 +32,8 @@ const PELAGIC_SEED = {
 
 export default function TrendsGridPolished() {
   const { selectedInletId } = useAppState();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const demoMessage = getDemoMessage();
   
   let inlet = getInletById(selectedInletId);
@@ -41,6 +43,37 @@ export default function TrendsGridPolished() {
 
   // Check pelagic mock flag
   const PELAGIC_ON = process.env.NEXT_PUBLIC_TRENDS_PELAGIC_MOCK === '1';
+
+  useEffect(() => {
+    const fetchTrends = async () => {
+      if (!inlet) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [lng, lat] = inlet.center;
+        const params = new URLSearchParams({
+          inlet: inlet.id || '',
+          lat: lat.toString(),
+          lng: lng.toString(),
+          rangeDays: '14'
+        });
+
+        const res = await fetch(`/api/trends?${params}`, { cache: 'no-store' });
+        if (res.ok) {
+          const apiData = await res.json();
+          setData(apiData);
+        }
+      } catch (error) {
+        console.error('Error fetching trends:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrends();
+  }, [selectedInletId, inlet]);
 
   // Use pelagic seed data when flag is on, otherwise use realistic coastal data
   const mockData = {
@@ -74,6 +107,47 @@ export default function TrendsGridPolished() {
     }
   };
 
+  // Use real data when available, fallback to mock data for demo
+  const displayData = {
+    tides: data?.tides?.events?.length ? data.tides.events.slice(0, 4).map((tide: any) => ({
+      type: tide.type,
+      time: new Date(tide.time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+      height: `${tide.height_m?.toFixed(1) || '0.0'} ft`
+    })) : mockData.tides,
+    weather: mockData.weather, // Use mock for now, can be enhanced later
+    fishing: mockData.fishing,
+    species: data?.speciesActivityRange?.length ? data.speciesActivityRange : mockData.species,
+    community: {
+      reportsToday: data?.communityActivityToday?.reduce((sum: number, item: any) => sum + item.count, 0) || mockData.community.reportsToday,
+      activeAnglers: mockData.community.activeAnglers, // This would come from presence data
+      hotSpecies: data?.speciesActivityRange?.[0]?.name || mockData.community.hotSpecies
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="abfi-title text-3xl font-bold mb-3">Fishing Trends</h1>
+          <div className="animate-pulse text-slate-400">Loading live trends data...</div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="abfi-card abfi-glow">
+              <div className="animate-pulse">
+                <div className="h-4 bg-slate-700 rounded mb-3"></div>
+                <div className="space-y-2">
+                  <div className="h-3 bg-slate-800 rounded"></div>
+                  <div className="h-3 bg-slate-800 rounded w-3/4"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
       
@@ -100,31 +174,31 @@ export default function TrendsGridPolished() {
             <h3 className="text-lg font-semibold text-white">Current Conditions</h3>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-300">{mockData.weather.temp}°F</div>
-              <div className="text-sm text-slate-400">Water Temp</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-cyan-300">{displayData.weather.temp}°F</div>
+                <div className="text-sm text-slate-400">Water Temp</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-cyan-300">{displayData.weather.wind}</div>
+                <div className="text-sm text-slate-400">Wind</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-cyan-300">{displayData.weather.waves}</div>
+                <div className="text-sm text-slate-400">Seas</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-cyan-300">{displayData.weather.visibility}</div>
+                <div className="text-sm text-slate-400">Visibility</div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-300">{mockData.weather.wind}</div>
-              <div className="text-sm text-slate-400">Wind</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-300">{mockData.weather.waves}</div>
-              <div className="text-sm text-slate-400">Seas</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-cyan-300">{mockData.weather.visibility}</div>
-              <div className="text-sm text-slate-400">Visibility</div>
-            </div>
-          </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-700">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Primary Zone</span>
-              <span className="text-cyan-300">{mockData.fishing.primaryDepth}</span>
+            <div className="mt-4 pt-4 border-t border-slate-700">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-400">Primary Zone</span>
+                <span className="text-cyan-300">{displayData.fishing.primaryDepth}</span>
+              </div>
             </div>
-          </div>
         </div>
 
         {/* Today's Tides */}
@@ -135,7 +209,7 @@ export default function TrendsGridPolished() {
           </div>
           
           <div className="space-y-3">
-            {mockData.tides.map((tide, i) => (
+            {displayData.tides.map((tide, i) => (
               <div key={i} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
                 <div className="flex items-center gap-3">
                   <div className={`w-3 h-3 rounded-full ${tide.type === 'high' ? 'bg-cyan-400' : 'bg-slate-500'}`} />
@@ -157,17 +231,17 @@ export default function TrendsGridPolished() {
             <h3 className="text-lg font-semibold text-white">Active Species</h3>
           </div>
           
-          {mockData.species.length > 0 ? (
+          {displayData.species.length > 0 ? (
             <div className="space-y-3">
               <div className="flex justify-between mb-3">
                 <span className="text-slate-400">Prime Time</span>
-                <span className="text-cyan-300 font-medium">{mockData.fishing.bestWindow}</span>
+                <span className="text-cyan-300 font-medium">{displayData.fishing.bestWindow}</span>
               </div>
               
               <div>
                 <div className="text-sm text-slate-400 mb-3">Species Activity</div>
                 <ul className="flex flex-wrap gap-2">
-                  {mockData.species.map(s => (
+                  {displayData.species.map(s => (
                     <li key={s.name} className="px-2.5 py-1 rounded-lg bg-white/8 text-cyan-100 text-sm abfi-glow">
                       {s.name} · {s.pct}%
                     </li>
@@ -189,19 +263,19 @@ export default function TrendsGridPolished() {
             <h3 className="text-lg font-semibold text-white">Community Activity</h3>
           </div>
           
-          {mockData.community.reportsToday > 0 ? (
+          {displayData.community.reportsToday > 0 ? (
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
                 <div className="text-slate-400 text-xs mb-1">Reports Today</div>
-                <div className="text-cyan-100 text-lg font-bold">{mockData.community.reportsToday}</div>
+                <div className="text-cyan-100 text-lg font-bold">{displayData.community.reportsToday}</div>
               </div>
               <div>
                 <div className="text-slate-400 text-xs mb-1">Active Anglers</div>
-                <div className="text-cyan-100 text-lg font-bold">{mockData.community.activeAnglers}</div>
+                <div className="text-cyan-100 text-lg font-bold">{displayData.community.activeAnglers}</div>
               </div>
               <div>
                 <div className="text-slate-400 text-xs mb-1">Hot Species</div>
-                <div className="text-green-400 text-sm font-medium mt-2">{mockData.community.hotSpecies}</div>
+                <div className="text-green-400 text-sm font-medium mt-2">{displayData.community.hotSpecies}</div>
               </div>
             </div>
           ) : (

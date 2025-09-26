@@ -21,7 +21,7 @@ const PresenceStrip = dynamic(() => import('@/components/chat/PresenceStrip'), {
 });
 
 // Use live chat window (useRealtimeChat) — no mocks
-const ChatDemo = dynamic(() => import('@/components/chat/ChatDemo'), {
+const ChatWindowLive = dynamic(() => import('@/components/chat/ChatWindowLive'), {
   ssr: false,
   loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
 });
@@ -124,9 +124,9 @@ export default function ChatPage() {
                     </div>
                   </div>
                 ) : channelId ? (
-                  <ChatDemo 
-                    channelId={channelId}
-                    selectedTab={selectedTab}
+                  <ChatWindowLive 
+                    roomId={channelId}
+                    showWeatherHeader={false}
                   />
                 ) : (
                   <div className="h-full flex items-center justify-center">
@@ -209,9 +209,9 @@ export default function ChatPage() {
                 {selectedTab === 'inlet' && !channelId ? (
                   <PaneFallback title="Pick an inlet to join its chat" />
                 ) : channelId ? (
-                  <ChatDemo 
-                    channelId={channelId}
-                    selectedTab={selectedTab}
+                  <ChatWindowLive 
+                    roomId={channelId}
+                    showWeatherHeader={false}
                   />
                 ) : (
                   <PaneFallback title="Channel unavailable" />

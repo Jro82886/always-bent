@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 
-// Dynamically import the Trends component
+// Dynamically import the Trends component - LIVE VERSION with Stormglass integration
 const TrendsGridPolished = dynamic(
   () => import('@/components/trends/TrendsGridPolished'),
   { 
