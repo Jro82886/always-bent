@@ -51,10 +51,10 @@ export default function DynamicAnalysisModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100]">
       <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto">
         {/* Header */}
-        <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-start">
+        <div className="bg-slate-900 px-6 py-4 border-b border-slate-700 flex justify-between items-start">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">🧭 Extended Analysis</h2>
-            <div className="mt-2 text-sm text-gray-600 space-y-1">
+            <h2 className="text-2xl font-semibold text-slate-100">Extended Analysis</h2>
+            <div className="mt-2 text-xs text-slate-400 space-y-1">
               <div>Region / Inlet: East Coast</div>
               <div>Date: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
               <div>Area: {areaNm2.toFixed(1)} nm²</div>
@@ -62,7 +62,7 @@ export default function DynamicAnalysisModal({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-slate-400 hover:text-slate-200"
             aria-label="Close"
           >
             <X className="h-6 w-6" />
@@ -70,11 +70,11 @@ export default function DynamicAnalysisModal({
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Success Header when data is loaded */}
+          {/* Subtle status stripe */}
           {(hasSST || hasCHL) && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-              <p className="text-green-800 text-sm font-medium">
-                ✓ Live ocean data loaded for {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            <div className="bg-slate-800 border border-slate-700 rounded-md p-3 text-center">
+              <p className="text-slate-300 text-xs">
+                Live ocean data for {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
           )}
@@ -90,12 +90,12 @@ export default function DynamicAnalysisModal({
           
           {/* Temperature Analysis */}
           {hasSST && sst && (
-            <div className="border-l-4 border-orange-500 pl-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Temperature Analysis (SST)</h3>
-              <div className="space-y-1 text-gray-700">
-                <div>• Current (mean): <span className="font-medium">{sst.meanF.toFixed(1)}°F</span></div>
-                <div>• Range: <span className="font-medium">{sst.minF.toFixed(1)}°F – {sst.maxF.toFixed(1)}°F</span></div>
-                <div>• Gradient: <span className="font-medium">{formatGradient(sst.gradFperMile)}</span></div>
+            <div className="border-l-4 border-cyan-500/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Temperature Analysis (SST)</h3>
+              <div className="space-y-1 text-slate-300 text-sm">
+                <div>• Current (mean): <span className="font-medium text-slate-100">{sst.meanF.toFixed(1)}°F</span></div>
+                <div>• Range: <span className="font-medium text-slate-100">{sst.minF.toFixed(1)}°F – {sst.maxF.toFixed(1)}°F</span></div>
+                <div>• Gradient: <span className="font-medium text-slate-100">{formatGradient(sst.gradFperMile)}</span></div>
               </div>
             </div>
           )}
@@ -109,13 +109,13 @@ export default function DynamicAnalysisModal({
 
           {/* Water Quality */}
           {hasCHL && chl && (
-            <div className="border-l-4 border-green-500 pl-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Water Quality (Chlorophyll-a)</h3>
-              <div className="space-y-1 text-gray-700">
-                <div>• Current (mean): <span className="font-medium">{chl.mean.toFixed(2)} mg/m³</span></div>
-                <div>• Range: <span className="font-medium">{(chl.mean * 0.7).toFixed(2)} – {(chl.mean * 1.3).toFixed(2)} mg/m³</span></div>
-                <div>• Clarity: <span className="font-medium">{getWaterClarity(chl.mean)}</span></div>
-                <div>• Gradient: <span className="font-medium">{(chl.mean * 0.8).toFixed(2)} mg/m³ across polygon</span></div>
+            <div className="border-l-4 border-emerald-500/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Water Quality (Chlorophyll‑a)</h3>
+              <div className="space-y-1 text-slate-300 text-sm">
+                <div>• Current (mean): <span className="font-medium text-slate-100">{chl.mean.toFixed(2)} mg/m³</span></div>
+                <div>• Range: <span className="font-medium text-slate-100">{(chl.mean * 0.7).toFixed(2)} – {(chl.mean * 1.3).toFixed(2)} mg/m³</span></div>
+                <div>• Clarity: <span className="font-medium text-slate-100">{getWaterClarity(chl.mean)}</span></div>
+                <div>• Gradient: <span className="font-medium text-slate-100">{(chl.mean * 0.8).toFixed(2)} mg/m³ across polygon</span></div>
               </div>
             </div>
           )}
@@ -129,9 +129,9 @@ export default function DynamicAnalysisModal({
 
           {/* Weather Conditions */}
           {weather && (
-            <div className="border-l-4 border-blue-500 pl-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Current Conditions</h3>
-              <div className="space-y-1 text-gray-700">
+            <div className="border-l-4 border-blue-500/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Current Conditions</h3>
+              <div className="space-y-1 text-slate-300 text-sm">
                 <div>• Wind: <span className="font-medium">{weather.wind.speed}kt {weather.wind.direction}</span></div>
                 <div>• Seas: <span className="font-medium">{weather.seas.height}-{weather.seas.height + 1}ft @ {weather.seas.period}s</span></div>
                 <div>• Air temp: <span className="font-medium">{weather.temp}°F</span></div>
@@ -142,12 +142,12 @@ export default function DynamicAnalysisModal({
           
           {/* Fleet Activity */}
           {fleet && fleet.count > 0 && (
-            <div className="border-l-4 border-purple-500 pl-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Fleet Activity</h3>
-              <div className="space-y-1 text-gray-700">
-                <div>• <span className="font-medium">{fleet.count} vessels</span> in area</div>
+            <div className="border-l-4 border-purple-500/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Fleet Activity</h3>
+              <div className="space-y-1 text-slate-300 text-sm">
+                <div>• <span className="font-medium text-slate-100">{fleet.count} vessels</span> in area</div>
                 {fleet.vessels.map((vessel, i) => (
-                  <div key={i} className="ml-4 text-sm">
+                  <div key={i} className="ml-4 text-xs text-slate-400">
                     - {vessel.name} ({vessel.type}) - {vessel.lastSeen}
                   </div>
                 ))}
@@ -157,29 +157,29 @@ export default function DynamicAnalysisModal({
           
           {/* Recent Reports */}
           {reports && reports.count > 0 && (
-            <div className="border-l-4 border-yellow-500 pl-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Recent Bite Reports</h3>
-              <div className="space-y-1 text-gray-700">
-                <div>• <span className="font-medium">{reports.count} reports</span> last 7 days</div>
-                <div>• Species: <span className="font-medium">{reports.species.join(', ')}</span></div>
-                <div>• Latest: <span className="font-medium">{reports.recentCatch}</span></div>
+            <div className="border-l-4 border-yellow-500/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Recent Bite Reports</h3>
+              <div className="space-y-1 text-slate-300 text-sm">
+                <div>• <span className="font-medium text-slate-100">{reports.count} reports</span> last 7 days</div>
+                <div>• Species: <span className="font-medium text-slate-100">{reports.species.join(', ')}</span></div>
+                <div>• Latest: <span className="font-medium text-slate-100">{reports.recentCatch}</span></div>
               </div>
             </div>
           )}
 
           {/* Trend Context */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Trend Context</h3>
-            <div className="space-y-1 text-gray-700 text-sm">
+          <div className="bg-slate-800 rounded-md p-4 border border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Trend Context</h3>
+            <div className="space-y-1 text-slate-300 text-xs">
               {hasSST && <div>• SST: Warming vs 7-day (+1.9°F), Warming vs 14-day (+2.7°F)</div>}
               {hasCHL && <div>• CHL: Greening vs 7-day (+0.15), Greening vs 14-day (+0.22)</div>}
             </div>
           </div>
 
           {/* Narrative Summary */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Narrative Summary</h3>
-            <div className="space-y-2 text-gray-700">
+          <div className="bg-slate-800 rounded-md p-4 border border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-100 mb-3 tracking-wide">Narrative Summary</h3>
+            <div className="space-y-2 text-slate-300 text-sm">
               {hasSST && sst && (
                 <p>
                   <span className="font-medium">SST:</span> Sea surface temps average {sst.meanF.toFixed(1)}°F with a {
@@ -220,9 +220,9 @@ export default function DynamicAnalysisModal({
           </div>
 
           {/* Tactical Advice */}
-          <div className="border-l-4 border-blue-500 pl-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Tactical Advice</h3>
-            <ul className="space-y-1 text-gray-700">
+          <div className="border-l-4 border-blue-500/60 pl-4">
+            <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Tactical Advice</h3>
+            <ul className="space-y-1 text-slate-300 text-sm">
               {hasSST && sst && sst.gradFperMile >= 2 && (
                 <li>• Strong temperature break → focus on both sides of the edge</li>
               )}
@@ -252,7 +252,7 @@ export default function DynamicAnalysisModal({
           </div>
 
           {/* Footer */}
-          <div className="text-center text-gray-500 text-sm pt-4 border-t">
+          <div className="text-center text-slate-500 text-xs pt-4 border-t border-slate-700">
             Data from Copernicus Marine (SST + CHL). Use with local knowledge; conditions change quickly.
           </div>
         </div>
