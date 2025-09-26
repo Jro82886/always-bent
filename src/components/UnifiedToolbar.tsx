@@ -230,15 +230,7 @@ export default function UnifiedToolbar({ map }: UnifiedToolbarProps) {
       {/* Hidden Snip Tool (activated by button) */}
       {map && (
         <div className="hidden">
-          {process.env.NEXT_PUBLIC_FLAG_NEW_SNIP === '1' ? (
-            <SnipTool map={map} />
-          ) : (
-            <SnipTool 
-              map={map} 
-              onAnalysisComplete={handleAnalysisComplete}
-              isActive={snipActive}
-            />
-          )}
+          <SnipTool map={map} />
         </div>
       )}
     </div>

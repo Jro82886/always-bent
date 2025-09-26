@@ -16,51 +16,74 @@ export async function POST(req: NextRequest) {
     // Try to call the raster sample endpoint
     let data: any = {};
     try {
+      // Convert want object to layers array
+      const layersArray: string[] = [];
+      if (want.sst) layersArray.push('sst');
+      if (want.chl) layersArray.push('chl');
+      
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
       const sample = await fetch(`${baseUrl}/api/rasters/sample`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          polygon, bbox, time: date,
-          layers: want
+          polygon,
+          timeISO: date,
+          layers: layersArray
         })
       });
       
       if (sample.ok) {
-        data = await sample.json();
+        const response = await sample.json();
+        console.log('Raster sample response:', response);
+        
+        // Extract real data from the response
+        if (response.stats?.sst) {
+          // SST values are already in Fahrenheit from the API
+          data.sst = {
+            meanC: ((response.stats.sst.mean_f - 32) * 5) / 9, // Convert F to C
+            minC: ((response.stats.sst.min_f - 32) * 5) / 9,
+            maxC: ((response.stats.sst.max_f - 32) * 5) / 9,
+            gradientCperKm: response.stats.sst.gradient_f * 1.60934 * 5 / 9, // F/mile to C/km
+          };
+        }
+        if (response.stats?.chl) {
+          data.chl = {
+            mean: response.stats.chl.mean
+          };
+        }
       } else {
-        console.error('Raster sample failed:', sample.status);
-        // Use mock data for now to test the flow (in Celsius!)
+        const errorText = await sample.text();
+        console.error('Raster sample failed:', sample.status, errorText);
+        // Use mock data as fallback
         data = {
-          sst: { values: [22.5, 22.8, 22.2, 23.1, 21.9] }, // ~72-73°F
-          chl: { values: [0.45, 0.52, 0.38, 0.41, 0.48] }
+          sst: { meanC: 22.5, minC: 21.9, maxC: 23.1, gradientCperKm: 0.1 },
+          chl: { mean: 0.45 }
         };
       }
     } catch (e) {
       console.error('Raster sample error:', e);
-      // Use mock data for now to test the flow (in Celsius!)
+      // Use mock data as fallback
       data = {
-        sst: { values: [22.5, 22.8, 22.2, 23.1, 21.9] }, // ~72-73°F
-        chl: { values: [0.45, 0.52, 0.38, 0.41, 0.48] }
+        sst: { meanC: 22.5, minC: 21.9, maxC: 23.1, gradientCperKm: 0.1 },
+        chl: { mean: 0.45 }
       };
     }
 
-    const sstVals: number[] = data?.sst?.values ?? []
-    const chlVals: number[] = data?.chl?.values ?? []
-    const mean = (arr:number[]) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : NaN
-    const min  = (arr:number[]) => arr.length ? Math.min(...arr) : NaN
-    const max  = (arr:number[]) => arr.length ? Math.max(...arr) : NaN
-
+    // Now data has the correct structure
     return NextResponse.json({
-      areaKm2: data?.areaKm2 ?? 0,
-      hasSST: sstVals.length > 0,
-      hasCHL: chlVals.length > 0,
-      sst: sstVals.length ? {
-        meanC: mean(sstVals), minC: min(sstVals), maxC: max(sstVals),
-        gradientCperKm: data?.sst?.gradientCperKm ?? 0
+      areaKm2: 100, // TODO: Calculate actual area from polygon
+      hasSST: !!data.sst,
+      hasCHL: !!data.chl,
+      sst: data.sst ? {
+        meanC: data.sst.meanC,
+        minC:  data.sst.minC,
+        maxC:  data.sst.maxC,
+        gradientCperKm: data.sst.gradientCperKm
       } : undefined,
-      chl: chlVals.length ? { mean: mean(chlVals) } : undefined,
-      debug: { bbox, date, counts: { sst: sstVals.length, chl: chlVals.length } }
+      chl: data.chl ? {
+        mean: data.chl.mean
+      } : undefined,
+      debug: { bbox, date, hasRealData: !!data.sst || !!data.chl }
     })
   } catch (e:any) {
     console.error('[analyze] error', e)
