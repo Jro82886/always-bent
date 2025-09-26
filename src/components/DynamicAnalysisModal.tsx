@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import type { AnalysisVM } from '@/types/analyze'
 import { X } from 'lucide-react'
+import { useAppState } from '@/lib/store'
 
 type Props = {
   vm: AnalysisVM
@@ -12,6 +13,9 @@ type Props = {
 export default function DynamicAnalysisModal({
   vm, isOpen, onClose, onEnableLayers
 }: Props) {
+  const [saving, setSaving] = useState(false)
+  const { selectedInletId } = useAppState()
+  
   if (!isOpen || !vm) return null
 
   const { areaKm2, sst, chl, hasSST, hasCHL, weather, fleet, reports } = vm
@@ -46,6 +50,45 @@ export default function DynamicAnalysisModal({
     if (meanF < 80) return "warm"
     return "hot"
   }
+  
+  // Save snip handler
+  const handleSaveSnip = async () => {
+    if (saving) return
+    setSaving(true)
+    
+    try {
+      const response = await fetch('/api/snips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inlet_slug: selectedInletId || 'unknown',
+          date: new Date().toISOString().split('T')[0],
+          sst,
+          chl,
+          area_nm2: areaNm2,
+          species: reports?.species || [],
+          narrative: {
+            sstText: hasSST ? `Sea surface temps average ${sst.meanF.toFixed(1)}°F with ${formatGradient(sst.gradFperMile)}.` : null,
+            chlText: hasCHL ? `Chlorophyll averages ${chl.mean.toFixed(2)} mg/m³.` : null,
+            synth: 'Analysis saved for future reference.'
+          }
+        })
+      })
+      
+      if (response.ok) {
+        // Show toast or feedback
+        alert('Saved to My Snipped Reports')
+        onClose()
+      } else {
+        throw new Error('Failed to save')
+      }
+    } catch (error) {
+      console.error('Save error:', error)
+      alert('Failed to save snip')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100]">
@@ -60,13 +103,22 @@ export default function DynamicAnalysisModal({
               <div>Area: {areaNm2.toFixed(1)} nm²</div>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-200"
-            aria-label="Close"
-          >
-            <X className="h-6 w-6" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSaveSnip}
+              disabled={saving}
+              className="px-4 py-2 bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/30 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Saving...' : 'Save Snip'}
+            </button>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-200"
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">

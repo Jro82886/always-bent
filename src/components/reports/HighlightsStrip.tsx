@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Flame, Thermometer, Wind, Waves, Moon, Anchor } from 'lucide-react';
 import { flags } from '@/lib/flags';
+import { mockHighlights } from '@/mocks/reportsData';
 
 interface HighlightsStripProps {
   onSelectHighlight: (highlight: any) => void;
@@ -16,6 +17,13 @@ export default function HighlightsStrip({ onSelectHighlight, month }: Highlights
 
   useEffect(() => {
     const fetchHighlights = async () => {
+      // Check if we should use mock data
+      if (process.env.NEXT_PUBLIC_REPORTS_MOCK === '1') {
+        setHighlights(mockHighlights);
+        setIsLoading(false);
+        return;
+      }
+      
       if (!flags.reportsContract) {
         setIsLoading(false);
         return;
