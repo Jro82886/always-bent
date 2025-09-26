@@ -61,6 +61,14 @@ interface SampleResponse {
 const COPERNICUS_USER = process.env.COPERNICUS_USER || '';
 const COPERNICUS_PASS = process.env.COPERNICUS_PASS || '';
 
+// Log credential status (not the actual values)
+console.log('[SAMPLE] Copernicus auth status:', {
+  hasUser: !!COPERNICUS_USER,
+  hasPass: !!COPERNICUS_PASS,
+  userLength: COPERNICUS_USER.length,
+  passLength: COPERNICUS_PASS.length
+});
+
 /**
  * Fetch single pixel value from WMTS
  */
@@ -101,8 +109,13 @@ async function fetchPixelValue(
       clearTimeout(timeout);
       
       if (!response.ok) {
-        console.error(`[SAMPLE] WMTS request failed: ${response.status} ${response.statusText}`);
+        console.error(`[SAMPLE][ERR] layer=${layer.id} status=${response.status} reason="${response.statusText}"`);
         console.error(`[SAMPLE] URL: ${url.replace(/\/\/[^@]+@/, '//***:***@')}`); // Log URL with redacted auth
+        
+        if (response.status === 401) {
+          console.error('[SAMPLE] 401 Unauthorized - Check COPERNICUS_USER and COPERNICUS_PASS environment variables');
+        }
+        
         const errorText = await response.text();
         console.error(`[SAMPLE] Error body: ${errorText.substring(0, 200)}`);
         return null;
@@ -321,15 +334,22 @@ export async function POST(request: NextRequest) {
           storeInCache(cacheKey, stats);
         }
         
-        // Log the operation
-        logSampling(
-          layer,
-          timeISO,
-          polyHash,
-          stats.zoom_used,
-          stats.n_valid + stats.n_nodata,
-          stats
-        );
+      // Log the operation
+      logSampling(
+        layer,
+        timeISO,
+        polyHash,
+        stats.zoom_used,
+        stats.n_valid + stats.n_nodata,
+        stats
+      );
+      
+      // Success log as specified in brief
+      if (layer === 'sst' && stats) {
+        console.log(`[SAMPLE] layer=sst status=200 pixels=${stats.n_valid} meanF=${stats.mean.toFixed(1)}`);
+      } else if (layer === 'chl' && stats) {
+        console.log(`[SAMPLE] layer=chl status=200 pixels=${stats.n_valid} mean=${stats.mean.toFixed(3)}`);
+      }
       } else {
         // No valid data
         if (layer === 'sst') {
