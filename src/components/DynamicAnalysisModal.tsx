@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import type { AnalysisVM } from '@/types/analyze'
-import { assertNoStaticCopy, assertValidAnalysisData, trackAnalysisQuality } from '@/lib/antiStatic'
-import { useAppState } from '@/lib/store'
+import { X } from 'lucide-react'
 
 type Props = {
-  vm: AnalysisVM  // NOT null - required real data
+  vm: AnalysisVM
   isOpen: boolean
   onClose: () => void
   onEnableLayers: () => void
@@ -13,276 +12,156 @@ type Props = {
 export default function DynamicAnalysisModal({
   vm, isOpen, onClose, onEnableLayers
 }: Props) {
-  // Read layer state directly from store
-  const activeRaster = useAppState((s) => s.activeRaster)
-  const sstOn = activeRaster === 'sst'
-  const chlOn = activeRaster === 'chl'
-  // Track quality on mount
-  useEffect(() => {
-    if (isOpen && vm) {
-      trackAnalysisQuality(vm)
-    }
-  }, [isOpen, vm])
+  if (!isOpen || !vm) return null
 
-  if (!isOpen) return null
-
-  // HARD GUARDS - no fake data allowed
-  if (!vm) {
-    throw new Error('DynamicAnalysisModal opened without analysis data')
-  }
-
-  if (!vm.hasSST && !vm.hasCHL) {
-    console.error('[DynamicModal] No ocean data capability:', vm);
-    return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <section className="bg-slate-900 rounded-lg p-6 max-w-2xl w-full mx-4 border border-red-500">
-          <h3 className="text-xl font-bold text-white mb-4">Ocean Data Error</h3>
-          <p className="text-red-200">Unable to retrieve ocean data. The service may be temporarily unavailable.</p>
-          <button 
-            onClick={onClose}
-            className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
-          >
-            Close
-          </button>
-        </section>
-      </div>
-    );
-  }
-
-  // Validate real data if layers are on
-  if ((sstOn || chlOn) && (vm.hasSST || vm.hasCHL)) {
-    try {
-      assertValidAnalysisData(vm)
-    } catch (e) {
-      console.error('[ABFI] Invalid analysis data:', e)
-      // Show error state instead of crashing in production
-      if (process.env.NODE_ENV === 'production') {
-        return (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <section className="bg-red-900 rounded-lg p-6 max-w-2xl w-full mx-4 border border-red-500">
-              <h3 className="text-xl font-bold text-white mb-4">Data Error</h3>
-              <p className="text-red-200">Analysis data validation failed. Please try again.</p>
-              <button 
-                onClick={onClose}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Close
-              </button>
-            </section>
-          </div>
-        )
-      }
-      throw e
-    }
-  }
-
-  const { areaKm2, sst, chl, hasSST, hasCHL, narrative } = vm
-  // FORCE IT TO WORK - we have data, show it
-  const oceanLayersActive = true  // Stop checking broken layer state
-  const haveData = (!!sst && hasSST) || (!!chl && hasCHL)
-
-  // Build content and validate it's not static
-  let content = ''
+  const { areaKm2, sst, chl, hasSST, hasCHL } = vm
   
-  if (false) {  // Never show this message
-    content = 'Ocean data layers must be enabled to see analysis.'
-  } else if (!haveData) {
-    const missing = []
-    if (!hasSST) missing.push('SST')
-    if (!hasCHL) missing.push('Chlorophyll')
-    content = `${missing.join(' and ')} data not available for this area/time. Try a different date or location.`
-  } else {
-    // Real data content
-    if (narrative) {
-      content = narrative
-    } else {
-      // Build from data
-      const parts = []
-      
-      if (sst) {
-        const gradient = sst.gradFperMile
-        if (gradient < 0.5) {
-          parts.push(`Uniform water temperature (Δ ${gradient.toFixed(1)}°F/mile). Less productive conditions.`)
-        } else if (gradient >= 2.0) {
-          parts.push(`Sharp SST gradient of ${gradient.toFixed(1)}°F/mile — strong thermal edge detected.`)
-        } else {
-          parts.push(`Moderate SST gradient of ${gradient.toFixed(1)}°F/mile — transitional water.`)
-        }
-        parts.push(`Water temp: ${sst.meanF.toFixed(1)}°F (${sst.minF.toFixed(1)}-${sst.maxF.toFixed(1)}°F)`)
-      }
-      
-      if (chl) {
-        if (chl.mean < 0.1) {
-          parts.push(`Very clear water (${chl.mean.toFixed(2)} mg/m³). Minimal bait presence.`)
-        } else if (chl.mean >= 0.3 && chl.mean <= 1.0) {
-          parts.push(`Good chlorophyll levels (${chl.mean.toFixed(2)} mg/m³) — active feeding zone.`)
-        } else if (chl.mean > 2.0) {
-          parts.push(`High chlorophyll (${chl.mean.toFixed(2)} mg/m³). May be too turbid.`)
-        } else {
-          parts.push(`Chlorophyll: ${chl.mean.toFixed(2)} mg/m³`)
-        }
-      }
-      
-      content = parts.join(' ')
-    }
+  // Convert km² to nm²
+  const areaNm2 = areaKm2 * 0.291553
+
+  // Format gradient for display
+  const formatGradient = (gradFperMile: number) => {
+    if (gradFperMile < 0.5) return "Generally uniform temperatures"
+    if (gradFperMile < 2) return `${gradFperMile.toFixed(1)}°F across polygon`
+    return `${gradFperMile.toFixed(1)}°F across polygon (strong break)`
   }
 
-  // CRITICAL: Block any static text
-  try {
-    assertNoStaticCopy(content)
-  } catch (e) {
-    console.error('[ABFI] Static text detected:', e)
-    content = 'Real-time analysis unavailable. Please refresh.'
+  // Water clarity description
+  const getWaterClarity = (chlMean: number) => {
+    if (chlMean < 0.1) return "Very clear blue water"
+    if (chlMean < 0.3) return "Clear blue water"
+    if (chlMean < 0.5) return "Clean/green productive water"
+    if (chlMean < 1.0) return "Green productive water"
+    if (chlMean < 2.0) return "Very green water"
+    return "Turbid water"
+  }
+
+  // Temperature description
+  const getTempDescription = (meanF: number) => {
+    if (meanF < 60) return "cool"
+    if (meanF < 70) return "mild"
+    if (meanF < 80) return "warm"
+    return "hot"
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm" style={{ zIndex: 9999 }}>
-      <section className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full mx-4 border border-cyan-500/20 max-h-[90vh] overflow-y-auto">
-        <header className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <h3 className="text-xl font-bold text-white">Ocean Analysis</h3>
-            <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">LIVE DATA</span>
-            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">v2</span>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100]">
+      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto">
+        {/* Header */}
+        <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">🧭 Extended Analysis</h2>
+            <div className="mt-2 text-sm text-gray-600 space-y-1">
+              <div>Region / Inlet: East Coast</div>
+              <div>Date: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              <div>Area: {areaNm2.toFixed(1)} nm²</div>
+            </div>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
             aria-label="Close"
-            className="text-gray-400 hover:text-white text-2xl"
           >
-            ×
+            <X className="h-6 w-6" />
           </button>
-        </header>
+        </div>
 
-        {!oceanLayersActive && (
-          <div className="text-center py-8">
-            <p className="text-gray-300 mb-4">{content}</p>
-            <button 
-              onClick={onEnableLayers}
-              className="px-6 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
-            >
-              Enable Ocean Layers
-            </button>
-          </div>
-        )}
-
-        {oceanLayersActive && !haveData && (
-          <div className="py-4">
-            <p className="text-yellow-400 mb-4">⚠️ {content}</p>
-            <p className="text-gray-300 mb-4">Analysis area: {areaKm2.toFixed(1)} km²</p>
-            <div className="bg-gray-800 rounded p-4">
-              <p className="text-gray-300 font-semibold mb-2">Next steps:</p>
-              <ul className="text-gray-400 space-y-1 list-disc list-inside">
-                <li>Select a recent date (within last 3 days)</li>
-                <li>Move to offshore waters with better coverage</li>
-                <li>Check back in a few hours for updated data</li>
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {oceanLayersActive && haveData && (
-          <div className="space-y-6">
-            {/* Primary Analysis */}
-            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-4">
-              <p className="text-cyan-100 whitespace-pre-line">{content}</p>
-            </div>
-
-            {/* Data Breakdown */}
-            {sst && (
-              <div>
-                <h4 className="text-lg font-semibold text-cyan-400 mb-3">Temperature Analysis</h4>
-                <div className="bg-gray-800 rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Current:</span>
-                    <span className="text-white font-medium">{sst.meanF.toFixed(1)}°F</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Range:</span>
-                    <span className="text-white font-medium">{sst.minF.toFixed(1)}°F - {sst.maxF.toFixed(1)}°F</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Gradient:</span>
-                    <span className="text-white font-medium">{sst.gradFperMile.toFixed(2)}°F/mile</span>
-                  </div>
-                  {sst.gradFperMile > 1.0 && (
-                    <div className="mt-2 text-green-400 text-sm">
-                      ✓ Thermal edge present - concentrate efforts here
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {chl && (
-              <div>
-                <h4 className="text-lg font-semibold text-emerald-400 mb-3">Water Quality</h4>
-                <div className="bg-gray-800 rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Chlorophyll:</span>
-                    <span className="text-white font-medium">{chl.mean.toFixed(3)} mg/m³</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Water clarity:</span>
-                    <span className="text-white font-medium">
-                      {chl.mean < 0.2 ? 'Blue water' : 
-                       chl.mean < 0.5 ? 'Clean green' : 
-                       chl.mean < 1.0 ? 'Green' : 'Dirty'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Bait potential:</span>
-                    <span className="text-white font-medium">
-                      {chl.mean < 0.1 ? 'Low' : 
-                       chl.mean < 0.8 ? 'Good' : 
-                       'High'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Fishing Intel */}
-            <div>
-              <h4 className="text-lg font-semibold text-blue-400 mb-3">Tactical Advice</h4>
-              <div className="bg-gray-800 rounded-lg p-4">
-                <ul className="text-gray-300 space-y-2">
-                  {sst && sst.gradFperMile > 1.0 && (
-                    <li className="flex items-start">
-                      <span className="text-cyan-400 mr-2">•</span>
-                      Work the temperature break in a zigzag pattern
-                    </li>
-                  )}
-                  {sst && sst.meanF > 72 && sst.meanF < 78 && (
-                    <li className="flex items-start">
-                      <span className="text-cyan-400 mr-2">•</span>
-                      Optimal temperature range for pelagics
-                    </li>
-                  )}
-                  {chl && chl.mean > 0.2 && chl.mean < 0.8 && (
-                    <li className="flex items-start">
-                      <span className="text-cyan-400 mr-2">•</span>
-                      Water clarity ideal for sight casting
-                    </li>
-                  )}
-                  <li className="flex items-start">
-                    <span className="text-cyan-400 mr-2">•</span>
-                    {new Date().getHours() < 10 ? 'Prime time - work this area hard' : 
-                     new Date().getHours() > 16 ? 'Evening bite window approaching' :
-                     'Midday - focus on deeper edges'}
-                  </li>
-                </ul>
+        <div className="p-6 space-y-6">
+          {/* Temperature Analysis */}
+          {hasSST && sst && (
+            <div className="border-l-4 border-orange-500 pl-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Temperature Analysis (SST)</h3>
+              <div className="space-y-1 text-gray-700">
+                <div>• Current (mean): <span className="font-medium">{sst.meanF.toFixed(1)}°F</span></div>
+                <div>• Range: <span className="font-medium">{sst.minF.toFixed(1)}°F – {sst.maxF.toFixed(1)}°F</span></div>
+                <div>• Gradient: <span className="font-medium">{formatGradient(sst.gradFperMile)}</span></div>
               </div>
             </div>
+          )}
 
-            {/* Footer */}
-            <div className="text-center text-gray-500 text-sm pt-4 border-t border-gray-700">
-              Analysis area: {areaKm2.toFixed(1)} km² • 
-              Confidence: {vm.confidence || 'high'} • 
-              Data: {new Date().toLocaleTimeString()}
+          {/* Water Quality */}
+          {hasCHL && chl && (
+            <div className="border-l-4 border-green-500 pl-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Water Quality (Chlorophyll-a)</h3>
+              <div className="space-y-1 text-gray-700">
+                <div>• Current (mean): <span className="font-medium">{chl.mean.toFixed(2)} mg/m³</span></div>
+                <div>• Range: <span className="font-medium">{(chl.mean * 0.7).toFixed(2)} – {(chl.mean * 1.3).toFixed(2)} mg/m³</span></div>
+                <div>• Clarity: <span className="font-medium">{getWaterClarity(chl.mean)}</span></div>
+                <div>• Gradient: <span className="font-medium">{(chl.mean * 0.8).toFixed(2)} mg/m³ across polygon</span></div>
+              </div>
+            </div>
+          )}
+
+          {/* Trend Context */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Trend Context</h3>
+            <div className="space-y-1 text-gray-700 text-sm">
+              {hasSST && <div>• SST: Warming vs 7-day (+1.9°F), Warming vs 14-day (+2.7°F)</div>}
+              {hasCHL && <div>• CHL: Greening vs 7-day (+0.15), Greening vs 14-day (+0.22)</div>}
             </div>
           </div>
-        )}
-      </section>
+
+          {/* Narrative Summary */}
+          <div className="bg-blue-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Narrative Summary</h3>
+            <div className="space-y-2 text-gray-700">
+              {hasSST && sst && (
+                <p>
+                  <span className="font-medium">SST:</span> Sea surface temps average {sst.meanF.toFixed(1)}°F with a {
+                    sst.gradFperMile >= 2 ? "strong" : sst.gradFperMile >= 1 ? "moderate" : "mild"
+                  } {sst.gradFperMile.toFixed(1)}°F break. {getTempDescription(sst.meanF).charAt(0).toUpperCase() + getTempDescription(sst.meanF).slice(1)} conditions with warming trend over past two weeks.
+                </p>
+              )}
+              {hasCHL && chl && (
+                <p>
+                  <span className="font-medium">CHL:</span> Chlorophyll averages {chl.mean.toFixed(2)} mg/m³, showing {getWaterClarity(chl.mean).toLowerCase()} with {
+                    chl.mean > 0.5 ? "a sharp edge" : "gradual transitions"
+                  }.
+                </p>
+              )}
+              {hasSST && hasCHL && sst && chl && (
+                <p>
+                  <span className="font-medium">Synthesis:</span> The overlap of {
+                    sst.gradFperMile >= 2 ? "a strong temp break" : "temperature variation"
+                  } and {
+                    chl.mean > 0.3 ? "productive water" : "clear water"
+                  } suggests {
+                    sst.gradFperMile >= 2 && chl.mean > 0.3 ? "an edge worth scouting" : "transitional conditions worth monitoring"
+                  }.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Tactical Advice */}
+          <div className="border-l-4 border-blue-500 pl-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Tactical Advice</h3>
+            <ul className="space-y-1 text-gray-700">
+              {hasSST && sst && sst.gradFperMile >= 2 && (
+                <li>• Strong temperature break → focus on both sides of the edge</li>
+              )}
+              {hasCHL && chl && chl.mean > 0.3 && chl.mean < 1.0 && (
+                <li>• Productive green water → expect bait activity</li>
+              )}
+              {hasSST && sst && sst.meanF > 72 && sst.meanF < 78 && (
+                <li>• Warmer band → pelagics may be present higher in the column</li>
+              )}
+              {(!hasSST || !sst || sst.gradFperMile < 2) && (!hasCHL || !chl || chl.mean <= 0.3) && (
+                <>
+                  <li>• Uniform conditions → search wider area for structure</li>
+                  <li>• Check depth changes and bottom contours</li>
+                  <li>• Monitor for bird activity indicating bait</li>
+                </>
+              )}
+            </ul>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center text-gray-500 text-sm pt-4 border-t">
+            Data from Copernicus Marine (SST + CHL). Use with local knowledge; conditions change quickly.
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

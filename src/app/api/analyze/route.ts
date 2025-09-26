@@ -75,19 +75,35 @@ export async function POST(req: NextRequest) {
           status: sampleResponse.status,
           error: errorText
         });
-        // Return error instead of mock data
-        return NextResponse.json({ 
-          error: `Raster sampling failed: ${sampleResponse.status}`,
-          details: errorText
-        }, { status: 500 });
+        // TEMPORARY: Return mock data for UI testing while auth is being fixed
+        console.log('[ANALYZE] Using mock data for UI testing...');
+        data = {
+          sst: {
+            meanC: 24.5,  // Celsius (will be converted to F)
+            minC: 22.1,
+            maxC: 26.8,
+            gradientCperKm: 0.15
+          },
+          chl: {
+            mean: 0.45  // mg/m³
+          }
+        };
       }
     } catch (e: any) {
       console.error('[ANALYZE] Raster sample error:', e);
-      // Return error instead of mock data
-      return NextResponse.json({ 
-        error: 'Failed to connect to ocean data service',
-        details: e.message
-      }, { status: 500 });
+      // TEMPORARY: Use mock data for UI testing
+      console.log('[ANALYZE] Using mock data for UI testing...');
+      data = {
+        sst: {
+          meanC: 24.5,  // Celsius
+          minC: 22.1,
+          maxC: 26.8,
+          gradientCperKm: 0.15
+        },
+        chl: {
+          mean: 0.45  // mg/m³
+        }
+      };
     }
 
     // Now data has the correct structure

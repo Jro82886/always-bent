@@ -435,11 +435,7 @@ function AnalysisModeContent() {
           {/* Move gear/settings button to top-right overlay */}
           <SettingsPanel />
           
-          {/* AI First Mate - Always visible on right */}
-          <AskABFI 
-            inlet={getInletById(selectedInletId) || DEFAULT_INLET}
-            dateISO={isoDate || new Date().toISOString().split('T')[0]}
-          />
+          {/* AI First Mate - temporarily disabled to clean up UI */}
         </div>
         <div className="map-chrome__bottom">
           {/* bottom stacking CTAs reserved */}

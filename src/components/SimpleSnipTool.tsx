@@ -224,33 +224,47 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
 
   return (
     <>
-
-      {/* Drawing Instructions */}
-      {drawing && (
-        <div className="fixed top-20 right-4 z-[100] bg-slate-900/95 p-4 rounded-lg">
-          <p className="text-cyan-300">Click points to draw polygon, double-click to finish</p>
+      {/* Draw Analysis Button - Simple and Clean */}
+      {!drawing && !reviewing && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[50]">
+          <button
+            onClick={startDrawing}
+            className="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Draw Analysis Area
+          </button>
         </div>
       )}
 
-      {/* Review Bar */}
+      {/* Drawing Instructions - Minimal */}
+      {drawing && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]">
+          <div className="bg-black/75 text-white px-4 py-2 rounded-lg text-sm">
+            Click to draw • Double-click to finish
+          </div>
+        </div>
+      )}
+
+      {/* Review Bar - Clean and Functional */}
       {reviewing && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000]">
-          <div className="bg-slate-900/95 backdrop-blur-xl rounded-xl px-6 py-3 border border-cyan-500/30">
-            <div className="flex items-center gap-4">
-              <span className="text-cyan-300">Area selected • Ready to analyze</span>
-              <button 
-                onClick={review}
-                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg"
-              >
-                Review analysis
-              </button>
-              <button 
-                onClick={cancel}
-                className="px-3 py-2 text-gray-400 hover:text-white"
-              >
-                Cancel
-              </button>
-            </div>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
+          <div className="bg-white rounded-full shadow-xl px-6 py-3 flex items-center gap-4">
+            <span className="text-gray-700 font-medium">Area selected</span>
+            <button 
+              onClick={review}
+              className="px-5 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-full transition-colors"
+            >
+              Analyze
+            </button>
+            <button 
+              onClick={cancel}
+              className="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
