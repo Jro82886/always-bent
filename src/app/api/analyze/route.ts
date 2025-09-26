@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
       if (want.chl) layersArray.push('chl');
       
       // Import and call the POST handler directly to avoid Vercel auth issues
-      const { POST as sampleHandler } = await import('../rasters/sample/route');
+      const sampleModule = await import('../rasters/sample/route');
+      const sampleHandler = sampleModule.POST;
       
       // Create a mock request
       const sampleRequest = new Request('http://localhost/api/rasters/sample', {
