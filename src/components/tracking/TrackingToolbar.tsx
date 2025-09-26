@@ -334,24 +334,30 @@ export default function TrackingToolbar({
           <div className="text-xs text-slate-400">Loading...</div>
         ) : weatherData ? (
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-slate-400">SST:</span>
-              <span className="text-white font-medium">
-                {weatherData.weather?.sstC ? `${(weatherData.weather.sstC * 9/5 + 32).toFixed(1)}°F` : '--'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Wind:</span>
-              <span className="text-white font-medium">
-                {weatherData.weather?.windKt ? `${Math.round(weatherData.weather.windKt)} kt ${weatherData.weather.windDir || ''}` : '--'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Swell:</span>
-              <span className="text-white font-medium">
-                {weatherData.weather?.swellFt ? `${Math.round(weatherData.weather.swellFt)}ft @ ${Math.round(weatherData.weather.swellPeriodS || 0)}s` : '--'}
-              </span>
-            </div>
+            {weatherData.weather?.sstC && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">SST:</span>
+                <span className="text-white font-medium">
+                  {`${(weatherData.weather.sstC * 9/5 + 32).toFixed(1)}°F`}
+                </span>
+              </div>
+            )}
+            {weatherData.weather?.windKt && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">Wind:</span>
+                <span className="text-white font-medium">
+                  {`${Math.round(weatherData.weather.windKt)} kt ${weatherData.weather.windDir || ''}`}
+                </span>
+              </div>
+            )}
+            {weatherData.weather?.swellFt && (
+              <div className="flex justify-between">
+                <span className="text-slate-400">Swell:</span>
+                <span className="text-white font-medium">
+                  {`${Math.round(weatherData.weather.swellFt)}ft @ ${Math.round(weatherData.weather.swellPeriodS || 0)}s`}
+                </span>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-xs text-slate-400">Select an inlet to see conditions</div>
@@ -436,11 +442,11 @@ export default function TrackingToolbar({
         </div>
         <div className="ab-head__underline" />
         
-        {!locationGranted ? (
+        {!locationGranted && (
           <div className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md p-2 mb-2">
             Location permission required to see fleet
           </div>
-        ) : null}
+        )}
         
         <div className="space-y-2">
           <div className="ab-row">

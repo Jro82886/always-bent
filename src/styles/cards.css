@@ -1,0 +1,46 @@
+/* Autosizing card styles */
+.abfi-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: auto;
+  min-height: 0;
+}
+
+.abfi-card__body {
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 0.4rem;
+  min-height: 0;
+}
+
+.abfi-card__body:empty {
+  display: none;
+}
+
+.abfi-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Remove fixed heights from ab-card variants */
+.ab-card {
+  height: auto;
+  min-height: 0;
+}
+
+.ab-card .ab-head {
+  flex-shrink: 0;
+}
+
+.ab-card .space-y-2:empty {
+  display: none;
+}
+
+/* Ensure card bodies don't have fixed heights */
+.ab-card > div:not(.ab-head) {
+  height: auto;
+  min-height: 0;
+}

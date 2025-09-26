@@ -636,3 +636,6 @@ html, body, #__next {
   pointer-events: none;
 }
 .map-chrome__topRight > * { pointer-events: auto; }
+
+/* Autosizing cards */
+@import url('../styles/cards.css');
