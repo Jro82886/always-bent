@@ -17,6 +17,8 @@ export default function DynamicAnalysisModal({
   const activeRaster = useAppState((s) => s.activeRaster)
   const sstOn = activeRaster === 'sst'
   const chlOn = activeRaster === 'chl'
+  
+  console.log('[DynamicModal] Layer state:', { activeRaster, sstOn, chlOn })
   // Track quality on mount
   useEffect(() => {
     if (isOpen && vm) {
@@ -65,6 +67,8 @@ export default function DynamicAnalysisModal({
   const { areaKm2, sst, chl, hasSST, hasCHL, narrative } = vm
   const oceanLayersActive = sstOn || chlOn  // Changed from AND to OR
   const haveData = (!!sst && hasSST) || (!!chl && hasCHL)
+  
+  console.log('[DynamicModal] Analysis data:', { hasSST, hasCHL, sst, chl, haveData })
 
   // Build content and validate it's not static
   let content = ''
