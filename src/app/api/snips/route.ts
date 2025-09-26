@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       narrative: narrative ?? null,
     };
 
-    const supabase = getSupabase();
+    const supabase = await getSupabase();
     const { data, error } = await supabase
       .from('snips')
       .insert(payload)

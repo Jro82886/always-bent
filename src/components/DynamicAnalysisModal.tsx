@@ -68,8 +68,8 @@ export default function DynamicAnalysisModal({
           area_nm2: areaNm2,
           species: reports?.species || [],
           narrative: {
-            sstText: hasSST ? `Sea surface temps average ${sst.meanF.toFixed(1)}°F with ${formatGradient(sst.gradFperMile)}.` : null,
-            chlText: hasCHL ? `Chlorophyll averages ${chl.mean.toFixed(2)} mg/m³.` : null,
+            sstText: hasSST && sst ? `Sea surface temps average ${sst.meanF.toFixed(1)}°F with ${formatGradient(sst.gradFperMile)}.` : null,
+            chlText: hasCHL && chl ? `Chlorophyll averages ${chl.mean.toFixed(2)} mg/m³.` : null,
             synth: 'Analysis saved for future reference.'
           }
         })

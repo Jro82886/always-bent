@@ -1,5 +1,5 @@
 // Mock chat data for demo mode
-export const mockChats = {
+export const mockChats: Record<string, any[]> = {
   'inlet:ocean-city-md': [
     {
       id: '1',
@@ -113,7 +113,7 @@ export const mockChats = {
   ]
 };
 
-export const mockPresence = {
+export const mockPresence: Record<string, number> = {
   'inlet:ocean-city-md': 5,
   'offshore:tuna': 12,
   'inshore:general': 8
