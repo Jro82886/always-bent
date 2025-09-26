@@ -6,6 +6,8 @@ import dynamic from 'next/dynamic';
 import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { initChatClient } from '@/lib/services/chat';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import PaneFallback from '@/components/chat/PaneFallback';
 
 // Dynamically import components to avoid SSR issues
 const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
@@ -100,26 +102,23 @@ export default function ChatPage() {
             onSelectRoom={setSelectedRoom}
           />
           <div className="flex-1">
-            {selectedRoom === 'inlet' ? (
-              roomIdForInlet ? (
+            <ErrorBoundary fallback={<PaneFallback title="Couldn't load this inlet right now. Try again." />}>
+              {selectedRoom === 'inlet' ? (
+                roomIdForInlet ? (
+                  <ChatWindow 
+                    roomId={roomIdForInlet}
+                    showWeatherHeader={false}
+                  />
+                ) : (
+                  <PaneFallback title="Pick an inlet to join its chat" />
+                )
+              ) : (
                 <ChatWindow 
-                  roomId={roomIdForInlet}
+                  roomId={selectedRoom}
                   showWeatherHeader={false}
                 />
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-slate-400">
-                  <div className="text-center space-y-2">
-                    <p className="text-lg font-medium">Select an Inlet</p>
-                    <p className="text-sm opacity-70">Use the inlet menu in the header to pick your inlet</p>
-                  </div>
-                </div>
-              )
-            ) : (
-              <ChatWindow 
-                roomId={selectedRoom}
-                showWeatherHeader={false}
-              />
-            )}
+              )}
+            </ErrorBoundary>
           </div>
           {/* ContextPanel temporarily removed to avoid spinner; will re-enable after wiring */}
         </div>
@@ -182,17 +181,23 @@ export default function ChatPage() {
               </div>
             </div>
             <div className="flex-1">
-              {selectedRoom === 'inlet' && roomIdForInlet ? (
-                <ChatWindow 
-                  roomId={roomIdForInlet}
-                  showWeatherHeader={false}
-                />
-              ) : (
-                <ChatWindow 
-                  roomId={selectedRoom}
-                  showWeatherHeader={false}
-                />
-              )}
+              <ErrorBoundary fallback={<PaneFallback title="Couldn't load this inlet right now. Try again." />}>
+                {selectedRoom === 'inlet' ? (
+                  roomIdForInlet ? (
+                    <ChatWindow 
+                      roomId={roomIdForInlet}
+                      showWeatherHeader={false}
+                    />
+                  ) : (
+                    <PaneFallback title="Pick an inlet to join its chat" />
+                  )
+                ) : (
+                  <ChatWindow 
+                    roomId={selectedRoom}
+                    showWeatherHeader={false}
+                  />
+                )}
+              </ErrorBoundary>
             </div>
           </div>
         )}
