@@ -44,3 +44,84 @@
   height: auto;
   min-height: 0;
 }
+
+/* Trends grid styles */
+.trends-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .trends-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.trend-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: auto;
+  min-height: 0;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(12, 18, 26, 0.72);
+  box-shadow: 0 0 0 1px rgba(0, 255, 255, 0.12), 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+
+.trend-title {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #cfeff5;
+}
+
+.trend-card__body {
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.trend-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trend-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 84px;
+  opacity: 0.8;
+  text-align: center;
+  padding: 1rem;
+}
+
+.trend-bar {
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.trend-bar > i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* Species chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  color: #67e8f9;
+}
