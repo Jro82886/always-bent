@@ -1,10 +1,18 @@
 import { toVM } from '@/types/analyze';
+import { useAppState } from '@/lib/store';
 
 export async function runAnalyze(polygon: GeoJSON.Polygon, dateISO: string) {
+  const inletId = useAppState.getState().selectedInletId;
+  
   const res = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ polygon, date: dateISO, want: { sst: true, chl: true } })
+    body: JSON.stringify({ 
+      polygon, 
+      date: dateISO, 
+      want: { sst: true, chl: true },
+      inletId 
+    })
   });
   
   if (!res.ok) {

@@ -14,10 +14,10 @@ export default function DynamicAnalysisModal({
 }: Props) {
   if (!isOpen || !vm) return null
 
-  const { areaKm2, sst, chl, hasSST, hasCHL } = vm
+  const { areaKm2, sst, chl, hasSST, hasCHL, weather, fleet, reports } = vm
   
   // Debug log to see what data we're getting
-  console.log('[DynamicModal] Data check:', { hasSST, hasCHL, sst, chl, vm })
+  console.log('[DynamicModal] Data check:', { hasSST, hasCHL, sst, chl, weather, fleet, reports, vm })
   
   // Convert km² to nm²
   const areaNm2 = areaKm2 * 0.291553
@@ -127,6 +127,46 @@ export default function DynamicAnalysisModal({
             </div>
           )}
 
+          {/* Weather Conditions */}
+          {weather && (
+            <div className="border-l-4 border-blue-500 pl-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Current Conditions</h3>
+              <div className="space-y-1 text-gray-700">
+                <div>• Wind: <span className="font-medium">{weather.wind.speed}kt {weather.wind.direction}</span></div>
+                <div>• Seas: <span className="font-medium">{weather.seas.height}-{weather.seas.height + 1}ft @ {weather.seas.period}s</span></div>
+                <div>• Air temp: <span className="font-medium">{weather.temp}°F</span></div>
+                <div>• Conditions: <span className="font-medium">{weather.conditions}</span></div>
+              </div>
+            </div>
+          )}
+          
+          {/* Fleet Activity */}
+          {fleet && fleet.count > 0 && (
+            <div className="border-l-4 border-purple-500 pl-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Fleet Activity</h3>
+              <div className="space-y-1 text-gray-700">
+                <div>• <span className="font-medium">{fleet.count} vessels</span> in area</div>
+                {fleet.vessels.map((vessel, i) => (
+                  <div key={i} className="ml-4 text-sm">
+                    - {vessel.name} ({vessel.type}) - {vessel.lastSeen}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Recent Reports */}
+          {reports && reports.count > 0 && (
+            <div className="border-l-4 border-yellow-500 pl-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Recent Bite Reports</h3>
+              <div className="space-y-1 text-gray-700">
+                <div>• <span className="font-medium">{reports.count} reports</span> last 7 days</div>
+                <div>• Species: <span className="font-medium">{reports.species.join(', ')}</span></div>
+                <div>• Latest: <span className="font-medium">{reports.recentCatch}</span></div>
+              </div>
+            </div>
+          )}
+
           {/* Trend Context */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-2">Trend Context</h3>
@@ -165,6 +205,17 @@ export default function DynamicAnalysisModal({
                   }.
                 </p>
               )}
+              {(fleet?.count || reports?.count) && (
+                <p>
+                  <span className="font-medium">Activity:</span> {
+                    fleet?.count ? `${fleet.count} vessels working the area` : ''
+                  }{fleet?.count && reports?.count ? ' with ' : ''}{
+                    reports?.count ? `${reports.count} recent catches reported` : ''
+                  }. {
+                    reports?.species?.length ? `Target species include ${reports.species.slice(0, 3).join(', ')}.` : ''
+                  }
+                </p>
+              )}
             </div>
           </div>
 
@@ -187,6 +238,15 @@ export default function DynamicAnalysisModal({
                   <li>• Check depth changes and bottom contours</li>
                   <li>• Monitor for bird activity indicating bait</li>
                 </>
+              )}
+              {weather && weather.wind.speed > 15 && (
+                <li>• {weather.wind.speed}kt winds → fish deeper or seek protected areas</li>
+              )}
+              {fleet && fleet.count > 0 && (
+                <li>• Fleet present → observe their patterns or work different depths</li>
+              )}
+              {reports && reports.species.length > 0 && (
+                <li>• Recent {reports.species[0]} catches → match successful techniques</li>
               )}
             </ul>
           </div>

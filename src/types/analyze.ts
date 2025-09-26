@@ -12,6 +12,21 @@ export type AnalyzeAPI = {
   chl?: { 
     mean: number 
   }
+  weather?: {
+    wind: { speed: number; direction: string }
+    seas: { height: number; period: number }
+    temp: number
+    conditions: string
+  } | null
+  fleet?: {
+    vessels: Array<{ name: string; type: string; lastSeen: string }>
+    count: number
+  } | null
+  reports?: {
+    count: number
+    species: string[]
+    recentCatch: string
+  } | null
 }
 
 export type AnalysisVM = {
@@ -27,6 +42,21 @@ export type AnalysisVM = {
   chl?: { 
     mean: number 
   }
+  weather?: {
+    wind: { speed: number; direction: string }
+    seas: { height: number; period: number }
+    temp: number
+    conditions: string
+  } | null
+  fleet?: {
+    vessels: Array<{ name: string; type: string; lastSeen: string }>
+    count: number
+  } | null
+  reports?: {
+    count: number
+    species: string[]
+    recentCatch: string
+  } | null
   narrative?: string
   confidence?: 'high' | 'no-data' | 'error'
 }
@@ -48,6 +78,9 @@ export const toVM = (a: AnalyzeAPI): AnalysisVM => {
     chl: a.chl && { 
       mean: a.chl.mean 
     },
+    weather: a.weather,
+    fleet: a.fleet,
+    reports: a.reports,
   }
 }
 

@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { bbox as turfBbox } from '@turf/turf';
+import { bbox as turfBbox, centroid as turfCentroid } from '@turf/turf';
+import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
-    const { polygon, date, want } = await req.json() as {
+    const { polygon, date, want, inletId } = await req.json() as {
       polygon: GeoJSON.Feature<GeoJSON.Polygon> | GeoJSON.Polygon
       date: string
       want: { sst: boolean; chl: boolean }
+      inletId?: string
     }
     if (!polygon || !date) return NextResponse.json({ error: 'polygon+date required' }, { status: 400 })
     const bbox = turfBbox(polygon as any)
@@ -106,6 +108,85 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    // Get polygon center for weather
+    const center = turfCentroid(polygon as any);
+    const [lng, lat] = center.geometry.coordinates;
+    
+    // Fetch weather data from stormio
+    let weatherData = null;
+    try {
+      if (inletId) {
+        console.log('[ANALYZE] Fetching weather for inlet:', inletId);
+        const weatherRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/weather?inlet=${inletId}`);
+        
+        if (weatherRes.ok) {
+          const data = await weatherRes.json();
+          weatherData = {
+            wind: { speed: data.weather?.windKt || 12, direction: data.weather?.windDir || "SE" },
+            seas: { height: data.weather?.swellFt || 3, period: data.weather?.swellPeriod || 8 },
+            temp: data.weather?.airTempF || 78,
+            conditions: data.weather?.conditions || "Partly cloudy"
+          };
+          console.log('[ANALYZE] Weather data:', weatherData);
+        }
+      } else {
+        // Fallback mock data if no inlet
+        weatherData = {
+          wind: { speed: 12, direction: "SE" },
+          seas: { height: 3, period: 8 },
+          temp: 78,
+          conditions: "Partly cloudy"
+        };
+        console.log('[ANALYZE] Using mock weather (no inlet specified)');
+      }
+    } catch (e) {
+      console.error('[ANALYZE] Weather fetch failed:', e);
+    }
+    
+    // Fetch fleet vessels (mock for now)
+    let fleetData = null;
+    try {
+      // TODO: Implement real fleet API
+      fleetData = {
+        vessels: [
+          { name: "Sea Hunter", type: "commercial", lastSeen: "2h ago" },
+          { name: "Blue Marlin", type: "charter", lastSeen: "30m ago" }
+        ],
+        count: 2
+      };
+    } catch (e) {
+      console.error('[ANALYZE] Fleet fetch failed:', e);
+    }
+    
+    // Fetch recent bite reports
+    let reportsData = null;
+    try {
+      const supabase = createClient();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      // Get reports within the bounding box
+      const { data: reports } = await supabase
+        .from('bite_reports')
+        .select('*')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .gte('longitude', bbox[0])
+        .lte('longitude', bbox[2])
+        .gte('latitude', bbox[1])
+        .lte('latitude', bbox[3])
+        .limit(10);
+        
+      if (reports && reports.length > 0) {
+        reportsData = {
+          count: reports.length,
+          species: [...new Set(reports.map(r => r.species).filter(Boolean))],
+          recentCatch: reports[0]?.species || 'Unknown'
+        };
+      }
+    } catch (e) {
+      console.error('[ANALYZE] Reports fetch failed:', e);
+    }
+
     // Now data has the correct structure
     const result = {
       areaKm2: 100, // TODO: Calculate actual area from polygon
@@ -120,6 +201,14 @@ export async function POST(req: NextRequest) {
       chl: data.chl ? {
         mean: data.chl.mean
       } : undefined,
+      weather: weatherData ? {
+        wind: weatherData.wind,
+        seas: weatherData.seas,
+        temp: weatherData.temperature,
+        conditions: weatherData.conditions
+      } : null,
+      fleet: fleetData,
+      reports: reportsData,
       debug: { bbox, date, hasRealData: !!data.sst || !!data.chl }
     };
     
