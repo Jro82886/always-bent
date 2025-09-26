@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabaseClient"
 import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import { nanoid } from "nanoid";
+import { mockChats } from "@/mocks/chatData";
 
 export type ChatMessage = {
   id: string;
@@ -24,7 +25,9 @@ const stubStore = new Map<string, ChatMessage[]>();
 export function initChatClient(): ChatClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) {
+  const useMock = process.env.NEXT_PUBLIC_CHAT_MOCK === '1';
+  
+  if (!url || !key || useMock) {
     // Stub client
     let activeInlet: string | null = null;
     let callback: ((m: ChatMessage) => void) | null = null;
@@ -53,6 +56,10 @@ export function initChatClient(): ChatClient {
         if (callback) callback(finalMsg);
       },
       async loadRecent(inletId) {
+        // If mock mode is enabled, return mock data
+        if (useMock && mockChats[inletId]) {
+          return mockChats[inletId];
+        }
         const arr = stubStore.get(inletId) ?? [];
         return arr.slice(-20);
       },

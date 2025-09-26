@@ -1,113 +1,51 @@
 import { useState, useEffect } from 'react';
-import { getSupabase } from "@/lib/supabaseClient"
-import { useAppState } from '@/lib/store';
+import { mockPresence } from '@/mocks/chatData';
 
 interface OnlineUser {
   userId: string;
   username: string;
-  lastSeen: number;
-  status: 'online' | 'away' | 'offline';
+  status: 'online' | 'away';
 }
 
 interface UseOnlinePresenceReturn {
   onlineUsers: OnlineUser[];
-  updateMyPresence: (status: 'online' | 'away') => void;
+  onlineCount: number;
 }
 
 export function useOnlinePresence(roomId: string): UseOnlinePresenceReturn {
+  const [onlineCount, setOnlineCount] = useState(0);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
-  const { username } = useAppState();
-  const supabase = getSupabase();
+  const useMock = process.env.NEXT_PUBLIC_CHAT_MOCK === '1';
 
   useEffect(() => {
-    if (!username || !supabase) return;
-
-    const userId = `user-${username.toLowerCase().replace(/\s+/g, '-')}`;
-    const channel = supabase.channel(`presence:${roomId}`);
-
-    // Track my presence
-    const userStatus: OnlineUser = {
-      userId,
-      username,
-      lastSeen: Date.now(),
-      status: 'online'
-    };
-
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const users: OnlineUser[] = [];
-        
-        Object.keys(state).forEach(key => {
-          const presences = state[key] as any[];
-          if (presences.length > 0) {
-            const presence = presences[0];
-            users.push({
-              userId: presence.userId || key,
-              username: presence.username || 'Anonymous',
-              lastSeen: presence.lastSeen || Date.now(),
-              status: presence.status || 'online'
-            });
-          }
-        });
-        
-        setOnlineUsers(users);
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }: any) => {
-        console.log('User joined:', key, newPresences);
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }: any) => {
-        console.log('User left:', key, leftPresences);
-      })
-      .subscribe(async (status: any) => {
-        if (status === 'SUBSCRIBED') {
-          // Announce my presence
-          await channel.track(userStatus);
-        }
-      });
-
-    // Update presence every 30 seconds
-    const interval = setInterval(() => {
-      channel.track({ ...userStatus, lastSeen: Date.now() });
-    }, 30000);
-
-    // Set away after 5 minutes of inactivity
-    let activityTimer: NodeJS.Timeout;
-    const resetActivityTimer = () => {
-      clearTimeout(activityTimer);
-      activityTimer = setTimeout(() => {
-        channel.track({ ...userStatus, status: 'away', lastSeen: Date.now() });
-      }, 5 * 60 * 1000);
-    };
-
-    // Track user activity
-    const handleActivity = () => {
-      resetActivityTimer();
-      if (userStatus.status === 'away') {
-        userStatus.status = 'online';
-        channel.track({ ...userStatus, lastSeen: Date.now() });
+    if (useMock) {
+      // Use mock presence data
+      const count = mockPresence[roomId] || 0;
+      setOnlineCount(count);
+      
+      // Generate some fake online users for display
+      const mockUsers: OnlineUser[] = [];
+      if (count > 0 && roomId.includes('inlet')) {
+        mockUsers.push({ userId: '1', username: 'CaptainMike', status: 'online' });
+        if (count > 1) mockUsers.push({ userId: '2', username: 'ReelDeal22', status: 'online' });
+        if (count > 2) mockUsers.push({ userId: '3', username: 'SaltyDog', status: 'away' });
+      } else if (count > 0 && roomId.includes('tuna')) {
+        mockUsers.push({ userId: '4', username: 'BluefinBob', status: 'online' });
+        if (count > 1) mockUsers.push({ userId: '5', username: 'TunaHunter', status: 'online' });
+      } else if (count > 0 && roomId.includes('inshore')) {
+        mockUsers.push({ userId: '6', username: 'BayRat', status: 'online' });
+        if (count > 1) mockUsers.push({ userId: '7', username: 'FlatsHunter', status: 'away' });
       }
-    };
-
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keypress', handleActivity);
-    resetActivityTimer();
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(activityTimer);
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('keypress', handleActivity);
-      channel.unsubscribe();
-    };
-  }, [roomId, username, supabase]);
-
-  const updateMyPresence = (status: 'online' | 'away') => {
-    // This would update your presence status manually if needed
-  };
+      setOnlineUsers(mockUsers.slice(0, Math.min(3, count)));
+    } else {
+      // TODO: Implement real Supabase presence
+      setOnlineCount(0);
+      setOnlineUsers([]);
+    }
+  }, [roomId, useMock]);
 
   return {
     onlineUsers,
-    updateMyPresence
+    onlineCount: onlineCount || onlineUsers.length,
   };
 }

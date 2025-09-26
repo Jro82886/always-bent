@@ -10,9 +10,9 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import PaneFallback from '@/components/chat/PaneFallback';
 
 // Dynamically import components to avoid SSR issues
-const RoomSidebar = dynamic(() => import('@/components/chat/RoomSidebar'), {
+const ChatTabs = dynamic(() => import('@/components/chat/ChatTabs'), {
   ssr: false,
-  loading: () => <div className="w-64 bg-slate-900 animate-pulse" />
+  loading: () => <div className="h-12 bg-slate-900 animate-pulse" />
 });
 
 // Use live chat window (useRealtimeChat) — no mocks
@@ -21,52 +21,53 @@ const ChatWindow = dynamic(() => import('@/components/chat/ChatWindowLive'), {
   loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
 });
 
-// Deprecated for MVP: unifying on useRealtimeChat via ChatWindowLive
-
-// Temporarily remove ContextPanel to avoid spinner placeholder until wired
-
 const WeatherHeader = dynamic(() => import('@/components/chat/WeatherHeader'), {
   ssr: false
 });
 
 export default function ChatPage() {
   const { selectedInletId, user } = useAppState();
-  const [selectedRoom, setSelectedRoom] = useState('inlet');
+  const [selectedTab, setSelectedTab] = useState<'inlet' | 'offshore' | 'inshore'>('inlet');
   const [showMobileRoom, setShowMobileRoom] = useState(false);
-  const roomIdForInlet = selectedInletId && selectedInletId !== 'overview' 
-    ? `inlet:${selectedInletId}` 
-    : null;
   const clientRef = useRef<ReturnType<typeof initChatClient> | null>(null);
+  
+  // Generate channel IDs based on tab selection
+  const getChannelId = () => {
+    switch (selectedTab) {
+      case 'inlet':
+        return selectedInletId && selectedInletId !== 'overview' 
+          ? `inlet:${selectedInletId}` 
+          : null;
+      case 'offshore':
+        return 'offshore:tuna';
+      case 'inshore':
+        return 'inshore:general';
+      default:
+        return null;
+    }
+  };
+  
+  const channelId = getChannelId();
 
-  // Auto-join/leave rooms on inlet change (no new helpers; reuse existing client)
+  // Auto-join/leave rooms on channel change
   useEffect(() => {
     const client = initChatClient();
     clientRef.current = client;
 
-    // Always join global tuna (idempotent via unsubscribe/subscribe in client)
-    client.subscribe('global:tuna', () => {});
-
-    // Join inlet-scoped rooms if we have an inlet
-    if (roomIdForInlet) {
-      // Inlet main
-      client.subscribe(roomIdForInlet, () => {});
-      // Inshore / Offshore
-      client.subscribe(`${roomIdForInlet}:inshore`, () => {});
-      client.subscribe(`${roomIdForInlet}:offshore`, () => {});
+    // Subscribe to current channel
+    if (channelId) {
+      client.subscribe(channelId, () => {});
     }
 
     return () => {
       // Leave all on unmount; client handles internal state
       client.unsubscribe();
     };
-  }, [roomIdForInlet]);
-  
-  // Only inlet chat is supported for now
-  const currentRoom = selectedRoom === 'inlet' ? { id: 'inlet', name: 'Inlet Chat' } : null;
+  }, [channelId]);
 
   // Mobile view
-  const handleMobileRoomSelect = (roomId: string) => {
-    setSelectedRoom(roomId);
+  const handleMobileTabSelect = (tab: 'inlet' | 'offshore' | 'inshore') => {
+    setSelectedTab(tab);
     setShowMobileRoom(true);
   };
 
@@ -96,31 +97,26 @@ export default function ChatPage() {
         </div>
         
         {/* Chat Layout */}
-        <div className="flex flex-1 overflow-hidden">
-          <RoomSidebar 
-            selectedRoom={selectedRoom}
-            onSelectRoom={setSelectedRoom}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <ChatTabs 
+            selectedTab={selectedTab}
+            onSelectTab={setSelectedTab}
+            hasInlet={!!selectedInletId && selectedInletId !== 'overview'}
           />
           <div className="flex-1">
             <ErrorBoundary fallback={<PaneFallback title="Couldn't load this inlet right now. Try again." />}>
-              {selectedRoom === 'inlet' ? (
-                roomIdForInlet ? (
-                  <ChatWindow 
-                    roomId={roomIdForInlet}
-                    showWeatherHeader={false}
-                  />
-                ) : (
-                  <PaneFallback title="Pick an inlet to join its chat" />
-                )
-              ) : (
+              {selectedTab === 'inlet' && !channelId ? (
+                <PaneFallback title="Pick an inlet to join its chat" />
+              ) : channelId ? (
                 <ChatWindow 
-                  roomId={selectedRoom}
+                  roomId={channelId}
                   showWeatherHeader={false}
                 />
+              ) : (
+                <PaneFallback title="Channel unavailable" />
               )}
             </ErrorBoundary>
           </div>
-          {/* ContextPanel temporarily removed to avoid spinner; will re-enable after wiring */}
         </div>
       </div>
 
@@ -150,17 +146,32 @@ export default function ChatPage() {
               <h1 className="text-lg font-semibold text-white">Channels</h1>
             </div>
             <div className="overflow-y-auto">
-              {/* Only show inlet chat for now */}
               <button
-                onClick={() => handleMobileRoomSelect('inlet')}
+                onClick={() => handleMobileTabSelect('inlet')}
                 className="w-full px-4 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors border-b border-slate-800"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-white font-medium">
-                    {selectedInletId 
+                    {selectedInletId && selectedInletId !== 'overview'
                       ? `${selectedInletId.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')} Chat`
                       : 'Inlet Chat'}
                   </span>
+                </div>
+              </button>
+              <button
+                onClick={() => handleMobileTabSelect('offshore')}
+                className="w-full px-4 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors border-b border-slate-800"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-white font-medium">Tuna (Offshore)</span>
+                </div>
+              </button>
+              <button
+                onClick={() => handleMobileTabSelect('inshore')}
+                className="w-full px-4 py-4 flex items-center justify-between hover:bg-slate-800/50 transition-colors border-b border-slate-800"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-white font-medium">Inshore</span>
                 </div>
               </button>
             </div>
@@ -176,26 +187,29 @@ export default function ChatPage() {
                 >
                   <ChevronLeft className="w-5 h-5 text-slate-400" />
                 </button>
-                <h2 className="text-white font-medium flex-1">{currentRoom?.name}</h2>
+                <h2 className="text-white font-medium flex-1">
+                  {selectedTab === 'inlet' 
+                    ? (selectedInletId && selectedInletId !== 'overview' 
+                        ? `${selectedInletId.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')} Chat`
+                        : 'Inlet Chat')
+                    : selectedTab === 'offshore' 
+                      ? 'Tuna (Offshore)' 
+                      : 'Inshore'}
+                </h2>
                 <span className="text-xs text-slate-500">Chat</span>
               </div>
             </div>
             <div className="flex-1">
               <ErrorBoundary fallback={<PaneFallback title="Couldn't load this inlet right now. Try again." />}>
-                {selectedRoom === 'inlet' ? (
-                  roomIdForInlet ? (
-                    <ChatWindow 
-                      roomId={roomIdForInlet}
-                      showWeatherHeader={false}
-                    />
-                  ) : (
-                    <PaneFallback title="Pick an inlet to join its chat" />
-                  )
-                ) : (
+                {selectedTab === 'inlet' && !channelId ? (
+                  <PaneFallback title="Pick an inlet to join its chat" />
+                ) : channelId ? (
                   <ChatWindow 
-                    roomId={selectedRoom}
+                    roomId={channelId}
                     showWeatherHeader={false}
                   />
+                ) : (
+                  <PaneFallback title="Channel unavailable" />
                 )}
               </ErrorBoundary>
             </div>

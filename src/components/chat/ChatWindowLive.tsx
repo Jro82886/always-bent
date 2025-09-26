@@ -18,7 +18,7 @@ export default function ChatWindowLive({ roomId, showWeatherHeader }: ChatWindow
   const [message, setMessage] = useState('');
   const [showMentions, setShowMentions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Use real-time chat hook
   const { messages, sendMessage, isConnected, mode } = useRealtimeChat(roomId);
@@ -39,9 +39,15 @@ export default function ChatWindowLive({ roomId, showWeatherHeader }: ChatWindow
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setMessage(value);
+    
+    // Auto-resize textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 100) + 'px';
+    }
     
     // Show mentions dropdown when @ is typed
     if (value.endsWith('@')) {
@@ -54,13 +60,24 @@ export default function ChatWindowLive({ roomId, showWeatherHeader }: ChatWindow
   const handleMention = (name: string) => {
     setMessage(message + name + ' ');
     setShowMentions(false);
-    inputRef.current?.focus();
+    textareaRef.current?.focus();
   };
 
   const handleSend = async () => {
     if (message.trim() && username) {
       await sendMessage(message);
       setMessage('');
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+    }
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
@@ -165,15 +182,16 @@ export default function ChatWindowLive({ roomId, showWeatherHeader }: ChatWindow
         ) : (
           <div className="flex gap-3">
             <div className="flex-1 relative">
-              <input
-                ref={inputRef}
-                type="text"
+              <textarea
+                ref={textareaRef}
                 value={message}
                 onChange={handleInputChange}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                onKeyDown={handleKeyDown}
                 placeholder={isConnected ? "Type a message..." : "Connecting..."}
                 disabled={!isConnected}
-                className="w-full px-5 py-3 bg-slate-800/60 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 backdrop-blur-sm disabled:opacity-50"
+                rows={1}
+                className="w-full px-5 py-3 bg-slate-800/60 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 backdrop-blur-sm disabled:opacity-50 resize-none overflow-y-auto"
+                style={{ minHeight: '48px', maxHeight: '100px' }}
               />
               <button className="absolute right-2 top-2.5 text-slate-400 hover:text-cyan-400 transition-colors">
                 <AtSign className="w-4 h-4" />
@@ -182,7 +200,7 @@ export default function ChatWindowLive({ roomId, showWeatherHeader }: ChatWindow
             <button
               onClick={handleSend}
               disabled={!message.trim() || !isConnected}
-              className="px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-400 hover:to-teal-400 focus:from-emerald-400 focus:to-teal-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-[0_0_20px_rgba(52,211,153,0.3)] hover:shadow-[0_0_30px_rgba(52,211,153,0.5)]"
+              className="px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-400 hover:to-teal-400 focus:from-emerald-400 focus:to-teal-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-[0_0_20px_rgba(52,211,153,0.3)] hover:shadow-[0_0_30px_rgba(52,211,153,0.5)] self-end"
             >
               <Send className="w-4 h-4" />
             </button>
