@@ -139,8 +139,32 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     setReviewing(false);
   }
 
+  // Add debug logging
+  useEffect(() => {
+    console.log('[SimpleSnipTool] Mounted, map:', !!map);
+  }, [map]);
+
   return (
     <>
+      {/* Draw Button - Always visible for now */}
+      {!drawing && !reviewing && (
+        <div className="fixed top-20 right-4 z-[100]">
+          <button
+            onClick={startDrawing}
+            className="px-6 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-lg shadow-lg"
+          >
+            🎯 Draw Analysis Area
+          </button>
+        </div>
+      )}
+
+      {/* Drawing Instructions */}
+      {drawing && (
+        <div className="fixed top-20 right-4 z-[100] bg-slate-900/95 p-4 rounded-lg">
+          <p className="text-cyan-300">Click points to draw polygon, double-click to finish</p>
+        </div>
+      )}
+
       {/* Review Bar */}
       {reviewing && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000]">
