@@ -16,6 +16,9 @@ export default function DynamicAnalysisModal({
 
   const { areaKm2, sst, chl, hasSST, hasCHL } = vm
   
+  // Debug log to see what data we're getting
+  console.log('[DynamicModal] Data check:', { hasSST, hasCHL, sst, chl, vm })
+  
   // Convert km² to nm²
   const areaNm2 = areaKm2 * 0.291553
 
@@ -67,6 +70,24 @@ export default function DynamicAnalysisModal({
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Success Header when data is loaded */}
+          {(hasSST || hasCHL) && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+              <p className="text-green-800 text-sm font-medium">
+                ✓ Live ocean data loaded for {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+            </div>
+          )}
+          
+          {/* Show error message if no data */}
+          {!hasSST && !hasCHL && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-yellow-800">
+                No ocean data available for this polygon. Try a larger area or different date.
+              </p>
+            </div>
+          )}
+          
           {/* Temperature Analysis */}
           {hasSST && sst && (
             <div className="border-l-4 border-orange-500 pl-4">
@@ -76,6 +97,13 @@ export default function DynamicAnalysisModal({
                 <div>• Range: <span className="font-medium">{sst.minF.toFixed(1)}°F – {sst.maxF.toFixed(1)}°F</span></div>
                 <div>• Gradient: <span className="font-medium">{formatGradient(sst.gradFperMile)}</span></div>
               </div>
+            </div>
+          )}
+          
+          {/* SST Error Message */}
+          {hasSST && !sst && (
+            <div className="text-gray-600 italic">
+              SST unavailable (temporary error).
             </div>
           )}
 
@@ -89,6 +117,13 @@ export default function DynamicAnalysisModal({
                 <div>• Clarity: <span className="font-medium">{getWaterClarity(chl.mean)}</span></div>
                 <div>• Gradient: <span className="font-medium">{(chl.mean * 0.8).toFixed(2)} mg/m³ across polygon</span></div>
               </div>
+            </div>
+          )}
+          
+          {/* CHL Error Message */}
+          {hasCHL && !chl && (
+            <div className="text-gray-600 italic">
+              Chlorophyll unavailable (temporary error).
             </div>
           )}
 

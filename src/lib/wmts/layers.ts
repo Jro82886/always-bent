@@ -81,10 +81,6 @@ export function buildGetFeatureInfoUrl(
     params.append('elevation', layer.defaultElevation.toString());
   }
   
-  // Build URL with auth
-  const url = new URL(`${WMTS_BASE_URL}?${params}`);
-  url.username = auth.user;
-  url.password = auth.pass;
-  
-  return url.toString();
+  // Build URL without auth in URL (auth goes in header only)
+  return `${WMTS_BASE_URL}?${params}`;
 }

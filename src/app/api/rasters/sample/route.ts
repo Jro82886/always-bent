@@ -112,8 +112,14 @@ async function fetchPixelValue(
         console.error(`[SAMPLE][ERR] layer=${layer.id} status=${response.status} reason="${response.statusText}"`);
         console.error(`[SAMPLE] URL: ${url.replace(/\/\/[^@]+@/, '//***:***@')}`); // Log URL with redacted auth
         
-        if (response.status === 401) {
-          console.error('[SAMPLE] 401 Unauthorized - Check COPERNICUS_USER and COPERNICUS_PASS environment variables');
+        // Return specific error for different status codes
+        if (response.status === 401 || response.status === 403) {
+          console.error('[SAMPLE] 401/403 Auth error - Check COPERNICUS_USER and COPERNICUS_PASS environment variables');
+          throw new Error('AUTH_ERROR');
+        } else if (response.status === 404 || response.status === 204) {
+          throw new Error('DATA_NOT_PUBLISHED');
+        } else if (response.status >= 500) {
+          throw new Error('UPSTREAM_ERROR');
         }
         
         const errorText = await response.text();
@@ -154,11 +160,20 @@ async function fetchPixelValue(
       clearTimeout(timeout);
       if (err.name === 'AbortError') {
         console.error('[SAMPLE] Request timeout');
+        throw new Error('NETWORK_TIMEOUT');
       }
-      return null;
+      throw err; // Re-throw other errors
     }
-  } catch (error) {
-    return null;
+  } catch (error: any) {
+    // Re-throw specific errors for proper handling
+    if (error.message === 'AUTH_ERROR' || 
+        error.message === 'DATA_NOT_PUBLISHED' || 
+        error.message === 'UPSTREAM_ERROR' ||
+        error.message === 'NETWORK_TIMEOUT') {
+      throw error;
+    }
+    // Generic error
+    throw new Error('TEMPORARY_ERROR');
   }
 }
 
@@ -169,16 +184,17 @@ async function sampleLayer(
   layer: 'sst' | 'chl',
   polygon: GeoJSON.Feature<GeoJSON.Polygon> | GeoJSON.Polygon,
   timeISO: string
-): Promise<LayerStats | null> {
-  const wmtsLayer = layer === 'sst' ? WMTS_LAYERS.SST : WMTS_LAYERS.CHL;
-  const zoom = getFixedZoom(layer);
-  
-  // Generate deterministic grid
-  const points = generateDeterministicGrid(polygon);
-  
-  if (points.length === 0) {
-    return null;
-  }
+): Promise<LayerStats | { error: string }> {
+  try {
+    const wmtsLayer = layer === 'sst' ? WMTS_LAYERS.SST : WMTS_LAYERS.CHL;
+    const zoom = getFixedZoom(layer);
+    
+    // Generate deterministic grid
+    const points = generateDeterministicGrid(polygon);
+    
+    if (points.length === 0) {
+      return { error: 'NO_OCEAN_PIXELS' };
+    }
   
   // Track unique tiles
   const tilesSet = new Set<string>();
@@ -212,7 +228,12 @@ async function sampleLayer(
   }
   
   if (values.length === 0) {
-    return null;
+    return { error: 'NO_OCEAN_PIXELS' };
+  }
+  
+  // Check if we have enough valid pixels
+  if (values.length < 50) {
+    return { error: 'NO_OCEAN_PIXELS' };
   }
   
   // Sort values for percentiles
@@ -248,6 +269,23 @@ async function sampleLayer(
   };
   
   return stats;
+  } catch (error: any) {
+    // Map specific errors to user-friendly error codes
+    if (error.message === 'AUTH_ERROR') {
+      return { error: 'AUTH_ERROR' };
+    } else if (error.message === 'DATA_NOT_PUBLISHED') {
+      return { error: 'DATA_NOT_PUBLISHED' };
+    } else if (error.message === 'UPSTREAM_ERROR') {
+      return { error: 'UPSTREAM_ERROR' };
+    } else if (error.message === 'NETWORK_TIMEOUT') {
+      return { error: 'NETWORK_TIMEOUT' };
+    } else if (error.message === 'NO_OCEAN_PIXELS') {
+      return { error: 'NO_OCEAN_PIXELS' };
+    } else {
+      console.error(`[SAMPLE] Unexpected error for ${layer}:`, error);
+      return { error: 'TEMPORARY_ERROR' };
+    }
+  }
 }
 
 export async function POST(request: NextRequest) {
