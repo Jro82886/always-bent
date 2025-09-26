@@ -126,6 +126,23 @@
   color: #67e8f9;
 }
 
+/* ABFI Brand Styling */
+.abfi-glow {
+  box-shadow: 0 0 0 1px rgba(0, 255, 255, 0.22), 0 10px 28px rgba(0, 180, 255, 0.18);
+}
+
+.abfi-title {
+  color: #cfeff5;
+  text-shadow: 0 0 18px rgba(0, 255, 255, 0.22);
+  letter-spacing: 0.3px;
+}
+
+.abfi-card {
+  background: rgba(12, 18, 26, 0.78);
+  border-radius: 14px;
+  padding: 16px;
+}
+
 /* Chat pane layout */
 .abfi-chat-pane {
   display: grid;

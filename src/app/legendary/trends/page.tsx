@@ -4,8 +4,8 @@ import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 
 // Dynamically import the Trends component
-const TrendsGridDemo = dynamic(
-  () => import('@/components/trends/TrendsGridDemo'),
+const TrendsGridPolished = dynamic(
+  () => import('@/components/trends/TrendsGridPolished'),
   { 
     ssr: false,
     loading: () => (
@@ -24,7 +24,7 @@ export default function TrendsPage() {
           <div className="text-cyan-400">Loading trends...</div>
         </div>
       }>
-        <TrendsGridDemo />
+        <TrendsGridPolished />
       </Suspense>
     </div>
   );

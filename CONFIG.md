@@ -23,6 +23,11 @@ These variables control frontend behavior and are safe to expose in the browser:
   - The inlet ID to use when demo mode is enabled
   - Only applies when `NEXT_PUBLIC_DEMO_FORCE_INLET=1`
 
+- **`NEXT_PUBLIC_TRENDS_PELAGIC_MOCK`** (default: `0`)
+  - `0` = Show coastal species (Striped Bass, Bluefish, Flounder)
+  - `1` = Show pelagic species (Yellowfin Tuna, Mahi-Mahi, Wahoo, Marlin)
+  - Demo flag for showcasing offshore vs. inshore fishing
+
 ### Server-Side Configuration
 
 These secrets must be kept secure and are only available in API routes:
