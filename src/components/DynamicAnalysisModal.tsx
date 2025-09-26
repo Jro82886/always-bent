@@ -17,7 +17,7 @@ export default function DynamicAnalysisModal({
   const { areaKm2, sst, chl, hasSST, hasCHL, weather, fleet, reports } = vm
   
   // Debug log to see what data we're getting
-  console.log('[DynamicModal] Data check:', { hasSST, hasCHL, sst, chl, weather, fleet, reports, vm })
+  console.log('[DynamicModal] Data check:', { hasSST, hasCHL, sst, chl, weather, fleet, reports, vm, timestamp: new Date().toISOString() })
   
   // Convert km² to nm²
   const areaNm2 = areaKm2 * 0.291553
