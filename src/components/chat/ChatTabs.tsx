@@ -3,35 +3,31 @@
 interface ChatTabsProps {
   selectedTab: 'inlet' | 'offshore' | 'inshore';
   onSelectTab: (tab: 'inlet' | 'offshore' | 'inshore') => void;
-  hasInlet: boolean;
+  counts: Record<string, number>;
 }
 
-export default function ChatTabs({ selectedTab, onSelectTab, hasInlet }: ChatTabsProps) {
-  const tabs = [
-    { id: 'inlet' as const, label: 'Inlet', disabled: false },
-    { id: 'offshore' as const, label: 'Tuna (Offshore)', disabled: false },
-    { id: 'inshore' as const, label: 'Inshore', disabled: false },
-  ];
+export default function ChatTabs({ selectedTab, onSelectTab, counts }: ChatTabsProps) {
+  const Tab = ({ k, label }: { k: 'inlet' | 'offshore' | 'inshore'; label: string }) => (
+    <button
+      onClick={() => onSelectTab(k)}
+      className={`px-4 py-2 rounded-full text-sm font-medium transition-all
+        ${selectedTab === k 
+          ? 'text-cyan-100 shadow-[0_0_0_1px_rgba(0,255,255,.35)]' 
+          : 'text-cyan-300/70 hover:text-cyan-100'}
+      `}
+    >
+      {label}
+      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10">
+        {counts[k] ?? 0}
+      </span>
+    </button>
+  );
 
   return (
-    <div className="flex border-b border-white/10 bg-slate-900/50">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onSelectTab(tab.id)}
-          disabled={tab.disabled}
-          className={`
-            px-6 py-3 text-sm font-medium transition-all duration-200
-            ${selectedTab === tab.id
-              ? 'text-cyan-300 border-b-2 border-cyan-400 bg-slate-800/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/20'
-            }
-            ${tab.disabled ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div className="flex items-center gap-2">
+      <Tab k="inlet" label="Inlet" />
+      <Tab k="offshore" label="Tuna (Offshore)" />
+      <Tab k="inshore" label="Inshore" />
     </div>
   );
 }
