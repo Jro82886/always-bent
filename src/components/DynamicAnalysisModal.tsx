@@ -32,7 +32,21 @@ export default function DynamicAnalysisModal({
   }
 
   if (!vm.hasSST && !vm.hasCHL) {
-    throw new Error('DynamicAnalysisModal opened without any ocean data capability')
+    console.error('[DynamicModal] No ocean data capability:', vm);
+    return (
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <section className="bg-slate-900 rounded-lg p-6 max-w-2xl w-full mx-4 border border-red-500">
+          <h3 className="text-xl font-bold text-white mb-4">Ocean Data Error</h3>
+          <p className="text-red-200">Unable to retrieve ocean data. The service may be temporarily unavailable.</p>
+          <button 
+            onClick={onClose}
+            className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded"
+          >
+            Close
+          </button>
+        </section>
+      </div>
+    );
   }
 
   // Validate real data if layers are on

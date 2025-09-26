@@ -46,7 +46,9 @@ export async function POST(req: NextRequest) {
       });
       
       // Call the handler directly
+      console.log('[ANALYZE] About to call sampleHandler...');
       const sampleResponse = await sampleHandler(sampleRequest);
+      console.log('[ANALYZE] Sample response status:', sampleResponse.status);
       
       if (sampleResponse.ok) {
         const response = await sampleResponse.json();
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Now data has the correct structure
-    return NextResponse.json({
+    const result = {
       areaKm2: 100, // TODO: Calculate actual area from polygon
       hasSST: !!data.sst,
       hasCHL: !!data.chl,
@@ -103,7 +105,10 @@ export async function POST(req: NextRequest) {
         mean: data.chl.mean
       } : undefined,
       debug: { bbox, date, hasRealData: !!data.sst || !!data.chl }
-    })
+    };
+    
+    console.log('[ANALYZE] Returning result:', JSON.stringify(result, null, 2));
+    return NextResponse.json(result);
   } catch (e:any) {
     console.error('[analyze] error', e)
     return NextResponse.json({ error: 'analyze failed' }, { status: 500 })
