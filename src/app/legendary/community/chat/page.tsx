@@ -21,7 +21,7 @@ const PresenceStrip = dynamic(() => import('@/components/chat/PresenceStrip'), {
 });
 
 // Use live chat window (useRealtimeChat) — no mocks
-const ChatWindow = dynamic(() => import('@/components/chat/ChatWindowLive'), {
+const ChatDemo = dynamic(() => import('@/components/chat/ChatDemo'), {
   ssr: false,
   loading: () => <div className="flex-1 bg-slate-950 animate-pulse" />
 });
@@ -98,38 +98,45 @@ export default function ChatPage() {
         {/* Chat Layout */}
         <div className="flex-1 p-4">
           <ErrorBoundary fallback={<PaneFallback title="Couldn't load this inlet right now. Try again." />}>
-            <section className="abfi-chat-pane h-full">
-              <ChatTabs 
-                selectedTab={selectedTab}
-                onSelectTab={setSelectedTab}
-                counts={counts}
-              />
-              <PresenceStrip text={presenceText} />
-              {demoMessage && selectedTab === 'inlet' && (
-                <div className="text-xs text-cyan-200/60 italic px-2">
-                  {demoMessage}
-                </div>
-              )}
-              {selectedTab === 'inlet' && !channelId ? (
-                <div className="abfi-scroll grid place-items-center">
-                  <div className="text-center text-cyan-200/80">
-                    <div className="text-base mb-2">Pick an inlet to join its chat.</div>
-                    <div className="text-xs opacity-70">Select an inlet from the top bar to connect with your local fleet.</div>
-                  </div>
-                </div>
-              ) : channelId ? (
-                <ChatWindow 
-                  roomId={channelId}
-                  showWeatherHeader={false}
+            <div className="h-full bg-slate-900/60 backdrop-blur border border-cyan-500/20 rounded-xl flex flex-col">
+              <div className="p-4 border-b border-cyan-500/20">
+                <ChatTabs 
+                  selectedTab={selectedTab}
+                  onSelectTab={setSelectedTab}
+                  counts={counts}
                 />
-              ) : (
-                <div className="abfi-scroll grid place-items-center">
-                  <div className="text-center text-cyan-200/80">
-                    <div className="text-base mb-2">Channel unavailable</div>
-                  </div>
+                <div className="mt-2">
+                  <PresenceStrip text={presenceText} />
                 </div>
-              )}
-            </section>
+                {demoMessage && selectedTab === 'inlet' && (
+                  <div className="text-xs text-cyan-200/60 italic mt-2">
+                    {demoMessage}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-1">
+                {selectedTab === 'inlet' && !channelId ? (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center text-cyan-200/80">
+                      <div className="text-base mb-2">Pick an inlet to join its chat.</div>
+                      <div className="text-xs opacity-70">Select an inlet from the top bar to connect with your local fleet.</div>
+                    </div>
+                  </div>
+                ) : channelId ? (
+                  <ChatDemo 
+                    channelId={channelId}
+                    selectedTab={selectedTab}
+                  />
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center text-cyan-200/80">
+                      <div className="text-base mb-2">Channel unavailable</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </ErrorBoundary>
         </div>
       </div>
@@ -202,9 +209,9 @@ export default function ChatPage() {
                 {selectedTab === 'inlet' && !channelId ? (
                   <PaneFallback title="Pick an inlet to join its chat" />
                 ) : channelId ? (
-                  <ChatWindow 
-                    roomId={channelId}
-                    showWeatherHeader={false}
+                  <ChatDemo 
+                    channelId={channelId}
+                    selectedTab={selectedTab}
                   />
                 ) : (
                   <PaneFallback title="Channel unavailable" />
