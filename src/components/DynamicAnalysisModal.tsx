@@ -49,7 +49,7 @@ export default function DynamicAnalysisModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100]">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-auto">
+      <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto">
         {/* Header */}
         <div className="bg-slate-900 px-6 py-4 border-b border-slate-700 flex justify-between items-start">
           <div>
