@@ -13,27 +13,19 @@ export async function POST(req: NextRequest) {
     if (!polygon || !date) return NextResponse.json({ error: 'polygon+date required' }, { status: 400 })
     const bbox = turfBbox(polygon as any)
 
-    // Try to call the raster sample endpoint
+    // Try to call the raster sample function directly
     let data: any = {};
     try {
       // Convert want object to layers array
-      const layersArray: string[] = [];
+      const layersArray: ('sst' | 'chl')[] = [];
       if (want.sst) layersArray.push('sst');
       if (want.chl) layersArray.push('chl');
       
-      // Use the deployment URL in production
-      const baseUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}`
-        : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-        
-      console.log('[ANALYZE] Calling raster sample with:', { 
-        url: `${baseUrl}/api/rasters/sample`,
-        polygon: 'type' in polygon ? polygon.type : 'Feature',
-        date,
-        layers: layersArray 
-      });
+      // Import and call the POST handler directly to avoid Vercel auth issues
+      const { POST as sampleHandler } = await import('../rasters/sample/route');
       
-      const sample = await fetch(`${baseUrl}/api/rasters/sample`, {
+      // Create a mock request
+      const sampleRequest = new Request('http://localhost/api/rasters/sample', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -43,8 +35,17 @@ export async function POST(req: NextRequest) {
         })
       });
       
-      if (sample.ok) {
-        const response = await sample.json();
+      console.log('[ANALYZE] Calling raster sample directly with:', { 
+        polygon: 'type' in polygon ? polygon.type : 'Feature',
+        date,
+        layers: layersArray 
+      });
+      
+      // Call the handler directly
+      const sampleResponse = await sampleHandler(sampleRequest);
+      
+      if (sampleResponse.ok) {
+        const response = await sampleResponse.json();
         console.log('[ANALYZE] Raster sample response:', JSON.stringify(response, null, 2));
         
         // Extract real data from the response
@@ -63,16 +64,14 @@ export async function POST(req: NextRequest) {
           };
         }
       } else {
-        const errorText = await sample.text();
+        const errorText = await sampleResponse.text();
         console.error('[ANALYZE] Raster sample failed:', {
-          status: sample.status,
-          error: errorText,
-          url: `${baseUrl}/api/rasters/sample`,
-          payload: { polygon, timeISO: date, layers: layersArray }
+          status: sampleResponse.status,
+          error: errorText
         });
         // Return error instead of mock data
         return NextResponse.json({ 
-          error: `Raster sampling failed: ${sample.status}`,
+          error: `Raster sampling failed: ${sampleResponse.status}`,
           details: errorText
         }, { status: 500 });
       }
