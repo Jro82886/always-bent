@@ -29,29 +29,35 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     
     const draw = new MapboxDraw({ 
       displayControlsDefault: false, 
-      controls: { polygon: true, trash: true },
+      controls: {}, // No default controls - we handle everything
       styles: [
+        // Simple green outline for drawing
         {
-          id: 'gl-draw-polygon-fill-inactive',
-          type: 'fill',
-          filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon']],
+          id: 'gl-draw-polygon-stroke-active',
+          type: 'line',
+          filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
           paint: {
-            'fill-color': '#3bb2d0',
-            'fill-outline-color': '#3bb2d0',
-            'fill-opacity': 0.1
+            'line-color': '#00ff00',
+            'line-width': 2,
+            'line-dasharray': [2, 2]
           }
         },
         {
           id: 'gl-draw-polygon-stroke-inactive',
           type: 'line',
           filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon']],
-          layout: {
-            'line-cap': 'round',
-            'line-join': 'round'
-          },
           paint: {
-            'line-color': '#3bb2d0',
+            'line-color': '#00ff00',
             'line-width': 2
+          }
+        },
+        {
+          id: 'gl-draw-vertex',
+          type: 'circle',
+          filter: ['all', ['==', 'meta', 'vertex']],
+          paint: {
+            'circle-radius': 5,
+            'circle-color': '#00ff00'
           }
         }
       ]
@@ -66,6 +72,8 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
         polyRef.current = g;
         setDrawing(false);
         setReviewing(true);
+        // Reset cursor
+        map.getCanvas().style.cursor = '';
         console.log('[SimpleSnip] Polygon created:', g);
       }
     };
@@ -73,20 +81,33 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     const onDelete = () => {
       polyRef.current = null;
       setReviewing(false);
+      map.getCanvas().style.cursor = '';
+    };
+    
+    // Handle mode changes to update cursor
+    const onModeChange = (e: any) => {
+      if (e.mode === 'draw_polygon') {
+        map.getCanvas().style.cursor = 'crosshair';
+      } else {
+        map.getCanvas().style.cursor = '';
+      }
     };
     
     map.on('draw.create', onCreate);
     map.on('draw.delete', onDelete);
+    map.on('draw.modechange', onModeChange);
     
     // Expose global function for compatibility
     (window as any).startSnipping = () => {
       draw.changeMode('draw_polygon');
+      map.getCanvas().style.cursor = 'crosshair';
       setDrawing(true);
     };
     
     return () => { 
       map.off('draw.create', onCreate);
       map.off('draw.delete', onDelete);
+      map.off('draw.modechange', onModeChange);
       map.removeControl(draw);
       delete (window as any).startSnipping;
     };
@@ -125,8 +146,16 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
   }
   
   function startDrawing() {
-    if (!drawRef.current) return;
+    if (!drawRef.current || !map) return;
+    
+    console.log('[SimpleSnip] Starting draw mode');
+    
+    // Change to draw mode
     drawRef.current.changeMode('draw_polygon');
+    
+    // Set cursor to crosshair
+    map.getCanvas().style.cursor = 'crosshair';
+    
     setDrawing(true);
     setReviewing(false);
   }
