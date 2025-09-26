@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { bbox as turfBbox, centroid as turfCentroid } from '@turf/turf';
-import { createClient } from '@/lib/supabase/server';
+import { getSupabase } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
     // Fetch recent bite reports
     let reportsData = null;
     try {
-      const supabase = createClient();
+      const supabase = await getSupabase();
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
       if (reports && reports.length > 0) {
         reportsData = {
           count: reports.length,
-          species: [...new Set(reports.map(r => r.species).filter(Boolean))],
+          species: [...new Set(reports.map((r: any) => r.species).filter(Boolean))],
           recentCatch: reports[0]?.species || 'Unknown'
         };
       }
@@ -204,7 +204,7 @@ export async function POST(req: NextRequest) {
       weather: weatherData ? {
         wind: weatherData.wind,
         seas: weatherData.seas,
-        temp: weatherData.temperature,
+        temp: weatherData.temp,
         conditions: weatherData.conditions
       } : null,
       fleet: fleetData,

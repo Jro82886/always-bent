@@ -390,10 +390,7 @@ export default function TrackingToolbar({
             </button>
           </div>
           
-          {/* ABFI Bite Button */}
-          <div className="pt-1">
-            <AbfiBiteButton context="tracking" />
-          </div>
+          {/* ABFI Bite Button moved to Command Bridge header; remove duplicate here */}
 
           {/* Location Status */}
           {userLocStatus !== 'idle' && (
