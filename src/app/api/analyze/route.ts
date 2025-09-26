@@ -27,7 +27,9 @@ export async function POST(req: NextRequest) {
           meanC: 24.6,
           minC: 22.1,
           maxC: 27.3,
-          gradientCperKm: 0.18
+          gradientCperKm: 0.18,
+          p10C: 23.4,
+          p90C: 25.5
         } : undefined,
         chl: want?.chl ? { mean: 0.42 } : undefined,
         weather: null,

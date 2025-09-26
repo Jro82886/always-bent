@@ -8,9 +8,13 @@ export type AnalyzeAPI = {
     minC: number
     maxC: number
     gradientCperKm: number
+    p10C?: number
+    p90C?: number
   }
   chl?: { 
-    mean: number 
+    mean: number
+    p10?: number
+    p90?: number 
   }
   weather?: {
     wind: { speed: number; direction: string }
@@ -38,9 +42,13 @@ export type AnalysisVM = {
     minF: number
     maxF: number
     gradFperMile: number
+    p10F?: number
+    p90F?: number
   }
   chl?: { 
-    mean: number 
+    mean: number
+    p10?: number
+    p90?: number 
   }
   weather?: {
     wind: { speed: number; direction: string }
@@ -74,9 +82,13 @@ export const toVM = (a: AnalyzeAPI): AnalysisVM => {
       minF: c2f(a.sst.minC),
       maxF: c2f(a.sst.maxC),
       gradFperMile: ((a.sst.gradientCperKm * 9) / 5) / km2mile(1),
+      p10F: a.sst.p10C !== undefined ? c2f(a.sst.p10C) : undefined,
+      p90F: a.sst.p90C !== undefined ? c2f(a.sst.p90C) : undefined,
     },
     chl: a.chl && { 
-      mean: a.chl.mean 
+      mean: a.chl.mean,
+      p10: a.chl.p10,
+      p90: a.chl.p90,
     },
     weather: a.weather,
     fleet: a.fleet,

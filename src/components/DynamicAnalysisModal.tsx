@@ -94,7 +94,7 @@ export default function DynamicAnalysisModal({
               <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Temperature Analysis (SST)</h3>
               <div className="space-y-1 text-slate-300 text-sm">
                 <div>• Current (mean): <span className="font-medium text-slate-100">{sst.meanF.toFixed(1)}°F</span></div>
-                <div>• Range: <span className="font-medium text-slate-100">{sst.minF.toFixed(1)}°F – {sst.maxF.toFixed(1)}°F</span></div>
+                <div>• Range (p10–p90): <span className="font-medium text-slate-100">{(sst.p10F ?? sst.minF).toFixed(1)}°F – {(sst.p90F ?? sst.maxF).toFixed(1)}°F</span></div>
                 <div>• Gradient: <span className="font-medium text-slate-100">{formatGradient(sst.gradFperMile)}</span></div>
               </div>
             </div>
@@ -113,7 +113,7 @@ export default function DynamicAnalysisModal({
               <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Water Quality (Chlorophyll‑a)</h3>
               <div className="space-y-1 text-slate-300 text-sm">
                 <div>• Current (mean): <span className="font-medium text-slate-100">{chl.mean.toFixed(2)} mg/m³</span></div>
-                <div>• Range: <span className="font-medium text-slate-100">{(chl.mean * 0.7).toFixed(2)} – {(chl.mean * 1.3).toFixed(2)} mg/m³</span></div>
+                <div>• Range (p10–p90): <span className="font-medium text-slate-100">{(chl.p10 ?? Math.max(0, chl.mean * 0.7)).toFixed(2)} – {(chl.p90 ?? chl.mean * 1.3).toFixed(2)} mg/m³</span></div>
                 <div>• Clarity: <span className="font-medium text-slate-100">{getWaterClarity(chl.mean)}</span></div>
                 <div>• Gradient: <span className="font-medium text-slate-100">{(chl.mean * 0.8).toFixed(2)} mg/m³ across polygon</span></div>
               </div>
