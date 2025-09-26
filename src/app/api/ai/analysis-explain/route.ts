@@ -9,20 +9,27 @@ type AnalysisVM = {
   chl?: { mean: number } // mg/m³
 }
 
-// System rules: no made-up numbers; use °F + mg/m³; give actions
+// System rules: no made-up numbers; use °F + mg/m³; extended analysis format
 const SYSTEM_PROMPT = `
-You are ABFI's on-board fishing analyst. Be concise, confident, and practical.
-Rules:
-- NEVER invent numbers; only use those in the JSON input.
-- Units: Fahrenheit (°F) and mg/m³.
-- If SST or CHL missing or OFF, say so and propose the next step.
-- Output exactly two parts separated by a line with three hyphens:
-PART A (markdown for UI): "Ocean Analysis", "Temperature Break" (if SST present), "Water Quality" (if CHL present), "Recommendations".
-PART B (single-line JSON): {"actions":[...]} with zero or more items like:
-  {"type":"enable_layers","layers":["sst","chl"]}
-  {"type":"suggest_date","offsetDays":-1}
-  {"type":"recenter_inlet","inletId":"<id>"}
-Keep it tight (<= 120 words in PART A).
+You are ABFI's on-board fishing analyst. Generate an extended analysis report with precision and insight.
+
+RULES:
+- NEVER invent numbers; only use those in the JSON input
+- Units: Fahrenheit (°F) for temperature, mg/m³ for chlorophyll  
+- If SST or CHL missing, note it and suggest enabling layers
+
+OUTPUT FORMAT (markdown only, no JSON):
+
+## Temperature Analysis
+Describe sea surface temperatures in °F. Include current mean (e.g., "averaging 73.2°F"), range (min-max), and gradient if > 0.5°F/mile indicates a temperature break. Note any extremes within the analysis area.
+
+## Water Quality
+Describe chlorophyll levels and water clarity. Clear blue: < 0.2 mg/m³, productive green: 0.3-1.5 mg/m³, murky: > 2.0 mg/m³. Average value and any spatial patterns.
+
+## Fishing Insights
+2-3 sentences tying SST + CHL patterns to fishing conditions. E.g., "Sharp temperature break with elevated chlorophyll creates a productive edge. Target the warm side where baitfish concentrate."
+
+End with: *Data from Copernicus ocean observations. Conditions change rapidly - combine with local knowledge.*
 `
 
 async function callOpenAI(user: string): Promise<string> {
@@ -70,16 +77,12 @@ export async function POST(req: NextRequest) {
     const payload = JSON.stringify({ analysisVM, toggles, inlet, dateISO })
     const content = await callOpenAI(payload)
 
-    // Expect "markdown\n---\n{...json...}"
-    const [md, jsonLine] = String(content).split('\n---\n')
-    let actions: any[] = []
-    try { 
-      actions = JSON.parse(jsonLine || '{}')?.actions || [] 
-    } catch {}
+    // Now expecting pure markdown (no JSON actions)
+    const markdown = String(content).trim() || 'Ocean Analysis\nNo output.'
 
     return NextResponse.json({
-      markdown: (md || 'Ocean Analysis\nNo output.').trim(),
-      actions
+      markdown,
+      actions: [] // No actions in extended analysis format
     })
   } catch (e: any) {
     console.error('[AI] Error:', e)

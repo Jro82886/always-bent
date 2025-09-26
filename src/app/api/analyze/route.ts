@@ -30,17 +30,17 @@ export async function POST(req: NextRequest) {
         data = await sample.json();
       } else {
         console.error('Raster sample failed:', sample.status);
-        // Use mock data for now to test the flow
+        // Use mock data for now to test the flow (in Celsius!)
         data = {
-          sst: { values: [72.5, 73.1, 72.8, 73.5, 72.2] },
+          sst: { values: [22.5, 22.8, 22.2, 23.1, 21.9] }, // ~72-73°F
           chl: { values: [0.45, 0.52, 0.38, 0.41, 0.48] }
         };
       }
     } catch (e) {
       console.error('Raster sample error:', e);
-      // Use mock data for now to test the flow
+      // Use mock data for now to test the flow (in Celsius!)
       data = {
-        sst: { values: [72.5, 73.1, 72.8, 73.5, 72.2] },
+        sst: { values: [22.5, 22.8, 22.2, 23.1, 21.9] }, // ~72-73°F
         chl: { values: [0.45, 0.52, 0.38, 0.41, 0.48] }
       };
     }
