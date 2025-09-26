@@ -72,8 +72,14 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
         polyRef.current = g;
         setDrawing(false);
         setReviewing(true);
-        // Reset cursor
+        // Reset cursor and re-enable map interactions
         map.getCanvas().style.cursor = '';
+        map.dragPan.enable();
+        map.scrollZoom.enable();
+        map.boxZoom.enable();
+        map.dragRotate.enable();
+        map.doubleClickZoom.enable();
+        map.touchZoomRotate.enable();
         console.log('[SimpleSnip] Polygon created:', g);
       }
     };
@@ -99,6 +105,14 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     
     // Expose global function for compatibility
     (window as any).startSnipping = () => {
+      // Disable map interactions
+      map.dragPan.disable();
+      map.scrollZoom.disable();
+      map.boxZoom.disable();
+      map.dragRotate.disable();
+      map.doubleClickZoom.disable();
+      map.touchZoomRotate.disable();
+      
       draw.changeMode('draw_polygon');
       map.getCanvas().style.cursor = 'crosshair';
       setDrawing(true);
@@ -150,6 +164,14 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     
     console.log('[SimpleSnip] Starting draw mode');
     
+    // Disable map interactions during drawing
+    map.dragPan.disable();
+    map.scrollZoom.disable();
+    map.boxZoom.disable();
+    map.dragRotate.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
+    
     // Change to draw mode
     drawRef.current.changeMode('draw_polygon');
     
@@ -166,6 +188,18 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     }
     polyRef.current = null;
     setReviewing(false);
+    setDrawing(false);
+    
+    // Re-enable map interactions
+    if (map) {
+      map.getCanvas().style.cursor = '';
+      map.dragPan.enable();
+      map.scrollZoom.enable();
+      map.boxZoom.enable();
+      map.dragRotate.enable();
+      map.doubleClickZoom.enable();
+      map.touchZoomRotate.enable();
+    }
   }
 
   // Add debug logging
