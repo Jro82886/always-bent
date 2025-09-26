@@ -13,6 +13,7 @@ export function useRealtimeChat(roomId: string): UseRealtimeChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const clientRef = useRef<ChatClient | null>(null);
+  const mountedRef = useRef(true);
   const { username } = useAppState();
 
   useEffect(() => {
@@ -57,7 +58,13 @@ export function useRealtimeChat(roomId: string): UseRealtimeChatReturn {
 
     // Cleanup
     return () => {
+      mountedRef.current = false;
       abortController.abort();
+      
+      // Clear messages immediately to prevent stale state
+      setMessages([]);
+      setIsConnected(false);
+      
       if (clientRef.current) {
         try {
           clientRef.current.unsubscribe();
@@ -65,6 +72,7 @@ export function useRealtimeChat(roomId: string): UseRealtimeChatReturn {
           // Silently catch any unsubscribe errors
           console.debug('Unsubscribe error (non-critical):', error);
         }
+        clientRef.current = null;
       }
     };
   }, [roomId]);

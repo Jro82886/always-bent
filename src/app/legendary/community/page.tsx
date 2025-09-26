@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 // Community entry: decide once and redirect
 export default function CommunityPage() {
@@ -24,5 +25,11 @@ export default function CommunityPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return null;
+  return (
+    <AppErrorBoundary context="Community Navigation">
+      <div className="w-full h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center">
+        <div className="text-cyan-400">Loading community...</div>
+      </div>
+    </AppErrorBoundary>
+  );
 }

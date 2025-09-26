@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 // Dynamically import the Trends component
 const TrendsGrid = dynamic(
@@ -18,14 +19,16 @@ const TrendsGrid = dynamic(
 
 export default function TrendsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900">
-      <Suspense fallback={
-        <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
-          <div className="text-cyan-400">Loading trends...</div>
-        </div>
-      }>
-        <TrendsGrid />
-      </Suspense>
-    </div>
+    <AppErrorBoundary context="Trends">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900">
+        <Suspense fallback={
+          <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 flex items-center justify-center">
+            <div className="text-cyan-400">Loading trends...</div>
+          </div>
+        }>
+          <TrendsGrid />
+        </Suspense>
+      </div>
+    </AppErrorBoundary>
   );
 }

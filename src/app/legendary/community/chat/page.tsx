@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { initChatClient } from '@/lib/services/chat';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 import PaneFallback from '@/components/chat/PaneFallback';
 import { resolveInletSlug, getDemoMessage } from '@/lib/inlet';
 
@@ -90,10 +91,11 @@ export default function ChatPage() {
   };
 
   return (
-    <Suspense fallback={<div className="p-6 text-slate-400 animate-pulse">Loading chat...</div>}>
-      <>
-      {/* Desktop Layout */}
-      <div className="hidden md:flex flex-col h-full">
+    <AppErrorBoundary context="Community Chat">
+      <Suspense fallback={<div className="p-6 text-slate-400 animate-pulse">Loading chat...</div>}>
+        <>
+        {/* Desktop Layout */}
+        <div className="hidden md:flex flex-col h-full">
         
         {/* Chat Layout */}
         <div className="flex-1 p-4">
@@ -214,7 +216,8 @@ export default function ChatPage() {
           </div>
         )}
       </div>
-    </>
-    </Suspense>
+        </>
+      </Suspense>
+    </AppErrorBoundary>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
+import AppErrorBoundary from '@/components/AppErrorBoundary';
 
 // Dynamically import components to avoid SSR issues
 const HighlightsStrip = dynamic(() => import('@/components/reports/HighlightsStrip'), {
@@ -115,8 +116,10 @@ function ReportsContent() {
 
 export default function ReportsPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-slate-400 animate-pulse">Loading reports...</div>}>
-      <ReportsContent />
-    </Suspense>
+    <AppErrorBoundary context="Community Reports">
+      <Suspense fallback={<div className="p-6 text-slate-400 animate-pulse">Loading reports...</div>}>
+        <ReportsContent />
+      </Suspense>
+    </AppErrorBoundary>
   );
 }

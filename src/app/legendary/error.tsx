@@ -1,59 +1,61 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { RefreshCcw, Home, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
 
-export default function ErrorBoundary({ 
-  error, 
-  reset 
-}: { 
+interface ErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}
+
+export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // Log the error to console for debugging
-    console.error('Route error:', error);
+    console.error('🚨 Route Error Boundary triggered:', error);
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        <div className="bg-slate-900/80 backdrop-blur-lg rounded-xl border border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.2)] p-8">
-          <div className="flex items-center gap-3 mb-4">
-            <AlertCircle className="w-8 h-8 text-red-400" />
-            <h2 className="text-xl font-semibold text-white">Something went sideways</h2>
+        <div className="bg-slate-900/50 backdrop-blur border border-red-500/20 rounded-xl p-8 text-center space-y-6">
+          <AlertTriangle className="w-16 h-16 text-red-400 mx-auto" />
+          
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Navigation Error
+            </h1>
+            <p className="text-slate-400 text-sm">
+              Something went wrong while loading this page. This is likely a temporary issue.
+            </p>
           </div>
-          
-          <p className="text-slate-300 mb-6">
-            We hit a snag loading this view. This can happen when switching between tabs quickly or if there's a connection issue.
-          </p>
-          
+
           <div className="space-y-3">
             <button
               onClick={reset}
-              className="w-full px-4 py-3 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-medium rounded-lg border border-cyan-500/30 transition-all duration-200 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-cyan-500/20 text-cyan-300 rounded-lg hover:bg-cyan-500/30 transition-colors font-medium"
             >
-              Reload this view
+              <RefreshCcw className="w-4 h-4" />
+              Try Again
             </button>
             
-            <button
-              onClick={() => window.location.href = '/legendary/analysis'}
-              className="w-full px-4 py-3 bg-slate-800/50 hover:bg-slate-800/70 text-slate-300 font-medium rounded-lg border border-slate-700 transition-all duration-200"
+            <Link
+              href="/legendary"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors font-medium"
             >
-              Go to Analysis
-            </button>
+              <Home className="w-4 h-4" />
+              Go Home
+            </Link>
           </div>
-          
-          {process.env.NODE_ENV === 'development' && (
-            <details className="mt-6">
-              <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-400">
-                Error details (dev only)
-              </summary>
-              <pre className="mt-2 p-3 bg-black/50 rounded text-xs text-red-400 overflow-auto">
-                {error.stack || error.message}
-              </pre>
-            </details>
-          )}
+
+          <details className="text-left">
+            <summary className="text-xs text-slate-500 cursor-pointer">
+              Technical Details
+            </summary>
+            <pre className="text-xs text-red-400 mt-2 p-3 bg-black/50 rounded overflow-auto max-h-32 whitespace-pre-wrap">
+              {error.message}
+              {error.digest && `\nError ID: ${error.digest}`}
+            </pre>
+          </details>
         </div>
       </div>
     </div>
