@@ -34,7 +34,7 @@ export default function TrendsGrid() {
       try {
         const [lng, lat] = inlet.center;
         const params = new URLSearchParams({
-          inlet: inlet.slug || '',
+          inlet: inlet.id || '',
           lat: lat.toString(),
           lng: lng.toString(),
           rangeDays: '14'

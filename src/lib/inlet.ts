@@ -5,18 +5,21 @@
 export function resolveInletSlug(current?: string | null): string | null {
   if (current) return current;
   if (process.env.NEXT_PUBLIC_DEMO_FORCE_INLET === '1') {
-    return process.env.NEXT_PUBLIC_DEMO_DEFAULT_INLET || 'ocean-city-md';
+    return process.env.NEXT_PUBLIC_DEMO_DEFAULT_INLET || 'md-ocean-city';
   }
   return null;
 }
 
 export function resolveInlet(current?: any) {
-  if (current?.slug) return current;
+  if (current?.id) return current;
   if (process.env.NEXT_PUBLIC_DEMO_FORCE_INLET === '1') {
     return { 
-      slug: 'ocean-city-md', 
-      name: 'Ocean City, MD',
-      center: [-75.091, 38.329] // [lng, lat] for Mapbox
+      id: 'md-ocean-city', 
+      name: 'Ocean City Inlet',
+      state: 'MD',
+      center: [-75.0906, 38.3286], // [lng, lat] for Mapbox
+      zoom: 7.6,
+      color: '#059669'
     };
   }
   return null;
