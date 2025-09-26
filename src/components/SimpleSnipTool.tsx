@@ -31,14 +31,14 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
       displayControlsDefault: false, 
       controls: {}, // No default controls - we handle everything
       styles: [
-        // Simple green outline for drawing
+        // Slate grey polygon for better visibility
         {
           id: 'gl-draw-polygon-stroke-active',
           type: 'line',
           filter: ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
           paint: {
-            'line-color': '#00ff00',
-            'line-width': 2,
+            'line-color': '#64748b', // slate-500
+            'line-width': 3,
             'line-dasharray': [2, 2]
           }
         },
@@ -47,8 +47,17 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
           type: 'line',
           filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon']],
           paint: {
-            'line-color': '#00ff00',
-            'line-width': 2
+            'line-color': '#64748b', // slate-500
+            'line-width': 3
+          }
+        },
+        {
+          id: 'gl-draw-polygon-fill-inactive',
+          type: 'fill',
+          filter: ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon']],
+          paint: {
+            'fill-color': '#64748b',
+            'fill-opacity': 0.1
           }
         },
         {
@@ -56,8 +65,10 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
           type: 'circle',
           filter: ['all', ['==', 'meta', 'vertex']],
           paint: {
-            'circle-radius': 5,
-            'circle-color': '#00ff00'
+            'circle-radius': 6,
+            'circle-color': '#475569', // slate-600
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2
           }
         }
       ]
