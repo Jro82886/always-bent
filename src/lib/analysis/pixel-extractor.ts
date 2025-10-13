@@ -5,6 +5,16 @@
 
 import * as turf from '@turf/turf';
 
+export interface LayerStats {
+  min: number;
+  max: number;
+  mean: number;
+  stdDev: number;
+  coveragePct: number;
+  gradientPerKm: number;
+  pixels: PixelData[];
+}
+
 export interface PixelData {
   lat: number;
   lng: number;

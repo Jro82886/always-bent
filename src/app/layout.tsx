@@ -9,6 +9,7 @@ import BetaFeedback from '@/components/BetaFeedback';
 import { ToastContainer } from '@/components/ui/Toast';
 import VersionIndicator from '@/components/VersionIndicator';
 import { QueryProvider } from '@/components/providers/QueryProvider';
+import { Providers } from './providers';
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
@@ -38,14 +39,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`min-h-screen w-full bg-gray-950 text-neutral-100 antialiased ${geistSans.variable} ${geistMono.variable}`}
       >
-        <QueryProvider>
-          <GuardsClient />
-          <BiteSyncInitializer />
-          {children}
-          <BetaFeedback />
-          <ToastContainer />
-          <VersionIndicator />
-        </QueryProvider>
+        <Providers>
+          <QueryProvider>
+            <GuardsClient />
+            <BiteSyncInitializer />
+            {children}
+            <BetaFeedback />
+            <ToastContainer />
+            <VersionIndicator />
+          </QueryProvider>
+        </Providers>
       </body>
     </html>
   );

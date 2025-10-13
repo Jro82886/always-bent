@@ -3,44 +3,41 @@ import { NextRequest } from 'next/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// 512px tiles for smoother rendering
+const TILE_SIZE = 512;
+const COPERNICUS_TILE_SIZE = 256; // Their native size
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ z: string; x: string; y: string }> }) {
   const resolvedParams = await params;
   const z = resolvedParams.z;
   const x = resolvedParams.x;
   const y = resolvedParams.y.replace('.png',''); // sanitize
-  
-  // EXACTLY like SST - use Copernicus WMTS
-  // Prefer NEXT_PUBLIC version (NRT data) over CMEMS version (MY data)
-  const base = process.env.NEXT_PUBLIC_CHL_WMTS_TEMPLATE || process.env.CMEMS_CHL_WMTS_TEMPLATE;
-  
-  // Debug logging
+  const isSst = req.nextUrl.pathname.includes('/sst/');
+  // Try both naming conventions for backward compatibility
+  const tplKey = isSst ? 'CMEMS_SST_WMTS_TEMPLATE' : 'CMEMS_CHL_WMTS_TEMPLATE';
+  const publicTplKey = isSst ? 'NEXT_PUBLIC_SST_WMTS_TEMPLATE' : 'NEXT_PUBLIC_CHL_WMTS_TEMPLATE';
+  const base = process.env[tplKey] || process.env[publicTplKey];
 
   if (!base) {
-    
-    return new Response(JSON.stringify({ 
-      error: 'Chlorophyll layer not configured',
-      message: 'Please add CMEMS_CHL_WMTS_TEMPLATE to environment variables',
-      required: 'CMEMS_CHL_WMTS_TEMPLATE=https://wmts.marine.copernicus.eu/teroWmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=OCEANCOLOUR_GLO_BGC_L4_MY_009_104/cmems_obs-oc_glo_bgc-plankton_my_l4-gapfree-multi-4km_P1D/CHL&STYLE=cmap:turbo&FORMAT=image/png&TILEMATRIXSET=EPSG:3857&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&TIME={TIME}'
-    }), { 
-      status: 502,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(`${tplKey} not configured`, { status: 500 });
   }
 
-  // Build TIME for Copernicus (expects ISO8601 with milliseconds)
+  // Build TIME for ODYSSEA daily product (expects ISO8601 with milliseconds)
   const qTime = req.nextUrl.searchParams.get('time');
-  const qStyle = req.nextUrl.searchParams.get('style'); // Support style override
   const buildDailyIso = (d: Date) => {
     const dd = new Date(d);
     dd.setUTCHours(0, 0, 0, 0);
     return dd.toISOString(); // Returns YYYY-MM-DDTHH:mm:ss.sssZ format
   };
   
-  // Generate fallback dates: CHL needs more fallback days than SST
-  // NRT chlorophyll data can be delayed by several days
+  // Generate fallback dates: yesterday and 2 days ago
+  // Copernicus data is typically 1-2 days behind real-time
   const fallbackDates: string[] = [];
-  for (let daysAgo = 1; daysAgo <= 7; daysAgo++) {
-    const date = new Date();
+  // Use a known good date range (January 2025)
+  // CHL data may have different availability than SST
+  const baseDate = new Date('2025-01-15'); // Use mid-January for better CHL data availability
+  for (let daysAgo = 0; daysAgo <= 7; daysAgo++) {
+    const date = new Date(baseDate);
     date.setDate(date.getDate() - daysAgo);
     fallbackDates.push(buildDailyIso(date));
   }
@@ -55,9 +52,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     timeParam = qTime; // assume caller provided a full ISO timestamp
   }
   
-  // Copernicus auth (EXACTLY like SST)
-  const u = process.env.COPERNICUS_USER || '';
-  const p = process.env.COPERNICUS_PASS || '';
+  // CHL tile fetching logic - ensure credentials are present
+  const u = process.env.COPERNICUS_USER;
+  const p = process.env.COPERNICUS_PASS;
+
+  if (!u || !p) {
+    return new Response('Copernicus credentials not configured', {
+      status: 500,
+      headers: { 'x-error': 'Missing COPERNICUS_USER or COPERNICUS_PASS environment variables' }
+    });
+  }
+
   const auth = 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64');
 
   // Try with smart fallback if the requested date fails
@@ -73,19 +78,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   for (const tryTime of datesToTry) {
     // Extract just the date part (YYYY-MM-DD) for TIME substitution
     const dateOnly = tryTime.split('T')[0];
-    let target = base
+    const target = base
       .replace('{z}', z)
       .replace('{x}', x)
-      .replace('{y}', y)
-      .replace('{TIME}', dateOnly);
+    .replace('{y}', y)
+    .replace('{TIME}', dateOnly);
     
-    // Support style override (e.g., viridis test)
-    if (qStyle && qStyle !== 'turbo') {
-      target = target.replace('cmap:turbo', `cmap:${qStyle}`);
-    }
-    
-    // Attempt to fetch from Copernicus
-    
+    // Attempt to fetch from upstream
+
     try {
       const response = await fetch(target, {
         headers: {
@@ -100,23 +100,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       if (response.ok) {
         upstream = response;
         successfulTime = tryTime;
-        console.log(`[CHL] Success with date: ${tryTime.split('T')[0]}`);
+        // Fallback attempt logged
         break;
-      } else if ((response.status === 400 || response.status === 500) && datesToTry.indexOf(tryTime) < datesToTry.length - 1) {
-        // Try next date for both 400 and 500 errors (empty iterator)
+      } else if (response.status === 400 && datesToTry.length > 1) {
+        // Try next date
         lastError = await response.text();
-        console.log(`[CHL] Date ${tryTime.split('T')[0]} failed (${response.status}), trying next...`);
         continue;
       } else {
-        // Non-400/500 error or last attempt
+        // Non-400 error or last attempt
         const text = await response.text();
-        console.error(`[CHL] Final failure: ${response.status}`, text.substring(0, 100));
-        return new Response(text || `Copernicus ${response.status}`, {
+        return new Response(text || `Upstream ${response.status}`, {
           status: response.status,
           headers: { 
             'x-upstream-url': target,
-            'x-chl-date-tried': tryTime.split('T')[0],
-            'x-chl-dates-attempted': datesToTry.map(d => d.split('T')[0]).join(', ')
+            'x-sst-date-tried': tryTime.split('T')[0]
           }
         });
       }
@@ -143,7 +140,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       'Content-Type': 'image/png',
       'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
       'x-upstream-url': base.replace('{z}', z).replace('{x}', x).replace('{y}', y).replace('{TIME}', successfulTime),
-      'x-chl-date': successfulTime.split('T')[0]
+      'x-sst-date': successfulTime.split('T')[0]
     }
   });
 }

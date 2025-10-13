@@ -627,6 +627,14 @@ html, body, #__next {
 }
 .map-chrome__bottom > * { pointer-events: auto; }
 
+.map-chrome__top {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  pointer-events: none;
+}
+.map-chrome__top > * { pointer-events: auto; }
+
 .map-chrome__topRight {
   position: absolute;
   top: 12px;

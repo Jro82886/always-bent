@@ -190,7 +190,7 @@ export default function LiveWeatherWidget() {
         <div className="flex items-center gap-2">
           <Thermometer className="w-3.5 h-3.5 text-orange-400" />
           <span className="text-xs text-white/90">
-            {weatherData.water.temp}°F
+            {weatherData.water.temp > 0 ? `${weatherData.water.temp}°F` : '--°F'}
           </span>
         </div>
 
@@ -250,7 +250,7 @@ export default function LiveWeatherWidget() {
                 <span className="text-xs text-gray-400">WATER</span>
               </div>
               <div className="text-sm text-white font-medium">
-                {weatherData.water.temp}°F
+                {weatherData.water.temp > 0 ? `${weatherData.water.temp}°F` : '--°F'}
               </div>
             </div>
 

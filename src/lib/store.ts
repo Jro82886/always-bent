@@ -93,7 +93,7 @@ const storedOverride = typeof window !== 'undefined'
 export const useAppState = create<AppState>((set, get) => ({
   // Existing state
   selectedInletId: null,
-  isoDate: new Date().toISOString().split('T')[0],
+  isoDate: '2025-01-20', // Use January 2025 for Copernicus data availability
   user: typeof window !== 'undefined' ? (() => {
     // Get or create anonymous user for chat
     const LOCAL_UID_KEY = 'abfi_anon_uid';

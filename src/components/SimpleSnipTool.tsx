@@ -20,6 +20,7 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
   const drawRef = useRef<MapboxDraw | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const dateISO = useSelectedDateISO();
   const { sstOn, chlOn } = useLayerFlags();
   const selectedInletId = useAppState(s => s.selectedInletId);
@@ -133,11 +134,23 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
       setDrawing(true);
     };
     
-    return () => { 
-      map.off('draw.create', onCreate);
-      map.off('draw.delete', onDelete);
-      map.off('draw.modechange', onModeChange);
-      map.removeControl(draw);
+    return () => {
+      // Safely remove event listeners
+      if (map) {
+        map.off('draw.create', onCreate);
+        map.off('draw.delete', onDelete);
+        map.off('draw.modechange', onModeChange);
+
+        // Only remove control if both map and draw exist
+        if (draw && map.hasControl && map.hasControl(draw)) {
+          try {
+            map.removeControl(draw);
+          } catch (e) {
+            console.warn('Failed to remove draw control:', e);
+          }
+        }
+      }
+
       delete (window as any).startSnipping;
     };
   }, [map]);
@@ -148,33 +161,42 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
       console.error('[SimpleSnip] No polygon to analyze!');
       return;
     }
-    
+
     console.log('[SimpleSnip] Starting analysis...');
     setReviewing(false);
-    
+    setAnalyzing(true);
+
     try {
       const vm = await runAnalyze(polyRef.current, dateISO); // real /api/analyze
       console.log('[SimpleSnip] Analysis VM:', vm);
-      
+
       openWithVM(vm); // set VM → open modal (order locked)
-      
+
       // Fire AI in parallel (non-blocking UI)
       const inlet = { id: selectedInletId || 'default', name: 'Default' };
       kickAI(vm, { sstOn, chlOn }, inlet, dateISO);
-      
+
       // Clear the drawing
       if (drawRef.current) {
         drawRef.current.deleteAll();
       }
       polyRef.current = null;
-      
+      setAnalyzing(false);
+
       // Notify parent if needed
       if (onAnalysisComplete) {
         onAnalysisComplete({ success: true });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[SimpleSnip] Analysis failed:', error);
-      alert('Analysis failed. Please try again.');
+      setAnalyzing(false);
+
+      // Better error message based on error type
+      if (error.message?.includes('timed out')) {
+        alert('Analysis is taking longer than expected. The Copernicus API may be slow. Please try again with a smaller area or at a different time.');
+      } else {
+        alert(`Analysis failed: ${error.message || 'Unknown error'}. Please try again.`);
+      }
     }
   }
   
@@ -238,18 +260,33 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100]">
           <div className="bg-white rounded-full shadow-xl px-6 py-3 flex items-center gap-4">
             <span className="text-gray-700 font-medium">Area selected</span>
-            <button 
+            <button
               onClick={review}
               className="px-5 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-full transition-colors"
             >
               Analyze
             </button>
-            <button 
+            <button
               onClick={cancel}
               className="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Analyzing Indicator */}
+      {analyzing && (
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100]">
+          <div className="bg-black/80 text-white px-8 py-6 rounded-lg shadow-2xl flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-white/20 border-t-white"></div>
+            <div className="text-center">
+              <div className="font-medium">Analyzing Area...</div>
+              <div className="text-sm text-white/70 mt-1">
+                This may take up to 2 minutes for Copernicus data
+              </div>
+            </div>
           </div>
         </div>
       )}

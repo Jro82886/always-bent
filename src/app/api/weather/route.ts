@@ -38,10 +38,11 @@ export async function GET(req: NextRequest) {
       
       if (!stormioResponse.ok) {
         console.error('StormGlass API error:', stormioResponse.status);
-        // Return mock data as fallback
+        // Return mock data as fallback - try Copernicus for real SST
+        const coperniceusSST = await fetchCopernicusSST(lat, lng);
         return NextResponse.json({
           waves: { height: 2.5, period: 10, direction: 180 },
-          water: { temperature: 72 },
+          water: { temperature: coperniceusSST || 0 },
           wind: { speed: 12, direction: 180 },
           weather: {
             sstC: 22.2,
@@ -56,10 +57,11 @@ export async function GET(req: NextRequest) {
       stormData = await stormioResponse.json();
     } catch (stormError) {
       console.error('StormGlass fetch error:', stormError);
-      // Return mock data as fallback
+      // Return mock data as fallback - try Copernicus for real SST
+      const coperniceusSST = await fetchCopernicusSST(lat, lng);
       return NextResponse.json({
         waves: { height: 2.5, period: 10, direction: 180 },
-        water: { temperature: 72 },
+        water: { temperature: coperniceusSST || 0 },
         wind: { speed: 12, direction: 180 },
         weather: {
           sstC: 22.2,
@@ -71,7 +73,29 @@ export async function GET(req: NextRequest) {
       });
     }
     
-    // Transform StormGlass data to match LiveWeatherWidget format
+    // Get water temperature - prioritize real data sources
+    // 1. Try Copernicus (most accurate satellite data)
+    let waterTempF: number | null = await fetchCopernicusSST(lat, lng);
+
+    // 2. Fall back to StormGlass if Copernicus unavailable
+    if (!waterTempF && stormData.weather?.sstC) {
+      const stormglassTempF = toF(stormData.weather.sstC);
+      console.log(`[Weather] StormGlass SST: ${stormglassTempF}°F`);
+
+      // Only use if physically possible
+      if (validateWaterTemp(stormglassTempF)) {
+        waterTempF = stormglassTempF;
+      } else {
+        console.log(`[Weather] Rejecting impossible StormGlass temp: ${stormglassTempF}°F`);
+      }
+    }
+
+    // 3. Last resort: no data available
+    if (!waterTempF) {
+      console.log('[Weather] No SST data available from any source');
+      waterTempF = null; // Let the client handle missing data
+    }
+
     const weatherData = {
       waves: {
         height: stormData.weather?.swellFt || 2.5,
@@ -79,7 +103,7 @@ export async function GET(req: NextRequest) {
         direction: getDirectionDegrees(stormData.weather?.windDir || 'N')
       },
       water: {
-        temperature: toF(stormData.weather?.sstC || 22)
+        temperature: waterTempF || 0  // 0 indicates no data
       },
       wind: {
         speed: stormData.weather?.windKt || 10,
@@ -136,4 +160,64 @@ function getDirectionDegrees(dir: string): number {
 // Convert Celsius to Fahrenheit
 function toF(c: number): number {
   return Math.round((c * 9) / 5 + 32);
+}
+
+// Validate water temperature is physically possible
+function validateWaterTemp(tempF: number): boolean {
+  // Only reject if physically impossible
+  // Ocean water freezes at ~28°F due to salt
+  // Max recorded ocean temp is ~100°F in shallow Persian Gulf
+  return tempF >= 28 && tempF <= 100;
+}
+
+// Fetch real SST from Copernicus via our raster API
+async function fetchCopernicusSST(lat: number, lng: number): Promise<number | null> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+
+    // Add timeout to prevent long waits
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
+    const response = await fetch(`${baseUrl}/api/rasters/sample`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        polygon: {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'Polygon',
+            coordinates: [[
+              [lng - 0.05, lat - 0.05],
+              [lng + 0.05, lat - 0.05],
+              [lng + 0.05, lat + 0.05],
+              [lng - 0.05, lat + 0.05],
+              [lng - 0.05, lat - 0.05]
+            ]]
+          }
+        },
+        timeISO: new Date().toISOString(),
+        layers: ['sst']
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.stats?.sst?.mean_f) {
+        console.log(`[Weather] Copernicus SST: ${data.stats.sst.mean_f}°F`);
+        return data.stats.sst.mean_f;
+      }
+    }
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      console.log('[Weather] Copernicus SST timeout - falling back to StormGlass');
+    } else {
+      console.error('[Weather] Copernicus SST fetch error:', error);
+    }
+  }
+  return null;
 }

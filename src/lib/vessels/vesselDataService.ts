@@ -50,76 +50,73 @@ export interface VesselDataResult {
 let gfwCache: { data: Vessel[]; timestamp: number; bounds: string } | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Mock data for fleet vessels (until real-time integration)
-const mockFleetVessels: Vessel[] = [
-  { 
-    id: 'fleet-1', 
-    name: 'Reel Deal', 
-    position: [-75.58, 35.22], 
-    type: 'fleet', 
-    inlet: 'nc-hatteras',
-    inletColor: getInletColorFromSource('nc-hatteras'),
-    track: [[-75.60, 35.24], [-75.59, 35.23], [-75.58, 35.22]],
-    hasReport: true
-  },
-  { 
-    id: 'fleet-2', 
-    name: 'Blue Water', 
-    position: [-75.62, 35.18], 
-    type: 'fleet', 
-    inlet: 'nc-hatteras',
-    inletColor: getInletColorFromSource('nc-hatteras'),
-    track: [[-75.64, 35.20], [-75.63, 35.19], [-75.62, 35.18]],
-    hasReport: false
-  },
-  { 
-    id: 'fleet-3', 
-    name: 'Fish Finder', 
-    position: [-75.55, 35.25], 
-    type: 'fleet', 
-    inlet: 'nc-hatteras',
-    inletColor: getInletColorFromSource('nc-hatteras'),
-    track: [[-75.53, 35.23], [-75.54, 35.24], [-75.55, 35.25]],
-    hasReport: true
-  },
-  // Add vessels from different inlets
-  { 
-    id: 'fleet-4', 
-    name: 'Ocean Runner', 
-    position: [-75.09, 38.33], 
-    type: 'fleet', 
-    inlet: 'md-ocean-city',
-    inletColor: getInletColorFromSource('md-ocean-city'),
-    track: [[-75.11, 38.35], [-75.10, 38.34], [-75.09, 38.33]],
-    hasReport: false
-  },
-  { 
-    id: 'fleet-5', 
-    name: 'Tuna Hunter', 
-    position: [-71.94, 41.07], 
-    type: 'fleet', 
-    inlet: 'ny-montauk',
-    inletColor: getInletColorFromSource('ny-montauk'),
-    track: [[-71.96, 41.09], [-71.95, 41.08], [-71.94, 41.07]],
-    hasReport: true
-  }
-];
+// Get user's current vessel position from GPS or stored location
+async function getUserVessel(): Promise<Vessel | null> {
+  try {
+    // Check if we have a recent user position in localStorage
+    const storedPosition = localStorage.getItem('user_vessel_position');
+    if (storedPosition) {
+      const pos = JSON.parse(storedPosition);
+      const age = Date.now() - pos.timestamp;
 
-// Mock user vessel (until GPS integration)
-const mockUserVessel: Vessel = {
-  id: 'user-vessel',
-  name: 'Sea Hunter',
-  position: [-75.6, 35.2],
-  type: 'user',
-  heading: 45,
-  speed: 12,
-  track: [
-    [-75.6, 35.2],
-    [-75.58, 35.18],
-    [-75.55, 35.15],
-    [-75.52, 35.12]
-  ]
-};
+      // Use stored position if less than 5 minutes old
+      if (age < 5 * 60 * 1000) {
+        return {
+          id: 'user-vessel',
+          name: 'Your Vessel',
+          position: [pos.lng, pos.lat],
+          type: 'user',
+          heading: pos.heading || 0,
+          speed: pos.speed || 0,
+          lastUpdate: new Date(pos.timestamp)
+        };
+      }
+    }
+
+    // Try to get fresh GPS position
+    if ('geolocation' in navigator) {
+      return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const vessel: Vessel = {
+              id: 'user-vessel',
+              name: 'Your Vessel',
+              position: [position.coords.longitude, position.coords.latitude],
+              type: 'user',
+              heading: position.coords.heading || 0,
+              speed: position.coords.speed ? position.coords.speed * 1.94384 : 0, // m/s to knots
+              lastUpdate: new Date()
+            };
+
+            // Store position for future use
+            localStorage.setItem('user_vessel_position', JSON.stringify({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              heading: position.coords.heading,
+              speed: position.coords.speed,
+              timestamp: Date.now()
+            }));
+
+            resolve(vessel);
+          },
+          () => {
+            // GPS failed, return null
+            resolve(null);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 60000
+          }
+        );
+      });
+    }
+  } catch (error) {
+    console.error('Error getting user vessel position:', error);
+  }
+
+  return null;
+}
 
 /**
  * Get commercial vessels from GFW API
@@ -187,37 +184,25 @@ async function fetchGFWVessels(bounds: [[number, number], [number, number]]): Pr
 }
 
 /**
- * Fetch live fleet vessels from database with fallback to mock data
+ * Fetch live fleet vessels from database (no mock data fallback in production)
  */
 async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]> {
-  // If no Supabase client, show warning and use mock data for testing
+  // If no Supabase client, return empty - no mock data in production
   if (!supabaseClient) {
-    if (!hasShownLiveDataWarning) {
-      showToast({
-        type: 'warning',
-        title: 'Live Fleet Data Unavailable',
-        message: 'Fleet vessel tracking is not available. Using test data.',
-        duration: 7000
-      });
-      hasShownLiveDataWarning = true;
-    }
-    // Return mock data for testing only
-    return selectedInletId && selectedInletId !== 'overview' 
-      ? mockFleetVessels.filter(v => v.inlet === selectedInletId)
-      : mockFleetVessels;
+    console.warn('Supabase client not configured for vessel tracking');
+    return [];
   }
 
   try {
-    // Fetch vessel positions from last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    // Fetch vessel positions from last 48 hours for better coverage
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
+    // Use the vessels_latest view for most recent positions
     let query = supabase
-      .from('vessel_positions')
+      .from('vessels_latest')
       .select('*')
-      .eq('type', 'fleet')
-      .gte('timestamp', sevenDaysAgo.toISOString())
-      .order('timestamp', { ascending: false });
+      .gte('recorded_at', twoDaysAgo.toISOString());
 
     // Filter by inlet if specific inlet selected
     if (selectedInletId && selectedInletId !== 'overview') {
@@ -228,61 +213,45 @@ async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]
 
     if (error) {
       console.error('Error fetching fleet vessels:', error);
+
+      // If table doesn't exist yet, return empty array
+      if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+        console.log('Vessel tracking tables not yet configured');
+        return [];
+      }
       throw error;
     }
 
     if (!data || data.length === 0) {
-      showToast({
-        type: 'info',
-        title: 'No Fleet Vessels',
-        message: 'No fleet vessels detected in this area. Check back later.',
-        duration: 5000
-      });
-      // Return empty array - no mock data when live system returns no results
+      console.log('No fleet vessels currently active');
       return [];
     }
 
-    // Group by vessel ID and get latest position
-    const vesselMap = new Map<string, any>();
-    data.forEach(record => {
-      if (!vesselMap.has(record.id) || new Date(record.timestamp) > new Date(vesselMap.get(record.id).timestamp)) {
-        vesselMap.set(record.id, record);
-      }
-    });
-
-    // Convert to Vessel format
-    const vessels: Vessel[] = Array.from(vesselMap.values()).map(record => {
+    // Convert to Vessel format with proper inlet colors
+    const vessels: Vessel[] = data.map(record => {
       return {
-        id: record.id,
-        name: record.name || 'Unknown Vessel',
-        position: [record.lng, record.lat],
+        id: record.vessel_id || record.id,
+        name: record.meta?.name || `Fleet ${record.vessel_id?.slice(0, 8)}`,
+        position: [record.lon || record.lng, record.lat],
         type: 'fleet' as const,
         inlet: record.inlet_id,
-        inletColor: getInletColorFromSource(record.inlet_id), // Use single source of truth
-        heading: record.heading,
-        speed: record.speed,
-        lastUpdate: new Date(record.timestamp),
-        track: record.track || [],
-        hasReport: record.has_report || false
+        inletColor: getInletColorFromSource(record.inlet_id),
+        heading: record.heading_deg || record.heading || 0,
+        speed: record.speed_kn || record.speed || 0,
+        lastUpdate: new Date(record.recorded_at || record.inserted_at),
+        track: [], // Will be fetched separately if needed
+        hasReport: record.meta?.has_report || false
       };
     });
 
-    console.log(`Fetched ${vessels.length} live fleet vessels`);
+    console.log(`Live data: ${vessels.length} fleet vessels active`);
     return vessels;
 
   } catch (error) {
     console.error('Failed to fetch live fleet vessels:', error);
-    showToast({
-      type: 'error',
-      title: 'Fleet Data Error',
-      message: 'Unable to fetch fleet vessel data. Please try again later.',
-      duration: 7000
-    });
-    // For testing only - return mock data
-    // TODO: Remove mock data before go-live
-    return selectedInletId && selectedInletId !== 'overview' 
-      ? mockFleetVessels.filter(v => v.inlet === selectedInletId)
-      : mockFleetVessels;
+
+    // In production, return empty array on error
+    return [];
   }
 }
 
@@ -290,13 +259,13 @@ async function fetchLiveFleetVessels(selectedInletId?: string): Promise<Vessel[]
  * Get all vessels (for Tracking page)
  * @param selectedInletId - Current inlet selection ('overview' or specific inlet)
  */
-export async function getAllVessels(selectedInletId?: string): Promise<{ 
-  user: Vessel; 
-  fleet: Vessel[]; 
+export async function getAllVessels(selectedInletId?: string): Promise<{
+  user: Vessel | null;
+  fleet: Vessel[];
   commercial: VesselDataResult;
 }> {
   let bounds: [[number, number], [number, number]];
-  
+
   if (!selectedInletId || selectedInletId === 'overview') {
     // East Coast overview - show all vessels with their inlet colors
     bounds = [[-82.0, 24.0], [-65.0, 45.0]];
@@ -314,15 +283,16 @@ export async function getAllVessels(selectedInletId?: string): Promise<{
       bounds = [[-82.0, 24.0], [-65.0, 45.0]];
     }
   }
-  
-  // Fetch fleet vessels with fallback to mock data
-  const fleetVessels = await fetchLiveFleetVessels(selectedInletId);
-  
-  // Fetch commercial vessels
-  const commercialData = await fetchGFWVessels(bounds);
-  
+
+  // Fetch all data sources in parallel for better performance
+  const [userVessel, fleetVessels, commercialData] = await Promise.all([
+    getUserVessel(),
+    fetchLiveFleetVessels(selectedInletId),
+    fetchGFWVessels(bounds)
+  ]);
+
   return {
-    user: mockUserVessel,
+    user: userVessel,
     fleet: fleetVessels,
     commercial: commercialData
   };
@@ -336,29 +306,32 @@ export async function getVesselsInBoundsAsync(
   bounds: [[number, number], [number, number]]
 ): Promise<VesselDataResult> {
   const [sw, ne] = bounds;
-  
-  // Fetch all fleet vessels (will use live data with fallback)
-  const allFleetVessels = await fetchLiveFleetVessels();
-  
+
+  // Fetch all data sources in parallel
+  const [userVessel, allFleetVessels, commercialResult] = await Promise.all([
+    getUserVessel(),
+    fetchLiveFleetVessels(),
+    fetchGFWVessels(bounds)
+  ]);
+
   // Filter fleet vessels in bounds
   const fleetInBounds = allFleetVessels.filter(vessel => {
     const [lng, lat] = vessel.position;
     return lng >= sw[0] && lng <= ne[0] && lat >= sw[1] && lat <= ne[1];
   });
-  
-  // Get user vessel if in bounds
+
+  // Check if user vessel is in bounds
   const userInBounds = [];
-  const [userLng, userLat] = mockUserVessel.position;
-  if (userLng >= sw[0] && userLng <= ne[0] && userLat >= sw[1] && userLat <= ne[1]) {
-    userInBounds.push(mockUserVessel);
+  if (userVessel) {
+    const [userLng, userLat] = userVessel.position;
+    if (userLng >= sw[0] && userLng <= ne[0] && userLat >= sw[1] && userLat <= ne[1]) {
+      userInBounds.push(userVessel);
+    }
   }
-  
-  // Fetch commercial vessels
-  const commercialResult = await fetchGFWVessels(bounds);
-  
+
   // Combine all vessels
   const allVessels = [...userInBounds, ...fleetInBounds, ...commercialResult.vessels];
-  
+
   return {
     vessels: allVessels,
     isLoading: commercialResult.isLoading,
@@ -371,16 +344,10 @@ export async function getVesselsInBoundsAsync(
  * @deprecated Use getVesselsInBoundsAsync instead
  */
 export function getVesselsInBounds(bounds: [[number, number], [number, number]]): Vessel[] {
-  const [sw, ne] = bounds;
-  const allVessels = [
-    mockUserVessel,
-    ...mockFleetVessels
-  ];
-  
-  return allVessels.filter(vessel => {
-    const [lng, lat] = vessel.position;
-    return lng >= sw[0] && lng <= ne[0] && lat >= sw[1] && lat <= ne[1];
-  });
+  // This synchronous version can't fetch real data
+  // Return empty array and log warning
+  console.warn('getVesselsInBounds is deprecated. Use getVesselsInBoundsAsync for real vessel data.');
+  return [];
 }
 
 /**

@@ -3,6 +3,7 @@ import { bbox as turfBbox, centroid as turfCentroid } from '@turf/turf';
 import { getSupabase } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
+export const maxDuration = 120; // Set max duration to 120 seconds for real Copernicus data
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,36 +16,7 @@ export async function POST(req: NextRequest) {
     if (!polygon || !date) return NextResponse.json({ error: 'polygon+date required' }, { status: 400 })
     const bbox = turfBbox(polygon as any)
 
-    // TEMP: Fast mock short-circuit to avoid timeouts while upstream auth is being fixed
-    // This guarantees the UI shows a complete analysis immediately.
-    const FORCE_MOCK = true;
-    if (FORCE_MOCK) {
-      const mockResult = {
-        areaKm2: 100,
-        hasSST: !!want?.sst,
-        hasCHL: !!want?.chl,
-        sst: want?.sst ? {
-          meanC: 24.6,
-          minC: 22.1,
-          maxC: 27.3,
-          gradientCperKm: 0.18,
-          p10C: 23.4,
-          p90C: 25.5
-        } : undefined,
-        chl: want?.chl ? { mean: 0.42 } : undefined,
-        weather: null,
-        fleet: {
-          vessels: [
-            { name: 'Sea Hunter', type: 'commercial', lastSeen: '2h ago' },
-            { name: 'Blue Marlin', type: 'charter', lastSeen: '30m ago' }
-          ],
-          count: 2
-        },
-        reports: null,
-        debug: { bbox, date, hasRealData: false, mode: 'mock-short-circuit' }
-      } as const;
-      return NextResponse.json(mockResult);
-    }
+    // Removed mock data - now using real Copernicus data
 
     // Try to call the raster sample function directly
     let data: any = {};
@@ -71,21 +43,26 @@ export async function POST(req: NextRequest) {
           })
         }
       );
-      
-      console.log('[ANALYZE] Calling raster sample directly with:', { 
-        polygon: 'type' in polygon ? polygon.type : 'Feature',
-        date,
-        layers: layersArray 
+
+      // Create a timeout promise - wait up to 110 seconds for real data
+      const timeoutPromise = new Promise<Response>((_, reject) =>
+        setTimeout(() => reject(new Error('TIMEOUT')), 110000) // 110 second timeout (leaving 10s buffer)
+      );
+
+      // Race between the sample handler and timeout
+      const sampleResponse = await Promise.race([
+        sampleHandler(sampleRequest),
+        timeoutPromise
+      ]).catch((err) => {
+        if (err.message === 'TIMEOUT') {
+          // Return error for timeout - no mock data for Milestone 1
+          throw new Error('Ocean data request timed out. Please try again.');
+        }
+        throw err;
       });
-      
-      // Call the handler directly
-      console.log('[ANALYZE] About to call sampleHandler...');
-      const sampleResponse = await sampleHandler(sampleRequest);
-      console.log('[ANALYZE] Sample response status:', sampleResponse.status);
-      
-      if (sampleResponse.ok) {
+
+      if (sampleResponse && sampleResponse.ok) {
         const response = await sampleResponse.json();
-        console.log('[ANALYZE] Raster sample response:', JSON.stringify(response, null, 2));
         
         // Extract real data from the response
         if (response.stats?.sst) {
@@ -102,41 +79,25 @@ export async function POST(req: NextRequest) {
             mean: response.stats.chl.mean
           };
         }
-      } else {
+      } else if (sampleResponse) {
         const errorText = await sampleResponse.text();
         console.error('[ANALYZE] Raster sample failed:', {
           status: sampleResponse.status,
           error: errorText
         });
-        // TEMPORARY: Return mock data for UI testing while auth is being fixed
-        console.log('[ANALYZE] Using mock data for UI testing...');
-        data = {
-          sst: {
-            meanC: 24.5,  // Celsius (will be converted to F)
-            minC: 22.1,
-            maxC: 26.8,
-            gradientCperKm: 0.15
-          },
-          chl: {
-            mean: 0.45  // mg/m³
-          }
-        };
+        // Return error for Milestone 1 - real data only
+        return NextResponse.json({
+          error: 'Failed to fetch ocean data',
+          details: errorText
+        }, { status: 502 });
       }
     } catch (e: any) {
       console.error('[ANALYZE] Raster sample error:', e);
-      // TEMPORARY: Use mock data for UI testing
-      console.log('[ANALYZE] Using mock data for UI testing...');
-      data = {
-        sst: {
-          meanC: 24.5,  // Celsius
-          minC: 22.1,
-          maxC: 26.8,
-          gradientCperKm: 0.15
-        },
-        chl: {
-          mean: 0.45  // mg/m³
-        }
-      };
+      // Return error for Milestone 1 - real data only
+      return NextResponse.json({
+        error: 'Failed to process ocean data',
+        details: e.message || 'Unknown error'
+      }, { status: 500 });
     }
 
     // Get polygon center for weather
@@ -147,9 +108,8 @@ export async function POST(req: NextRequest) {
     let weatherData = null;
     try {
       if (inletId) {
-        console.log('[ANALYZE] Fetching weather for inlet:', inletId);
         const weatherRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/weather?inlet=${inletId}`);
-        
+
         if (weatherRes.ok) {
           const data = await weatherRes.json();
           weatherData = {
@@ -158,7 +118,6 @@ export async function POST(req: NextRequest) {
             temp: data.weather?.airTempF || 78,
             conditions: data.weather?.conditions || "Partly cloudy"
           };
-          console.log('[ANALYZE] Weather data:', weatherData);
         }
       } else {
         // Fallback mock data if no inlet
@@ -168,25 +127,84 @@ export async function POST(req: NextRequest) {
           temp: 78,
           conditions: "Partly cloudy"
         };
-        console.log('[ANALYZE] Using mock weather (no inlet specified)');
       }
     } catch (e) {
       console.error('[ANALYZE] Weather fetch failed:', e);
     }
     
-    // Fetch fleet vessels (mock for now)
+    // Fetch real fleet vessels from GFW API
     let fleetData = null;
     try {
-      // TODO: Implement real fleet API
-      fleetData = {
-        vessels: [
-          { name: "Sea Hunter", type: "commercial", lastSeen: "2h ago" },
-          { name: "Blue Marlin", type: "charter", lastSeen: "30m ago" }
-        ],
-        count: 2
-      };
+      const gfwUrl = new URL(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/gfw/vessels`);
+
+      // Pass bbox as parameter
+      gfwUrl.searchParams.append('bbox', bbox.join(','));
+      gfwUrl.searchParams.append('days', '7'); // Last 7 days of activity
+
+      const gfwRes = await fetch(gfwUrl.toString());
+
+      if (gfwRes.ok) {
+        const gfwData = await gfwRes.json();
+
+        if (gfwData.vessels && gfwData.vessels.length > 0) {
+          // Convert GFW data to our format
+          fleetData = {
+            vessels: gfwData.vessels.slice(0, 5).map((v: any) => {
+              // Calculate time ago from last position
+              const lastTime = new Date(v.last_pos?.t || Date.now());
+              const hoursAgo = Math.round((Date.now() - lastTime.getTime()) / (1000 * 60 * 60));
+              let lastSeen = `${hoursAgo}h ago`;
+              if (hoursAgo < 1) {
+                const minsAgo = Math.round((Date.now() - lastTime.getTime()) / (1000 * 60));
+                lastSeen = `${minsAgo}m ago`;
+              } else if (hoursAgo > 24) {
+                const daysAgo = Math.round(hoursAgo / 24);
+                lastSeen = `${daysAgo}d ago`;
+              }
+
+              return {
+                name: v.name || 'Unknown Vessel',
+                type: v.gear || 'commercial',
+                lastSeen: lastSeen,
+                isRealData: true  // Mark as real data when available
+              };
+            }),
+            count: gfwData.vessels.length,
+            isRealData: true
+          };
+        } else {
+          // No vessels found in area
+          fleetData = {
+            vessels: [],
+            count: 0,
+            message: "No vessels detected in this area"
+          };
+        }
+      } else {
+        console.error('[ANALYZE] GFW API error:', gfwRes.status);
+
+        // Check specific error status
+        if (gfwRes.status === 401) {
+          fleetData = {
+            vessels: [],
+            count: 0,
+            message: "Vessel tracking unavailable - GFW token needs renewal"
+          };
+        } else {
+          fleetData = {
+            vessels: [],
+            count: 0,
+            message: "Vessel data temporarily unavailable"
+          };
+        }
+      }
     } catch (e) {
       console.error('[ANALYZE] Fleet fetch failed:', e);
+      // Return empty fleet data on error
+      fleetData = {
+        vessels: [],
+        count: 0
+      };
     }
     
     // Fetch recent bite reports
@@ -242,8 +260,7 @@ export async function POST(req: NextRequest) {
       reports: reportsData,
       debug: { bbox, date, hasRealData: !!data.sst || !!data.chl }
     };
-    
-    console.log('[ANALYZE] Returning result:', JSON.stringify(result, null, 2));
+
     return NextResponse.json(result);
   } catch (e:any) {
     console.error('[analyze] error', e)

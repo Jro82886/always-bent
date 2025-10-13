@@ -33,30 +33,30 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 // Build GFW API URL
 function gfwUpstreamUrl({ inletId, bbox, days }: { inletId?: string; bbox?: string; days: number }) {
-  const base = 'https://gateway.api.globalfishingwatch.org/v3/vessels';
-  
+  // Use v3 vessels/search endpoint as per documentation
+  const base = 'https://gateway.api.globalfishingwatch.org/v3/vessels/search';
+
   // Calculate date range
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-  
+
+  // Use correct parameter format for v3 API
   const params = new URLSearchParams({
-    'dataset': 'public-global-fishing-vessels:latest',
-    'includes': 'vessel,positions,events',
-    'vessel-types': 'fishing',
-    'gear-types': 'trawlers,drifting_longlines,set_longlines,fixed_gear',
-    'start-date': startDate.toISOString().split('T')[0],
-    'end-date': endDate.toISOString().split('T')[0],
-    'limit': '100'
+    'datasets[0]': 'public-global-vessel-identity:latest',  // Correct dataset format
+    'date-range': `${startDate.toISOString().split('T')[0]},${endDate.toISOString().split('T')[0]}`,
+    'limit': '50',
+    'offset': '0'
   });
-  
-  // Add bbox or calculate from inlet
+
+  // Add bbox for geographic filtering
   if (bbox) {
-    params.append('positions-bbox', bbox);
+    // v3 uses 'bbox' parameter for geographic filtering
+    params.append('bbox', bbox);
   } else if (inletId) {
-    // Import inlet config
+    // Import inlet config - handle both formats (with and without state prefix)
     const INLETS = [
-      { id: 'ocean-city', center: [-74.57, 38.33], zoom: 7.5 },
+      { id: 'md-ocean-city', center: [-75.0906, 38.3286], zoom: 7.5 },
       { id: 'ny-shinnecock', center: [-72.48, 40.84], zoom: 7.9 },
       { id: 'ny-montauk', center: [-71.94, 41.07], zoom: 7.8 },
       { id: 'nj-manasquan', center: [-74.03, 40.10], zoom: 7.7 },
@@ -64,14 +64,14 @@ function gfwUpstreamUrl({ inletId, bbox, days }: { inletId?: string; bbox?: stri
       { id: 'nc-morehead', center: [-76.69, 34.72], zoom: 7.6 },
       { id: 'nc-oregon-inlet', center: [-75.54, 35.77], zoom: 7.4 }
     ];
-    
-    const inlet = INLETS.find(i => i.id === inletId);
+
+    const inlet = INLETS.find(i => i.id === inletId || i.id === inletId.replace(/^[a-z]+-/, ''));
     if (inlet) {
-      // Approximate bbox from zoom level
-      const degrees = 2.5 - (inlet.zoom - 7) * 0.5; // Rough approximation
+      // Approximate bbox from zoom level (larger area for vessel search)
+      const degrees = 1.0; // About 60 nautical miles square
       const [lng, lat] = inlet.center;
       const calculatedBbox = `${lng - degrees},${lat - degrees},${lng + degrees},${lat + degrees}`;
-      params.append('positions-bbox', calculatedBbox);
+      params.append('bbox', calculatedBbox);
     }
   }
   
@@ -80,12 +80,6 @@ function gfwUpstreamUrl({ inletId, bbox, days }: { inletId?: string; bbox?: stri
 
 // Normalize GFW response to our expected format (as per brief)
 function normalizeGFW(up: any) {
-  console.log('[GFW] Raw upstream shape:', {
-    hasEntries: !!up?.entries,
-    entriesCount: up?.entries?.length || 0,
-    firstEntry: up?.entries?.[0] ? Object.keys(up.entries[0]) : null
-  });
-
   const vessels = (up?.entries ?? up?.vessels ?? []).map((entry: any) => {
     // Handle various possible structures
     const v = entry.vessel || entry;
@@ -137,23 +131,12 @@ function normalizeGFW(up: any) {
         type: 'fishing'
       })).filter((e: any) => e.lon && e.lat);
     });
-  
-  console.log('[GFW] Normalized:', { 
-    vesselsCount: vessels.length,
-    firstVessel: vessels[0] ? {
-      id: vessels[0].id,
-      name: vessels[0].name,
-      gear: vessels[0].gear,
-      hasLastPos: !!vessels[0].last_pos,
-      trackLength: vessels[0].track.length
-    } : null,
-    eventsCount: events.length 
-  });
-  
+
   return { vessels, events };
 }
 
 export async function GET(req: Request) {
+  // API endpoint for fetching GFW vessel data
   if (!gfwEnabled) {
     return NextResponse.json({
       configured: false,
@@ -162,13 +145,38 @@ export async function GET(req: Request) {
       events: []
     });
   }
-  
+
   const { inletId, bbox, days } = parseParams(req);
-  console.log('[GFW] params', { inletId, bbox, days });
+
+  // Check token validity early
+  const apiToken = process.env.NEXT_PUBLIC_GFW_API_TOKEN || process.env.GFW_API_TOKEN;
+
+  if (apiToken) {
+    try {
+      // Decode JWT to check for issues
+      const parts = apiToken.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+        const iat = payload.iat * 1000; // Convert to milliseconds
+        const now = Date.now();
+
+        if (iat > now) {
+          return NextResponse.json({
+            configured: false,
+            reason: 'invalid-token-future-iat',
+            message: 'GFW token configuration issue - token dated in future',
+            vessels: [],
+            events: []
+          });
+        }
+      }
+    } catch (e) {
+      // Token validation failed
+    }
+  }
 
   // Demo mode fallback
   if (process.env.NEXT_PUBLIC_GFW_DEMO === '1') {
-    console.log('[GFW] Demo mode active');
     return NextResponse.json({
       vessels: [{
         id: 'demo-1',
@@ -195,46 +203,47 @@ export async function GET(req: Request) {
     });
   }
 
-  const token = process.env.GFW_API_TOKEN;
-  if (!token) {
-    console.log('[GFW] No token configured');
-    return NextResponse.json({ 
-      configured: false, 
-      vessels: [], 
-      events: [] 
-    });
-  }
-
+  // Validate parameters
   if (!inletId && !bbox) {
-    console.log('[GFW] Missing params');
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'missing inlet_id/inletId or bbox',
-      vessels: [], 
-      events: [] 
+      vessels: [],
+      events: []
     });
   }
 
+  // Check if token exists
+  if (!apiToken) {
+    return NextResponse.json({
+      configured: false,
+      reason: 'no-token',
+      message: 'GFW API token not configured',
+      vessels: [],
+      events: []
+    });
+  }
+
+  // Try to fetch from GFW API
   const url = gfwUpstreamUrl({ inletId, bbox, days });
-  console.log('[GFW] upstream →', url.replace(token, '***'));
 
   try {
     const started = Date.now();
     const res = await withTimeout(fetch(url, {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
+      headers: {
+        'Authorization': `Bearer ${apiToken}`,
         'Content-Type': 'application/json'
       }
     }), TIMEOUT_MS);
 
-    console.log('[GFW] upstream status', res.status, `${Date.now() - started}ms`);
-
     if (!res.ok) {
       const text = await res.text().catch(() => '<no body>');
       console.error('[GFW] upstream error:', res.status, text.slice(0, 400));
-      return NextResponse.json({ 
-        error: `upstream ${res.status}`,
-        vessels: [], 
-        events: [] 
+
+      return NextResponse.json({
+        error: `GFW API returned ${res.status}`,
+        message: res.status === 401 ? 'GFW token needs activation - see GFW-NEEDS-LIST.md' : 'GFW API unavailable',
+        vessels: [],
+        events: []
       });
     }
 
@@ -244,16 +253,18 @@ export async function GET(req: Request) {
     });
 
     const data = normalizeGFW(raw);
-    console.log('[GFW] Success - returning', { vessels: data.vessels.length, events: data.events.length });
 
-    // Return the normalized data directly (not wrapped)
+    // Return real data from GFW
     return NextResponse.json(data);
+
   } catch (e: any) {
     console.error('[GFW] Exception:', e?.message || String(e));
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       error: e?.message || String(e),
-      vessels: [], 
-      events: [] 
+      message: 'GFW API request failed',
+      vessels: [],
+      events: []
     });
   }
 }

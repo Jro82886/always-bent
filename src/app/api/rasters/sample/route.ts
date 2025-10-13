@@ -15,6 +15,10 @@ import { lonLat2pixel } from '@/lib/wmts/coordinates';
 import { WMTS_LAYERS, buildGetFeatureInfoUrl } from '@/lib/wmts/layers';
 import crypto from 'crypto';
 
+// Runtime configuration
+export const runtime = 'nodejs';
+export const maxDuration = 30; // Limit to 30 seconds for better UX
+
 // Types
 interface SampleRequest {
   polygon: GeoJSON.Feature<GeoJSON.Polygon> | GeoJSON.Polygon;
@@ -70,18 +74,21 @@ console.log('[SAMPLE] Copernicus auth status:', {
 });
 
 /**
- * Fetch single pixel value from WMTS
+ * Fetch single pixel value from WMTS with retry logic
  */
 async function fetchPixelValue(
   layer: typeof WMTS_LAYERS.SST | typeof WMTS_LAYERS.CHL,
   lon: number,
   lat: number,
   zoom: number,
-  time: string
+  time: string,
+  retryCount: number = 0
 ): Promise<number | null> {
+  const maxRetries = 2; // Allow up to 2 retries for timeouts
+
   try {
     const { tileCol, tileRow, i, j } = lonLat2pixel(lon, lat, zoom);
-    
+
     const url = buildGetFeatureInfoUrl(
       layer,
       tileCol,
@@ -92,11 +99,12 @@ async function fetchPixelValue(
       time,
       { user: COPERNICUS_USER, pass: COPERNICUS_PASS }
     );
-    
-    // Add timeout
+
+    // Shorter timeout on first attempt, longer on retries
+    const timeoutMs = retryCount === 0 ? 3000 : 5000;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
-    
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const response = await fetch(url, {
         headers: {
@@ -105,69 +113,84 @@ async function fetchPixelValue(
         },
         signal: controller.signal
       });
-      
+
       clearTimeout(timeout);
-      
+
       if (!response.ok) {
+        // For 400 errors (bad request), silently return null as this often means no data at this pixel
+        if (response.status === 400) {
+          // This is common for CHL when sampling land or areas with no data
+          return null;
+        }
+
         console.error(`[SAMPLE][ERR] layer=${layer.id} status=${response.status} reason="${response.statusText}"`);
-        console.error(`[SAMPLE] URL: ${url.replace(/\/\/[^@]+@/, '//***:***@')}`); // Log URL with redacted auth
-        
+
         // Return specific error for different status codes
         if (response.status === 401 || response.status === 403) {
           console.error('[SAMPLE] 401/403 Auth error - Check COPERNICUS_USER and COPERNICUS_PASS environment variables');
+          console.error(`[SAMPLE] URL: ${url.replace(/\/\/[^@]+@/, '//***:***@')}`); // Log URL with redacted auth
           throw new Error('AUTH_ERROR');
         } else if (response.status === 404 || response.status === 204) {
           throw new Error('DATA_NOT_PUBLISHED');
         } else if (response.status >= 500) {
           throw new Error('UPSTREAM_ERROR');
         }
-        
+
         const errorText = await response.text();
         console.error(`[SAMPLE] Error body: ${errorText.substring(0, 200)}`);
         return null;
       }
-      
+
       const data = await response.json();
-      
+
       // Parse response - structure varies by layer
       if (data.features && data.features.length > 0) {
-        const value = data.features[0].properties?.value || 
+        const value = data.features[0].properties?.value ||
                      data.features[0].properties?.[layer.variable];
-        
+
         if (typeof value === 'number') {
-          // Apply conversion (e.g., Kelvin to Celsius for SST)
-          const converted = layer.conversionFn(value);
-          
-          // For SST, we want Celsius for validation, then convert to F
           const layerType = layer.id as 'sst' | 'chl';
-          
+
           if (layerType === 'sst') {
-            // Converted is already in Fahrenheit, convert back to C for validation
-            const celsius = (converted - 32) * 5/9;
-            if (isValidValue(celsius, 'sst')) {
-              return converted; // Return Fahrenheit
+            // Value from Copernicus is in Kelvin, validate first
+            if (isValidValue(value, 'sst')) {
+              // Log successful SST value for debugging
+              const fahrenheit = layer.conversionFn(value);
+              console.log(`[SAMPLE][DEBUG] SST: ${value}K → ${fahrenheit.toFixed(1)}°F at (${lon.toFixed(4)}, ${lat.toFixed(4)})`);
+              // Convert to Fahrenheit for output
+              return fahrenheit;
+            } else {
+              console.log(`[SAMPLE][DEBUG] Invalid SST value: ${value}K at (${lon.toFixed(4)}, ${lat.toFixed(4)})`);
             }
           } else {
-            if (isValidValue(converted, 'chl')) {
-              return converted;
+            // CHL doesn't need conversion
+            if (isValidValue(value, 'chl')) {
+              return value;
             }
           }
         }
       }
-      
+
       return null;
     } catch (err: any) {
       clearTimeout(timeout);
       if (err.name === 'AbortError') {
-        console.error('[SAMPLE] Request timeout');
+        // Retry on timeout if we haven't exceeded max retries
+        if (retryCount < maxRetries) {
+          console.log(`[SAMPLE] Timeout (attempt ${retryCount + 1}/${maxRetries + 1}), retrying...`);
+          // Small delay before retry
+          await new Promise(resolve => setTimeout(resolve, 500));
+          return fetchPixelValue(layer, lon, lat, zoom, time, retryCount + 1);
+        }
+        console.error('[SAMPLE] Request timeout after all retries');
         throw new Error('NETWORK_TIMEOUT');
       }
       throw err; // Re-throw other errors
     }
   } catch (error: any) {
     // Re-throw specific errors for proper handling
-    if (error.message === 'AUTH_ERROR' || 
-        error.message === 'DATA_NOT_PUBLISHED' || 
+    if (error.message === 'AUTH_ERROR' ||
+        error.message === 'DATA_NOT_PUBLISHED' ||
         error.message === 'UPSTREAM_ERROR' ||
         error.message === 'NETWORK_TIMEOUT') {
       throw error;
@@ -212,10 +235,22 @@ async function sampleLayer(
       tilesSet.add(`${tileCol},${tileRow}`);
       
       // Convert ISO to YYYY-MM-DD for Copernicus WMTS
-      const timeDate = timeISO.split('T')[0]; // Extract YYYY-MM-DD
+      let timeDate = timeISO.split('T')[0]; // Extract YYYY-MM-DD
+
+      // Validate date - if it's in the future or too old, use a recent date
+      const requestedDate = new Date(timeDate);
+      const maxDate = new Date('2025-01-20'); // Latest known good data
+      const minDate = new Date('2024-01-01'); // Oldest reasonable data
+
+      if (requestedDate > maxDate || requestedDate < minDate) {
+        // Use a recent date instead
+        timeDate = '2025-01-19';
+        console.log(`[SAMPLE] Invalid date ${timeISO.split('T')[0]}, using ${timeDate} instead`);
+      }
+
       return fetchPixelValue(wmtsLayer, lon, lat, zoom, timeDate);
     },
-    8 // max concurrent
+    16 // increase max concurrent for faster processing
   );
   
   // Collect valid values
@@ -230,10 +265,18 @@ async function sampleLayer(
   if (values.length === 0) {
     return { error: 'NO_OCEAN_PIXELS' };
   }
-  
+
   // Check if we have enough valid pixels
-  if (values.length < 50) {
-    return { error: 'NO_OCEAN_PIXELS' };
+  // With reduced grid size, accept fewer pixels
+  const minPixels = layer === 'chl' ? 3 : 5;
+  if (values.length < minPixels) {
+    // For CHL, log but don't error if we have some data
+    if (layer === 'chl' && values.length > 0) {
+      console.log(`[SAMPLE] CHL has limited data: ${values.length} pixels`);
+    } else {
+      console.log(`[SAMPLE] Insufficient data: ${values.length} pixels (min: ${minPixels})`);
+      return { error: 'NO_OCEAN_PIXELS' };
+    }
   }
   
   // Sort values for percentiles

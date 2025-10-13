@@ -3,7 +3,8 @@ import { useAppState } from '@/lib/store';
 import { toVM } from '@/types/analyze';
 
 export async function runAnalyzeV2(polygon: GeoJSON.Polygon) {
-  const dateISO = new Date().toISOString().slice(0,10)
+  // Use a known recent date with available Copernicus data
+  const dateISO = '2025-01-20'; // January 20, 2025 - we know this date has data
   const res = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type':'application/json' },

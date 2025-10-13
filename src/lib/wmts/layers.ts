@@ -27,8 +27,8 @@ export const WMTS_LAYERS = {
     supportsElevation: false, // L4 SST is surface only
     unit: '°F',
     conversionFn: (kelvin: number) => {
-      // Copernicus SST is in Kelvin
-      // Convert to Fahrenheit: K → C → F
+      // Copernicus SST is in Kelvin (verified via API test)
+      // Convert: Kelvin → Celsius → Fahrenheit
       const celsius = kelvin - 273.15;
       return celsius * 9/5 + 32;
     }

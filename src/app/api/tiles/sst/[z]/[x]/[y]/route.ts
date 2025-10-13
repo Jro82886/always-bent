@@ -18,15 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   const publicTplKey = isSst ? 'NEXT_PUBLIC_SST_WMTS_TEMPLATE' : 'NEXT_PUBLIC_CHL_WMTS_TEMPLATE';
   const base = process.env[tplKey] || process.env[publicTplKey];
 
-  // DEBUG LOGGING
-  
-  
-  
-  
-  
-
   if (!base) {
-    
     return new Response(`${tplKey} not configured`, { status: 500 });
   }
 
@@ -39,10 +31,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   };
   
   // Generate fallback dates: yesterday and 2 days ago
-  // (GetCapabilities shows data up to 2025-09-10, which is 2 days ago)
+  // Copernicus data is typically 1-2 days behind real-time
   const fallbackDates: string[] = [];
-  for (let daysAgo = 1; daysAgo <= 2; daysAgo++) {
-    const date = new Date();
+  // Use the current date, but ensure it's not in the future
+  const now = new Date();
+  const maxDate = new Date('2025-01-20'); // Latest known good data
+  const baseDate = now > maxDate ? maxDate : now;
+
+  for (let daysAgo = 1; daysAgo <= 3; daysAgo++) {
+    const date = new Date(baseDate);
     date.setDate(date.getDate() - daysAgo);
     fallbackDates.push(buildDailyIso(date));
   }
@@ -52,15 +49,32 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
     // Default to yesterday (1 day ago) - usually available
     timeParam = fallbackDates[0];
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(qTime)) {
-    timeParam = `${qTime}T00:00:00.000Z`;
+    // Check if the requested date is in the future
+    const requestedDate = new Date(qTime);
+    const maxAllowedDate = new Date('2025-01-20');
+
+    if (requestedDate > maxAllowedDate) {
+      // If future date requested, use the most recent available data
+      console.log(`[SST] Future date ${qTime} requested, using ${fallbackDates[0].split('T')[0]} instead`);
+      timeParam = fallbackDates[0];
+    } else {
+      timeParam = `${qTime}T00:00:00.000Z`;
+    }
   } else {
     timeParam = qTime; // assume caller provided a full ISO timestamp
   }
   
-  // SST tile fetching logic
-  
-  const u = process.env.COPERNICUS_USER || '';
-  const p = process.env.COPERNICUS_PASS || '';
+  // SST tile fetching logic - ensure credentials are present
+  const u = process.env.COPERNICUS_USER;
+  const p = process.env.COPERNICUS_PASS;
+
+  if (!u || !p) {
+    return new Response('Copernicus credentials not configured', {
+      status: 500,
+      headers: { 'x-error': 'Missing COPERNICUS_USER or COPERNICUS_PASS environment variables' }
+    });
+  }
+
   const auth = 'Basic ' + Buffer.from(`${u}:${p}`).toString('base64');
 
   // Try with smart fallback if the requested date fails
@@ -95,8 +109,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
         cache: 'no-store'
       });
 
-      
-      
       if (response.ok) {
         upstream = response;
         successfulTime = tryTime;
@@ -105,13 +117,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       } else if (response.status === 400 && datesToTry.length > 1) {
         // Try next date
         lastError = await response.text();
-        
         continue;
       } else {
         // Non-400 error or last attempt
         const text = await response.text();
-        
-        
         return new Response(text || `Upstream ${response.status}`, {
           status: response.status,
           headers: { 
@@ -122,7 +131,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       }
     } catch (e: any) {
       lastError = e?.message || String(e);
-      
       if (datesToTry.indexOf(tryTime) === datesToTry.length - 1) {
         // Last attempt failed
         break;
@@ -131,7 +139,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   }
 
   if (!upstream) {
-    
     return new Response(`All dates failed. Last error: ${lastError}`, {
       status: 502,
       headers: { 

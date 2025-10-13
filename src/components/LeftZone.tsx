@@ -244,7 +244,7 @@ export default function LeftZone({
                   rightSlot={
                     sstActive && (
                       <Tooltip content="Enhancements" side="bottom">
-                        <button
+                        <div
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowSstEnhance(!showSstEnhance);
@@ -252,10 +252,12 @@ export default function LeftZone({
                             setShowChlOpacity(false);
                             setShowChlEnhance(false);
                           }}
-                          className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-teal-600/60 rounded hover:from-cyan-500/60 hover:to-teal-500/60 transition-colors"
+                          className="p-1.5 bg-gradient-to-r from-cyan-600/60 to-teal-600/60 rounded hover:from-cyan-500/60 hover:to-teal-500/60 transition-colors cursor-pointer"
+                          role="button"
+                          tabIndex={0}
                         >
                           <Sparkles size={12} className="text-white" />
-                        </button>
+                        </div>
                       </Tooltip>
                     )
                   }
@@ -367,7 +369,7 @@ export default function LeftZone({
                   rightSlot={
                     chlActive && (
                       <Tooltip content="Enhancements" side="bottom">
-                        <button
+                        <div
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowChlEnhance(!showChlEnhance);
@@ -375,10 +377,12 @@ export default function LeftZone({
                             setShowSstOpacity(false);
                             setShowSstEnhance(false);
                           }}
-                          className="p-1.5 bg-gradient-to-r from-green-600/60 to-teal-600/60 rounded hover:from-green-500/60 hover:to-teal-500/60 transition-colors"
+                          className="p-1.5 bg-gradient-to-r from-green-600/60 to-teal-600/60 rounded hover:from-green-500/60 hover:to-teal-500/60 transition-colors cursor-pointer"
+                          role="button"
+                          tabIndex={0}
                         >
                           <Sparkles size={12} className="text-white" />
-                        </button>
+                        </div>
                       </Tooltip>
                     )
                   }
@@ -526,7 +530,7 @@ export default function LeftZone({
                   rightSlot={
                     oceanActive && (
                       <Tooltip content="Adjust opacity" side="bottom">
-                        <button
+                        <div
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowOceanOpacity(!showOceanOpacity);
@@ -534,10 +538,12 @@ export default function LeftZone({
                             setShowChlOpacity(false);
                             setShowSstEnhance(false);
                           }}
-                          className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors"
+                          className="p-1.5 bg-slate-700/60 rounded hover:bg-cyan-500/20 transition-colors cursor-pointer"
+                          role="button"
+                          tabIndex={0}
                         >
                           <Sliders size={12} className="text-cyan-400" />
-                        </button>
+                        </div>
                       </Tooltip>
                     )
                   }
@@ -583,57 +589,82 @@ export default function LeftZone({
           </div>
         </div>
         
-        {/* DATE SELECTOR - Always visible, disabled when no layers active */}
-        <div className={`bg-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-500/20 px-4 py-3 ${
-          !anyLayerActive ? 'opacity-50' : ''
-        }`}>
+        {/* DATE SELECTOR - Always enabled for better UX */}
+        <div className="bg-slate-800/90 backdrop-blur-md rounded-lg border border-cyan-500/20 px-4 py-3">
           <button
-            onClick={() => anyLayerActive && setShowDateSelector(!showDateSelector)}
-            className={`w-full flex items-center justify-between rounded transition-colors px-2 py-1 ${
-              anyLayerActive ? 'hover:bg-cyan-500/10 cursor-pointer' : 'cursor-not-allowed'
-            }`}
-            disabled={!anyLayerActive}
+            onClick={() => setShowDateSelector(!showDateSelector)}
+            className="w-full flex items-center justify-between rounded transition-colors px-2 py-1 hover:bg-cyan-500/10 cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <CalendarDays size={14} className={anyLayerActive ? 'text-cyan-400' : 'text-gray-500'} />
-              <span className={`text-sm font-medium ${anyLayerActive ? 'text-cyan-300' : 'text-gray-500'}`}>
+              <CalendarDays size={14} className="text-cyan-400" />
+              <span className="text-sm font-medium text-cyan-300">
                 Date Selection
               </span>
             </div>
-            <span className={`text-xs ${anyLayerActive ? 'text-cyan-400' : 'text-gray-500'}`}>
-              {selectedDate === 'today' ? 'Today' : 
-               selectedDate === 'yesterday' ? 'Yesterday' : 
-               selectedDate === '2days' ? '2 Days Ago' : selectedDate}
+            <span className="text-xs text-cyan-400">
+              {(() => {
+                const today = new Date().toISOString().slice(0, 10);
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().slice(0, 10);
+                const twoDaysAgo = new Date();
+                twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+                const twoDaysAgoStr = twoDaysAgo.toISOString().slice(0, 10);
+
+                if (selectedDate === today) return 'Today';
+                if (selectedDate === yesterdayStr) return 'Yesterday';
+                if (selectedDate === twoDaysAgoStr) return '2 Days Ago';
+                return selectedDate;
+              })()}
             </span>
           </button>
-          
-          {showDateSelector && anyLayerActive && (
+
+          {showDateSelector && (
             <div ref={dateSelectorRef} className="mt-2 pt-2 border-t border-cyan-500/10 space-y-1">
               <button
-                onClick={() => setSelectedDate('today')}
+                onClick={() => {
+                  const today = new Date().toISOString().slice(0, 10);
+                  setSelectedDate(today);
+                }}
                 className={`w-full px-3 py-2 text-xs rounded transition-colors ${
-                  selectedDate === 'today' 
-                    ? 'bg-cyan-500/20 text-cyan-300' 
+                  selectedDate === new Date().toISOString().slice(0, 10)
+                    ? 'bg-cyan-500/20 text-cyan-300'
                     : 'hover:bg-cyan-500/10 text-gray-400'
                 }`}
               >
                 Today
               </button>
               <button
-                onClick={() => setSelectedDate('yesterday')}
+                onClick={() => {
+                  const yesterday = new Date();
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  setSelectedDate(yesterday.toISOString().slice(0, 10));
+                }}
                 className={`w-full px-3 py-2 text-xs rounded transition-colors ${
-                  selectedDate === 'yesterday' 
-                    ? 'bg-cyan-500/20 text-cyan-300' 
+                  (() => {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    return selectedDate === yesterday.toISOString().slice(0, 10);
+                  })()
+                    ? 'bg-cyan-500/20 text-cyan-300'
                     : 'hover:bg-cyan-500/10 text-gray-400'
                 }`}
               >
                 Yesterday
               </button>
               <button
-                onClick={() => setSelectedDate('2days')}
+                onClick={() => {
+                  const twoDaysAgo = new Date();
+                  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+                  setSelectedDate(twoDaysAgo.toISOString().slice(0, 10));
+                }}
                 className={`w-full px-3 py-2 text-xs rounded transition-colors ${
-                  selectedDate === '2days' 
-                    ? 'bg-cyan-500/20 text-cyan-300' 
+                  (() => {
+                    const twoDaysAgo = new Date();
+                    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+                    return selectedDate === twoDaysAgo.toISOString().slice(0, 10);
+                  })()
+                    ? 'bg-cyan-500/20 text-cyan-300'
                     : 'hover:bg-cyan-500/10 text-gray-400'
                 }`}
               >

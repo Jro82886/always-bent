@@ -118,7 +118,7 @@ export default function FleetLayer({
   useEffect(() => {
     if (!map || !showFleet) {
       // Clean up layers
-      if (map) {
+      if (map && typeof map.getLayer === 'function') {
         try {
           if (map.getLayer('fleet-vessels')) map.removeLayer('fleet-vessels');
           if (map.getLayer('fleet-vessels-badge')) map.removeLayer('fleet-vessels-badge');
@@ -247,14 +247,12 @@ export default function FleetLayer({
     
     // Cleanup function
     return () => {
-      if (!map) return;
-      
+      if (!map || typeof map.getLayer !== 'function') return;
+
       try {
         // Remove event listeners
         // map.off not available - handlers cleaned up via removeLayer
-        // map.off not available
-        // map.off not available
-        
+
         // Remove layers
         if (map.getLayer('fleet-vessels-badge')) map.removeLayer('fleet-vessels-badge');
         if (map.getLayer('fleet-vessels')) map.removeLayer('fleet-vessels');
@@ -282,9 +280,13 @@ export default function FleetLayer({
   useEffect(() => {
     if (!map || !showFleetTracks || !selectedVesselId) {
       // Clean up trail layer
-      if (map) {
-        if (map.getLayer('vessel-trail')) map.removeLayer('vessel-trail');
-        if (map.getSource('vessel-trail')) map.removeSource('vessel-trail');
+      if (map && typeof map.getLayer === 'function') {
+        try {
+          if (map.getLayer('vessel-trail')) map.removeLayer('vessel-trail');
+          if (map.getSource('vessel-trail')) map.removeSource('vessel-trail');
+        } catch (e) {
+          console.warn('Vessel trail cleanup error:', e);
+        }
       }
       return;
     }
@@ -329,14 +331,18 @@ export default function FleetLayer({
   // Clean up on unmount
   useEffect(() => {
     return () => {
-      if (map) {
-        // Remove all fleet-related layers and sources
-        ['fleet-vessels', 'fleet-vessels-badge', 'vessel-trail'].forEach(id => {
-          if (map.getLayer(id)) map.removeLayer(id);
-        });
-        ['fleet-vessels', 'vessel-trail'].forEach(id => {
-          if (map.getSource(id)) map.removeSource(id);
-        });
+      if (map && typeof map.getLayer === 'function') {
+        try {
+          // Remove all fleet-related layers and sources
+          ['fleet-vessels', 'fleet-vessels-badge', 'vessel-trail'].forEach(id => {
+            if (map.getLayer(id)) map.removeLayer(id);
+          });
+          ['fleet-vessels', 'vessel-trail'].forEach(id => {
+            if (map.getSource(id)) map.removeSource(id);
+          });
+        } catch (e) {
+          console.warn('Fleet layer final cleanup error:', e);
+        }
       }
     };
   }, [map]);

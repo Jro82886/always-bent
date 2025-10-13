@@ -104,7 +104,7 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
   };
 
   return (
-    <div className="pointer-events-auto z-[100] flex flex-wrap items-center gap-2 rounded-md bg-black/50 px-3 py-2 text-white backdrop-blur">
+    <div className="pointer-events-auto z-[100] flex flex-wrap items-center gap-2 rounded-md bg-black/50 px-3 py-2 text-white backdrop-blur" style={{ pointerEvents: 'auto' }}>
       {/* Inlet select: Only in Tracking */}
       {showInletSelect && (
         <>
@@ -197,13 +197,14 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
           <label className="ml-3 mr-1 text-xs opacity-80" htmlFor="date-input">
             Date
           </label>
-          <div id="tour-date-picker">
+          <div id="tour-date-picker" className="pointer-events-auto">
             <input
               id="date-input"
               type="date"
               value={localDate}
               onChange={onChangeDate}
-              className="rounded bg-black/60 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-cyan-400/60"
+              className="rounded bg-black/60 px-2 py-1 outline-none ring-1 ring-white/10 focus:ring-cyan-400/60 pointer-events-auto cursor-pointer"
+              style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
             />
           </div>
         </>

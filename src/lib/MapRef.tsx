@@ -45,6 +45,12 @@ export function MapShell({ children }: { children: React.ReactNode }) {
     // Set Mapbox token here to avoid SSR issues
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
 
+    // Disable Mapbox telemetry to avoid console errors
+    (mapboxgl as any).config = {
+      ...(mapboxgl as any).config,
+      EVENTS_URL: ''
+    };
+
     // Start at the default overview inlet
     const map = new mapboxgl.Map({
       container: divRef.current,

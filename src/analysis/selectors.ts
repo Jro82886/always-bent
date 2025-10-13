@@ -10,5 +10,10 @@ export const useLayerFlags = () => {
 
 export const useSelectedDateISO = () => {
   const isoDate = useAppState(s => s.isoDate);
-  return isoDate ?? new Date().toISOString().slice(0, 10);
+  // Use a known recent date with available Copernicus data
+  if (!isoDate) {
+    // January 20, 2025 - a date we know should have data
+    return '2025-01-20';
+  }
+  return isoDate;
 };

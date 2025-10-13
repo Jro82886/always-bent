@@ -7,18 +7,18 @@ import * as turf from '@turf/turf';
 import crypto from 'crypto';
 
 // Configuration
-const GRID_SIZE = 16; // 16x16 = 256 points max
+const GRID_SIZE = 4; // 4x4 = 16 points max for FAST sampling
 const SST_TARGET_KM = 2;
 const CHL_TARGET_KM = 1;
 const SST_FIXED_ZOOM = 6;
 const CHL_FIXED_ZOOM = 7;
-const MAX_CONCURRENT = 8;
-const REQUEST_TIMEOUT_MS = 12000;
+const MAX_CONCURRENT = 16; // Increase concurrency for faster processing
+const REQUEST_TIMEOUT_MS = 5000; // 5 second timeout per request
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 // Nodata values to filter
 const NODATA_VALUES = new Set([-32768, -9999, 255]);
-const SST_VALID_RANGE = { min: -2, max: 40 }; // Celsius
+const SST_VALID_RANGE = { min: 271.15, max: 313.15 }; // Kelvin (-2°C to 40°C)
 const CHL_VALID_RANGE = { min: 0.001, max: 100 }; // mg/m³
 
 // Simple in-memory cache

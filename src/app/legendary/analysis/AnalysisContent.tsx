@@ -31,6 +31,7 @@ import DynamicAnalysisModal from '@/components/DynamicAnalysisModal';
 // import SnipTool from '@/components/SnipTool'; // OLD - 2400 lines
 import SnipTool from '@/components/SimpleSnipTool'; // NEW - 120 lines
 import { AskABFI } from '@/components/AskABFI';
+// Removed DemoLogin - using real Memberstack auth
 
 // Mapbox token will be set in useEffect to avoid SSR issues
 
@@ -142,6 +143,12 @@ function AnalysisModeContent() {
 
     // Set Mapbox token here to avoid SSR issues
     mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN as string;
+
+    // Disable Mapbox telemetry to avoid console errors
+    (mapboxgl as any).config = {
+      ...(mapboxgl as any).config,
+      EVENTS_URL: ''
+    };
 
     // Clean up any existing map instances first
     const existingCanvas = mapContainer.current.querySelector('.mapboxgl-canvas');
@@ -445,7 +452,7 @@ function AnalysisModeContent() {
       {/* Unified Command Bar - Navigation + Boat Info */}
       {/* Command Bridge Header */}
       <HeaderBar activeMode="analysis" />
-      
+
       {/* ANALYSIS MODE UI */}
       <>
           {/* LEFT ZONE - Intelligence & Planning (Over Land) */}
