@@ -31,29 +31,15 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
-// Build GFW API URL
+// Build GFW API URL for v3 Vessels API
 function gfwUpstreamUrl({ inletId, bbox, days }: { inletId?: string; bbox?: string; days: number }) {
-  // Use v3 vessels/search endpoint as per documentation
+  // Use v3 vessels/search endpoint (GET with bbox support)
   const base = 'https://gateway.api.globalfishingwatch.org/v3/vessels/search';
 
-  // Calculate date range
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
+  // Determine bbox for geographic filtering
+  let searchBbox = bbox;
 
-  // Use correct parameter format for v3 API
-  const params = new URLSearchParams({
-    'datasets[0]': 'public-global-vessel-identity:latest',  // Correct dataset format
-    'date-range': `${startDate.toISOString().split('T')[0]},${endDate.toISOString().split('T')[0]}`,
-    'limit': '50',
-    'offset': '0'
-  });
-
-  // Add bbox for geographic filtering
-  if (bbox) {
-    // v3 uses 'bbox' parameter for geographic filtering
-    params.append('bbox', bbox);
-  } else if (inletId) {
+  if (!searchBbox && inletId) {
     // Import inlet config - handle both formats (with and without state prefix)
     const INLETS = [
       { id: 'md-ocean-city', center: [-75.0906, 38.3286], zoom: 7.5 },
@@ -70,11 +56,20 @@ function gfwUpstreamUrl({ inletId, bbox, days }: { inletId?: string; bbox?: stri
       // Approximate bbox from zoom level (larger area for vessel search)
       const degrees = 1.0; // About 60 nautical miles square
       const [lng, lat] = inlet.center;
-      const calculatedBbox = `${lng - degrees},${lat - degrees},${lng + degrees},${lat + degrees}`;
-      params.append('bbox', calculatedBbox);
+      searchBbox = `${lng - degrees},${lat - degrees},${lng + degrees},${lat + degrees}`;
     }
   }
-  
+
+  // Build v3 Vessels API parameters
+  const params = new URLSearchParams({
+    datasets: 'public-global-vessel-identity:v3.0',
+  });
+
+  // Add bbox filter if available
+  if (searchBbox) {
+    params.append('bbox', searchBbox);
+  }
+
   return `${base}?${params}`;
 }
 
@@ -226,6 +221,9 @@ export async function GET(req: Request) {
   // Try to fetch from GFW API
   const url = gfwUpstreamUrl({ inletId, bbox, days });
 
+  // Debug: Log request details
+  console.log('[GFW] Vessels API URL:', url);
+
   try {
     const started = Date.now();
     const res = await withTimeout(fetch(url, {
@@ -235,9 +233,11 @@ export async function GET(req: Request) {
       }
     }), TIMEOUT_MS);
 
+    console.log('[GFW] Response status:', res.status, res.statusText);
+
     if (!res.ok) {
       const text = await res.text().catch(() => '<no body>');
-      console.error('[GFW] upstream error:', res.status, text.slice(0, 400));
+      console.error('[GFW] upstream error:', res.status, text);
 
       return NextResponse.json({
         error: `GFW API returned ${res.status}`,
@@ -251,6 +251,15 @@ export async function GET(req: Request) {
       const t = await res.text();
       throw new Error(`non-json body: ${t.slice(0, 200)}`);
     });
+
+    // Debug: Log raw GFW response
+    console.log('[GFW] Response keys:', Object.keys(raw || {}));
+    console.log('[GFW] Total entries/vessels:', raw?.entries?.length || raw?.vessels?.length || 0);
+    console.log('[GFW] Total available:', raw?.total || 0);
+    if (raw?.entries && raw.entries.length > 0) {
+      console.log('[GFW] First entry keys:', Object.keys(raw.entries[0]));
+      console.log('[GFW] First entry structure:', JSON.stringify(raw.entries[0], null, 2).slice(0, 2000));
+    }
 
     const data = normalizeGFW(raw);
 
