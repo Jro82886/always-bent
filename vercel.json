@@ -3,7 +3,10 @@
   "installCommand": "npm install --force",
   "framework": "nextjs",
   "functions": {
-    "src/app/api/**/*.ts": {
+    "src/app/api/polygons/live/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/tiles/**/route.ts": {
       "maxDuration": 30
     }
   }
