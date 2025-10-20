@@ -28,7 +28,7 @@ export default function EnhancedSnipAnalysisModal() {
   };
 
   const getScoreCategory = (category: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       'strong': 'text-green-400',
       'fair': 'text-yellow-400',
       'poor': 'text-red-400'
@@ -263,7 +263,7 @@ export default function EnhancedSnipAnalysisModal() {
                       ).length;
                       if (count === 0) return null;
 
-                      const colors = {
+                      const colors: Record<string, string> = {
                         edge: 'text-red-400',
                         filament: 'text-yellow-400',
                         eddy: 'text-green-400'
@@ -307,7 +307,7 @@ export default function EnhancedSnipAnalysisModal() {
                     {enhanced.fleetActivity.vessels.length > 0 && (
                       <div className="space-y-2">
                         <p className="text-xs text-slate-500 uppercase">Active Vessels:</p>
-                        {enhanced.fleetActivity.vessels.slice(0, 3).map((vessel, idx) => (
+                        {enhanced.fleetActivity.vessels.slice(0, 3).map((vessel: any, idx: number) => (
                           <div key={idx} className="p-2 bg-slate-700/50 rounded text-sm">
                             <div className="flex items-center justify-between">
                               <span className="text-slate-300 font-medium">{vessel.name}</span>
