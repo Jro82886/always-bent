@@ -1,9 +1,61 @@
 // types/analyze.ts
+
+// Enhanced analysis types
+export type SnipScore = {
+  total: number
+  category: 'poor' | 'fair' | 'strong'
+  breakdown: {
+    temperatureAndGradient: number
+    chlorophyll: number
+    fleetActivity: number
+    userReports: number
+    trends: number
+  }
+}
+
+export type EnhancedAnalysis = {
+  score: SnipScore
+  temperature: {
+    currentAvgF: number
+    rangeF: { min: number; max: number }
+    bestBreak?: {
+      strengthF: number
+      location: string
+      coordinates: [number, number]
+    }
+  }
+  chlorophyll: {
+    currentAvg: number
+    range: { min: number; max: number }
+    clarity: string
+    clarityColor: string
+  }
+  fleetActivity: {
+    density: 'none' | 'low' | 'medium' | 'high'
+    vessels: Array<{
+      name: string
+      type: string
+      activity: string
+      dwellTime: string
+      lastPosition: [number, number]
+    }>
+  }
+  trends: {
+    sst7Day: { trend: string; changeF: number }
+    sst14Day: { trend: string; changeF: number }
+    chl7Day: { trend: string; change: number }
+    chl14Day: { trend: string; change: number }
+  }
+  narrative: string
+  tactical: string
+  oceanographicFeatures?: any // GeoJSON FeatureCollection
+}
+
 export type AnalyzeAPI = {
   areaKm2: number
   hasSST: boolean
   hasCHL: boolean
-  sst?: { 
+  sst?: {
     meanC: number
     minC: number
     maxC: number
@@ -11,10 +63,10 @@ export type AnalyzeAPI = {
     p10C?: number
     p90C?: number
   }
-  chl?: { 
+  chl?: {
     mean: number
     p10?: number
-    p90?: number 
+    p90?: number
   }
   weather?: {
     wind: { speed: number; direction: string }
@@ -31,13 +83,14 @@ export type AnalyzeAPI = {
     species: string[]
     recentCatch: string
   } | null
+  enhanced?: EnhancedAnalysis | null // New enhanced analysis features
 }
 
 export type AnalysisVM = {
   areaKm2: number
   hasSST: boolean
   hasCHL: boolean
-  sst?: { 
+  sst?: {
     meanF: number
     minF: number
     maxF: number
@@ -45,10 +98,10 @@ export type AnalysisVM = {
     p10F?: number
     p90F?: number
   }
-  chl?: { 
+  chl?: {
     mean: number
     p10?: number
-    p90?: number 
+    p90?: number
   }
   weather?: {
     wind: { speed: number; direction: string }
@@ -67,12 +120,13 @@ export type AnalysisVM = {
   } | null
   narrative?: string
   confidence?: 'high' | 'no-data' | 'error'
+  enhanced?: EnhancedAnalysis | null // New enhanced analysis features
 }
 
 export const toVM = (a: AnalyzeAPI): AnalysisVM => {
   const c2f = (c: number) => (c * 9) / 5 + 32
   const km2mile = (km: number) => km * 0.621371
-  
+
   return {
     areaKm2: a.areaKm2,
     hasSST: a.hasSST,
@@ -85,7 +139,7 @@ export const toVM = (a: AnalyzeAPI): AnalysisVM => {
       p10F: a.sst.p10C !== undefined ? c2f(a.sst.p10C) : undefined,
       p90F: a.sst.p90C !== undefined ? c2f(a.sst.p90C) : undefined,
     },
-    chl: a.chl && { 
+    chl: a.chl && {
       mean: a.chl.mean,
       p10: a.chl.p10,
       p90: a.chl.p90,
@@ -93,6 +147,7 @@ export const toVM = (a: AnalyzeAPI): AnalysisVM => {
     weather: a.weather,
     fleet: a.fleet,
     reports: a.reports,
+    enhanced: a.enhanced, // Pass through enhanced features
   }
 }
 
