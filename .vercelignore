@@ -1,0 +1,73 @@
+# Build output
+.next
+node_modules
+
+# Documentation
+docs
+*.md
+README.md
+IMPLEMENTATION_SUMMARY.md
+MILESTONE_2_TESTING.md
+CLIENT_LOGIN_INFO.md
+FIXED_MIGRATION.sql
+FINAL_WORKING_MIGRATION.sql
+RUN_MIGRATIONS.md
+SUPABASE_QUICK_FIX.md
+UPDATE_TO_REAL_USER.sql
+
+# Test files
+test-*.js
+test-*.html
+e2e
+src/test
+src/**/*.test.ts
+src/**/*.test.tsx
+
+# Development files
+.env.local
+.env.development
+*.log
+.DS_Store
+
+# Large XML files
+capabilities*.xml
+
+# SQL files
+*.sql
+check_tables.sql
+execute-migration.js
+run-migration*.js
+verify-database.js
+
+# Python files (not needed for Next.js)
+python
+
+# Deprecated/Legacy
+deprecated
+legacy
+
+# Cache files
+.cache
+tmp
+
+# Icon files
+**/Icon\r
+
+# Git
+.git
+.gitignore
+.github
+
+# Husky
+.husky
+
+# Scripts (except needed ones)
+scripts/dev-guard.js
+scripts/clean-start.js
+
+# Data files
+data
+
+# Public test files
+public/create-icons.html
+public/test*.html
