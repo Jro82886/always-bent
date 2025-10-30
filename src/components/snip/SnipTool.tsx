@@ -11,6 +11,9 @@ import type { SnipResults, Hotspot, PolygonFeature } from '@/store/snip-store';
 import type { LayerStats } from '@/lib/analysis/pixel-extractor';
 import * as turf from '@turf/turf';
 import { useAppState } from '@/lib/store';
+import { analyzeSnipArea, type SnipAnalysisReport } from '@/lib/analysis/snip-report-analyzer';
+import { storeMovementData, getMovementHistory, calculateOpacityForAge, getDaysBetween } from '@/lib/analysis/movement-tracker';
+import WaterMovementToggle from '@/components/WaterMovementToggle';
 
 interface SnipToolProps {
   map: mapboxgl.Map | null;
@@ -267,68 +270,94 @@ export default function SnipTool({ map, isActive, onDeactivate }: SnipToolProps)
 
       updateProgress(50);
 
-      // Call analyze API for additional data
+      // Convert pixel data to the format expected by the analyzer
+      // Note: TilePixelData has value, not rgb. We'll use placeholder RGB values
+      // since the actual temperature comes from the value field
+      const analyzerPixelData = [
+        ...pixelData.sst.map(p => ({
+          lat: p.lat,
+          lng: p.lng,
+          r: 0, // RGB not available from tile extractor
+          g: 0,
+          b: 0,
+          type: 'sst' as const
+        })),
+        ...pixelData.chl.map(p => ({
+          lat: p.lat,
+          lng: p.lng,
+          r: 0, // RGB not available from tile extractor
+          g: 0,
+          b: 0,
+          type: 'chl' as const
+        }))
+      ];
+
       // Use the selected date from the store, or fall back to today
       const dateToUse = isoDate ?
-        new Date(isoDate + 'T00:00:00Z').toISOString() :
-        new Date().toISOString();
+        new Date(isoDate + 'T00:00:00Z') :
+        new Date();
 
-      const analyzeResponse = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          polygon,
+      updateProgress(60);
+
+      // Run comprehensive analysis
+      const comprehensiveReport: SnipAnalysisReport = await analyzeSnipArea(
+        polygon,
+        analyzerPixelData,
+        {
           date: dateToUse,
-          want: { sst: sstVisible, chl: chlVisible }
-        })
-      });
-
-      updateProgress(70);
-
-      let apiData: any = {};
-      if (analyzeResponse.ok) {
-        apiData = await analyzeResponse.json();
-      }
-
-      // Call ocean features API
-      const bboxString = `${bbox[0][0]},${bbox[0][1]},${bbox[1][0]},${bbox[1][1]}`;
-      const featuresResponse = await fetch(
-        `/api/ocean-features/live?bbox=${bboxString}&date=${dateToUse}`
+          includeFleet: true,
+          includeTrends: true
+        }
       );
 
       updateProgress(85);
 
-      let oceanFeatures: any[] = [];
-      if (featuresResponse.ok) {
-        const featuresData = await featuresResponse.json();
-        oceanFeatures = featuresData.features || [];
-      }
-
-      // Process pixelData to calculate statistics
-      const sstStats = pixelData.sst.length > 0 ? calculateLayerStats(pixelData.sst, 'sst') : undefined;
-      const chlStats = pixelData.chl.length > 0 ? calculateLayerStats(pixelData.chl, 'chl') : undefined;
-
-      // Calculate area
-      const areaKm2 = calculatePolygonArea(polygon);
-
-      // Combine all data into results
+      // Convert comprehensive report to SnipResults format for backwards compatibility
       const results: SnipResults = {
-        sst: sstStats,
-        chl: chlStats,
-        hotspots: generateHotspots({ sst: sstStats, chl: chlStats, pixels: pixelData }, oceanFeatures),
-        polygons: convertToPolygonFeatures(oceanFeatures),
-        vessels: apiData.fleet?.vessels || [],
-        weather: apiData.weather,
-        areaKm2,
-        timestamp: new Date().toISOString(),
-        dataQuality: determineDataQuality({ sst: sstStats, chl: chlStats })
+        sst: pixelData.sst.length > 0 ? calculateLayerStats(pixelData.sst, 'sst') : undefined,
+        chl: pixelData.chl.length > 0 ? calculateLayerStats(pixelData.chl, 'chl') : undefined,
+        hotspots: generateHotspotsFromReport(comprehensiveReport),
+        polygons: [],
+        vessels: comprehensiveReport.fleetActivity.vessels.map(v => ({
+          name: v.name,
+          type: v.type as any,
+          lastSeen: v.lastSeen,
+          position: v.position
+        })),
+        weather: undefined,
+        areaKm2: comprehensiveReport.metadata.areaKm2,
+        timestamp: comprehensiveReport.metadata.timestamp,
+        dataQuality: comprehensiveReport.metadata.dataQuality,
+        // Store the comprehensive report for the modal
+        comprehensiveReport: comprehensiveReport as any
       };
 
       // Add hotspots to map
       addHotspotsToMap(results.hotspots);
 
-      // Add polygons to map
-      addPolygonsToMap(results.polygons);
+      // Add ocean feature polygons to map
+      addOceanFeaturesToMap(comprehensiveReport);
+
+      // Store movement data for 3-day visualization
+      if (comprehensiveReport.oceanFeatures.features.length > 0) {
+        const featureCollection: GeoJSON.FeatureCollection = {
+          type: 'FeatureCollection',
+          features: comprehensiveReport.oceanFeatures.features.map(f => ({
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: f.location
+            },
+            properties: {
+              type: f.type,
+              strength: f.strength
+            }
+          }))
+        };
+
+        const center = turf.centroid(polygon).geometry.coordinates as [number, number];
+        await storeMovementData(featureCollection, bbox, center);
+      }
 
       updateProgress(100);
       finishAnalysis(results);
@@ -339,7 +368,59 @@ export default function SnipTool({ map, isActive, onDeactivate }: SnipToolProps)
     }
   };
 
-  // Generate hotspots from analysis data
+  // Generate hotspots from comprehensive report
+  const generateHotspotsFromReport = (report: SnipAnalysisReport): Hotspot[] => {
+    const hotspots: Hotspot[] = [];
+
+    // Add hotspot from best temperature break
+    if (report.temperature.bestBreak) {
+      const breakLoc = report.temperature.bestBreak.location;
+      hotspots.push({
+        id: 'temp-break-best',
+        lat: breakLoc[1],
+        lng: breakLoc[0],
+        confidence: Math.min(0.95, report.temperature.bestBreak.strengthF / 5),
+        type: 'thermal_front',
+        title: `Temperature Break (${report.temperature.bestBreak.strengthF.toFixed(1)}°F)`,
+        factors: {
+          sst: { value: report.temperature.bestBreak.strengthF, score: 0.9 }
+        }
+      });
+    }
+
+    // Add hotspot from water quality break
+    if (report.chlorophyll.waterQualityBreak) {
+      const wqBreak = report.chlorophyll.waterQualityBreak.location;
+      hotspots.push({
+        id: 'chl-break-best',
+        lat: wqBreak[1],
+        lng: wqBreak[0],
+        confidence: 0.7,
+        type: 'chl_edge',
+        title: 'Water Quality Break',
+        factors: {
+          chl: { value: report.chlorophyll.waterQualityBreak.strengthMgM3, score: 0.7 }
+        }
+      });
+    }
+
+    // Add hotspots from ocean features
+    for (const feature of report.oceanFeatures.features.slice(0, 3)) {
+      hotspots.push({
+        id: `ocean-${feature.type}-${Math.random()}`,
+        lat: feature.location[1],
+        lng: feature.location[0],
+        confidence: feature.strength / 100,
+        type: feature.type === 'edge' ? 'thermal_front' : feature.type === 'eddy' ? 'eddy' : 'convergence',
+        title: `${feature.type.charAt(0).toUpperCase() + feature.type.slice(1)}`,
+        factors: {}
+      });
+    }
+
+    return hotspots;
+  };
+
+  // Generate hotspots from analysis data (legacy function)
   const generateHotspots = (data: { sst?: LayerStats; chl?: LayerStats; pixels: any }, oceanFeatures: any[]): Hotspot[] => {
     const hotspots: Hotspot[] = [];
 
@@ -514,6 +595,90 @@ export default function SnipTool({ map, isActive, onDeactivate }: SnipToolProps)
     });
   };
 
+  // Add ocean features to map from comprehensive report
+  const addOceanFeaturesToMap = (report: SnipAnalysisReport) => {
+    if (!map || report.oceanFeatures.features.length === 0) return;
+
+    // Remove existing features layer if it exists
+    if (map.getSource('snip-ocean-features')) {
+      map.removeLayer('snip-ocean-features-fill');
+      map.removeLayer('snip-ocean-features-outline');
+      map.removeSource('snip-ocean-features');
+    }
+
+    // Create simple point features for now (can be enhanced later with actual geometries)
+    const geojson = {
+      type: 'FeatureCollection',
+      features: report.oceanFeatures.features.map(f => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: f.location
+        },
+        properties: {
+          type: f.type,
+          strength: f.strength
+        }
+      }))
+    };
+
+    // Add source
+    map.addSource('snip-ocean-features', {
+      type: 'geojson',
+      data: geojson as any
+    });
+
+    // Add glow layer
+    map.addLayer({
+      id: 'snip-ocean-features-fill',
+      type: 'circle',
+      source: 'snip-ocean-features',
+      paint: {
+        'circle-radius': [
+          'interpolate', ['linear'], ['get', 'strength'],
+          0, 8,
+          50, 12,
+          100, 16
+        ],
+        'circle-color': [
+          'case',
+          ['==', ['get', 'type'], 'edge'], '#FF0000',
+          ['==', ['get', 'type'], 'filament'], '#FFFF00',
+          ['==', ['get', 'type'], 'eddy'], '#00FF00',
+          '#00FFFF'
+        ],
+        'circle-opacity': 0.3,
+        'circle-blur': 0.5
+      }
+    });
+
+    // Add outline layer
+    map.addLayer({
+      id: 'snip-ocean-features-outline',
+      type: 'circle',
+      source: 'snip-ocean-features',
+      paint: {
+        'circle-radius': [
+          'interpolate', ['linear'], ['get', 'strength'],
+          0, 8,
+          50, 12,
+          100, 16
+        ],
+        'circle-color': [
+          'case',
+          ['==', ['get', 'type'], 'edge'], '#FF0000',
+          ['==', ['get', 'type'], 'filament'], '#FFFF00',
+          ['==', ['get', 'type'], 'eddy'], '#00FF00',
+          '#00FFFF'
+        ],
+        'circle-opacity': 0.8,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#FFFFFF',
+        'circle-stroke-opacity': 0.6
+      }
+    });
+  };
+
   // Add polygons to map
   const addPolygonsToMap = (polygons: PolygonFeature[]) => {
     if (!map || polygons.length === 0) return;
@@ -614,6 +779,13 @@ export default function SnipTool({ map, isActive, onDeactivate }: SnipToolProps)
         map.removeSource('snip-polygons');
       }
 
+      // Remove ocean features
+      if (map.getSource('snip-ocean-features')) {
+        map.removeLayer('snip-ocean-features-fill');
+        map.removeLayer('snip-ocean-features-outline');
+        map.removeSource('snip-ocean-features');
+      }
+
       // Clear drawing
       if (drawRef.current) {
         drawRef.current.deleteAll();
@@ -632,11 +804,20 @@ export default function SnipTool({ map, isActive, onDeactivate }: SnipToolProps)
     };
   }, [map, onDeactivate]);
 
+  // Note: 3-day movement visualization is handled by the WaterMovementToggle component
+
   // Render status panel
   const { isAnalyzing, analysisProgress, error, rectBbox } = useSnipStore();
 
   return (
     <>
+      {/* Movement Toggle */}
+      {isActive && !isAnalyzing && rectBbox && (
+        <div className="absolute top-20 right-4 z-50">
+          <WaterMovementToggle map={map} />
+        </div>
+      )}
+
       {/* Status Panel */}
       {isActive && (
         <div className="absolute top-20 left-4 bg-slate-900/95 border border-slate-700 rounded-lg p-4 shadow-xl max-w-xs z-50">

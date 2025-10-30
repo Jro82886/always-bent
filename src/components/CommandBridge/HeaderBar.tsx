@@ -12,6 +12,9 @@ import { useAppState } from '@/lib/store';
 import { useInletFromURL } from '@/hooks/useInletFromURL';
 import AbfiBiteButton from '@/components/common/AbfiBiteButton';
 import '@/styles/abfi.css';
+import { useMemberstack } from '@/lib/memberstack/MemberstackProvider';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { User, LogOut, Settings } from 'lucide-react';
 
 interface HeaderBarProps {
   activeMode?: string;
@@ -30,9 +33,20 @@ const TAB_MODES = {
 export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
   const router = useRouter();
   const { selectedInletId } = useAppState();
-  
+  const { member, logout, loading: memberLoading } = useMemberstack();
+
   // Sync inlet from URL on mount
   useInletFromURL();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Memberstack handles redirect to home page
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      alert('Failed to logout. Please try again.');
+    }
+  };
   
   // We'll use the globe icon with the text branding
   
@@ -108,6 +122,66 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
               <AbfiBiteButton compact context={activeMode as any} />
             </div>
           )}
+
+          {/* User Menu */}
+          <div className="px-4">
+            {!memberLoading && (
+              <>
+                {member ? (
+                  <DropdownMenu.Root>
+                    <DropdownMenu.Trigger asChild>
+                      <button className="flex items-center gap-2 rounded-md bg-cyan-500/10 px-3 py-1.5 text-sm ring-1 ring-cyan-500/20 hover:ring-cyan-400/40 transition-all">
+                        <User className="h-4 w-4 text-cyan-400" />
+                        <span className="text-cyan-100">{member.email}</span>
+                      </button>
+                    </DropdownMenu.Trigger>
+                    <DropdownMenu.Portal>
+                      <DropdownMenu.Content
+                        className="min-w-[180px] rounded-md bg-gray-900 p-1 shadow-lg backdrop-blur border border-cyan-500/20"
+                        sideOffset={5}
+                        align="end"
+                      >
+                        <DropdownMenu.Label className="px-2 py-1 text-xs font-semibold text-cyan-400/60">
+                          My Account
+                        </DropdownMenu.Label>
+                        <DropdownMenu.Separator className="my-1 h-px bg-cyan-500/10" />
+                        <DropdownMenu.Item
+                          className="flex items-center gap-2 rounded px-2 py-1 text-sm text-cyan-100 outline-none hover:bg-cyan-500/10 cursor-pointer"
+                          onSelect={() => window.location.href = '/account-billing'}
+                        >
+                          <Settings className="h-4 w-4" />
+                          Account Settings
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Separator className="my-1 h-px bg-cyan-500/10" />
+                        <DropdownMenu.Item
+                          className="flex items-center gap-2 rounded px-2 py-1 text-sm text-red-400 outline-none hover:bg-red-500/10 cursor-pointer"
+                          onSelect={handleLogout}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Logout
+                        </DropdownMenu.Item>
+                      </DropdownMenu.Content>
+                    </DropdownMenu.Portal>
+                  </DropdownMenu.Root>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => window.location.href = '/login'}
+                      className="rounded-md bg-cyan-500/10 px-3 py-1.5 text-sm ring-1 ring-cyan-500/20 hover:ring-cyan-400/40 transition-all text-cyan-100"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => window.location.href = '/signup'}
+                      className="rounded-md bg-cyan-500 px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-cyan-400 transition-all"
+                    >
+                      Sign Up
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
         
         {/* Tablet Layout 640px-1024px */}

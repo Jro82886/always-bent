@@ -62,6 +62,9 @@ export interface SnipResults {
   areaKm2: number;
   timestamp: string;
   dataQuality: 'high' | 'medium' | 'low';
+
+  // Comprehensive analysis report (new)
+  comprehensiveReport?: any; // SnipAnalysisReport
 }
 
 export interface CameraState {

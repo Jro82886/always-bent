@@ -170,6 +170,64 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
       const vm = await runAnalyze(polyRef.current, dateISO); // real /api/analyze
       console.log('[SimpleSnip] Analysis VM:', vm);
 
+      // Add oceanographic features to map if available
+      if (vm.enhanced?.oceanographicFeatures && map) {
+        const features = vm.enhanced.oceanographicFeatures;
+
+        // Remove old feature layers if they exist
+        ['edges', 'filaments', 'eddies'].forEach(type => {
+          const sourceId = `snip-${type}`;
+          if (map.getSource(sourceId)) {
+            if (map.getLayer(`${sourceId}-fill`)) {
+              map.removeLayer(`${sourceId}-fill`);
+            }
+            if (map.getLayer(`${sourceId}-outline`)) {
+              map.removeLayer(`${sourceId}-outline`);
+            }
+            map.removeSource(sourceId);
+          }
+        });
+
+        // Add new features to map
+        const featuresByType = {
+          edges: features.features.filter((f: any) => f.properties?.type === 'edge'),
+          filaments: features.features.filter((f: any) => f.properties?.type === 'filament'),
+          eddies: features.features.filter((f: any) => f.properties?.type === 'eddy')
+        };
+
+        Object.entries(featuresByType).forEach(([type, typeFeatures]) => {
+          if (typeFeatures.length === 0) return;
+
+          const sourceId = `snip-${type}`;
+          const color = type === 'edges' ? '#FF0000' : type === 'filaments' ? '#FFFF00' : '#00FF00';
+
+          map.addSource(sourceId, {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: typeFeatures }
+          });
+
+          map.addLayer({
+            id: `${sourceId}-fill`,
+            type: 'fill',
+            source: sourceId,
+            paint: {
+              'fill-color': color,
+              'fill-opacity': 0.2
+            }
+          });
+
+          map.addLayer({
+            id: `${sourceId}-outline`,
+            type: 'line',
+            source: sourceId,
+            paint: {
+              'line-color': color,
+              'line-width': 2
+            }
+          });
+        });
+      }
+
       openWithVM(vm); // set VM → open modal (order locked)
 
       // Fire AI in parallel (non-blocking UI)
@@ -230,9 +288,23 @@ export default function SimpleSnipTool({ map, onAnalysisComplete }: Props) {
     polyRef.current = null;
     setReviewing(false);
     setDrawing(false);
-    
-    // Re-enable map interactions
+
+    // Clean up oceanographic feature layers
     if (map) {
+      ['edges', 'filaments', 'eddies'].forEach(type => {
+        const sourceId = `snip-${type}`;
+        if (map.getSource(sourceId)) {
+          if (map.getLayer(`${sourceId}-fill`)) {
+            map.removeLayer(`${sourceId}-fill`);
+          }
+          if (map.getLayer(`${sourceId}-outline`)) {
+            map.removeLayer(`${sourceId}-outline`);
+          }
+          map.removeSource(sourceId);
+        }
+      });
+
+      // Re-enable map interactions
       map.getCanvas().style.cursor = '';
       map.dragPan.enable();
       map.scrollZoom.enable();

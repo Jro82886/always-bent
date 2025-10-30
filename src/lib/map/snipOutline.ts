@@ -27,30 +27,46 @@ export function ensureSnipOutlineLayer(map: mapboxgl.Map, polygon: GeoJSON.Polyg
 
   // Add layer if it doesn't exist
   if (!map.getLayer(layerId)) {
-    map.addLayer({
-      id: layerId,
-      type: 'line',
-      source: sourceId,
-      paint: {
-        'line-color': '#00e1a7',
-        'line-width': 3,
-        'line-opacity': 0.8,
-        'line-dasharray': [2, 1]
-      }
-    });
-
-    // Add glow effect
+    // Add glow effect (outer)
     map.addLayer({
       id: layerId + '-glow',
       type: 'line',
       source: sourceId,
       paint: {
         'line-color': '#00e1a7',
-        'line-width': 8,
-        'line-opacity': 0.3,
-        'line-blur': 4
+        'line-width': 12,
+        'line-opacity': 0.4,
+        'line-blur': 6
       }
-    }, layerId);
+    });
+
+    // Add main line (thicker, more visible per Amanda's request)
+    map.addLayer({
+      id: layerId,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': '#00e1a7',
+        'line-width': 5,  // Increased from 3 for better visibility
+        'line-opacity': 1.0  // Fully opaque so lines are clearly connected
+      }
+    });
+
+    // Add corner markers for bounding box corners
+    map.addLayer({
+      id: layerId + '-corners',
+      type: 'circle',
+      source: sourceId,
+      filter: ['==', ['geometry-type'], 'Polygon'],
+      paint: {
+        'circle-radius': 8,
+        'circle-color': '#00e1a7',
+        'circle-opacity': 1.0,
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-opacity': 0.8
+      }
+    });
   }
 }
 
@@ -60,12 +76,15 @@ export function clearSnipOutlineLayer(map: mapboxgl.Map) {
   const layerId = 'snip-outline-layer';
   const sourceId = 'snip-outline';
 
-  // Remove layers
-  if (map.getLayer(layerId + '-glow')) {
-    map.removeLayer(layerId + '-glow');
+  // Remove layers (including new corner markers)
+  if (map.getLayer(layerId + '-corners')) {
+    map.removeLayer(layerId + '-corners');
   }
   if (map.getLayer(layerId)) {
     map.removeLayer(layerId);
+  }
+  if (map.getLayer(layerId + '-glow')) {
+    map.removeLayer(layerId + '-glow');
   }
 
   // Remove source

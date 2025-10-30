@@ -101,8 +101,8 @@ export async function GET(req: NextRequest) {
         longitude,
         sstData?.temperature || (stormioData?.weather?.sstC ? celsiusToFahrenheit(stormioData.weather.sstC) : undefined)
       ),
-      chlorophyll: chlorophyllData?.concentration || 0.5,
-      depth: depth || 100,
+      chlorophyll: chlorophyllData?.concentration || 0,
+      depth: depth || 0,
 
       // Weather conditions from StormIO
       windSpeed: stormioData?.weather?.windKt || 10,
@@ -215,11 +215,7 @@ async function fetchSSTData(lat: number, lng: number): Promise<{ temperature: nu
     console.error('SST fetch error:', error);
   }
 
-  // Fallback to mock data
-  return {
-    temperature: 72 + Math.random() * 8,
-    timestamp: new Date().toISOString()
-  };
+  return null;
 }
 
 async function fetchChlorophyllData(lat: number, lng: number): Promise<{ concentration: number; timestamp: string } | null> {
@@ -262,11 +258,7 @@ async function fetchChlorophyllData(lat: number, lng: number): Promise<{ concent
     console.error('Chlorophyll fetch error:', error);
   }
 
-  // Fallback to mock data
-  return {
-    concentration: 0.3 + Math.random() * 1.5,
-    timestamp: new Date().toISOString()
-  };
+  return null;
 }
 
 async function estimateDepth(lat: number, lng: number): Promise<number> {

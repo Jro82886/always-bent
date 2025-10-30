@@ -11,9 +11,9 @@ export async function runAnalyze(polygon: GeoJSON.Polygon, dateISO: string) {
   // Create an AbortController for timeout - match API's maxDuration
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.warn('[analyzeClient] Request timed out after 110 seconds');
+    console.warn('[analyzeClient] Request timed out after 125 seconds');
     controller.abort();
-  }, 110000); // 110 second timeout (slightly less than API's 120s limit)
+  }, 125000); // 125 second timeout (giving 5s buffer beyond API's 120s limit)
 
   try {
     const res = await fetch('/api/analyze', {

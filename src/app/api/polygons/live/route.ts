@@ -587,12 +587,18 @@ async function getTileData(z: number, x: number, y: number, layer: 'sst' | 'chl'
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
     const tileUrl = `${baseUrl}/api/tiles/${layer}/${z}/${x}/${y}?time=latest`;
 
-    // Fetch the tile
+    // Fetch the tile with 10 second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     const response = await fetch(tileUrl, {
       headers: {
         'User-Agent': 'abfi-polygon-generator'
-      }
+      },
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.log(`Tile ${layer}/${z}/${x}/${y} not available (${response.status})`);

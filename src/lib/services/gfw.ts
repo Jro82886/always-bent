@@ -82,11 +82,14 @@ export async function searchGFWVesselsInArea(
   
   try {
     // First, search for fishing vessels in the area
-    const searchParams = new URLSearchParams({
-      'datasets': 'public-global-fishing-vessels:latest,public-global-carrier-vessels:latest',
-      'limit': '50',
-      'offset': '0'
-    });
+    // v3 API requires datasets as array format: datasets[0]=id1&datasets[1]=id2
+    // v3 also requires either 'query' (basic search) or 'where' (advanced search) parameter
+    const searchParams = new URLSearchParams();
+    searchParams.append('datasets[0]', 'public-global-fishing-vessels:latest');
+    searchParams.append('datasets[1]', 'public-global-carrier-vessels:latest');
+    searchParams.append('query', 'fishing'); // Basic search query required in v3
+    searchParams.append('limit', '50');
+    searchParams.append('offset', '0');
 
     const searchResponse = await fetch(`${GFW_API_URL}/vessels/search?${searchParams}`, {
       headers: {

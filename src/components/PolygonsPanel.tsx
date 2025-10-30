@@ -36,11 +36,11 @@ const LAYERS = {
 };
 
 export default function PolygonsPanel({ map }: Props) {
-  const [showPanel, setShowPanel] = useState(false); // Start closed - user toggles when needed
+  const [showPanel, setShowPanel] = useState(true); // Start open to show features
   const [enabled, setEnabled] = useState({
-    eddy: false,     // OFF by default - like Christmas lights at night
-    edge: false,     // OFF by default - user turns on when wanted
-    filament: false  // OFF by default - user controls the lights
+    eddy: true,     // ON by default - show oceanographic features
+    edge: true,     // ON by default - show thermal fronts
+    filament: true  // ON by default - show all features
   });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({

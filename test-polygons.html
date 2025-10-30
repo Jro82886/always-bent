@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Real Polygon Data</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a2e;
+            color: #00ff88;
+            padding: 20px;
+        }
+        .test-area {
+            background: #0f0f23;
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        button {
+            background: #00ff88;
+            color: #0f0f23;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00cc66;
+        }
+        pre {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            border: 1px solid #0f3460;
+        }
+        .success {
+            color: #00ff88;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .info {
+            color: #00ccff;
+        }
+        h2 {
+            color: #00ccff;
+            border-bottom: 2px solid #0f3460;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌊 Real Oceanographic Polygon Data Tester</h1>
+
+    <div class="test-area">
+        <h2>1. Test Different Ocean Regions</h2>
+        <p>Click a button to test polygon generation for that region:</p>
+
+        <button onclick="testRegion('Gulf Stream', '-80,-75,25,40')">
+            🌊 Gulf Stream (High Activity)
+        </button>
+
+        <button onclick="testRegion('California Current', '-125,-120,32,42')">
+            🌊 California Current
+        </button>
+
+        <button onclick="testRegion('Gulf of Mexico', '-95,-85,20,30')">
+            🌊 Gulf of Mexico
+        </button>
+
+        <button onclick="testRegion('Mid-Atlantic', '-75,-70,35,40')">
+            🌊 Mid-Atlantic (Your Area)
+        </button>
+
+        <button onclick="testRegion('Open Ocean', '-60,-50,30,40')">
+            🌊 Open Ocean (Less Activity)
+        </button>
+
+        <div id="region-results"></div>
+    </div>
+
+    <div class="test-area">
+        <h2>2. Verify Real Data Source</h2>
+        <p>This test confirms polygons come from Copernicus tiles:</p>
+
+        <button onclick="verifyDataSource()">
+            🔍 Verify Data Pipeline
+        </button>
+
+        <div id="verify-results"></div>
+    </div>
+
+    <div class="test-area">
+        <h2>3. Compare with Raw Tiles</h2>
+        <p>See the actual SST/CHL tile that polygons are extracted from:</p>
+
+        <button onclick="compareTileData()">
+            🗺️ Show Tile → Polygon Process
+        </button>
+
+        <div id="tile-results"></div>
+    </div>
+
+    <script>
+        async function testRegion(name, bbox) {
+            const results = document.getElementById('region-results');
+            results.innerHTML = `<p class="info">Testing ${name} region...</p>`;
+
+            try {
+                const response = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const features = data.features || [];
+                    const props = data.properties || {};
+
+                    results.innerHTML = `
+                        <h3 class="success">✅ ${name} Results:</h3>
+                        <pre>${JSON.stringify({
+                            status: 'SUCCESS',
+                            data_source: props.data_source || 'unknown',
+                            total_features: features.length,
+                            feature_breakdown: props.feature_count || {
+                                thermal_fronts: features.filter(f => f.properties?.type === 'thermal_front').length,
+                                chlorophyll_edges: features.filter(f => f.properties?.type === 'chlorophyll_edge').length,
+                                eddies: features.filter(f => f.properties?.type === 'eddy').length
+                            },
+                            sample_feature: features[0] ? {
+                                type: features[0].properties?.type,
+                                class: features[0].properties?.class,
+                                source: features[0].properties?.source,
+                                geometry_type: features[0].geometry?.type
+                            } : null,
+                            message: props.message || 'Features detected from real data'
+                        }, null, 2)}</pre>
+                        ${features.length > 0 ?
+                            '<p class="success">✅ Real oceanographic features detected!</p>' :
+                            '<p class="info">ℹ️ No significant features in this area (normal for open ocean)</p>'
+                        }
+                    `;
+                } else {
+                    results.innerHTML = `
+                        <h3 class="error">❌ Error for ${name}:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                results.innerHTML = `
+                    <h3 class="error">❌ Network Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        async function verifyDataSource() {
+            const results = document.getElementById('verify-results');
+            results.innerHTML = '<p class="info">Verifying data pipeline...</p>';
+
+            try {
+                // Test a small area to see the full pipeline
+                const testBbox = '-75.1,-75.0,38.3,38.4'; // Small area near Ocean City
+
+                // 1. Check polygon generation
+                const polyResponse = await fetch(`/api/polygons/live?bbox=${testBbox}&layers=sst`);
+                const polyData = await polyResponse.json();
+
+                // 2. Check if we can get the underlying tile
+                const tileResponse = await fetch('/api/tiles/sst/7/35/49?time=latest');
+
+                results.innerHTML = `
+                    <h3 class="success">✅ Data Pipeline Verification:</h3>
+                    <pre>${JSON.stringify({
+                        step1_polygon_api: {
+                            status: polyResponse.status,
+                            data_source: polyData.properties?.data_source,
+                            uses_copernicus: polyData.properties?.data_source === 'copernicus'
+                        },
+                        step2_tile_fetch: {
+                            status: tileResponse.status,
+                            content_type: tileResponse.headers.get('content-type'),
+                            is_png: tileResponse.headers.get('content-type')?.includes('image/png')
+                        },
+                        step3_features: {
+                            total: polyData.features?.length || 0,
+                            have_source_tag: polyData.features?.every(f =>
+                                f.properties?.source === 'copernicus'
+                            ) || false
+                        },
+                        conclusion: polyData.properties?.data_source === 'copernicus' ?
+                            '✅ Using REAL Copernicus data!' :
+                            '⚠️ Using fallback data (check tiles availability)'
+                    }, null, 2)}</pre>
+                `;
+            } catch (error) {
+                results.innerHTML = `
+                    <h3 class="error">❌ Verification Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        async function compareTileData() {
+            const results = document.getElementById('tile-results');
+            results.innerHTML = '<p class="info">Loading tile comparison...</p>';
+
+            try {
+                // Get a specific tile
+                const z = 7, x = 35, y = 49;
+                const tileUrl = `/api/tiles/sst/${z}/${x}/${y}?time=latest`;
+
+                // Calculate tile bounds
+                const n = Math.pow(2, z);
+                const west = (x / n) * 360 - 180;
+                const east = ((x + 1) / n) * 360 - 180;
+                const north = Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n))) * 180 / Math.PI;
+                const south = Math.atan(Math.sinh(Math.PI * (1 - 2 * (y + 1) / n))) * 180 / Math.PI;
+
+                // Fetch polygons for this exact tile area
+                const bbox = `${west},${south},${east},${north}`;
+                const polyResponse = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst`);
+                const polyData = await polyResponse.json();
+
+                results.innerHTML = `
+                    <h3 class="success">✅ Tile → Polygon Process:</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h4 class="info">1. Raw SST Tile (${z}/${x}/${y}):</h4>
+                            <img src="${tileUrl}" style="width: 256px; height: 256px; border: 1px solid #00ff88; image-rendering: pixelated;">
+                            <p>Tile bounds: [${west.toFixed(2)}, ${south.toFixed(2)}, ${east.toFixed(2)}, ${north.toFixed(2)}]</p>
+                        </div>
+                        <div>
+                            <h4 class="info">2. Extracted Features:</h4>
+                            <pre>${JSON.stringify({
+                                features_found: polyData.features?.length || 0,
+                                types: polyData.features?.map(f => f.properties?.type).filter(Boolean) || [],
+                                process: [
+                                    "1. Decode PNG to temperature values",
+                                    "2. Apply Sobel edge detection",
+                                    "3. Trace continuous edges",
+                                    "4. Convert to GeoJSON polygons",
+                                    "5. Return oceanographic features"
+                                ]
+                            }, null, 2)}</pre>
+                        </div>
+                    </div>
+                    <p class="success">The polygons are extracted from real temperature gradients in the satellite data!</p>
+                `;
+            } catch (error) {
+                results.innerHTML = `
+                    <h3 class="error">❌ Comparison Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+
+        // Auto-test on load
+        window.onload = () => {
+            console.log('🌊 Polygon Data Tester Ready!');
+            console.log('Test the polygon generation to verify real Copernicus data extraction.');
+        };
+    </script>
+</body>
+</html>

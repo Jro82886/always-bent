@@ -28,6 +28,7 @@ export const INLETS: Inlet[] = [
   // New York - 80nm view (zoom ~7.4) - Hudson Canyon and shelf break fishing
   { id: 'ny-montauk', name: 'Montauk Harbor', state: 'NY', center: [-71.9360, 41.0710], zoom: 7.4, color: '#dc2626' }, // Red
   { id: 'ny-shinnecock', name: 'Shinnecock Inlet', state: 'NY', center: [-72.4762, 40.8426], zoom: 7.4, color: '#ea580c' }, // Orange
+  { id: 'ny-fire-island', name: 'Fire Island Inlet', state: 'NY', center: [-73.2000, 40.6500], zoom: 7.4, color: '#9333ea' }, // Purple
   
   // New Jersey - 75nm view (zoom ~7.5) - Captures Hudson Canyon south edge, shelf fishing
   { id: 'nj-barnegat', name: 'Barnegat Inlet', state: 'NJ', center: [-74.1081, 39.7669], zoom: 7.5, color: '#ca8a04' }, // Amber
@@ -42,6 +43,7 @@ export const INLETS: Inlet[] = [
   
   // Virginia - 65nm view (zoom ~7.7) - Norfolk Canyon proximity
   { id: 'va-chincoteague', name: 'Chincoteague Inlet', state: 'VA', center: [-75.4480, 37.8690], zoom: 7.7, color: '#4f46e5' }, // Indigo
+  { id: 'va-rudee', name: 'Rudee Inlet', state: 'VA', center: [-75.9700, 36.8300], zoom: 7.7, color: '#ec4899' }, // Pink
   
   // North Carolina - Variable based on Gulf Stream proximity
   { id: 'nc-oregon', name: 'Oregon Inlet', state: 'NC', center: [-75.5255, 35.7714], zoom: 7.8, color: '#2563eb' }, // 55nm - Stream 40-50nm out

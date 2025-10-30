@@ -298,22 +298,59 @@ export function buildNarrative(a: SnipAnalysis, ctx?: AnalysisContext): string {
   const presenceLine = linePresence(a, ctx);
   if (presenceLine) lines.push(presenceLine);
 
-  // 5. Commercial (placeholder until GFW clip is live)
+  // 5. Commercial vessels from GFW API (Amanda's request - show real vessel data)
   if (a.toggles.gfw) {
-    if (!a.presence?.gfw) {
-      lines.push(COPY.GFW_NA);
+    // Check for fleet data from analyze API
+    const fleetData = (a as any).fleet;
+    if (fleetData && fleetData.count > 0) {
+      const vesselTypes = fleetData.vessels
+        .map((v: any) => v.type)
+        .filter((t: string, i: number, arr: string[]) => arr.indexOf(t) === i); // unique types
+
+      if (fleetData.count === 1) {
+        lines.push(`COMMERCIAL VESSEL ACTIVITY: 1 ${fleetData.vessels[0].type} vessel detected. Last seen ${fleetData.vessels[0].lastSeen}.`);
+      } else if (fleetData.count <= 5) {
+        const vesselList = fleetData.vessels
+          .map((v: any) => `${v.type} (${v.lastSeen})`)
+          .join(', ');
+        lines.push(`COMMERCIAL VESSEL ACTIVITY: ${fleetData.count} vessels detected - ${vesselList}.`);
+      } else {
+        const typeBreakdown = vesselTypes
+          .map((type: string) => {
+            const count = fleetData.vessels.filter((v: any) => v.type === type).length;
+            return `${count} ${type}${count > 1 ? 's' : ''}`;
+          })
+          .join(', ');
+        lines.push(`COMMERCIAL VESSEL ACTIVITY: ${fleetData.count} vessels detected - ${typeBreakdown}. Increased vessel traffic indicates productive fishing area.`);
+      }
+    } else if (!a.presence?.gfw) {
+      lines.push(`COMMERCIAL VESSEL ACTIVITY: No commercial vessels detected in this area in the last 7 days.`);
     } else {
       const c = a.presence.gfw;
       lines.push(`Commercial vessels (last 4d): Longliners ${c.longliner} • Drifting ${c.drifting_longline} • Trawlers ${c.trawler} • Events ${c.events}.`);
     }
   }
 
-  // 6. AI "Fishiness" Score (always show)
+  // 6. User Reports Data (Amanda's request - show recent catches and conditions)
+  const reportsData = (a as any).reports;
+  if (reportsData && reportsData.count > 0) {
+    const speciesList = reportsData.species && reportsData.species.length > 0
+      ? reportsData.species.join(', ')
+      : reportsData.recentCatch;
+
+    if (reportsData.count === 1) {
+      lines.push(`RECENT USER REPORTS: 1 report of ${speciesList} in the last 7 days.`);
+    } else {
+      lines.push(`RECENT USER REPORTS: ${reportsData.count} reports in last 7 days. Species: ${speciesList}. Active fishing area.`);
+    }
+  }
+
+  // 7. AI "Fishiness" Score (always show)
   const { score, label } = fishinessScore(a, ctx);
   lines.push(`Signal strength: ${score}/100 — ${label}.`);
 
-  // Clean out any nulls/empties, keep 3–6 lines, join with newlines
-  return lines.filter(Boolean).slice(0, 6).join('\n');
+  // Clean out any nulls/empties, keep 3–8 lines (increased to fit new data), join with newlines
+  return lines.filter(Boolean).slice(0, 8).join('\n');
 }
 
 // Optional: export score if you want a pill/indicator

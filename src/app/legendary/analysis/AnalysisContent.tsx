@@ -30,7 +30,9 @@ import CleanSnipOverlay from '@/components/snip/CleanSnipOverlay';
 import DynamicAnalysisModal from '@/components/DynamicAnalysisModal';
 // import SnipTool from '@/components/SnipTool'; // OLD - 2400 lines
 import SnipTool from '@/components/SimpleSnipTool'; // NEW - 120 lines
+import MapSSTScale from '@/components/MapSSTScale'; // East Coast SST scale
 import { AskABFI } from '@/components/AskABFI';
+import HotBiteAlert from '@/components/HotBiteAlert';
 // Removed DemoLogin - using real Memberstack auth
 
 // Mapbox token will be set in useEffect to avoid SSR issues
@@ -453,6 +455,11 @@ function AnalysisModeContent() {
       {/* Command Bridge Header */}
       <HeaderBar activeMode="analysis" />
 
+      {/* Hot Bite Alert - Real-time notification */}
+      <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-50 max-w-2xl w-full px-4">
+        <HotBiteAlert inletId={selectedInletId} />
+      </div>
+
       {/* ANALYSIS MODE UI */}
       <>
           {/* LEFT ZONE - Intelligence & Planning (Over Land) */}
@@ -727,7 +734,7 @@ function AnalysisModeContent() {
           
           {/* SnipTool - Handles polygon drawing for analysis */}
           {map.current && (
-            <SnipTool 
+            <SnipTool
               map={map.current}
               onAnalysisComplete={(analysis) => {
                 // Analysis complete handler - modal will open from SnipTool
@@ -735,6 +742,9 @@ function AnalysisModeContent() {
               }}
             />
           )}
+
+          {/* East Coast SST Scale */}
+          <MapSSTScale />
           
       </>
       

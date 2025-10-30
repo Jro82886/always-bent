@@ -43,32 +43,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(userData);
 
         // Sync with Supabase if needed
-        try {
-          // Check if profile exists in Supabase
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('email', member.email)
-            .single();
+        // Check for valid email - not undefined, not null, not the string "undefined"
+        const hasValidEmail = member.email &&
+                             member.email !== 'undefined' &&
+                             member.email !== 'null' &&
+                             member.email.includes('@');
 
-          if (error && error.code === 'PGRST116') {
-            // Profile doesn't exist, create it
-            await supabase.from('profiles').insert({
-              id: member.id,
-              email: member.email,
-              captain_name: member.customFields?.captainName || 'Captain',
-              boat_name: member.customFields?.boatName || 'Vessel',
-              signup_source: 'memberstack',
-            });
-          } else if (profile) {
-            // Update local user with Supabase data
-            setUser({
-              ...userData,
-              ...profile,
-            });
+        if (hasValidEmail) {
+          try {
+            // Check if profile exists in Supabase
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('email', member.email)
+              .single();
+
+            if (error && error.code === 'PGRST116') {
+              // Profile doesn't exist, create it
+              if (member.id && member.email) {
+                await supabase.from('profiles').insert({
+                  id: member.id,
+                  email: member.email,
+                  captain_name: member.customFields?.captainName || 'Captain',
+                  boat_name: member.customFields?.boatName || 'Vessel',
+                  signup_source: 'memberstack',
+                });
+              }
+            } else if (profile) {
+              // Update local user with Supabase data
+              setUser({
+                ...userData,
+                ...profile,
+              });
+            }
+          } catch (error) {
+            console.error('Error syncing with Supabase:', error);
           }
-        } catch (error) {
-          console.error('Error syncing with Supabase:', error);
         }
       } else {
         // Check for legacy localStorage auth (for migration)

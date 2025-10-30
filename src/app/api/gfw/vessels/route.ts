@@ -61,14 +61,14 @@ function gfwUpstreamUrl({ inletId, bbox, days }: { inletId?: string; bbox?: stri
   }
 
   // Build v3 Vessels API parameters
-  const params = new URLSearchParams({
-    datasets: 'public-global-vessel-identity:v3.0',
-  });
-
-  // Add bbox filter if available
-  if (searchBbox) {
-    params.append('bbox', searchBbox);
-  }
+  // v3 API requires datasets as array format: datasets[0]=id1
+  // v3 also requires either 'query' (basic search) or 'where' (advanced search) parameter
+  // NOTE: bbox is NOT supported by vessels/search endpoint in v3
+  // NOTE: limit max is 50 in v3
+  const params = new URLSearchParams();
+  params.append('datasets[0]', 'public-global-vessel-identity:v3.0');
+  params.append('query', 'fishing'); // Basic search query required in v3
+  params.append('limit', '50'); // Max limit is 50 in v3
 
   return `${base}?${params}`;
 }

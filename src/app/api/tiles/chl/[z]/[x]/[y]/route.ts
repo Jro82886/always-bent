@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import sharp from 'sharp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -83,8 +84,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
       .replace('{x}', x)
     .replace('{y}', y)
     .replace('{TIME}', dateOnly);
-    
-    // Attempt to fetch from upstream
+
+    // Attempt to fetch from upstream with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout for CHL (often has missing tiles)
 
     try {
       const response = await fetch(target, {
@@ -94,17 +97,20 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
           'User-Agent': 'alwaysbent-abfi'
         },
         redirect: 'follow',
-        cache: 'no-store'
+        cache: 'no-store',
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         upstream = response;
         successfulTime = tryTime;
         // Fallback attempt logged
         break;
-      } else if (response.status === 400 && datesToTry.length > 1) {
-        // Try next date
-        lastError = await response.text();
+      } else if ((response.status === 400 || response.status === 404) && datesToTry.length > 1) {
+        // Try next date - both 400 and 404 indicate no data for this date
+        lastError = `HTTP ${response.status}`;
         continue;
       } else {
         // Non-400 error or last attempt
@@ -118,7 +124,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
         });
       }
     } catch (e: any) {
-      lastError = e?.message || String(e);
+      clearTimeout(timeoutId);
+      lastError = e?.name === 'AbortError' ? 'Request timeout' : e?.message || String(e);
       if (datesToTry.indexOf(tryTime) === datesToTry.length - 1) {
         // Last attempt failed
         break;
@@ -127,9 +134,53 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   }
 
   if (!upstream) {
+    // For CHL, ALWAYS return a transparent PNG with status 200 for missing tiles
+    // CHL data often has gaps due to clouds or coverage
+    if (!isSst) {
+      try {
+        // Create a transparent 256x256 PNG using sharp
+        const transparentPng = await sharp({
+          create: {
+            width: 256,
+            height: 256,
+            channels: 4,
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+          }
+        })
+        .png()
+        .toBuffer();
+
+        return new Response(transparentPng, {
+          status: 200, // Always 200 so Mapbox accepts the tile
+          headers: {
+            'Content-Type': 'image/png',
+            'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+            'x-chl-fallback': 'transparent-tile-sharp',
+            'x-dates-tried': datesToTry.map(d => d.split('T')[0]).join(', ')
+          }
+        });
+      } catch (e) {
+        // Fallback: Create a valid transparent 256x256 PNG without sharp
+        // This is a properly formatted minimal PNG
+        const png256 = Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5gEKDgAAAGSWpQAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAASSURBVHja7cEBAQAAAIIg/69uSDUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB4M1AAAQFwtJXbAAAAAElFTkSuQmCC',
+          'base64'
+        );
+        return new Response(png256, {
+          status: 200, // Always 200
+          headers: {
+            'Content-Type': 'image/png',
+            'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
+            'x-chl-fallback': 'transparent-tile-256-fallback'
+          }
+        });
+      }
+    }
+
+    // For SST, still return error
     return new Response(`All dates failed. Last error: ${lastError}`, {
       status: 502,
-      headers: { 
+      headers: {
         'x-dates-tried': datesToTry.map(d => d.split('T')[0]).join(', ')
       }
     });
