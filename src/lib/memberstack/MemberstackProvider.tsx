@@ -1,7 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import Script from 'next/script';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 
 interface MemberstackMember {
   id: string;
@@ -13,6 +12,13 @@ interface MemberstackMember {
   };
   planId?: string;
   status?: string;
+  planConnections?: Array<{
+    planId: string;
+    status: string;
+    payment?: {
+      priceId: string;
+    };
+  }>;
 }
 
 interface MemberstackContextType {
@@ -24,6 +30,7 @@ interface MemberstackContextType {
   logout: () => Promise<void>;
   updateProfile: (fields: any) => Promise<void>;
   openModal: (type: 'login' | 'signup') => void;
+  hasActivePlan: (priceId: string) => boolean;
 }
 
 const MemberstackContext = createContext<MemberstackContextType>({
@@ -35,56 +42,87 @@ const MemberstackContext = createContext<MemberstackContextType>({
   logout: async () => {},
   updateProfile: async () => {},
   openModal: () => {},
+  hasActivePlan: () => false,
 });
 
 export const useMemberstack = () => useContext(MemberstackContext);
 
-interface MemberstackProviderProps {
-  children: React.ReactNode;
-  appId: string;
-}
-
-export function MemberstackProvider({ children, appId }: MemberstackProviderProps) {
+export function MemberstackProvider({ children }: { children: React.ReactNode }) {
   const [member, setMember] = useState<MemberstackMember | null>(null);
   const [loading, setLoading] = useState(true);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const msRef = useRef<any>(null);
 
-  // Initialize Memberstack when script loads
   useEffect(() => {
-    if (!scriptLoaded) return;
+    // Only initialize on the client side
+    if (typeof window === 'undefined') {
+      setLoading(false);
+      return;
+    }
 
-    const initializeMemberstack = async () => {
+    const initMemberstack = async () => {
       try {
-        // Wait for Memberstack to be available with retry logic
-        let memberstack = (window as any).$memberstackDom;
-        let attempts = 0;
-        const maxAttempts = 20;
+        // Dynamic import to avoid SSR issues
+        const memberstack = (await import('@memberstack/dom')).default;
 
-        // Retry until Memberstack is available or max attempts reached
-        while (!memberstack && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          memberstack = (window as any).$memberstackDom;
-          attempts++;
+        // Initialize Memberstack with your production public key
+        const ms = memberstack.init({
+          publicKey: process.env.NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY || 'pk_4d0f62c2cdfa07ade449',
+        });
+
+        msRef.current = ms;
+
+        // Get current member from Memberstack
+        const { data: currentMember } = await ms.getCurrentMember();
+
+        if (currentMember) {
+          // Transform to our member format
+          const transformedMember: MemberstackMember = {
+            id: currentMember.id,
+            email: currentMember.auth?.email || currentMember.email,
+            customFields: currentMember.customFields || {},
+            planId: currentMember.planConnections?.[0]?.planId,
+            status: currentMember.planConnections?.[0]?.status,
+            planConnections: currentMember.planConnections,
+          };
+
+          setMember(transformedMember);
+
+          // Sync with localStorage for app compatibility
+          if (transformedMember.customFields?.captainName) {
+            localStorage.setItem('abfi_captain_name', transformedMember.customFields.captainName);
+          }
+          if (transformedMember.customFields?.boatName) {
+            localStorage.setItem('abfi_boat_name', transformedMember.customFields.boatName);
+          }
+          if (transformedMember.customFields?.homePort) {
+            localStorage.setItem('abfi_home_port', transformedMember.customFields.homePort);
+          }
+          localStorage.setItem('abfi_member_id', transformedMember.id);
+          localStorage.setItem('abfi_member_email', transformedMember.email);
+          localStorage.setItem('abfi_authenticated', 'true');
+        } else {
+          // Clear auth data
+          setMember(null);
+          localStorage.removeItem('abfi_authenticated');
+          localStorage.removeItem('abfi_member_id');
+          localStorage.removeItem('abfi_member_email');
+          localStorage.removeItem('abfi_captain_name');
+          localStorage.removeItem('abfi_boat_name');
+          localStorage.removeItem('abfi_home_port');
         }
 
-        if (!memberstack) {
-          console.error('Memberstack not found on window after', maxAttempts, 'attempts');
-          setLoading(false);
-          return;
-        }
+        // Listen for auth changes
+        const unsubscribe = ms.onAuthChange((updatedMember: any) => {
+          console.log('Memberstack auth changed:', updatedMember);
 
-        console.log('Memberstack initialized successfully');
-
-        // Listen for auth state changes
-        memberstack.onAuthChange(({ member: updatedMember }: any) => {
-          console.log('Auth state changed:', updatedMember);
           if (updatedMember) {
             const transformedMember: MemberstackMember = {
               id: updatedMember.id,
               email: updatedMember.auth?.email || updatedMember.email,
               customFields: updatedMember.customFields || {},
               planId: updatedMember.planConnections?.[0]?.planId,
-              status: updatedMember.auth?.status,
+              status: updatedMember.planConnections?.[0]?.status,
+              planConnections: updatedMember.planConnections,
             };
             setMember(transformedMember);
 
@@ -95,196 +133,195 @@ export function MemberstackProvider({ children, appId }: MemberstackProviderProp
             if (transformedMember.customFields?.boatName) {
               localStorage.setItem('abfi_boat_name', transformedMember.customFields.boatName);
             }
+            if (transformedMember.customFields?.homePort) {
+              localStorage.setItem('abfi_home_port', transformedMember.customFields.homePort);
+            }
             localStorage.setItem('abfi_member_id', transformedMember.id);
             localStorage.setItem('abfi_member_email', transformedMember.email);
             localStorage.setItem('abfi_authenticated', 'true');
           } else {
             setMember(null);
+            // Clear localStorage
             localStorage.removeItem('abfi_authenticated');
             localStorage.removeItem('abfi_member_id');
             localStorage.removeItem('abfi_member_email');
+            localStorage.removeItem('abfi_captain_name');
+            localStorage.removeItem('abfi_boat_name');
+            localStorage.removeItem('abfi_home_port');
           }
         });
 
-        // Get current member
-        const { data: currentMember } = await memberstack.getCurrentMember();
-        
-        if (currentMember) {
-          // Transform Memberstack member to our format
-          const transformedMember: MemberstackMember = {
-            id: currentMember.id,
-            email: currentMember.email,
-            customFields: currentMember.customFields || {},
-            planId: currentMember.planId,
-            status: currentMember.status,
-          };
-          
-          setMember(transformedMember);
-          
-          // Sync with localStorage for app compatibility
-          if (transformedMember.customFields?.captainName) {
-            localStorage.setItem('abfi_captain_name', transformedMember.customFields.captainName);
-          }
-          if (transformedMember.customFields?.boatName) {
-            localStorage.setItem('abfi_boat_name', transformedMember.customFields.boatName);
-          }
-          localStorage.setItem('abfi_member_id', transformedMember.id);
-          localStorage.setItem('abfi_member_email', transformedMember.email);
-          localStorage.setItem('abfi_authenticated', 'true');
-        } else {
-          // Clear auth data
-          localStorage.removeItem('abfi_authenticated');
-          localStorage.removeItem('abfi_member_id');
-          localStorage.removeItem('abfi_member_email');
-        }
+        // Store unsubscribe for cleanup
+        return () => {
+          unsubscribe.unsubscribe();
+        };
       } catch (error) {
         console.error('Error initializing Memberstack:', error);
+        setMember(null);
       } finally {
         setLoading(false);
       }
     };
 
-    initializeMemberstack();
-  }, [scriptLoaded]);
+    initMemberstack();
+  }, []);
 
   const login = async (email: string, password: string) => {
-    const memberstack = (window as any).$memberstackDom;
-    if (!memberstack) throw new Error('Memberstack not initialized');
+    if (!msRef.current) {
+      throw new Error('Memberstack not initialized');
+    }
 
     try {
-      const { data } = await memberstack.loginMember({ email, password });
-      if (data) {
-        setMember({
-          id: data.id,
-          email: data.email,
-          customFields: data.customFields || {},
-          planId: data.planId,
-          status: data.status,
-        });
+      const { data } = await msRef.current.loginMemberEmailPassword({ email, password });
+      if (data?.member) {
+        const transformedMember: MemberstackMember = {
+          id: data.member.id,
+          email: data.member.auth?.email || data.member.email,
+          customFields: data.member.customFields || {},
+          planId: data.member.planConnections?.[0]?.planId,
+          status: data.member.planConnections?.[0]?.status,
+          planConnections: data.member.planConnections,
+        };
+        setMember(transformedMember);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      throw error;
+      throw new Error(error.message || 'Login failed. Please check your credentials.');
     }
   };
 
   const signup = async (email: string, password: string, customFields?: any) => {
-    const memberstack = (window as any).$memberstackDom;
-    if (!memberstack) throw new Error('Memberstack not initialized');
+    if (!msRef.current) {
+      throw new Error('Memberstack not initialized');
+    }
 
     try {
-      const { data } = await memberstack.signupMember({ 
-        email, 
+      const signupData: any = {
+        email,
         password,
         customFields: {
           ...customFields,
           signupSource: 'app',
         }
-      });
-      
-      if (data) {
-        setMember({
-          id: data.id,
-          email: data.email,
-          customFields: data.customFields || {},
-          planId: data.planId,
-          status: data.status,
-        });
+      };
+
+      const { data } = await msRef.current.signupMemberEmailPassword(signupData);
+
+      if (data?.member) {
+        const transformedMember: MemberstackMember = {
+          id: data.member.id,
+          email: data.member.auth?.email || data.member.email,
+          customFields: data.member.customFields || {},
+          planId: data.member.planConnections?.[0]?.planId,
+          status: data.member.planConnections?.[0]?.status,
+          planConnections: data.member.planConnections,
+        };
+        setMember(transformedMember);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error);
-      throw error;
+      throw new Error(error.message || 'Signup failed. Please try again.');
     }
   };
 
   const logout = async () => {
-    const memberstack = (window as any).$memberstackDom;
-    if (!memberstack) return;
+    if (!msRef.current) {
+      throw new Error('Memberstack not initialized');
+    }
 
     try {
-      await memberstack.logout();
+      await msRef.current.logout();
       setMember(null);
-      
+
       // Clear all localStorage
-      localStorage.removeItem('abfi_authenticated');
-      localStorage.removeItem('abfi_member_id');
-      localStorage.removeItem('abfi_member_email');
-      localStorage.removeItem('abfi_captain_name');
-      localStorage.removeItem('abfi_boat_name');
-      
-      // Redirect to landing page
-      window.location.href = '/';
-    } catch (error) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('abfi_authenticated');
+        localStorage.removeItem('abfi_member_id');
+        localStorage.removeItem('abfi_member_email');
+        localStorage.removeItem('abfi_captain_name');
+        localStorage.removeItem('abfi_boat_name');
+        localStorage.removeItem('abfi_home_port');
+
+        // Redirect to landing page
+        window.location.href = '/';
+      }
+    } catch (error: any) {
       console.error('Logout error:', error);
+      throw new Error(error.message || 'Logout failed.');
     }
   };
 
   const updateProfile = async (fields: any) => {
-    const memberstack = (window as any).$memberstackDom;
-    if (!memberstack || !member) return;
+    if (!msRef.current || !member) {
+      throw new Error('Memberstack not initialized or no member logged in');
+    }
 
     try {
-      const { data } = await memberstack.updateMember({
+      await msRef.current.updateMember({
         customFields: fields
       });
-      
-      if (data) {
-        setMember(prev => ({
-          ...prev!,
-          customFields: { ...prev?.customFields, ...fields }
-        }));
-        
-        // Update localStorage
+
+      // Update local state
+      setMember(prev => ({
+        ...prev!,
+        customFields: { ...prev?.customFields, ...fields }
+      }));
+
+      // Update localStorage
+      if (typeof window !== 'undefined') {
         if (fields.captainName) {
           localStorage.setItem('abfi_captain_name', fields.captainName);
         }
         if (fields.boatName) {
           localStorage.setItem('abfi_boat_name', fields.boatName);
         }
+        if (fields.homePort) {
+          localStorage.setItem('abfi_home_port', fields.homePort);
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Update profile error:', error);
-      throw error;
+      throw new Error(error.message || 'Failed to update profile.');
     }
   };
 
   const openModal = (type: 'login' | 'signup') => {
-    const memberstack = (window as any).$memberstackDom;
-    console.log('openModal called with type:', type);
-    console.log('Memberstack instance:', memberstack);
-
-    if (!memberstack) {
-      console.error('Memberstack not available when trying to open modal');
-      return;
+    console.log('Opening Memberstack modal:', type);
+    // Note: With @memberstack/dom package, modals are handled differently
+    // You might need to implement custom modals or use Memberstack's UI components
+    if (typeof window !== 'undefined') {
+      if (type === 'login') {
+        // Redirect to login page or open custom modal
+        window.location.href = '/login';
+      } else {
+        // Redirect to signup page or open custom modal
+        window.location.href = '/signup';
+      }
     }
+  };
 
-    console.log('Opening Memberstack modal...');
-    memberstack.openModal(type);
+  const hasActivePlan = (priceId: string): boolean => {
+    if (!member?.planConnections) return false;
+    return member.planConnections.some(
+      (plan) => plan.payment?.priceId === priceId && plan.status === 'ACTIVE'
+    );
   };
 
   return (
-    <>
-      <Script
-        src="https://static.memberstack.com/scripts/v1/memberstack.js"
-        data-memberstack-app={appId}
-        strategy="afterInteractive"
-        onLoad={() => setScriptLoaded(true)}
-      />
-      
-      <MemberstackContext.Provider
-        value={{
-          member,
-          loading,
-          isAuthenticated: !!member,
-          login,
-          signup,
-          logout,
-          updateProfile,
-          openModal,
-        }}
-      >
-        {children}
-      </MemberstackContext.Provider>
-    </>
+    <MemberstackContext.Provider
+      value={{
+        member,
+        loading,
+        isAuthenticated: !!member,
+        login,
+        signup,
+        logout,
+        updateProfile,
+        openModal,
+        hasActivePlan,
+      }}
+    >
+      {children}
+    </MemberstackContext.Provider>
   );
 }

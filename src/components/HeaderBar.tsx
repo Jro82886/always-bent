@@ -8,6 +8,9 @@ import { buildInletColorMap } from "@/lib/inletColors";
 import { useAppState } from "@/lib/store";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { usePathname } from "next/navigation";
+import { useMemberstack } from "@/lib/memberstack/MemberstackProvider";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { User, LogOut, Settings } from "lucide-react";
 
 /** Small helper for today's ISO (YYYY-MM-DD) */
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -30,6 +33,8 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
     activeRaster,          // 'sst' | 'chl' | 'abfi' | null
     setActiveRaster,
   } = useAppState();
+
+  const { member, logout, loading: memberLoading } = useMemberstack();
 
   const pathname = usePathname();
   const showInletSelect = Boolean(pathname && (pathname.startsWith("/legendary/tracking") || pathname === "/legendary"));
@@ -101,6 +106,16 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
       return;
     }
     setActiveRaster((activeRaster as any) === id ? null : id);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // Memberstack handles redirect to home page
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      alert('Failed to logout. Please try again.');
+    }
   };
 
   return (
@@ -235,6 +250,66 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
           tooltip="Thermocline (custom blend) for hotspot prediction"
         />
       ) : null}
+
+      {/* User Menu - positioned at the end */}
+      <div className="ml-auto flex items-center gap-2">
+        {!memberLoading && (
+          <>
+            {member ? (
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <button className="flex items-center gap-2 rounded bg-black/60 px-3 py-1 text-sm ring-1 ring-white/10 hover:ring-cyan-400/60 transition-all">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline text-xs">{member.email}</span>
+                  </button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    className="min-w-[180px] rounded-md bg-black/90 p-1 shadow-lg backdrop-blur border border-white/10"
+                    sideOffset={5}
+                    align="end"
+                  >
+                    <DropdownMenu.Label className="px-2 py-1 text-xs font-semibold text-white/60">
+                      My Account
+                    </DropdownMenu.Label>
+                    <DropdownMenu.Separator className="my-1 h-px bg-white/10" />
+                    <DropdownMenu.Item
+                      className="flex items-center gap-2 rounded px-2 py-1 text-sm text-white outline-none hover:bg-white/10 cursor-pointer"
+                      onSelect={() => window.location.href = '/account-billing'}
+                    >
+                      <Settings className="h-4 w-4" />
+                      Account Settings
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Separator className="my-1 h-px bg-white/10" />
+                    <DropdownMenu.Item
+                      className="flex items-center gap-2 rounded px-2 py-1 text-sm text-red-400 outline-none hover:bg-white/10 cursor-pointer"
+                      onSelect={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.location.href = '/login'}
+                  className="rounded bg-black/60 px-3 py-1 text-sm ring-1 ring-white/10 hover:ring-cyan-400/60 transition-all"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => window.location.href = '/signup'}
+                  className="rounded bg-cyan-500 px-3 py-1 text-sm font-medium text-black hover:bg-cyan-400 transition-all"
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
