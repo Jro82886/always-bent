@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useMemberstack } from '@/lib/memberstack/MemberstackProvider';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const { login } = useMemberstack();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,7 +21,9 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push('/legendary'); // Redirect to main app after login
+      // Redirect to returnUrl if provided, otherwise to /legendary
+      const returnUrl = searchParams.get('returnUrl') || '/legendary';
+      router.push(decodeURIComponent(returnUrl));
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {

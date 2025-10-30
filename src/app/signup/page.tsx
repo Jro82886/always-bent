@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useMemberstack } from '@/lib/memberstack/MemberstackProvider';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SignupPage() {
   const { signup } = useMemberstack();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -39,7 +40,9 @@ export default function SignupPage() {
         boatName,
         homePort,
       });
-      router.push('/legendary'); // Redirect to main app after signup
+      // Redirect to returnUrl if provided, otherwise to /legendary
+      const returnUrl = searchParams.get('returnUrl') || '/legendary';
+      router.push(decodeURIComponent(returnUrl));
     } catch (err: any) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {

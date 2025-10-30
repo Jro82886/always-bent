@@ -1,61 +1,40 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useMemberstack } from '@/lib/memberstack/MemberstackProvider';
-import { Loader2 } from 'lucide-react';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  redirectTo?: string;
-  requireProfile?: boolean;
-}
-
-export default function ProtectedRoute({ 
-  children, 
-  redirectTo = '/',
-  requireProfile = true 
-}: ProtectedRouteProps) {
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { member, loading } = useMemberstack();
   const router = useRouter();
-  const { member, loading, isAuthenticated } = useMemberstack();
+  const pathname = usePathname();
 
   useEffect(() => {
+    // Wait for auth to finish loading
     if (loading) return;
 
-    if (!isAuthenticated) {
-      // Not authenticated - redirect to landing page
-      router.replace(redirectTo);
-      return;
+    // If not authenticated, redirect to login with return URL
+    if (!member) {
+      // Store the current path so we can redirect back after login
+      const returnUrl = encodeURIComponent(pathname || '/legendary');
+      router.push(`/login?returnUrl=${returnUrl}`);
     }
+  }, [member, loading, router, pathname]);
 
-    if (requireProfile && member) {
-      // Check if profile is complete
-      const { captainName, boatName } = member.customFields || {};
-      
-      if (!captainName || !boatName) {
-        // Profile incomplete - redirect to welcome
-        router.replace('/legendary/welcome');
-      }
-    }
-  }, [isAuthenticated, loading, member, requireProfile, redirectTo, router]);
-
-  // Show loading state
+  // Show loading state while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="text-cyan-400 text-lg">Loading...</div>
       </div>
     );
   }
 
-  // Not authenticated
-  if (!isAuthenticated) {
+  // Show nothing while redirecting
+  if (!member) {
     return null;
   }
 
-  // Authenticated - render children
+  // User is authenticated, show the protected content
   return <>{children}</>;
 }
