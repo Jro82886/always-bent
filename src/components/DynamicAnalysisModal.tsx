@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import type { AnalysisVM } from '@/types/analyze'
-import { X } from 'lucide-react'
+import type { AnalysisVM, EnhancedAnalysis } from '@/types/analyze'
+import { X, TrendingUp, TrendingDown, Activity, Target } from 'lucide-react'
 import { useAppState } from '@/lib/store'
 
 type Props = {
@@ -15,10 +15,10 @@ export default function DynamicAnalysisModal({
 }: Props) {
   const [saving, setSaving] = useState(false)
   const { selectedInletId } = useAppState()
-  
+
   if (!isOpen || !vm) return null
 
-  const { areaKm2, sst, chl, hasSST, hasCHL, weather, fleet, reports } = vm
+  const { areaKm2, sst, chl, hasSST, hasCHL, weather, fleet, reports, enhanced } = vm
   
   // Debug log to see what data we're getting
   console.log('[DynamicModal] Data check:', { hasSST, hasCHL, sst, chl, weather, fleet, reports, vm, timestamp: new Date().toISOString() })
@@ -90,19 +90,56 @@ export default function DynamicAnalysisModal({
     }
   }
 
+  // Helper functions for enhanced display
+  const getScoreColor = (score: number) => {
+    if (score >= 70) return 'text-green-400 bg-green-500/20 border-green-500/50';
+    if (score >= 40) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/50';
+    return 'text-red-400 bg-red-500/20 border-red-500/50';
+  };
+
+  const getScoreCategory = (category: string) => {
+    const colors = {
+      'strong': 'text-green-400',
+      'fair': 'text-yellow-400',
+      'poor': 'text-red-400'
+    };
+    return colors[category] || 'text-slate-400';
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[100]">
       <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-auto">
         {/* Header */}
         <div className="bg-slate-900 px-6 py-4 border-b border-slate-700 flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-semibold text-slate-100">Extended Analysis</h2>
-            <div className="mt-2 text-xs text-slate-400 space-y-1">
-              <div>Region / Inlet: East Coast</div>
-              <div>Date: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-              <div>Area: {areaNm2.toFixed(1)} nm²</div>
+          <div className="flex items-center gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold text-slate-100">Extended Analysis</h2>
+              <div className="mt-2 text-xs text-slate-400 space-y-1">
+                <div>Region / Inlet: East Coast</div>
+                <div>Date: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                <div>Area: {areaNm2.toFixed(1)} nm²</div>
+              </div>
             </div>
+
+            {/* Snip Score Display when enhanced data is available */}
+            {enhanced?.score && (
+              <div className={`flex items-center gap-3 px-4 py-2 rounded-lg border ${getScoreColor(enhanced.score.total)}`}>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{enhanced.score.total}</div>
+                  <div className={`text-xs uppercase ${getScoreCategory(enhanced.score.category)}`}>
+                    {enhanced.score.category}
+                  </div>
+                </div>
+                <div className="h-10 w-px bg-slate-600" />
+                <div className="text-xs text-slate-400 space-y-0.5">
+                  <div>Temp: {enhanced.score.breakdown.temperatureAndGradient}/20</div>
+                  <div>CHL: {enhanced.score.breakdown.chlorophyll}/20</div>
+                  <div>Fleet: {enhanced.score.breakdown.fleetActivity}/20</div>
+                </div>
+              </div>
+            )}
           </div>
+
           <div className="flex items-center gap-3">
             <button
               onClick={handleSaveSnip}
@@ -140,8 +177,45 @@ export default function DynamicAnalysisModal({
             </div>
           )}
           
-          {/* Temperature Analysis */}
-          {hasSST && sst && (
+          {/* Enhanced Temperature Analysis */}
+          {enhanced?.temperature ? (
+            <div className="border-l-4 border-cyan-500/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Temperature Analysis (SST)</h3>
+              <div className="space-y-2">
+                <div className="space-y-1 text-slate-300 text-sm">
+                  <div>• Current average: <span className="font-medium text-slate-100">{enhanced.temperature.currentAvgF.toFixed(1)}°F</span></div>
+                  <div>• Range: <span className="font-medium text-slate-100">{enhanced.temperature.rangeBar.min.toFixed(1)}°F – {enhanced.temperature.rangeBar.max.toFixed(1)}°F</span></div>
+                  {enhanced.temperature.bestBreak && (
+                    <div className="mt-2 p-2 bg-green-500/10 rounded border border-green-500/30">
+                      <span className="text-green-300 text-xs">
+                        ✓ Best break: ΔT {enhanced.temperature.bestBreak.strengthF.toFixed(1)}°F at {enhanced.temperature.bestBreak.location}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {enhanced.trends?.sst7Day && enhanced.trends?.sst14Day && (
+                  <div className="flex gap-4 text-xs text-slate-400">
+                    <div className="flex items-center gap-1">
+                      {enhanced.trends.sst7Day.changeF > 0 ? (
+                        <TrendingUp className="w-3 h-3 text-red-400" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3 text-blue-400" />
+                      )}
+                      <span>7d: {enhanced.trends.sst7Day.trend}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {enhanced.trends.sst14Day.changeF > 0 ? (
+                        <TrendingUp className="w-3 h-3 text-red-400" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3 text-blue-400" />
+                      )}
+                      <span>14d: {enhanced.trends.sst14Day.trend}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : hasSST && sst && (
             <div className="border-l-4 border-cyan-500/60 pl-4">
               <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Temperature Analysis (SST)</h3>
               <div className="space-y-1 text-slate-300 text-sm">
@@ -159,8 +233,51 @@ export default function DynamicAnalysisModal({
             </div>
           )}
 
-          {/* Water Quality */}
-          {hasCHL && chl && (
+          {/* Enhanced Water Quality */}
+          {enhanced?.chlorophyll ? (
+            <div className="border-l-4 border-emerald-500/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Water Quality (Chlorophyll‑a)</h3>
+              <div className="space-y-2">
+                <div className="space-y-1 text-slate-300 text-sm">
+                  <div>• Current average: <span className="font-medium text-slate-100">{enhanced.chlorophyll.currentAvgMgM3.toFixed(2)} mg/m³</span></div>
+                  <div>• Range: <span className="font-medium text-slate-100">{enhanced.chlorophyll.rangeBar.min.toFixed(2)} – {enhanced.chlorophyll.rangeBar.max.toFixed(2)} mg/m³</span></div>
+                  <div className="flex items-center gap-2">
+                    <span>• Clarity:</span>
+                    <span
+                      className="px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={{
+                        backgroundColor: `${enhanced.chlorophyll.clarityScale.color}20`,
+                        color: enhanced.chlorophyll.clarityScale.color,
+                        border: `1px solid ${enhanced.chlorophyll.clarityScale.color}50`
+                      }}
+                    >
+                      {enhanced.chlorophyll.clarityScale.label}
+                    </span>
+                  </div>
+                </div>
+                {enhanced.trends?.chl7Day && enhanced.trends?.chl14Day && (
+                  <div className="flex gap-4 text-xs text-slate-400">
+                    <div className="flex items-center gap-1">
+                      {enhanced.trends.chl7Day.change > 0 ? (
+                        <TrendingUp className="w-3 h-3 text-green-400" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3 text-blue-400" />
+                      )}
+                      <span>7d: {enhanced.trends.chl7Day.trend}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {enhanced.trends.chl14Day.change > 0 ? (
+                        <TrendingUp className="w-3 h-3 text-green-400" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3 text-blue-400" />
+                      )}
+                      <span>14d: {enhanced.trends.chl14Day.trend}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : hasCHL && chl && (
             <div className="border-l-4 border-emerald-500/60 pl-4">
               <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Water Quality (Chlorophyll‑a)</h3>
               <div className="space-y-1 text-slate-300 text-sm">
@@ -219,6 +336,36 @@ export default function DynamicAnalysisModal({
             </div>
           )}
 
+          {/* Oceanographic Features */}
+          {enhanced?.oceanographicFeatures && enhanced.oceanographicFeatures.features.length > 0 && (
+            <div className="border-l-4 border-orange-500/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Oceanographic Features
+              </h3>
+              <div className="space-y-1 text-slate-300 text-sm">
+                {['edge', 'filament', 'eddy'].map(type => {
+                  const count = enhanced.oceanographicFeatures.features.filter((f: any) =>
+                    f.properties?.type === type
+                  ).length;
+                  if (count === 0) return null;
+
+                  const descriptions: Record<string, string> = {
+                    edge: 'Temperature edges (red)',
+                    filament: 'Filaments (yellow)',
+                    eddy: 'Eddies (green)'
+                  };
+
+                  return (
+                    <div key={type}>
+                      • <span className="font-medium text-slate-100">{count} {descriptions[type]}</span> detected
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Trend Context */}
           <div className="bg-slate-800 rounded-md p-4 border border-slate-700">
             <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Trend Context</h3>
@@ -232,7 +379,9 @@ export default function DynamicAnalysisModal({
           <div className="bg-slate-800 rounded-md p-4 border border-slate-700">
             <h3 className="text-sm font-semibold text-slate-100 mb-3 tracking-wide">Narrative Summary</h3>
             <div className="space-y-2 text-slate-300 text-sm">
-              {hasSST && sst && (
+              {enhanced?.narrative?.overview ? (
+                <p>{enhanced.narrative.overview}</p>
+              ) : hasSST && sst && (
                 <p>
                   <span className="font-medium">SST:</span> Sea surface temps average {sst.meanF.toFixed(1)}°F with a {
                     sst.gradFperMile >= 2 ? "strong" : sst.gradFperMile >= 1 ? "moderate" : "mild"
@@ -274,33 +423,37 @@ export default function DynamicAnalysisModal({
           {/* Tactical Advice */}
           <div className="border-l-4 border-blue-500/60 pl-4">
             <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Tactical Advice</h3>
-            <ul className="space-y-1 text-slate-300 text-sm">
-              {hasSST && sst && sst.gradFperMile >= 2 && (
-                <li>• Strong temperature break → focus on both sides of the edge</li>
-              )}
-              {hasCHL && chl && chl.mean > 0.3 && chl.mean < 1.0 && (
-                <li>• Productive green water → expect bait activity</li>
-              )}
-              {hasSST && sst && sst.meanF > 72 && sst.meanF < 78 && (
-                <li>• Warmer band → pelagics may be present higher in the column</li>
-              )}
-              {(!hasSST || !sst || sst.gradFperMile < 2) && (!hasCHL || !chl || chl.mean <= 0.3) && (
-                <>
-                  <li>• Uniform conditions → search wider area for structure</li>
-                  <li>• Check depth changes and bottom contours</li>
-                  <li>• Monitor for bird activity indicating bait</li>
-                </>
-              )}
-              {weather && weather.wind.speed > 15 && (
-                <li>• {weather.wind.speed}kt winds → fish deeper or seek protected areas</li>
-              )}
-              {fleet && fleet.count > 0 && (
-                <li>• Fleet present → observe their patterns or work different depths</li>
-              )}
-              {reports && reports.species.length > 0 && (
-                <li>• Recent {reports.species[0]} catches → match successful techniques</li>
-              )}
-            </ul>
+            {enhanced?.tactical?.tacticalAdvice ? (
+              <p className="text-slate-300 text-sm">{enhanced.tactical.tacticalAdvice}</p>
+            ) : (
+              <ul className="space-y-1 text-slate-300 text-sm">
+                {hasSST && sst && sst.gradFperMile >= 2 && (
+                  <li>• Strong temperature break → focus on both sides of the edge</li>
+                )}
+                {hasCHL && chl && chl.mean > 0.3 && chl.mean < 1.0 && (
+                  <li>• Productive green water → expect bait activity</li>
+                )}
+                {hasSST && sst && sst.meanF > 72 && sst.meanF < 78 && (
+                  <li>• Warmer band → pelagics may be present higher in the column</li>
+                )}
+                {(!hasSST || !sst || sst.gradFperMile < 2) && (!hasCHL || !chl || chl.mean <= 0.3) && (
+                  <>
+                    <li>• Uniform conditions → search wider area for structure</li>
+                    <li>• Check depth changes and bottom contours</li>
+                    <li>• Monitor for bird activity indicating bait</li>
+                  </>
+                )}
+                {weather && weather.wind.speed > 15 && (
+                  <li>• {weather.wind.speed}kt winds → fish deeper or seek protected areas</li>
+                )}
+                {fleet && fleet.count > 0 && (
+                  <li>• Fleet present → observe their patterns or work different depths</li>
+                )}
+                {reports && reports.species.length > 0 && (
+                  <li>• Recent {reports.species[0]} catches → match successful techniques</li>
+                )}
+              </ul>
+            )}
           </div>
 
           {/* Footer */}

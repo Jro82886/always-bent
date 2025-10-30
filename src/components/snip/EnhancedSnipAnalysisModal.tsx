@@ -127,8 +127,8 @@ export default function EnhancedSnipAnalysisModal() {
                       />
                     </div>
                     <div className="flex justify-between text-xs text-slate-500">
-                      <span>{enhanced.temperature.rangeF.min.toFixed(1)}°F</span>
-                      <span>{enhanced.temperature.rangeF.max.toFixed(1)}°F</span>
+                      <span>{enhanced.temperature.rangeBar.min.toFixed(1)}°F</span>
+                      <span>{enhanced.temperature.rangeBar.max.toFixed(1)}°F</span>
                     </div>
                   </div>
 
@@ -143,7 +143,7 @@ export default function EnhancedSnipAnalysisModal() {
                   )}
 
                   {/* Temperature Trends */}
-                  {enhanced.trends && (
+                  {enhanced.trends?.sst7Day && enhanced.trends?.sst14Day && (
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-1">
                         {enhanced.trends.sst7Day.changeF > 0 ? (
@@ -193,7 +193,7 @@ export default function EnhancedSnipAnalysisModal() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-500">Current Average:</span>
-                      <span className="text-cyan-300 font-bold">{enhanced.chlorophyll.currentAvg.toFixed(2)} mg/m³</span>
+                      <span className="text-cyan-300 font-bold">{enhanced.chlorophyll.currentAvgMgM3.toFixed(2)} mg/m³</span>
                     </div>
 
                     {/* Clarity Scale */}
@@ -202,18 +202,18 @@ export default function EnhancedSnipAnalysisModal() {
                       <div
                         className="px-3 py-1 rounded-full text-sm font-medium"
                         style={{
-                          backgroundColor: `${enhanced.chlorophyll.clarityColor}20`,
-                          color: enhanced.chlorophyll.clarityColor,
-                          border: `1px solid ${enhanced.chlorophyll.clarityColor}50`
+                          backgroundColor: `${enhanced.chlorophyll.clarityScale.color}20`,
+                          color: enhanced.chlorophyll.clarityScale.color,
+                          border: `1px solid ${enhanced.chlorophyll.clarityScale.color}50`
                         }}
                       >
-                        {enhanced.chlorophyll.clarity}
+                        {enhanced.chlorophyll.clarityScale.label}
                       </div>
                     </div>
                   </div>
 
                   {/* Chlorophyll Trends */}
-                  {enhanced.trends && (
+                  {enhanced.trends?.chl7Day && enhanced.trends?.chl14Day && (
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-1">
                         {enhanced.trends.chl7Day.change > 0 ? (
@@ -362,7 +362,7 @@ export default function EnhancedSnipAnalysisModal() {
               )}
 
               {/* Narrative Summary */}
-              {enhanced?.narrative && (
+              {enhanced?.narrative?.overview && (
                 <div>
                   <h3 className="text-lg font-semibold text-cyan-300 flex items-center gap-2 mb-3">
                     <Fish className="w-5 h-5" />
@@ -370,18 +370,18 @@ export default function EnhancedSnipAnalysisModal() {
                   </h3>
                   <div className="bg-cyan-500/10 rounded-lg border border-cyan-500/30 p-4">
                     <p className="text-sm text-cyan-100 leading-relaxed">
-                      {enhanced.narrative}
+                      {enhanced.narrative.overview}
                     </p>
                   </div>
                 </div>
               )}
 
               {/* Tactical Advice */}
-              {enhanced?.tactical && (
+              {enhanced?.tactical?.tacticalAdvice && (
                 <div className="bg-green-500/10 rounded-lg border border-green-500/30 p-4">
                   <h4 className="text-sm font-semibold text-green-300 mb-2">Tactical Advice:</h4>
                   <p className="text-sm text-green-100">
-                    {enhanced.tactical}
+                    {enhanced.tactical.tacticalAdvice}
                   </p>
                 </div>
               )}

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { bbox as turfBbox, centroid as turfCentroid } from '@turf/turf';
 import { getSupabase } from '@/lib/supabase/server';
+import { analyzeSnipArea } from '@/lib/analysis/snip-report-analyzer';
+import { detectOceanographicFeatures } from '@/lib/analysis/oceanographic-features';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120; // Set max duration to 120 seconds for real Copernicus data
@@ -20,6 +22,8 @@ export async function POST(req: NextRequest) {
 
     // Try to call the raster sample function directly
     let data: any = {};
+    let enhancedData: any = null; // Declare at the appropriate scope
+
     try {
       // Convert want object to layers array
       const layersArray: ('sst' | 'chl')[] = [];
@@ -63,7 +67,10 @@ export async function POST(req: NextRequest) {
 
       if (sampleResponse && sampleResponse.ok) {
         const response = await sampleResponse.json();
-        
+
+        // Store pixel data for enhanced analysis
+        let pixelData: any[] = [];
+
         // Extract real data from the response
         if (response.stats?.sst) {
           // SST values are already in Fahrenheit from the API
@@ -78,6 +85,41 @@ export async function POST(req: NextRequest) {
           data.chl = {
             mean: response.stats.chl.mean
           };
+        }
+
+        // If we have pixels from the raster sample, use them for enhanced analysis
+        console.log('[ANALYZE] Response has pixels?', !!response.pixels, 'Length:', response.pixels?.length);
+        if (response.pixels) {
+          pixelData = response.pixels;
+        }
+
+        // Run enhanced analysis - always run even without pixel data for user reports
+        console.log('[ANALYZE] Pixel data length:', pixelData.length);
+        try {
+          console.log('[ANALYZE] Calling comprehensive analyzer with includeUserReports: true');
+          enhancedData = await analyzeSnipArea(
+            polygon as any,
+            pixelData.length > 0 ? pixelData : [], // Pass empty array if no pixels
+            {
+              date: new Date(date),
+              includeFleet: true,
+              includeTrends: true,
+              includeUserReports: true // Enable user reports from bite_reports table
+            }
+          );
+          console.log('[ANALYZE] Enhanced data userReports:', enhancedData?.fleetActivity?.userReports);
+
+          // Also detect oceanographic features only if we have pixel data
+          if (pixelData.length > 0) {
+            const features = await detectOceanographicFeatures(
+              pixelData,
+              bbox as [[number, number], [number, number]]
+            );
+            enhancedData.oceanographicFeatures = features;
+          }
+        } catch (e) {
+          console.error('[ANALYZE] Enhanced analysis error:', e);
+          // Continue without enhanced features
         }
       } else if (sampleResponse) {
         const errorText = await sampleResponse.text();
@@ -215,15 +257,18 @@ export async function POST(req: NextRequest) {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
       // Get reports within the bounding box
-      const { data: reports } = await supabase
+      const { data: reports, error } = await supabase
         .from('bite_reports')
         .select('*')
         .gte('created_at', sevenDaysAgo.toISOString())
-        .gte('longitude', bbox[0])
-        .lte('longitude', bbox[2])
-        .gte('latitude', bbox[1])
-        .lte('latitude', bbox[3])
+        .gte('lon', bbox[0])
+        .lte('lon', bbox[2])
+        .gte('lat', bbox[1])
+        .lte('lat', bbox[3])
+        .eq('status', 'analyzed')
         .limit(10);
+
+      console.log('[ANALYZE] Bite reports query:', { error, count: reports?.length, bbox });
         
       if (reports && reports.length > 0) {
         reportsData = {
@@ -258,7 +303,18 @@ export async function POST(req: NextRequest) {
       } : null,
       fleet: fleetData,
       reports: reportsData,
-      debug: { bbox, date, hasRealData: !!data.sst || !!data.chl }
+      debug: { bbox, date, hasRealData: !!data.sst || !!data.chl },
+      // Add enhanced analysis features
+      enhanced: enhancedData ? {
+        score: enhancedData.score,
+        temperature: enhancedData.temperature,
+        chlorophyll: enhancedData.chlorophyll,
+        fleetActivity: enhancedData.fleetActivity,
+        trends: enhancedData.trends,
+        narrative: enhancedData.narrative,
+        tactical: enhancedData.tactical,
+        oceanographicFeatures: enhancedData.oceanographicFeatures
+      } : null
     };
 
     return NextResponse.json(result);
