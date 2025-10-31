@@ -174,7 +174,7 @@ export default function WeatherCard() {
             <span className="text-xs text-gray-400 uppercase">Water</span>
           </div>
           <div className="text-xl font-semibold text-white">
-            {weatherData.water.temperature}°F
+            {weatherData.water.temperature.toFixed(1)}°F
           </div>
           <div className="text-xs text-gray-500">
             Surface temperature
@@ -188,7 +188,7 @@ export default function WeatherCard() {
             <span className="text-xs text-gray-400 uppercase">Wind</span>
           </div>
           <div className="text-xl font-semibold text-white">
-            {weatherData.wind.speed} kts
+            {weatherData.wind.speed.toFixed(1)} kts
           </div>
           <div className="text-xs text-gray-500">
             From {formatDirection(weatherData.wind.direction)}
@@ -202,7 +202,7 @@ export default function WeatherCard() {
             <span className="text-xs text-gray-400 uppercase">Pressure</span>
           </div>
           <div className="text-xl font-semibold text-white flex items-center gap-1">
-            {weatherData.pressure.value}
+            {weatherData.pressure.value.toFixed(0)}
             {getPressureTrendIcon(weatherData.pressure.trend)}
           </div>
           <div className="text-xs text-gray-500">

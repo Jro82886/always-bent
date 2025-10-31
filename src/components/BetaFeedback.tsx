@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, CheckCircle } from 'lucide-react';
 
 export default function BetaFeedback() {
@@ -8,12 +8,24 @@ export default function BetaFeedback() {
   const [feedback, setFeedback] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  // Drag-and-drop state
+  const [position, setPosition] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('abfi_beta_feedback_position');
+      return saved ? JSON.parse(saved) : { bottom: 24, right: 24 };
+    }
+    return { bottom: 24, right: 24 };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // For now, just log it. You can later send to Supabase or email
     console.log('Beta Feedback:', feedback);
-    
+
     // Send email (you can implement this endpoint later)
     try {
       await fetch('/api/feedback', {
@@ -24,7 +36,7 @@ export default function BetaFeedback() {
     } catch (error) {
       // Fail silently for now
     }
-    
+
     setSubmitted(true);
     setTimeout(() => {
       setIsOpen(false);
@@ -33,13 +45,61 @@ export default function BetaFeedback() {
     }, 2000);
   };
 
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!buttonRef.current) return;
+    setIsDragging(true);
+    const rect = buttonRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newBottom = window.innerHeight - (e.clientY - dragOffset.y + (buttonRef.current?.offsetHeight || 60));
+      const newRight = window.innerWidth - (e.clientX - dragOffset.x + (buttonRef.current?.offsetWidth || 150));
+
+      // Keep within viewport bounds
+      const boundedBottom = Math.max(16, Math.min(window.innerHeight - 60, newBottom));
+      const boundedRight = Math.max(16, Math.min(window.innerWidth - 150, newRight));
+
+      setPosition({ bottom: boundedBottom, right: boundedRight });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      // Save position to localStorage
+      localStorage.setItem('abfi_beta_feedback_position', JSON.stringify(position));
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset, position]);
+
   return (
     <>
-      {/* Floating Beta Button */}
+      {/* Floating Beta Button - Draggable */}
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 z-50 group"
-        aria-label="Beta Feedback"
+        onMouseDown={handleMouseDown}
+        className={`fixed bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 z-50 group ${
+          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+        }`}
+        style={{
+          bottom: `${position.bottom}px`,
+          right: `${position.right}px`
+        }}
+        aria-label="Beta Feedback (drag to reposition)"
       >
         <MessageCircle className="h-5 w-5" />
         <span className="text-sm font-medium">Beta Feedback</span>

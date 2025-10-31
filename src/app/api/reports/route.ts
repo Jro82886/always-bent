@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 // Structured logging helper
@@ -21,9 +22,9 @@ export async function GET(req: NextRequest) {
     // Get current user (with dev fallback)
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
     
-    // Dev mode: use stub user if no auth
+    // Dev mode: use stub user if no auth (with valid UUID format)
     const user = authUser || (process.env.NODE_ENV === 'development' ? {
-      id: 'dev-user-001',
+      id: '05a3cd96-01b5-4280-97cb-46400fab45b9', // Actual dev user UUID
       email: 'dev@always-bent.com'
     } : null);
     
@@ -40,10 +41,29 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-    // Build query - RLS ensures user only sees their own
-    let query = supabase
+    // In dev mode without auth, use service role to bypass RLS
+    const queryClient = (!authUser && process.env.NODE_ENV === 'development')
+      ? createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false
+            }
+          }
+        )
+      : supabase;
+
+    // Build query - RLS ensures user only sees their own (or we filter manually in dev)
+    let query = queryClient
       .from("reports")
       .select("*", { count: 'exact' });
+
+    // In dev mode, manually filter by user_id since we're bypassing RLS
+    if (!authUser && process.env.NODE_ENV === 'development') {
+      query = query.eq("user_id", user.id);
+    }
 
     // Apply filters
     if (inlet) query = query.eq("inlet_id", inlet);
@@ -96,9 +116,9 @@ export async function POST(req: NextRequest) {
     // Get current user (with dev fallback)
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
     
-    // Dev mode: use stub user if no auth
+    // Dev mode: use stub user if no auth (with valid UUID format)
     const user = authUser || (process.env.NODE_ENV === 'development' ? {
-      id: 'dev-user-001',
+      id: '05a3cd96-01b5-4280-97cb-46400fab45b9', // Actual dev user UUID
       email: 'dev@always-bent.com'
     } : null);
     
@@ -147,9 +167,23 @@ export async function POST(req: NextRequest) {
       payload_json: body.payload_json,
       meta: body.meta || null
     };
-    
+
+    // In dev mode without auth, use service role to bypass RLS
+    const insertClient = (!authUser && process.env.NODE_ENV === 'development')
+      ? createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false
+            }
+          }
+        )
+      : supabase;
+
     // Insert report
-    const { data, error } = await supabase
+    const { data, error } = await insertClient
       .from("reports")
       .insert(reportData)
       .select()

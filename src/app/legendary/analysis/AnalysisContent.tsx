@@ -438,18 +438,7 @@ function AnalysisModeContent() {
         }}
       />
 
-      {/* Map chrome overlay containers */}
-      <div className="map-chrome">
-        <div className="map-chrome__topRight">
-          {/* Move gear/settings button to top-right overlay */}
-          <SettingsPanel />
-          
-          {/* AI First Mate - temporarily disabled to clean up UI */}
-        </div>
-        <div className="map-chrome__bottom">
-          {/* bottom stacking CTAs reserved */}
-        </div>
-      </div>
+      {/* Map chrome overlay containers - REMOVED to prevent overlap */}
       
       {/* Unified Command Bar - Navigation + Boat Info */}
       {/* Command Bridge Header */}
@@ -745,10 +734,12 @@ function AnalysisModeContent() {
 
           {/* East Coast SST Scale */}
           <MapSSTScale />
-          
+
+          {/* Settings Panel - Bottom right near zoom controls */}
+          <SettingsPanel />
       </>
-      
-      
+
+
       {/* Test Data Admin - Only in development */}
 
     </div>

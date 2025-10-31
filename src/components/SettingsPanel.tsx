@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Settings, Wifi, WifiOff, X } from 'lucide-react';
+import { Settings, Wifi, WifiOff, X, Move } from 'lucide-react';
 
 export default function SettingsPanel() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +12,18 @@ export default function SettingsPanel() {
     return false;
   });
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // Drag-and-drop state
+  const [position, setPosition] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('abfi_settings_position');
+      return saved ? JSON.parse(saved) : { bottom: 140, right: 16 };
+    }
+    return { bottom: 140, right: 16 };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Click outside to close
   useEffect(() => {
@@ -29,6 +41,46 @@ export default function SettingsPanel() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!buttonRef.current) return;
+    setIsDragging(true);
+    const rect = buttonRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newBottom = window.innerHeight - (e.clientY - dragOffset.y + (buttonRef.current?.offsetHeight || 40));
+      const newRight = window.innerWidth - (e.clientX - dragOffset.x + (buttonRef.current?.offsetWidth || 40));
+
+      // Keep within viewport bounds
+      const boundedBottom = Math.max(60, Math.min(window.innerHeight - 60, newBottom));
+      const boundedRight = Math.max(16, Math.min(window.innerWidth - 56, newRight));
+
+      setPosition({ bottom: boundedBottom, right: boundedRight });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      // Save position to localStorage
+      localStorage.setItem('abfi_settings_position', JSON.stringify(position));
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset, position]);
 
   const toggleOfflineMode = () => {
     const newMode = !offlineMode;
@@ -75,24 +127,36 @@ export default function SettingsPanel() {
 
   return (
     <>
-      {/* Settings Button - Fixed above zoom controls */}
+      {/* Settings Button - Draggable */}
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-[120px] right-[10px] z-50 p-2 rounded-lg transition-all duration-200 ${
-          isOpen 
-            ? 'bg-slate-700/90 text-white shadow-lg' 
+        onMouseDown={handleMouseDown}
+        className={`fixed z-50 p-3 rounded-lg transition-all duration-200 ${
+          isOpen
+            ? 'bg-slate-700/90 text-white shadow-lg'
             : 'bg-slate-800/70 text-slate-400 hover:bg-slate-700/80 hover:text-white shadow-md'
-        } backdrop-blur-sm border border-slate-600/30`}
-        title="Settings"
+        } backdrop-blur-sm border border-slate-600/30 ${
+          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+        }`}
+        style={{
+          bottom: `${position.bottom}px`,
+          right: `${position.right}px`
+        }}
+        title="Settings (drag to reposition)"
       >
         {isOpen ? <X size={18} /> : <Settings size={18} />}
       </button>
 
       {/* Settings Panel */}
       {isOpen && (
-        <div 
+        <div
           ref={panelRef}
-          className="fixed bottom-[160px] right-[10px] z-50 w-64 bg-slate-800/95 backdrop-blur-md rounded-lg shadow-xl border border-slate-600/30 overflow-hidden animate-slide-up"
+          className="fixed z-50 w-64 bg-slate-800/95 backdrop-blur-md rounded-lg shadow-xl border border-slate-600/30 overflow-hidden animate-slide-up"
+          style={{
+            bottom: `${position.bottom + 50}px`,
+            right: `${position.right}px`
+          }}
         >
           {/* Panel Header */}
           <div className="px-4 py-3 bg-slate-700/50 border-b border-slate-600/30">

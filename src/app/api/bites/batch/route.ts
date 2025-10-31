@@ -77,12 +77,13 @@ export async function POST(request: NextRequest) {
         const identity = await getIdentityForUser(supabase, bite.user_id || user.id);
         
         // Prepare bite payload for unified reports table
+        // Format for MyReportsList compatibility
         const bitePayload = {
           kind: 'bite',
-          coords: { 
-            lat: bite.lat, 
-            lon: bite.lon, 
-            accuracy_m: bite.accuracy_m 
+          coords: {
+            lat: bite.lat,
+            lon: bite.lon,
+            accuracy_m: bite.accuracy_m
           },
           context: bite.context || {},
           captured_at: new Date(bite.created_at_ms).toISOString(),
@@ -90,6 +91,21 @@ export async function POST(request: NextRequest) {
           identity, // Add captain and boat info
           species: bite.species || [],
           highlight: false, // Will be determined after analysis
+          // Format for MyReportsList display
+          narrative: 'Bite logged - analysis queued',
+          analysis: {
+            summary: 'Bite logged - analysis queued'
+          },
+          stats: {
+            sst_mean: null,
+            chl_mean: null
+          },
+          conditions: {
+            windKt: null,
+            windDir: null,
+            swellFt: null,
+            periodS: null
+          },
           // Original bite data
           bite_id: bite.bite_id,
           user_name: bite.user_name,
@@ -292,13 +308,39 @@ async function queueBiteAnalysis(bite: any) {
       .single();
     
     if (reportRecord) {
-      // Update payload with analysis and determine highlight
+      // Get existing payload
+      const { data: existingReport } = await supabase
+        .from('reports')
+        .select('payload_json')
+        .eq('id', reportRecord.id)
+        .single();
+
+      const existingPayload = existingReport?.payload_json || {};
+
+      // Build updated narrative
+      let narrative = 'Ocean conditions analyzed';
+      if (report.stats?.sst_mean || report.ocean_conditions?.sst) {
+        const sstValue = report.stats?.sst_mean || report.ocean_conditions?.sst;
+        narrative = `Ocean conditions: SST ${sstValue.toFixed(1)}°F`;
+        if (report.stats?.chl_mean || report.ocean_conditions?.chl) {
+          const chlValue = report.stats?.chl_mean || report.ocean_conditions?.chl;
+          narrative += `, CHL ${chlValue.toFixed(2)} mg/m³`;
+        }
+      }
+
+      // Update payload with analysis and format for MyReportsList
       const updatedPayload = {
-        ...bite,
+        ...existingPayload,
         analysis: report,
-        highlight: shouldHighlight({ ...bite, analysis: report })
+        narrative,
+        stats: {
+          sst_mean: report.stats?.sst_mean || report.ocean_conditions?.sst || null,
+          chl_mean: report.stats?.chl_mean || report.ocean_conditions?.chl || null,
+          front_strength: report.stats?.front_strength_p90 || null
+        },
+        highlight: shouldHighlight({ ...existingPayload, analysis: report })
       };
-      
+
       await supabase
         .from('reports')
         .update({

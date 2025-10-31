@@ -4,9 +4,10 @@ import { useAppState } from '@/lib/store';
 export async function runAnalyze(polygon: GeoJSON.Polygon, dateISO: string) {
   const inletId = useAppState.getState().selectedInletId;
 
-  // Force January 2025 date for Copernicus data availability
-  const analyzeDate = '2025-01-20';
-  console.log('[analyzeClient] Using date:', analyzeDate, '(was:', dateISO, ')');
+  // Use today's date for real-time ocean data
+  const today = new Date();
+  const analyzeDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+  console.log('[analyzeClient] Using date:', analyzeDate, '(requested:', dateISO, ')');
 
   // Create an AbortController for timeout - match API's maxDuration
   const controller = new AbortController();

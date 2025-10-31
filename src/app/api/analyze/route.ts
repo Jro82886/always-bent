@@ -307,8 +307,51 @@ export async function POST(req: NextRequest) {
       // Add enhanced analysis features
       enhanced: enhancedData ? {
         score: enhancedData.score,
-        temperature: enhancedData.temperature,
-        chlorophyll: enhancedData.chlorophyll,
+        temperature: (() => {
+          console.log('[ANALYZE] Enhanced temp check:', {
+            currentAvgF: enhancedData.temperature.currentAvgF,
+            hasSSTData: !!data.sst,
+            sstMeanC: data.sst?.meanC
+          });
+
+          if (enhancedData.temperature.currentAvgF === 0 && data.sst) {
+            console.log('[ANALYZE] Using fallback temperature data');
+            return {
+              // Fallback to raw SST data if analyzer returned zeros
+              currentAvgF: data.sst.meanC * 9/5 + 32,
+              currentAvgC: data.sst.meanC,
+              minF: data.sst.minC * 9/5 + 32,
+              maxF: data.sst.maxC * 9/5 + 32,
+              rangeBar: {
+                min: data.sst.minC * 9/5 + 32,
+                max: data.sst.maxC * 9/5 + 32,
+                avg: data.sst.meanC * 9/5 + 32,
+                unit: 'F'
+              },
+              bestBreak: null,
+              gradientMap: []
+            };
+          }
+          console.log('[ANALYZE] Returning enhanced temp:', enhancedData.temperature);
+          return enhancedData.temperature;
+        })(),
+        chlorophyll: enhancedData.chlorophyll.currentAvgMgM3 === 0 && data.chl ? {
+          // Fallback to raw CHL data if analyzer returned zeros
+          currentAvgMgM3: data.chl.mean,
+          minMgM3: data.chl.min || data.chl.mean,
+          maxMgM3: data.chl.max || data.chl.mean,
+          rangeBar: {
+            min: data.chl.min || data.chl.mean,
+            max: data.chl.max || data.chl.mean,
+            avg: data.chl.mean
+          },
+          clarityScale: {
+            value: data.chl.mean,
+            label: data.chl.mean < 0.1 ? 'Blue' : data.chl.mean < 0.3 ? 'Green-Blue' : data.chl.mean < 0.5 ? 'Clean' : data.chl.mean < 1.0 ? 'Green' : 'Dirty',
+            color: data.chl.mean < 0.1 ? '#0000FF' : data.chl.mean < 0.3 ? '#0088FF' : data.chl.mean < 0.5 ? '#00FF00' : data.chl.mean < 1.0 ? '#00AA00' : '#8B4513'
+          },
+          waterQualityBreak: null
+        } : enhancedData.chlorophyll,
         fleetActivity: enhancedData.fleetActivity,
         trends: enhancedData.trends,
         narrative: enhancedData.narrative,

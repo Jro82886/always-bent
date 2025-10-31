@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import EastCoastSSTScale from './EastCoastSSTScale';
 import { Thermometer, ChevronRight, ChevronLeft } from 'lucide-react';
 
@@ -12,13 +12,76 @@ export default function MapSSTScale({ currentTemp }: MapSSTScaleProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHidden, setIsHidden] = useState(true); // Start hidden by default
 
+  // Drag-and-drop state
+  const [position, setPosition] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('abfi_sst_scale_position');
+      return saved ? JSON.parse(saved) : { bottom: 96, right: 16 };
+    }
+    return { bottom: 96, right: 16 };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const target = containerRef.current || buttonRef.current;
+    if (!target) return;
+    setIsDragging(true);
+    const rect = target.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const target = containerRef.current || buttonRef.current;
+      const newBottom = window.innerHeight - (e.clientY - dragOffset.y + (target?.offsetHeight || 60));
+      const newRight = window.innerWidth - (e.clientX - dragOffset.x + (target?.offsetWidth || 320));
+
+      // Keep within viewport bounds
+      const boundedBottom = Math.max(16, Math.min(window.innerHeight - 100, newBottom));
+      const boundedRight = Math.max(16, Math.min(window.innerWidth - 320, newRight));
+
+      setPosition({ bottom: boundedBottom, right: boundedRight });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      // Save position to localStorage
+      localStorage.setItem('abfi_sst_scale_position', JSON.stringify(position));
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset, position]);
+
   // Don't render if completely hidden
   if (isHidden) {
     return (
       <button
+        ref={buttonRef}
         onClick={() => setIsHidden(false)}
-        className="fixed bottom-24 right-4 z-50 p-2 bg-slate-900/95 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors"
-        title="Show SST Scale"
+        onMouseDown={handleMouseDown}
+        className={`fixed z-50 p-2 bg-slate-900/95 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors ${
+          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+        }`}
+        style={{
+          bottom: `${position.bottom}px`,
+          right: `${position.right}px`
+        }}
+        title="Show SST Scale (drag to reposition)"
       >
         <Thermometer className="w-5 h-5 text-cyan-400" />
       </button>
@@ -26,12 +89,24 @@ export default function MapSSTScale({ currentTemp }: MapSSTScaleProps) {
   }
 
   return (
-    <div className={`fixed bottom-24 right-4 z-50 transition-all duration-300 ${
-      isCollapsed ? 'w-12' : 'w-80'
-    }`}>
+    <div
+      ref={containerRef}
+      className={`fixed z-50 transition-all duration-300 ${
+        isCollapsed ? 'w-12' : 'w-80'
+      } ${isDragging ? 'cursor-grabbing' : ''}`}
+      style={{
+        bottom: `${position.bottom}px`,
+        right: `${position.right}px`
+      }}
+    >
       <div className="bg-slate-900/95 border border-slate-700 rounded-lg shadow-2xl backdrop-blur-sm">
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-slate-700">
+        {/* Header - Draggable */}
+        <div
+          onMouseDown={handleMouseDown}
+          className={`flex items-center justify-between p-3 border-b border-slate-700 ${
+            !isDragging ? 'cursor-grab' : 'cursor-grabbing'
+          }`}
+        >
           {!isCollapsed && (
             <h3 className="text-sm font-semibold text-cyan-400 flex items-center gap-2">
               <Thermometer className="w-4 h-4" />

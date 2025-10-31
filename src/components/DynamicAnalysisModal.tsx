@@ -55,36 +55,75 @@ export default function DynamicAnalysisModal({
   const handleSaveSnip = async () => {
     if (saving) return
     setSaving(true)
-    
+
     try {
-      const response = await fetch('/api/snips', {
+      // Build narrative text for display
+      const narrativeText = [
+        hasSST && sst ? `Sea surface temps average ${sst.meanF.toFixed(1)}°F with ${formatGradient(sst.gradFperMile)}.` : null,
+        hasCHL && chl ? `Chlorophyll averages ${chl.mean.toFixed(2)} mg/m³ - ${getWaterClarity(chl.mean)}.` : null,
+        hasSST && hasCHL && sst && chl ? `The overlap of ${sst.gradFperMile >= 2 ? "a strong temp break" : "temperature variation"} and ${chl.mean > 0.3 ? "productive water" : "clear water"} suggests ${sst.gradFperMile >= 2 && chl.mean > 0.3 ? "an edge worth scouting" : "transitional conditions worth monitoring"}.` : null
+      ].filter(Boolean).join(' ')
+
+      const response = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inlet_slug: selectedInletId || 'unknown',
-          date: new Date().toISOString().split('T')[0],
-          sst,
-          chl,
-          area_nm2: areaNm2,
-          species: reports?.species || [],
-          narrative: {
-            sstText: hasSST && sst ? `Sea surface temps average ${sst.meanF.toFixed(1)}°F with ${formatGradient(sst.gradFperMile)}.` : null,
-            chlText: hasCHL && chl ? `Chlorophyll averages ${chl.mean.toFixed(2)} mg/m³.` : null,
-            synth: 'Analysis saved for future reference.'
+          inlet_id: selectedInletId || 'unknown',
+          type: 'snip',
+          status: 'complete',
+          source: 'online',
+          payload_json: {
+            date: new Date().toISOString(),
+            area_nm2: areaNm2,
+            area_km2: areaKm2,
+            // Format for MyReportsList compatibility
+            narrative: narrativeText,
+            analysis: {
+              summary: narrativeText,
+              sst: sst?.meanF || null
+            },
+            stats: {
+              sst_mean: sst?.meanF || null,
+              sst_p10: sst?.p10F || null,
+              sst_p90: sst?.p90F || null,
+              sst_gradient: sst?.gradFperMile || null,
+              chl_mean: chl?.mean || null,
+              chl_p10: chl?.p10 || null,
+              chl_p90: chl?.p90 || null
+            },
+            conditions: {
+              windKt: weather?.wind?.speed || null,
+              windDir: weather?.wind?.direction || null,
+              swellFt: weather?.seas?.height || null,
+              periodS: weather?.seas?.period || null,
+              airTempF: weather?.temp || null,
+              conditions: weather?.conditions || null
+            },
+            // Keep full data for modal display
+            raw: {
+              sst,
+              chl,
+              weather,
+              fleet,
+              reports,
+              enhanced,
+              hasSST,
+              hasCHL
+            }
           }
         })
       })
-      
+
       if (response.ok) {
-        // Show toast or feedback
         alert('Saved to My Snipped Reports')
         onClose()
       } else {
-        throw new Error('Failed to save')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Save error:', error)
-      alert('Failed to save snip')
+      alert(`Failed to save snip: ${error.message}`)
     } finally {
       setSaving(false)
     }
@@ -132,9 +171,9 @@ export default function DynamicAnalysisModal({
                 </div>
                 <div className="h-10 w-px bg-slate-600" />
                 <div className="text-xs text-slate-400 space-y-0.5">
-                  <div>Temp: {enhanced.score.breakdown.temperatureAndGradient}/20</div>
-                  <div>CHL: {enhanced.score.breakdown.chlorophyll}/20</div>
-                  <div>Fleet: {enhanced.score.breakdown.fleetActivity}/20</div>
+                  <div>Temp: {enhanced.score.breakdown.temperatureAndGradient || 0}/20</div>
+                  <div>CHL: {enhanced.score.breakdown.chlorophyll || 0}/20</div>
+                  <div>Fleet: {enhanced.score.breakdown.fleetActivity || 0}/20</div>
                 </div>
               </div>
             )}
@@ -234,7 +273,7 @@ export default function DynamicAnalysisModal({
           )}
 
           {/* Enhanced Water Quality */}
-          {enhanced?.chlorophyll ? (
+          {enhanced?.chlorophyll && enhanced.chlorophyll.currentAvgMgM3 > 0 ? (
             <div className="border-l-4 border-emerald-500/60 pl-4">
               <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Water Quality (Chlorophyll‑a)</h3>
               <div className="space-y-2">
@@ -277,7 +316,7 @@ export default function DynamicAnalysisModal({
                 )}
               </div>
             </div>
-          ) : hasCHL && chl && (
+          ) : hasCHL && chl && chl.mean > 0 ? (
             <div className="border-l-4 border-emerald-500/60 pl-4">
               <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Water Quality (Chlorophyll‑a)</h3>
               <div className="space-y-1 text-slate-300 text-sm">
@@ -287,12 +326,14 @@ export default function DynamicAnalysisModal({
                 <div>• Gradient: <span className="font-medium text-slate-100">{(chl.mean * 0.8).toFixed(2)} mg/m³ across polygon</span></div>
               </div>
             </div>
-          )}
-          
-          {/* CHL Error Message */}
-          {hasCHL && !chl && (
-            <div className="text-gray-600 italic">
-              Chlorophyll unavailable (temporary error).
+          ) : (
+            <div className="border-l-4 border-slate-600/60 pl-4">
+              <h3 className="text-sm font-semibold text-slate-100 mb-2 tracking-wide">Water Quality (Chlorophyll‑a)</h3>
+              <div className="space-y-1 text-slate-400 text-sm italic">
+                <div>• No chlorophyll data available for this location</div>
+                <div className="text-xs">Common reasons: coastal proximity, cloud cover, or satellite coverage gap</div>
+                <div className="text-xs">Try: drawing a larger area further offshore</div>
+              </div>
             </div>
           )}
 
@@ -379,7 +420,7 @@ export default function DynamicAnalysisModal({
           <div className="bg-slate-800 rounded-md p-4 border border-slate-700">
             <h3 className="text-sm font-semibold text-slate-100 mb-3 tracking-wide">Narrative Summary</h3>
             <div className="space-y-2 text-slate-300 text-sm">
-              {enhanced?.narrative?.overview ? (
+              {enhanced?.narrative?.overview && !enhanced.narrative.overview.includes('0°F') ? (
                 <p>{enhanced.narrative.overview}</p>
               ) : hasSST && sst && (
                 <p>

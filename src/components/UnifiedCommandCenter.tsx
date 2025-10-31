@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Target, ChevronDown, ChevronUp, Map, Navigation, GraduationCap, 
-         Thermometer, Wind, Waves, Compass, Eye, Cloud, Activity } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Target, ChevronDown, ChevronUp, Map, Navigation, GraduationCap,
+         Thermometer, Wind, Waves, Compass, Eye, Cloud, Activity, Move } from 'lucide-react';
 import { useAppState } from '@/lib/store';
 import { fetchWeather } from '@/lib/api';
 import type { WeatherAPIResponse, LegacyWeatherConditions } from '@/types/weather';
@@ -59,6 +59,18 @@ export default function UnifiedCommandCenter({
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [weatherExpanded, setWeatherExpanded] = useState(true);
   const set = useAppState.setState;
+
+  // Drag-and-drop state
+  const [position, setPosition] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('abfi_command_center_position');
+      return saved ? JSON.parse(saved) : { top: 96, right: 16 }; // 96px = top-24
+    }
+    return { top: 96, right: 16 };
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Hardened snip starter: clears stuck state, forces crosshair, engages drawing
   const startSnipSafe = useCallback(() => {
@@ -136,6 +148,46 @@ export default function UnifiedCommandCenter({
     return () => clearInterval(interval);
   }, [selectedInletId]);
 
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    const rect = containerRef.current.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newTop = e.clientY - dragOffset.y;
+      const newRight = window.innerWidth - (e.clientX - dragOffset.x + (containerRef.current?.offsetWidth || 320));
+
+      // Keep within viewport bounds
+      const boundedTop = Math.max(64, Math.min(window.innerHeight - 200, newTop));
+      const boundedRight = Math.max(16, Math.min(window.innerWidth - 320 - 16, newRight));
+
+      setPosition({ top: boundedTop, right: boundedRight });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      // Save position to localStorage
+      localStorage.setItem('abfi_command_center_position', JSON.stringify(position));
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset, position]);
+
   const inlet = selectedInletId ? getInletById(selectedInletId) : null;
   const conditions = weather?.conditions ? assessFishingConditions(weather.conditions) : null;
   
@@ -151,12 +203,28 @@ export default function UnifiedCommandCenter({
   const legendItems = currentMode === 'analysis' ? analysisLegendItems : [];
 
   return (
-    <div className="absolute top-20 right-4 z-40 flex flex-col gap-0 w-[320px]">
+    <div
+      ref={containerRef}
+      className={`fixed z-40 flex flex-col gap-3 w-[320px] ${isDragging ? 'cursor-grabbing' : ''} transition-shadow ${isDragging ? 'shadow-2xl shadow-cyan-500/50' : ''}`}
+      style={{
+        top: `${position.top}px`,
+        right: `${position.right}px`,
+      }}
+    >
       {/* UNIFIED COMMAND CENTER - Single sleek panel */}
       <div className="bg-slate-900/90 backdrop-blur-xl rounded-xl border border-cyan-500/30 shadow-2xl overflow-hidden">
-        
-        {/* WEATHER HEADER - Always visible */}
+
+        {/* WEATHER HEADER - Always visible with drag handle */}
         <div className="bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border-b border-cyan-500/20">
+          {/* Drag Handle */}
+          <div
+            onMouseDown={handleMouseDown}
+            className="absolute top-2 left-2 p-1 rounded cursor-grab active:cursor-grabbing hover:bg-cyan-500/20 transition-colors"
+            title="Drag to reposition"
+          >
+            <Move size={14} className="text-cyan-400" />
+          </div>
+
           <button
             onClick={() => setWeatherExpanded(!weatherExpanded)}
             className="w-full px-4 py-3 hover:bg-white/5 transition-colors"

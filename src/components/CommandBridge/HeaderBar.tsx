@@ -137,7 +137,7 @@ export default function HeaderBar({ activeMode = 'analysis' }: HeaderBarProps) {
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal>
                       <DropdownMenu.Content
-                        className="min-w-[180px] rounded-md bg-gray-900 p-1 shadow-lg backdrop-blur border border-cyan-500/20"
+                        className="min-w-[180px] rounded-md bg-gray-900 p-1 shadow-lg backdrop-blur border border-cyan-500/20 z-[9999]"
                         sideOffset={5}
                         align="end"
                       >

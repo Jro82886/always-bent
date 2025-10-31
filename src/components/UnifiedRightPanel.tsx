@@ -12,8 +12,8 @@ interface UnifiedRightPanelProps {
   onStartTutorial?: () => void;
 }
 
-export default function UnifiedRightPanel({ 
-  onAnalyze, 
+export default function UnifiedRightPanel({
+  onAnalyze,
   currentMode,
   isTracking = false,
   onStartTracking,
@@ -22,6 +22,9 @@ export default function UnifiedRightPanel({
 }: UnifiedRightPanelProps) {
   const [legendExpanded, setLegendExpanded] = useState(true);
   const [tutorialExpanded, setTutorialExpanded] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [offlineMode, setOfflineMode] = useState(() => {
     // Load saved preference
     if (typeof window !== 'undefined') {
@@ -115,26 +118,71 @@ export default function UnifiedRightPanel({
 
   // Track online/offline status
   const [isOnline, setIsOnline] = useState(true);
-  
+
   useEffect(() => {
     // Check initial state
     setIsOnline(navigator.onLine);
-    
+
     // Listen for online/offline events
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-    
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
+  // Handle dragging
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragStart.x;
+      const deltaY = e.clientY - dragStart.y;
+      setDragOffset({ x: deltaX, y: deltaY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStart]);
+
+  // Calculate position with 30% lower offset
+  const calculatePosition = () => {
+    if (typeof window === 'undefined') return { top: '5rem', right: '1rem' };
+
+    const viewportHeight = window.innerHeight;
+    const baseTop = 80; // 5rem = 80px
+    const loweredTop = baseTop + (viewportHeight * 0.3);
+
+    return {
+      top: `${loweredTop + dragOffset.y}px`,
+      right: `${16 + -dragOffset.x}px` // negative because dragging right means less 'right' value
+    };
+  };
+
+  const position = calculatePosition();
+
   return (
-    <div className="absolute top-20 right-4 z-40 flex flex-col gap-0 w-[280px]">
+    <div
+      className={`absolute z-40 flex flex-col gap-0 w-[280px] ${isDragging ? 'cursor-grabbing' : ''} ${!isDragging ? 'transition-all duration-200' : ''}`}
+      style={{
+        top: position.top,
+        right: position.right
+      }}
+    >
       {/* Tutorial Section - Only in Analysis Mode */}
       {currentMode === 'analysis' && (
         <div className="bg-slate-900/80 backdrop-blur-md border-x border-slate-500/20 border-b border-slate-700/30">
@@ -184,10 +232,16 @@ export default function UnifiedRightPanel({
           {currentMode === 'analysis' ? (
             <>
               {/* Analysis Mode - Ocean Analysis Tool */}
-              <div className="flex items-center justify-between mb-3">
+              <div
+                className="flex items-center justify-between mb-3 cursor-move select-none"
+                onMouseDown={(e) => {
+                  setIsDragging(true);
+                  setDragStart({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+                }}
+              >
                 <div className="flex items-center gap-2">
                   <Target size={14} className="text-cyan-400" />
-                  <span className="text-sm font-medium text-cyan-300">Ocean Analysis</span>
+                  <span className="text-sm font-medium text-cyan-300">Ocean Analysis • Drag to Move</span>
                 </div>
                 <span className="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 text-[9px] font-medium rounded border border-cyan-500/20">
                   BETA
@@ -211,10 +265,16 @@ export default function UnifiedRightPanel({
           ) : (
             <>
               {/* Tracking Mode - Vessel Tracking Control */}
-              <div className="flex items-center justify-between mb-3">
+              <div
+                className="flex items-center justify-between mb-3 cursor-move select-none"
+                onMouseDown={(e) => {
+                  setIsDragging(true);
+                  setDragStart({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+                }}
+              >
                 <div className="flex items-center gap-2">
                   <Navigation size={14} className="text-orange-400" />
-                  <span className="text-sm font-medium text-orange-300">Vessel Tracking</span>
+                  <span className="text-sm font-medium text-orange-300">Vessel Tracking • Drag to Move</span>
                 </div>
                 {isTracking && (
                   <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[9px] font-medium rounded border border-green-500/30 animate-pulse">

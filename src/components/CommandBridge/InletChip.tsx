@@ -14,6 +14,9 @@ export default function InletChip({ compact = false }: InletChipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -89,8 +92,32 @@ export default function InletChip({ compact = false }: InletChipProps) {
     if (!isOpen) {
       setSearchQuery('');
       setSelectedIndex(-1);
+      setDragOffset({ x: 0, y: 0 });
     }
   }, [isOpen]);
+
+  // Handle dragging
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragStart.x;
+      const deltaY = e.clientY - dragStart.y;
+      setDragOffset({ x: deltaX, y: deltaY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStart]);
   
   const handleInletSelect = (inletId: string) => {
     setSelectedInletId(inletId);
@@ -107,33 +134,37 @@ export default function InletChip({ compact = false }: InletChipProps) {
   // Calculate dropdown position
   const getDropdownPosition = () => {
     if (!triggerRef.current) return { top: 0, left: 0 };
-    
+
     const rect = triggerRef.current.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
     const dropdownHeight = 400; // Max height
     const dropdownWidth = 320;
-    
+
     // Position below trigger by default
     let top = rect.bottom + 8;
     let left = rect.left;
-    
+
+    // Lower the position by 30% of viewport height
+    top = top + (viewportHeight * 0.3);
+
     // Adjust if would go off bottom
     if (top + dropdownHeight > viewportHeight - 20) {
-      top = rect.top - dropdownHeight - 8;
+      top = viewportHeight - dropdownHeight - 20;
     }
-    
+
     // Adjust if would go off right
     if (left + dropdownWidth > viewportWidth - 20) {
       left = rect.right - dropdownWidth;
     }
-    
+
     // Ensure not off left
     if (left < 20) {
       left = 20;
     }
-    
-    return { top, left };
+
+    // Apply drag offset
+    return { top: top + dragOffset.y, left: left + dragOffset.x };
   };
   
   const dropdownPosition = getDropdownPosition();
@@ -160,9 +191,9 @@ export default function InletChip({ compact = false }: InletChipProps) {
       
       {/* Dropdown Portal */}
       {isOpen && createPortal(
-        <div 
+        <div
           ref={dropdownRef}
-          className="fixed w-80 bg-gray-950/98 backdrop-blur-xl border border-cyan-500/40 rounded-xl shadow-[0_0_30px_rgba(6,182,212,0.3)] overflow-hidden"
+          className={`fixed w-80 bg-gray-950/98 backdrop-blur-xl border border-cyan-500/40 rounded-xl shadow-[0_0_30px_rgba(6,182,212,0.3)] overflow-hidden ${isDragging ? 'cursor-grabbing' : ''} ${!isDragging ? 'transition-all duration-200' : ''}`}
           style={{
             top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`,
@@ -171,9 +202,17 @@ export default function InletChip({ compact = false }: InletChipProps) {
         >
           {/* Header with Search */}
           <div className="px-3 py-2.5 bg-gradient-to-r from-cyan-950/80 to-blue-950/80 border-b border-cyan-500/30">
-            <div className="flex items-center justify-between mb-2">
+            <div
+              className="flex items-center justify-between mb-2 cursor-move select-none"
+              onMouseDown={(e) => {
+                // Don't start dragging if clicking the close button
+                if ((e.target as HTMLElement).closest('button')) return;
+                setIsDragging(true);
+                setDragStart({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+              }}
+            >
               <div className="text-xs text-cyan-400 font-bold uppercase tracking-wider">
-                SELECT FISHING AREA
+                SELECT FISHING AREA • DRAG TO MOVE
               </div>
               <button
                 onClick={() => setIsOpen(false)}
