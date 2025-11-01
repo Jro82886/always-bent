@@ -1,9 +1,9 @@
 /**
  * Supabase client for database and realtime features
- * Auth disabled - using localStorage for user identification
+ * Uses cookie-based storage for SSR compatibility
  */
 
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -13,14 +13,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing required Supabase environment variables. Please check your .env.local file.');
 }
 
-// Create client without auth
-export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false
-  }
-});
+// Create browser client with cookie-based storage for SSR
+// This allows server-side routes to read the session from cookies
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
 // Profile type
 export interface Profile {

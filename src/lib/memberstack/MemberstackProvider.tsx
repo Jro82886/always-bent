@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { supabase } from '@/lib/supabase/client';
 
 interface MemberstackMember {
   id: string;
@@ -52,6 +53,57 @@ export function MemberstackProvider({ children }: { children: React.ReactNode })
   const [loading, setLoading] = useState(true);
   const msRef = useRef<any>(null);
 
+  // Sync Memberstack user to Supabase auth
+  const syncToSupabase = async (userId: string, email: string) => {
+    try {
+      // Call our sync endpoint to create/get Supabase user
+      const response = await fetch('/api/auth/memberstack-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, email })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to sync to Supabase:', response.status, errorText);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!data.credentials) {
+        console.error('No credentials returned from sync endpoint');
+        return;
+      }
+
+      // Sign in to Supabase with the credentials
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.credentials.email,
+        password: data.credentials.password
+      });
+
+      if (error) {
+        console.error('Supabase sign-in error:', error);
+      } else if (authData?.user) {
+        console.log('Successfully synced to Supabase auth, user ID:', authData.user.id);
+
+        // Store Supabase user ID in localStorage for bite sync
+        localStorage.setItem('abfi_supabase_user_id', authData.user.id);
+
+        // Update app state with Supabase user ID for bite recording
+        try {
+          const { useAppState } = await import('@/lib/store');
+          useAppState.getState().setUser({ id: authData.user.id });
+          console.log('[MEMBERSTACK] Updated app state user ID to Supabase ID:', authData.user.id);
+        } catch (e) {
+          console.error('[MEMBERSTACK] Failed to update app state:', e);
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing to Supabase:', error);
+    }
+  };
+
   useEffect(() => {
     // Only initialize on the client side
     if (typeof window === 'undefined') {
@@ -78,11 +130,17 @@ export function MemberstackProvider({ children }: { children: React.ReactNode })
           // Transform to our member format
           const transformedMember: MemberstackMember = {
             id: currentMember.id,
-            email: currentMember.auth?.email || currentMember.email,
+            email: currentMember.auth?.email || '',
             customFields: currentMember.customFields || {},
             planId: currentMember.planConnections?.[0]?.planId,
             status: currentMember.planConnections?.[0]?.status,
-            planConnections: currentMember.planConnections,
+            planConnections: currentMember.planConnections?.map(conn => ({
+              planId: conn.planId,
+              status: conn.status,
+              payment: conn.payment ? {
+                priceId: conn.payment.priceId
+              } : undefined
+            })),
           };
 
           setMember(transformedMember);
@@ -100,6 +158,9 @@ export function MemberstackProvider({ children }: { children: React.ReactNode })
           localStorage.setItem('abfi_member_id', transformedMember.id);
           localStorage.setItem('abfi_member_email', transformedMember.email);
           localStorage.setItem('abfi_authenticated', 'true');
+
+          // Sync to Supabase auth on page load
+          await syncToSupabase(transformedMember.id, transformedMember.email);
         } else {
           // Clear auth data
           setMember(null);
@@ -139,6 +200,9 @@ export function MemberstackProvider({ children }: { children: React.ReactNode })
             localStorage.setItem('abfi_member_id', transformedMember.id);
             localStorage.setItem('abfi_member_email', transformedMember.email);
             localStorage.setItem('abfi_authenticated', 'true');
+
+            // Sync to Supabase auth on auth change
+            syncToSupabase(transformedMember.id, transformedMember.email);
           } else {
             setMember(null);
             // Clear localStorage
@@ -183,6 +247,9 @@ export function MemberstackProvider({ children }: { children: React.ReactNode })
           planConnections: data.member.planConnections,
         };
         setMember(transformedMember);
+
+        // Sync to Supabase auth
+        await syncToSupabase(transformedMember.id, transformedMember.email);
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -217,6 +284,9 @@ export function MemberstackProvider({ children }: { children: React.ReactNode })
           planConnections: data.member.planConnections,
         };
         setMember(transformedMember);
+
+        // Sync to Supabase auth
+        await syncToSupabase(transformedMember.id, transformedMember.email);
       }
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -233,6 +303,9 @@ export function MemberstackProvider({ children }: { children: React.ReactNode })
       await msRef.current.logout();
       setMember(null);
 
+      // Also sign out from Supabase
+      await supabase.auth.signOut();
+
       // Clear all localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem('abfi_authenticated');
@@ -241,6 +314,18 @@ export function MemberstackProvider({ children }: { children: React.ReactNode })
         localStorage.removeItem('abfi_captain_name');
         localStorage.removeItem('abfi_boat_name');
         localStorage.removeItem('abfi_home_port');
+        localStorage.removeItem('abfi_supabase_user_id');
+
+        // Reset app state to anonymous user
+        try {
+          const { useAppState } = await import('@/lib/store');
+          const anonId = localStorage.getItem('abfi_anon_uid');
+          if (anonId) {
+            useAppState.getState().setUser({ id: anonId });
+          }
+        } catch (e) {
+          console.error('[MEMBERSTACK] Failed to reset app state:', e);
+        }
 
         // Redirect to landing page
         window.location.href = '/';

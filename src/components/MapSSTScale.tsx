@@ -13,17 +13,19 @@ export default function MapSSTScale({ currentTemp }: MapSSTScaleProps) {
   const [isHidden, setIsHidden] = useState(true); // Start hidden by default
 
   // Drag-and-drop state
-  const [position, setPosition] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('abfi_sst_scale_position');
-      return saved ? JSON.parse(saved) : { bottom: 96, right: 16 };
-    }
-    return { bottom: 96, right: 16 };
-  });
+  const [position, setPosition] = useState({ bottom: 96, right: 16 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Load position from localStorage after hydration
+  useEffect(() => {
+    const saved = localStorage.getItem('abfi_sst_scale_position');
+    if (saved) {
+      setPosition(JSON.parse(saved));
+    }
+  }, []);
 
   // Drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {

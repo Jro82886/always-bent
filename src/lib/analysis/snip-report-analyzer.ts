@@ -178,12 +178,14 @@ export async function analyzeSnipArea(
     date?: Date;
     includeFleet?: boolean;
     includeTrends?: boolean;
+    includeUserReports?: boolean;
   } = {}
 ): Promise<SnipAnalysisReport> {
   const {
     date = new Date(),
     includeFleet = true,
-    includeTrends = true
+    includeTrends = true,
+    includeUserReports = true
   } = options;
 
   // Calculate area and center
@@ -602,31 +604,32 @@ async function calculateTrends(
 ): Promise<TrendAnalysis> {
   try {
     // TEMPORARILY DISABLED: Historical data fetching is slow and returns null anyway
+    // When re-enabled, uncomment the following lines and remove the null assignments:
     // const sevenDayData = await fetchHistoricalData(polygon, 7);
     // const fourteenDayData = await fetchHistoricalData(polygon, 14);
     const sevenDayData = null;
     const fourteenDayData = null;
 
-    // Calculate SST trends
+    // Calculate SST trends (with null historical data until re-enabled)
     const sevenDaySstTrend = calculateTrend(
       currentSstF,
-      sevenDayData?.avgSstF || null
+      null  // sevenDayData?.avgSstF ?? null
     );
 
     const fourteenDaySstTrend = calculateTrend(
       currentSstF,
-      fourteenDayData?.avgSstF || null
+      null  // fourteenDayData?.avgSstF ?? null
     );
 
-    // Calculate CHL trends
+    // Calculate CHL trends (with null historical data until re-enabled)
     const sevenDayChlTrend = calculateChlTrend(
       currentChlMgM3,
-      sevenDayData?.avgChlMgM3 || null
+      null  // sevenDayData?.avgChlMgM3 ?? null
     );
 
     const fourteenDayChlTrend = calculateChlTrend(
       currentChlMgM3,
-      fourteenDayData?.avgChlMgM3 || null
+      null  // fourteenDayData?.avgChlMgM3 ?? null
     );
 
     return {

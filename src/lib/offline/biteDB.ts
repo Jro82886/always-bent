@@ -194,16 +194,24 @@ export async function getPendingBites(): Promise<QueuedBite[]> {
   const db = await getDB();
   const all = await db.getAll('biteQueue');
   const now = Date.now();
-  
-  // Get current user ID (this is stored locally, so all bites should be from current user)
-  // But we double-check to be safe
-  const currentUserId = (window as any).__ABFI_USER_ID__ || localStorage.getItem('abfi_user_id');
-  
-  return all.filter(bite => 
-    !bite.uploaded_at_ms && 
+
+  // Get current user ID - check multiple possible storage locations
+  // Priority: Supabase user ID > Memberstack ID > Anonymous ID
+  const currentUserId =
+    localStorage.getItem('abfi_supabase_user_id') ||  // Supabase user (authenticated)
+    localStorage.getItem('abfi_member_id') ||          // Memberstack user
+    localStorage.getItem('abfi_anon_uid') ||           // Anonymous user (from store)
+    (window as any).__ABFI_USER_ID__;                  // Fallback global
+
+
+  const filtered = all.filter(bite =>
+    !bite.uploaded_at_ms &&
     bite.expires_at_ms > now &&
     (!currentUserId || bite.user_id === currentUserId) // Only current user's bites
   );
+
+
+  return filtered;
 }
 
 /**

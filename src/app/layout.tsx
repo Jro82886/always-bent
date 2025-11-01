@@ -5,6 +5,7 @@ import '@/styles/abfi-toggle.css';
 import { Geist, Geist_Mono } from 'next/font/google';
 import GuardsClient from '@/components/GuardsClient';
 import BiteSyncInitializer from '@/components/BiteSyncInitializer';
+import SelectedInletPersistence from '@/components/SelectedInletPersistence';
 import BetaFeedback from '@/components/BetaFeedback';
 import { ToastContainer } from '@/components/ui/Toast';
 import VersionIndicator from '@/components/VersionIndicator';
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <QueryProvider>
             <GuardsClient />
             <BiteSyncInitializer />
+            <SelectedInletPersistence />
             {children}
             <BetaFeedback />
             <ToastContainer />

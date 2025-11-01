@@ -136,7 +136,7 @@ export default function DynamicAnalysisModal({
     return 'text-red-400 bg-red-500/20 border-red-500/50';
   };
 
-  const getScoreCategory = (category: string) => {
+  const getScoreCategory = (category: 'strong' | 'fair' | 'poor') => {
     const colors = {
       'strong': 'text-green-400',
       'fair': 'text-yellow-400',

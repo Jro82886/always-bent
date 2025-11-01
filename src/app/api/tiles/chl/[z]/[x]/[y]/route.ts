@@ -150,7 +150,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
         .png()
         .toBuffer();
 
-        return new Response(transparentPng, {
+        return new Response(new Uint8Array(transparentPng), {
           status: 200, // Always 200 so Mapbox accepts the tile
           headers: {
             'Content-Type': 'image/png',

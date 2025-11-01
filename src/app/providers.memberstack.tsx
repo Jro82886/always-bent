@@ -19,7 +19,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <MemberstackProvider appId={MEMBERSTACK_APP_ID}>
+    <MemberstackProvider>
       <AuthProvider>
         {children}
       </AuthProvider>

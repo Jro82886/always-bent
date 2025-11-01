@@ -163,7 +163,7 @@ export default function WeatherCard() {
             {weatherData.waves.height.toFixed(1)} ft
           </div>
           <div className="text-xs text-gray-500">
-            @ {weatherData.waves.period}s from {formatDirection(weatherData.waves.direction)}
+            @ {weatherData.waves.period.toFixed(1)}s from {formatDirection(weatherData.waves.direction)}
           </div>
         </div>
 

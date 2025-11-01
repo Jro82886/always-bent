@@ -9,16 +9,18 @@ export default function BetaFeedback() {
   const [submitted, setSubmitted] = useState(false);
 
   // Drag-and-drop state
-  const [position, setPosition] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('abfi_beta_feedback_position');
-      return saved ? JSON.parse(saved) : { bottom: 24, right: 24 };
-    }
-    return { bottom: 24, right: 24 };
-  });
+  const [position, setPosition] = useState({ bottom: 24, right: 24 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Load position from localStorage after hydration
+  useEffect(() => {
+    const saved = localStorage.getItem('abfi_beta_feedback_position');
+    if (saved) {
+      setPosition(JSON.parse(saved));
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

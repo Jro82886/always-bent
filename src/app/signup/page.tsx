@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useMemberstack } from '@/lib/memberstack/MemberstackProvider';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function SignupPage() {
+function SignupForm() {
   const { signup } = useMemberstack();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -186,5 +186,17 @@ export default function SignupPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
   );
 }

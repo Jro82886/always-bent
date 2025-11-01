@@ -22,10 +22,16 @@ export default function AbfiBiteButton({ compact = false, context = 'tracking' a
     setBusy(true);
 
     try {
+      // Get user ID - prioritize Supabase user ID over app state
+      const userId =
+        localStorage.getItem('abfi_supabase_user_id') ||  // Supabase user (authenticated)
+        user?.id ||                                        // App state user
+        'anonymous';                                       // Fallback
+
       // Let recordBite handle GPS + map-center fallback internally
       const layersOn: string[] = [];
       const biteRecord = await recordBite({
-        user_id: user?.id || 'anonymous',
+        user_id: userId,
         user_name: 'Anonymous',
         inlet_id: selectedInletId || undefined,
         layers_on: layersOn,

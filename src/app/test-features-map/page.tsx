@@ -48,6 +48,8 @@ export default function TestFeaturesMapPage() {
 
     // Create simulated pixel data for testing
     const bounds = map.current.getBounds();
+    if (!bounds) return;
+
     const pixels: any[] = [];
 
     // Create a grid of test pixels with temperature gradient

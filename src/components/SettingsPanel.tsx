@@ -14,16 +14,18 @@ export default function SettingsPanel() {
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Drag-and-drop state
-  const [position, setPosition] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('abfi_settings_position');
-      return saved ? JSON.parse(saved) : { bottom: 140, right: 16 };
-    }
-    return { bottom: 140, right: 16 };
-  });
+  const [position, setPosition] = useState({ bottom: 140, right: 16 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Load position from localStorage after hydration
+  useEffect(() => {
+    const saved = localStorage.getItem('abfi_settings_position');
+    if (saved) {
+      setPosition(JSON.parse(saved));
+    }
+  }, []);
 
   // Click outside to close
   useEffect(() => {

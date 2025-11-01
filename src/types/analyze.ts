@@ -18,6 +18,7 @@ export type EnhancedAnalysis = {
   temperature: {
     currentAvgF: number
     rangeF: { min: number; max: number }
+    rangeBar: { min: number; max: number; avg: number; unit: 'F' | 'C' }
     bestBreak?: {
       strengthF: number
       location: string
@@ -26,9 +27,16 @@ export type EnhancedAnalysis = {
   }
   chlorophyll: {
     currentAvg: number
+    currentAvgMgM3: number
     range: { min: number; max: number }
+    rangeBar: { min: number; max: number; avg: number }
     clarity: string
     clarityColor: string
+    clarityScale: {
+      value: number
+      label: 'Dirty' | 'Clean' | 'Green' | 'Green-Blue' | 'Blue' | 'Cobalt Blue'
+      color: string
+    }
   }
   fleetActivity: {
     density: 'none' | 'low' | 'medium' | 'high'
@@ -46,8 +54,14 @@ export type EnhancedAnalysis = {
     chl7Day: { trend: string; change: number }
     chl14Day: { trend: string; change: number }
   }
-  narrative: string
-  tactical: string
+  narrative: {
+    overview: string
+    details: string
+  }
+  tactical: {
+    tacticalAdvice: string
+    recommendations: string[]
+  }
   oceanographicFeatures?: any // GeoJSON FeatureCollection
 }
 

@@ -4,15 +4,15 @@
  * Implements exponential backoff and smart retry logic
  */
 
-import { 
-  getPendingBites, 
-  markUploaded, 
+import {
+  getPendingBites,
+  markUploaded,
   markError,
   cleanExpiredBites,
   getPendingCount,
-  type QueuedBite 
+  type QueuedBite
 } from './biteDB';
-import { getSupabase } from "@/lib/supabaseClient"
+import { supabase } from "@/lib/supabase/client"
 import { useAppState } from '@/lib/store';
 
 // Re-export for convenience
@@ -45,55 +45,52 @@ export async function syncBites(manual: boolean = false): Promise<{
   failed: number;
   expired: number;
 }> {
+
   // Skip if already syncing
   if (isSyncing) {
-    
     return { synced: 0, failed: 0, expired: 0 };
   }
-  
+
   // Check if online
   if (!navigator.onLine && !manual) {
-    
     return { synced: 0, failed: 0, expired: 0 };
   }
-  
+
   isSyncing = true;
   emitSyncEvent('sync-start');
-  
+
   try {
     // Clean expired bites first
     const expired = await cleanExpiredBites();
     if (expired > 0) {
       emitSyncEvent('bite-expired', { count: expired });
     }
-    
+
     // Get all pending bites
     const pending = await getPendingBites();
-    
+
     if (pending.length === 0) {
-      
       return { synced: 0, failed: 0, expired };
     }
     
     
     
-    // Get current user
+    // Get current user and session
     let user;
+    let accessToken;
     try {
-      const supabase = getSupabase();
-      const { data } = await supabase.auth.getUser();
-      user = data?.user;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        return { synced: 0, failed: 0, expired };
+      }
+
+      user = session.user;
+      accessToken = session.access_token;
     } catch (authError) {
-      
-      // Skip sync if auth fails
       return { synced: 0, failed: 0, expired };
     }
-    
-    if (!user) {
-      
-      return { synced: 0, failed: 0, expired };
-    }
-    
+
     // Prepare batch payload
     const payload = {
       bites: pending.map(bite => ({
@@ -114,22 +111,6 @@ export async function syncBites(manual: boolean = false): Promise<{
       }))
     };
     
-    // Get session token
-    let accessToken;
-    try {
-      const supabase = getSupabase();
-      const { data: { session } } = await supabase.auth.getSession();
-      accessToken = session?.access_token;
-    } catch (sessionError) {
-      
-      return { synced: 0, failed: 0, expired };
-    }
-    
-    if (!accessToken) {
-      
-      return { synced: 0, failed: 0, expired };
-    }
-    
     // Send to server
     const response = await fetch('/api/bites/batch', {
       method: 'POST',
@@ -139,11 +120,13 @@ export async function syncBites(manual: boolean = false): Promise<{
       },
       body: JSON.stringify(payload),
     });
-    
+
+
     if (!response.ok) {
+      const errorText = await response.text();
       throw new Error(`Server error: ${response.status}`);
     }
-    
+
     const result = await response.json();
     
     // Process results

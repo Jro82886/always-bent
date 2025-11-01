@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
@@ -16,9 +16,35 @@ function logReportAction(action: string, data: Record<string, any>) {
 // GET /api/reports - List reports with filters
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            try {
+              cookieStore.set({ name, value, ...options });
+            } catch (error) {
+              // Handle cookie setting errors (e.g., in middleware)
+            }
+          },
+          remove(name: string, options: CookieOptions) {
+            try {
+              cookieStore.set({ name, value: '', ...options });
+            } catch (error) {
+              // Handle cookie removal errors
+            }
+          },
+        },
+      }
+    );
     const { searchParams } = new URL(req.url);
-    
+
     // Get current user (with dev fallback)
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
     
@@ -111,8 +137,34 @@ export async function GET(req: NextRequest) {
 // POST /api/reports - Create a new report
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    
+    const cookieStore = await cookies();
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            try {
+              cookieStore.set({ name, value, ...options });
+            } catch (error) {
+              // Handle cookie setting errors (e.g., in middleware)
+            }
+          },
+          remove(name: string, options: CookieOptions) {
+            try {
+              cookieStore.set({ name, value: '', ...options });
+            } catch (error) {
+              // Handle cookie removal errors
+            }
+          },
+        },
+      }
+    );
+
     // Get current user (with dev fallback)
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
     

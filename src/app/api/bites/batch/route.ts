@@ -6,21 +6,63 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from "@/lib/supabase/server"
+import { createClient } from '@supabase/supabase-js';
 import { analyzeOceanConditions } from '@/lib/ocean/analysis';
 import { getIdentityForUser, shouldHighlight } from '@/lib/reports/enrichIdentity';
 import * as turf from '@turf/turf';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify authentication
-    const supabase = await getSupabase();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+    // Check for Authorization header (for offline bite sync)
+    const authHeader = request.headers.get('Authorization');
+    let supabase;
+    let user;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      // Extract token from Authorization header
+      const token = authHeader.substring(7);
+
+      // Create Supabase client with the provided token
+      supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        }
       );
+
+      // Verify the token and get user
+      const { data: { user: tokenUser }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !tokenUser) {
+        console.error('[BITE BATCH] Token auth failed:', authError);
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+
+      user = tokenUser;
+      console.log('[BITE BATCH] Authenticated via token:', user.email);
+    } else {
+      // Fall back to cookie-based auth
+      supabase = await getSupabase();
+      const { data: { user: cookieUser }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !cookieUser) {
+        console.error('[BITE BATCH] Cookie auth failed:', authError);
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
+
+      user = cookieUser;
+      console.log('[BITE BATCH] Authenticated via cookies:', user.email);
     }
     
     // Parse request body

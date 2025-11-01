@@ -111,9 +111,14 @@ export async function POST(req: NextRequest) {
 
           // Also detect oceanographic features only if we have pixel data
           if (pixelData.length > 0) {
+            // Convert BBox [minX, minY, maxX, maxY] to [[minX, minY], [maxX, maxY]]
+            const bboxCoords: [[number, number], [number, number]] = [
+              [bbox[0], bbox[1]],
+              [bbox[2], bbox[3]]
+            ];
             const features = await detectOceanographicFeatures(
               pixelData,
-              bbox as [[number, number], [number, number]]
+              bboxCoords
             );
             enhancedData.oceanographicFeatures = features;
           }

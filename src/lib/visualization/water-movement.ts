@@ -130,6 +130,9 @@ export class WaterMovementVisualization {
     try {
       // Get current map bounds
       const bounds = this.map.getBounds();
+      if (!bounds) {
+        return { type: 'FeatureCollection', features: [] };
+      }
       const bbox = [
         bounds.getWest(),
         bounds.getSouth(),
