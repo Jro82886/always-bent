@@ -12,19 +12,30 @@ export async function clipFleetPresence(
 ): Promise<TrackPresence> {
   try {
     const supabase = getSupabase();
-    
-    // For MVP: return stub data
-    // TODO: Implement real RPC call to clip_fleet_presence
-    
-    // Stub response - simulate some fleet presence
-    const mockFleetCount = Math.floor(Math.random() * 8);
-    const mockDays = mockFleetCount > 0 ? Math.min(Math.floor(Math.random() * 4) + 1, 4) : 0;
-    
+
+    // Call the real RPC function
+    const { data, error } = await supabase.rpc('clip_fleet_presence', {
+      p_polygon_geojson: polygon,
+      p_inlet_id: inletId,
+      p_hours_back: hours
+    });
+
+    if (error) {
+      console.error('[clipFleetPresence] RPC error:', error);
+      return {
+        myVesselInArea: false,
+        fleetVessels: 0,
+        fleetVisitsDays: 0,
+        gfw: null,
+      };
+    }
+
+    // Return the result from the RPC function
     return {
-      myVesselInArea: false, // TODO: Check user's vessel position
-      fleetVessels: mockFleetCount,
-      fleetVisitsDays: mockDays,
-      gfw: null, // Not using GFW for now
+      myVesselInArea: data.myVesselInArea || false,
+      fleetVessels: data.fleetVessels || 0,
+      fleetVisitsDays: data.fleetVisitsDays || 0,
+      gfw: data.gfw || null,
     };
   } catch (e) {
     console.error('[clipFleetPresence] fail', e);
