@@ -22,6 +22,8 @@ import { getInletById } from '@/lib/inlets';
 import { useLocationPermission } from '@/hooks/useLocationPermission';
 import dynamic from 'next/dynamic';
 import { flags } from '@/lib/flags';
+import HistoricalPlaybackLayer from '@/components/tracking/HistoricalPlaybackLayer';
+import PlaybackControls from '@/components/tracking/PlaybackControls';
 
 // Dynamic import for ChatDrawer
 const ChatDrawer = dynamic(() => import('@/components/chat/ChatDrawer'), {
@@ -338,7 +340,17 @@ function TrackingModeContent() {
           gfwTracks={gfwTracks}
         />
       )}
-      
+
+      {/* Historical Playback Layer - handles temporal vessel playback */}
+      {mapFullyReady && (
+        <HistoricalPlaybackLayer map={map.current} />
+      )}
+
+      {/* Playback Controls - bottom center */}
+      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 pointer-events-auto">
+        <PlaybackControls />
+      </div>
+
       {/* Chat Drawer Overlay */}
       {flags.communityDrawer && (
         <ChatDrawer
