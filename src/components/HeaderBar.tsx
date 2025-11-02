@@ -275,7 +275,7 @@ export default function HeaderBar({ includeAbfi = false }: { includeAbfi?: boole
                     <DropdownMenu.Separator className="my-1 h-px bg-white/10" />
                     <DropdownMenu.Item
                       className="flex items-center gap-2 rounded px-2 py-1 text-sm text-white outline-none hover:bg-white/10 cursor-pointer"
-                      onSelect={() => window.location.href = '/account-billing'}
+                      onSelect={() => window.location.href = 'https://alwaysbentfishingintelligence.com/account-billing'}
                     >
                       <Settings className="h-4 w-4" />
                       Account Settings
