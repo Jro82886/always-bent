@@ -3,7 +3,7 @@ import { mockPresence } from '@/mocks/chatData';
 import { supabase } from '@/lib/supabase/client';
 import { useMemberstack } from '@/lib/memberstack/MemberstackProvider';
 import { getOrCreateEphemeralUser } from '@/lib/auth/ephemeral';
-import type { RealtimeChannel, PresenceState } from '@supabase/supabase-js';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface OnlineUser {
   userId: string;
@@ -74,7 +74,7 @@ export function useOnlinePresence(roomId: string): UseOnlinePresenceReturn {
     // Track the current user's presence
     channel
       .on('presence', { event: 'sync' }, () => {
-        const presenceState: PresenceState = channel.presenceState();
+        const presenceState = channel.presenceState();
 
         // Convert presence state to OnlineUser array
         const users: OnlineUser[] = [];
