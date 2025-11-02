@@ -11,6 +11,13 @@ interface OnlineUser {
   status: 'online' | 'away';
 }
 
+// Type for the presence payload we send/receive
+interface PresencePayload {
+  userId: string;
+  username: string;
+  online_at: string;
+}
+
 interface UseOnlinePresenceReturn {
   onlineUsers: OnlineUser[];
   onlineCount: number;
@@ -81,12 +88,15 @@ export function useOnlinePresence(roomId: string): UseOnlinePresenceReturn {
         Object.keys(presenceState).forEach((key) => {
           const presences = presenceState[key];
           if (presences && presences.length > 0) {
-            const presence = presences[0]; // Take the first presence entry
-            users.push({
-              userId: presence.userId as string,
-              username: presence.username as string,
-              status: 'online',
-            });
+            const presence = presences[0] as unknown as PresencePayload;
+            // Safety check: ensure presence has required fields
+            if (presence && presence.userId && presence.username) {
+              users.push({
+                userId: presence.userId,
+                username: presence.username,
+                status: 'online',
+              });
+            }
           }
         });
 
