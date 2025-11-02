@@ -27,61 +27,43 @@ export default function PaywallGuard({ children }: { children: React.ReactNode }
       return;
     }
 
-    // Check if user has an active paid plan
-    const hasPaidPlan = checkForPaidPlan(member);
+    // Check if user has ANY plan assigned (regardless of price)
+    const hasAssignedPlan = checkForAssignedPlan(member);
 
-    if (!hasPaidPlan) {
-      // User is authenticated but doesn't have a paid plan
+    if (!hasAssignedPlan) {
+      // User is authenticated but has no plan assigned
       // Redirect to pricing page on main site
-      console.log('[Paywall] Free user detected, redirecting to pricing');
+      console.log('[Paywall] No plan assigned, redirecting to pricing');
       window.location.href = 'https://alwaysbentfishingintelligence.com/pricing';
       return;
     }
 
-    // User has paid plan, allow access
-    console.log('[Paywall] Paid user verified, granting access');
+    // User has a plan assigned, allow access
+    console.log('[Paywall] Plan assigned, granting access');
     setChecking(false);
   }, [member, loading]);
 
-  // Helper function to check if user has a paid plan
-  const checkForPaidPlan = (member: any): boolean => {
-    // Check planConnections for any ACTIVE paid plans
+  // Helper function to check if user has any plan assigned
+  const checkForAssignedPlan = (member: any): boolean => {
+    // Check if user has any plan connections at all
+    // Even free plans ($0.00) will have a planConnection entry
+    // Only users with NO assigned plans are considered free users
     if (!member.planConnections || member.planConnections.length === 0) {
-      console.log('[Paywall] No plan connections found');
+      console.log('[Paywall] No plan connections found - free user');
       return false;
     }
 
-    // Check for any active plan connection
-    const hasActivePlan = member.planConnections.some((plan: any) => {
-      const isActive = plan.status === 'ACTIVE';
-
-      // Log plan details for debugging
-      console.log('[Paywall] Plan:', {
+    // Log plan details for debugging
+    member.planConnections.forEach((plan: any) => {
+      console.log('[Paywall] Plan assigned:', {
         planId: plan.planId,
         status: plan.status,
-        priceId: plan.payment?.priceId,
-        isActive
+        priceId: plan.payment?.priceId
       });
-
-      return isActive;
     });
 
-    if (!hasActivePlan) {
-      console.log('[Paywall] No active plans found');
-      return false;
-    }
-
-    // Additional check: ensure it's not a free plan
-    // Free plans typically don't have payment info or have a free priceId
-    const hasPaidPrice = member.planConnections.some((plan: any) => {
-      return plan.status === 'ACTIVE' && plan.payment?.priceId;
-    });
-
-    if (!hasPaidPrice) {
-      console.log('[Paywall] Active plan found but no paid price ID');
-      return false;
-    }
-
+    // User has at least one plan assigned
+    console.log('[Paywall] User has assigned plan(s)');
     return true;
   };
 
