@@ -103,7 +103,7 @@ export default function AccountBillingPage() {
 
           <div className="mt-6">
             <button
-              onClick={() => window.open('https://always-bent.memberstack.com/account', '_blank')}
+              onClick={() => window.open('https://alwaysbentfishingintelligence.com/dashboard', '_blank')}
               className="bg-cyan-500 text-black px-4 py-2 rounded hover:bg-cyan-400 transition font-medium"
             >
               Manage Subscription
