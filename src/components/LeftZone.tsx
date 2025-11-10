@@ -263,23 +263,7 @@ export default function LeftZone({
                   }
                 />
               </div>
-              
-              {/* Compact SST Temperature Legend - Only when SST is active */}
-              {sstActive && (
-                <div className="mt-2 ml-0.5">
-                  <div className="relative w-44 h-5 rounded border border-white/15 overflow-hidden"
-                       style={{
-                         background: 'linear-gradient(to right, #00008B 0%, #0000FF 12%, #00BFFF 24%, #00FFFF 36%, #00FF00 48%, #ADFF2F 56%, #FFFF00 64%, #FFA500 72%, #FF4500 80%, #FF0000 88%, #DC143C 94%, #8B0000 100%)'
-                       }}>
-                  </div>
-                  <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-                    <span>32°F</span>
-                    <span className="ml-1">59°F</span>
-                    <span className="text-red-400">86°F</span>
-                  </div>
-                </div>
-              )}
-              
+
               {/* SST Controls */}
               {showSstOpacity && sstActive && (
                 <div ref={sstOpacityRef} className="bg-slate-700/60 rounded-lg p-3 border border-orange-500/20">
@@ -569,24 +553,6 @@ export default function LeftZone({
               )}
             </div>
           )}
-          
-          {/* Weather Section */}
-          <div className="border-t border-cyan-500/20 px-4 py-3 space-y-2">
-            <div className="flex items-center gap-2 mb-2">
-              <Waves size={14} className="text-cyan-400" />
-              <span className="text-xs font-medium text-cyan-300 uppercase tracking-wider">Weather</span>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">Wind</span>
-                <span className="text-cyan-300">12kt SE ↗</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">Swell</span>
-                <span className="text-cyan-300">4.2ft @ 9s</span>
-              </div>
-            </div>
-          </div>
         </div>
         
         {/* DATE SELECTOR - Always enabled for better UX */}

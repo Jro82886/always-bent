@@ -1,6 +1,6 @@
 /**
  * Simplified species categories for community chat channels
- * Focused on Tuna and related offshore/inshore species
+ * Focused on Tuna and offshore pelagic species
  */
 
 export interface Species {
@@ -8,7 +8,7 @@ export interface Species {
   name: string;
   emoji: string;
   color: string; // Tailwind color name
-  category: 'tuna' | 'offshore' | 'inshore';
+  category: 'tuna' | 'offshore';
   description: string;
 }
 
@@ -64,31 +64,21 @@ export const SPECIES: Species[] = [
     category: 'offshore',
     description: 'Blue & White Marlin'
   },
-  
-  // INSHORE CHAT
   {
-    id: 'stripers',
-    name: 'Striped Bass',
-    emoji: '🎣',
-    color: 'teal',
-    category: 'inshore',
-    description: 'Coastal favorite'
+    id: 'swordfish',
+    name: 'Swordfish',
+    emoji: '⚔️',
+    color: 'gray',
+    category: 'offshore',
+    description: 'Deep water billfish'
   },
   {
-    id: 'bluefish',
-    name: 'Bluefish',
-    emoji: '🦈',
-    color: 'slate',
-    category: 'inshore',
-    description: 'Aggressive schooling fish'
-  },
-  {
-    id: 'fluke',
-    name: 'Fluke',
-    emoji: '🏖️',
-    color: 'amber',
-    category: 'inshore',
-    description: 'Summer Flounder'
+    id: 'sailfish',
+    name: 'Sailfish',
+    emoji: '🏴‍☠️',
+    color: 'sky',
+    category: 'offshore',
+    description: 'Fast billfish'
   }
 ];
 
@@ -99,7 +89,7 @@ export function getSpeciesById(id: string): Species | undefined {
 export function getSpeciesColor(id: string): string {
   const species = getSpeciesById(id);
   if (!species) return '#06b6d4'; // Default cyan
-  
+
   const colorMap: Record<string, string> = {
     'blue': '#3b82f6',
     'yellow': '#eab308',
@@ -109,13 +99,15 @@ export function getSpeciesColor(id: string): string {
     'cyan': '#06b6d4',
     'teal': '#14b8a6',
     'slate': '#64748b',
-    'amber': '#f59e0b'
+    'amber': '#f59e0b',
+    'gray': '#6b7280',
+    'sky': '#0ea5e9'
   };
-  
+
   return colorMap[species.color] || '#06b6d4';
 }
 
-export function getSpeciesByCategory(category: 'tuna' | 'offshore' | 'inshore'): Species[] {
+export function getSpeciesByCategory(category: 'tuna' | 'offshore'): Species[] {
   return SPECIES.filter(s => s.category === category);
 }
 
@@ -128,14 +120,8 @@ export const CATEGORY_INFO = {
   },
   offshore: {
     name: 'Offshore Chat',
-    description: 'Mahi, Wahoo, Billfish',
+    description: 'Mahi, Wahoo, Marlin, Swordfish, Sailfish',
     icon: 'Activity',
     color: 'from-teal-500 to-cyan-500'
-  },
-  inshore: {
-    name: 'Inshore Chat',
-    description: 'Stripers, Blues, Fluke',
-    icon: 'Trophy',
-    color: 'from-green-500 to-teal-500'
   }
 };

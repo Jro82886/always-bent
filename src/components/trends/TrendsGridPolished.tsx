@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useAppState } from '@/lib/store';
 import { getInletById } from '@/lib/inlets';
 import { resolveInlet, getDemoMessage } from '@/lib/inlet';
+import HeaderBar from '@/components/CommandBridge/HeaderBar';
 import {
-  Waves, Sun, Fish, Users, Activity, TrendingUp, 
+  Waves, Sun, Fish, Users, Activity, TrendingUp,
   Clock, Calendar, Thermometer, Wind, Anchor
 } from 'lucide-react';
 
@@ -95,15 +96,15 @@ export default function TrendsGridPolished() {
       primaryDepth: PELAGIC_ON ? 'Offshore (50+ nm)' : 'Near Shore (5-15 nm)'
     },
     species: PELAGIC_ON ? PELAGIC_SEED.speciesActivityRange : [
-      { name: 'Striped Bass', pct: 42 },
-      { name: 'Bluefish', pct: 28 },
-      { name: 'Flounder', pct: 18 },
-      { name: 'Black Sea Bass', pct: 12 }
+      { name: 'Yellowfin Tuna', pct: 38 },
+      { name: 'Mahi-Mahi', pct: 27 },
+      { name: 'Wahoo', pct: 20 },
+      { name: 'Bluefin Tuna', pct: 15 }
     ],
     community: PELAGIC_ON ? PELAGIC_SEED.counts : {
       reportsToday: 12,
       activeAnglers: 31,
-      hotSpecies: 'Striped Bass'
+      hotSpecies: 'Yellowfin Tuna'
     }
   };
 
@@ -126,46 +127,55 @@ export default function TrendsGridPolished() {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-6 max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="abfi-title text-3xl font-bold mb-3">Fishing Trends</h1>
-          <div className="animate-pulse text-slate-400">Loading live trends data...</div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="abfi-card abfi-glow">
-              <div className="animate-pulse">
-                <div className="h-4 bg-slate-700 rounded mb-3"></div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-slate-800 rounded"></div>
-                  <div className="h-3 bg-slate-800 rounded w-3/4"></div>
-                </div>
-              </div>
+      <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 overflow-hidden">
+        <HeaderBar activeMode="trends" />
+        <div className="pt-16 lg:pt-16 h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] overflow-y-auto">
+          <div className="p-4 md:p-6 max-w-7xl mx-auto">
+            <div className="mb-8">
+              <h1 className="abfi-title text-3xl font-bold mb-3">Fishing Trends</h1>
+              <div className="animate-pulse text-slate-400">Loading live trends data...</div>
             </div>
-          ))}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="abfi-card abfi-glow">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-slate-700 rounded mb-3"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-slate-800 rounded"></div>
+                      <div className="h-3 bg-slate-800 rounded w-3/4"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto">
-      
-      {/* Command Bridge Header */}
-      <div className="mb-8">
-        <h1 className="abfi-title text-3xl font-bold mb-3">Fishing Trends</h1>
-        <p className="text-slate-300 mb-2">
-          {inlet ? `Live conditions and patterns for ${inlet.name}` : 'Live fishing intelligence and patterns'}
-        </p>
-        {demoMessage && (
-          <div className="text-xs text-cyan-200/60 italic">
-            {demoMessage}
-          </div>
-        )}
-      </div>
+    <div className="relative w-full h-screen bg-gradient-to-br from-gray-900 via-gray-950 to-slate-950 overflow-hidden">
+      <HeaderBar activeMode="trends" />
 
-      {/* Main 2x2 Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="pt-16 lg:pt-16 h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="p-4 md:p-6 max-w-7xl mx-auto">
+
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="abfi-title text-3xl font-bold mb-3">Fishing Trends</h1>
+            <p className="text-slate-300 mb-2">
+              {inlet ? `Live conditions and patterns for ${inlet.name}` : 'Live fishing intelligence and patterns'}
+            </p>
+            {demoMessage && (
+              <div className="text-xs text-cyan-200/60 italic">
+                {demoMessage}
+              </div>
+            )}
+          </div>
+
+          {/* Main 2x2 Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Current Conditions */}
         <div className="abfi-card abfi-glow">
@@ -284,7 +294,7 @@ export default function TrendsGridPolished() {
             </div>
           )}
         </div>
-
+        </div>
       </div>
     </div>
   );

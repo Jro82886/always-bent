@@ -49,6 +49,8 @@ export default function CommunityLayout({
       <div className="flex flex-col h-full">
       {/* Desktop Tab Bar */}
       <div className="hidden md:flex bg-slate-900 border-b border-cyan-500/20">
+        {/* Chat tab hidden for MVP */}
+        {/*
         <Link
           href="/legendary/community/chat"
           className={`px-6 py-3 text-sm font-medium transition-colors relative ${
@@ -62,6 +64,7 @@ export default function CommunityLayout({
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400" />
           )}
         </Link>
+        */}
         <Link
           href="/legendary/community/reports"
           className={`px-6 py-3 text-sm font-medium transition-colors relative ${
@@ -98,7 +101,9 @@ export default function CommunityLayout({
 
       {/* Mobile Bottom Tabs */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-cyan-500/20 z-50">
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-1">
+          {/* Chat tab hidden for MVP */}
+          {/*
           <Link
             href="/legendary/community/chat"
             className={`py-3 text-center ${
@@ -107,6 +112,7 @@ export default function CommunityLayout({
           >
             <div className="text-xs font-medium">Chat</div>
           </Link>
+          */}
           <Link
             href="/legendary/community/reports"
             className={`py-3 text-center ${

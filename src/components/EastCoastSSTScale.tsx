@@ -133,8 +133,8 @@ export default function EastCoastSSTScale({
         <div className="space-y-0.5 text-slate-400">
           <div>• Tuna: 68-78°F (yellow/orange zones)</div>
           <div>• Mahi: 75-82°F (orange/red zones)</div>
-          <div>• Striped Bass: 50-65°F (cyan/green zones)</div>
-          <div>• Bluefish: 60-72°F (green/yellow zones)</div>
+          <div>• Wahoo: 72-80°F (yellow/orange zones)</div>
+          <div>• Marlin: 75-85°F (orange/red zones)</div>
         </div>
       </div>
     </div>
