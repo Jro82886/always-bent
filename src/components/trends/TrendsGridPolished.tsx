@@ -294,6 +294,8 @@ export default function TrendsGridPolished() {
             </div>
           )}
         </div>
+
+        </div>
         </div>
       </div>
     </div>
