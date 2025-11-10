@@ -122,12 +122,115 @@ export default function WrittenAnalysisModal({ report, onClose }: WrittenAnalysi
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <div className="prose prose-invert max-w-none">
             <p className="text-white text-base leading-relaxed whitespace-pre-wrap">
-              {payload?.analysisText || 
-               payload?.narrative || 
-               payload?.analysis?.summary || 
+              {payload?.analysisText ||
+               payload?.narrative ||
+               payload?.analysis?.summary ||
                'Ocean intelligence analysis completed'}
             </p>
           </div>
+
+          {/* Extended Analysis Details - Show full data points if available */}
+          {payload?.raw && (
+            <div className="mt-6 pt-6 border-t border-cyan-500/20 space-y-4">
+              <h3 className="text-sm font-semibold text-cyan-300 uppercase tracking-wider">Detailed Analysis</h3>
+
+              {/* SST Details */}
+              {payload.raw.hasSST && payload.raw.sst && (
+                <div className="bg-slate-800/50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-cyan-400 mb-2 flex items-center gap-2">
+                    <Thermometer className="w-4 h-4" />
+                    Sea Surface Temperature
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-slate-400">Mean:</span>
+                      <span className="text-white ml-2 font-medium">{payload.raw.sst.meanF?.toFixed(1)}°F</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Range:</span>
+                      <span className="text-white ml-2 font-medium">
+                        {payload.raw.sst.minF?.toFixed(1)}°F - {payload.raw.sst.maxF?.toFixed(1)}°F
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Gradient:</span>
+                      <span className="text-white ml-2 font-medium">{payload.raw.sst.gradFperMile?.toFixed(2)}°F/mi</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Valid pixels:</span>
+                      <span className="text-white ml-2 font-medium">{payload.raw.sst.nValid || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Chlorophyll Details */}
+              {payload.raw.hasCHL && payload.raw.chl && (
+                <div className="bg-slate-800/50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-emerald-400 mb-2">Chlorophyll Concentration</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-slate-400">Mean:</span>
+                      <span className="text-white ml-2 font-medium">{payload.raw.chl.mean?.toFixed(3)} mg/m³</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Range:</span>
+                      <span className="text-white ml-2 font-medium">
+                        {payload.raw.chl.min?.toFixed(3)} - {payload.raw.chl.max?.toFixed(3)} mg/m³
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Gradient:</span>
+                      <span className="text-white ml-2 font-medium">{payload.raw.chl.gradient?.toFixed(3)} mg/m³</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Valid pixels:</span>
+                      <span className="text-white ml-2 font-medium">{payload.raw.chl.nValid || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Enhanced Analysis Scores */}
+              {payload.raw.enhanced && (
+                <div className="bg-slate-800/50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-orange-400 mb-2">Intelligence Score</h4>
+                  <div className="space-y-2 text-sm">
+                    {payload.raw.enhanced.score !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">Overall Score:</span>
+                        <span className={`font-bold ${
+                          payload.raw.enhanced.score >= 70 ? 'text-green-400' :
+                          payload.raw.enhanced.score >= 40 ? 'text-yellow-400' :
+                          'text-red-400'
+                        }`}>
+                          {payload.raw.enhanced.score}/100
+                        </span>
+                      </div>
+                    )}
+                    {payload.raw.enhanced.label && (
+                      <div className="text-center text-xs text-cyan-300 uppercase tracking-wider">
+                        {payload.raw.enhanced.label}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Fleet Activity */}
+              {payload.raw.fleet && (
+                <div className="bg-slate-800/50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-blue-400 mb-2">Fleet Activity</h4>
+                  <div className="text-sm">
+                    <span className="text-slate-400">Vessels in area:</span>
+                    <span className="text-white ml-2 font-medium">
+                      {payload.raw.fleet.count || 0} {payload.raw.fleet.count === 1 ? 'vessel' : 'vessels'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Species for bite reports */}
           {(reportType === 'bite' || reportType === 'abfi') && (
