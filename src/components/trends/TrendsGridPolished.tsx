@@ -178,7 +178,7 @@ export default function TrendsGridPolished() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Current Conditions */}
-        <div className="abfi-card abfi-glow">
+        <div className="abfi-card abfi-glow p-6">
           <div className="flex items-center gap-3 mb-4">
             <Thermometer className="w-5 h-5 text-cyan-400" />
             <h3 className="text-lg font-semibold text-white">Current Conditions</h3>
@@ -212,7 +212,7 @@ export default function TrendsGridPolished() {
         </div>
 
         {/* Today's Tides */}
-        <div className="abfi-card abfi-glow">
+        <div className="abfi-card abfi-glow p-6">
           <div className="flex items-center gap-3 mb-4">
             <Waves className="w-5 h-5 text-cyan-400" />
             <h3 className="text-lg font-semibold text-white">Today's Tides</h3>
@@ -235,7 +235,7 @@ export default function TrendsGridPolished() {
         </div>
 
         {/* Best Fishing */}
-        <div className="abfi-card abfi-glow">
+        <div className="abfi-card abfi-glow p-6">
           <div className="flex items-center gap-3 mb-4">
             <Fish className="w-5 h-5 text-cyan-400" />
             <h3 className="text-lg font-semibold text-white">Active Species</h3>
@@ -267,7 +267,7 @@ export default function TrendsGridPolished() {
         </div>
 
         {/* Community Activity */}
-        <div className="abfi-card abfi-glow">
+        <div className="abfi-card abfi-glow p-6">
           <div className="flex items-center gap-3 mb-4">
             <Users className="w-5 h-5 text-cyan-400" />
             <h3 className="text-lg font-semibold text-white">Community Activity</h3>
