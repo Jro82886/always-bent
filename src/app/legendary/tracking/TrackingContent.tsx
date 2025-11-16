@@ -13,6 +13,7 @@ import FleetLayer from '@/components/tracking/FleetLayer';
 import GFWVesselLayer from '@/components/tracking/GFWVesselLayer';
 import { gfwEnabled } from '@/lib/features/gfw';
 import VesselTracksLayer from '@/components/tracking/VesselTracksLayer';
+import OceanFeaturesLayer from '@/components/tracking/OceanFeaturesLayer';
 import TrackingToolbar from '@/components/tracking/TrackingToolbar';
 import EnhancedTrackingLegend from '@/components/tracking/EnhancedTrackingLegend';
 import GFWLegend from '@/components/tracking/GFWLegend';
@@ -24,11 +25,7 @@ import dynamic from 'next/dynamic';
 import { flags } from '@/lib/flags';
 import HistoricalPlaybackLayer from '@/components/tracking/HistoricalPlaybackLayer';
 import PlaybackControls from '@/components/tracking/PlaybackControls';
-
-// Dynamic import for ChatDrawer
-const ChatDrawer = dynamic(() => import('@/components/chat/ChatDrawer'), {
-  ssr: false
-});
+import ChatDrawer from '@/components/chat/ChatDrawer';
 
 // Dynamic import for RestrictToggle (dev only)
 const RestrictToggle = dynamic(() => import('@/components/dev/RestrictToggle'), {
@@ -74,6 +71,9 @@ function TrackingModeContent() {
   const [showTracks, setShowTracks] = useState(false);
   const [showFleet, setShowFleet] = useState(false);
   const [showFleetTracks, setShowFleetTracks] = useState(false);
+  const [showThermalFronts, setShowThermalFronts] = useState(false);
+  const [showChlorophyllEdges, setShowChlorophyllEdges] = useState(false);
+  const [showEddies, setShowEddies] = useState(false);
   const [showCommercial, setShowCommercial] = useState(false);
   const [showCommercialTracks, setShowCommercialTracks] = useState(false);
   
@@ -275,6 +275,12 @@ function TrackingModeContent() {
         setShowCommercial={setShowCommercial}
         showCommercialTracks={gfwTracksEnabled}
         setShowCommercialTracks={setGfwTracksEnabled}
+        showThermalFronts={showThermalFronts}
+        setShowThermalFronts={setShowThermalFronts}
+        showChlorophyllEdges={showChlorophyllEdges}
+        setShowChlorophyllEdges={setShowChlorophyllEdges}
+        showEddies={showEddies}
+        setShowEddies={setShowEddies}
         userPosition={userPosition}
         onChatToggle={() => setShowChat(!showChat)}
         map={map.current}
@@ -331,7 +337,17 @@ function TrackingModeContent() {
           onTracksUpdate={setGfwTracks}
         />
       )}
-      
+
+      {/* Ocean Features Layer - handles thermal fronts, chlorophyll edges, and eddies */}
+      {mapFullyReady && (
+        <OceanFeaturesLayer
+          map={map.current}
+          showThermalFronts={showThermalFronts}
+          showChlorophyllEdges={showChlorophyllEdges}
+          showEddies={showEddies}
+        />
+      )}
+
       {/* Vessel Tracks Layer - handles all track rendering */}
       {mapFullyReady && (
         <VesselTracksLayer
@@ -352,7 +368,7 @@ function TrackingModeContent() {
       </div>
 
       {/* Chat Drawer Overlay */}
-      {flags.communityDrawer && (
+      {flags.communityDrawer ? (
         <ChatDrawer
           isOpen={showChat}
           onClose={() => setShowChat(false)}
@@ -360,7 +376,7 @@ function TrackingModeContent() {
           userId={user?.id} // TODO: Replace with Memberstack user once enabled
           userName={undefined} // TODO: Get from auth
         />
-      )}
+      ) : null}
       
       {/* Dev-only Restrict Toggle */}
       <RestrictToggle />

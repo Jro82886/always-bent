@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Wind, Anchor, Users, Ship, Navigation, MessageSquare } from 'lucide-react';
+import { Wind, Anchor, Users, Ship, Navigation, MessageSquare, Waves } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { flags } from '@/lib/flags';
 import { useAppState } from '@/lib/store';
@@ -28,6 +28,12 @@ interface TrackingToolbarProps {
   setShowCommercial: (show: boolean) => void;
   showCommercialTracks: boolean;
   setShowCommercialTracks: (show: boolean) => void;
+  showThermalFronts?: boolean;
+  setShowThermalFronts?: (show: boolean) => void;
+  showChlorophyllEdges?: boolean;
+  setShowChlorophyllEdges?: (show: boolean) => void;
+  showEddies?: boolean;
+  setShowEddies?: (show: boolean) => void;
   userPosition: { lat: number; lng: number; speed: number } | null;
   onChatToggle?: () => void;
   map?: mapboxgl.Map | null;
@@ -48,6 +54,12 @@ export default function TrackingToolbar({
   setShowCommercial,
   showCommercialTracks,
   setShowCommercialTracks,
+  showThermalFronts,
+  setShowThermalFronts,
+  showChlorophyllEdges,
+  setShowChlorophyllEdges,
+  showEddies,
+  setShowEddies,
   userPosition,
   onChatToggle,
   map
@@ -189,7 +201,7 @@ export default function TrackingToolbar({
   // Handle Show Me button click
   const onShowMe = async () => {
     if (!map) return;
-    
+
     setUserLocStatus('requesting');
 
     navigator.geolocation.getCurrentPosition(
@@ -197,6 +209,12 @@ export default function TrackingToolbar({
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
         const accuracy = pos.coords.accuracy;
+
+        // Update global location permission state
+        localStorage.setItem('abfi_location_permission', 'granted');
+        window.dispatchEvent(new CustomEvent('abfi-location-permission-changed', {
+          detail: { status: 'granted' }
+        }));
 
         // Check if we should restrict to inlet bounds
         if (restrictToInlet) {
@@ -219,16 +237,24 @@ export default function TrackingToolbar({
         setUserLoc(newLoc);
         setUserLocStatus('active');
         setShowYou(true);
-        
+
         // Append to track if enabled
         if (myTracksEnabled) {
           appendMyTrack(lon, lat);
         }
-        
+
         // Draw the dot (no camera movement)
         drawOrUpdateUserDot(lon, lat, accuracy);
       },
       (err) => {
+        // Update global location permission state to denied
+        if (err.code === err.PERMISSION_DENIED) {
+          localStorage.setItem('abfi_location_permission', 'denied');
+          window.dispatchEvent(new CustomEvent('abfi-location-permission-changed', {
+            detail: { status: 'denied' }
+          }));
+        }
+
         setUserLocStatus(err.code === err.PERMISSION_DENIED ? 'denied' : 'error');
         showToast({
           type: 'warning',
@@ -239,10 +265,10 @@ export default function TrackingToolbar({
           duration: 5000
         });
       },
-      { 
-        enableHighAccuracy: true, 
-        timeout: 8000, 
-        maximumAge: 15000 
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 15000
       }
     );
   };
@@ -329,39 +355,41 @@ export default function TrackingToolbar({
           </div>
         </div>
         <div className="ab-head__underline" />
-        
-        {weatherLoading ? (
-          <div className="text-xs text-slate-400">Loading...</div>
-        ) : weatherData ? (
-          <div className="space-y-2 text-xs">
-            {weatherData.weather?.sstC && (
-              <div className="flex justify-between">
-                <span className="text-slate-400">SST:</span>
-                <span className="text-white font-medium">
-                  {`${(weatherData.weather.sstC * 9/5 + 32).toFixed(1)}°F`}
-                </span>
-              </div>
-            )}
-            {weatherData.weather?.windKt && (
-              <div className="flex justify-between">
-                <span className="text-slate-400">Wind:</span>
-                <span className="text-white font-medium">
-                  {`${Math.round(weatherData.weather.windKt)} kt ${weatherData.weather.windDir || ''}`}
-                </span>
-              </div>
-            )}
-            {weatherData.weather?.swellFt && (
-              <div className="flex justify-between">
-                <span className="text-slate-400">Swell:</span>
-                <span className="text-white font-medium">
-                  {`${Math.round(weatherData.weather.swellFt)}ft @ ${Math.round(weatherData.weather.swellPeriodS || 0)}s`}
-                </span>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-xs text-slate-400">Select an inlet to see conditions</div>
-        )}
+
+        <div className="p-4">
+          {weatherLoading ? (
+            <div className="text-xs text-slate-400">Loading...</div>
+          ) : weatherData ? (
+            <div className="space-y-2 text-xs">
+              {weatherData.water?.temperature && weatherData.water.temperature > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">SST:</span>
+                  <span className="text-white font-medium">
+                    {`${weatherData.water.temperature.toFixed(1)}°F`}
+                  </span>
+                </div>
+              )}
+              {weatherData.wind?.speed && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Wind:</span>
+                  <span className="text-white font-medium">
+                    {`${Math.round(weatherData.wind.speed)} kt`}
+                  </span>
+                </div>
+              )}
+              {weatherData.waves?.height && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Swell:</span>
+                  <span className="text-white font-medium">
+                    {`${Math.round(weatherData.waves.height)}ft @ ${Math.round(weatherData.waves.period || 0)}s`}
+                  </span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-slate-400">Select an inlet to see conditions</div>
+          )}
+        </div>
       </div>
 
       {/* My Vessel Section */}
@@ -373,8 +401,8 @@ export default function TrackingToolbar({
           </div>
         </div>
         <div className="ab-head__underline" />
-        
-        <div className="space-y-2">
+
+        <div className="p-4 space-y-2">
           <div className="ab-row">
             <span className="text-sm text-slate-300">{showYou ? 'Hide Me' : 'Show Me'}</span>
             <button
@@ -441,14 +469,14 @@ export default function TrackingToolbar({
           </div>
         </div>
         <div className="ab-head__underline" />
-        
-        {!locationGranted && (
-          <div className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md p-2 mb-2">
-            Location permission required to see fleet
-          </div>
-        )}
-        
-        <div className="space-y-2">
+
+        <div className="p-4 space-y-2">
+          {!locationGranted && (
+            <div className="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-md p-2 mb-2">
+              Location permission required to see fleet
+            </div>
+          )}
+
           <div className="ab-row">
             <span className="text-sm text-slate-300">Fleet Boats</span>
             <button
@@ -492,8 +520,8 @@ export default function TrackingToolbar({
             </div>
           </div>
           <div className="ab-head__underline" />
-          
-          <div className="space-y-2 p-3">
+
+          <div className="p-4 space-y-2">
             <div className="ab-row">
               <span className="text-sm text-slate-300">GFW Boats</span>
               <button
@@ -503,7 +531,7 @@ export default function TrackingToolbar({
                 {showCommercial ? 'Active' : 'Hidden'}
               </button>
             </div>
-            
+
             <div className="ab-row">
               <span className="text-sm text-slate-300">Commercial Tracks</span>
               <button
@@ -513,6 +541,55 @@ export default function TrackingToolbar({
               >
                 {showCommercialTracks ? 'Active' : 'Hidden'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ocean Features Section */}
+      {setShowThermalFronts && setShowChlorophyllEdges && setShowEddies && (
+        <div className="ab-card pointer-events-auto w-72">
+          <div className="ab-head">
+            <div className="flex items-center gap-2">
+              <Waves className="w-4 h-4 text-cyan-400" />
+              <h3 className="ab-head__title">Ocean Features</h3>
+            </div>
+          </div>
+          <div className="ab-head__underline" />
+
+          <div className="p-4 space-y-2">
+            <div className="ab-row">
+              <span className="text-sm text-slate-300">Thermal Fronts</span>
+              <button
+                onClick={() => setShowThermalFronts(!showThermalFronts)}
+                className={`ab-pill ${showThermalFronts ? 'ab-pill--on' : 'ab-pill--off'}`}
+              >
+                {showThermalFronts ? 'Active' : 'Hidden'}
+              </button>
+            </div>
+
+            <div className="ab-row">
+              <span className="text-sm text-slate-300">Chlorophyll Edges</span>
+              <button
+                onClick={() => setShowChlorophyllEdges(!showChlorophyllEdges)}
+                className={`ab-pill ${showChlorophyllEdges ? 'ab-pill--on' : 'ab-pill--off'}`}
+              >
+                {showChlorophyllEdges ? 'Active' : 'Hidden'}
+              </button>
+            </div>
+
+            <div className="ab-row">
+              <span className="text-sm text-slate-300">Eddies</span>
+              <button
+                onClick={() => setShowEddies(!showEddies)}
+                className={`ab-pill ${showEddies ? 'ab-pill--on' : 'ab-pill--off'}`}
+              >
+                {showEddies ? 'Active' : 'Hidden'}
+              </button>
+            </div>
+
+            <div className="text-xs text-slate-400 mt-2 px-1">
+              Powered by Python AI ocean analysis
             </div>
           </div>
         </div>

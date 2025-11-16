@@ -8,7 +8,6 @@ import cv2
 from scipy import ndimage
 from scipy.spatial.distance import cdist
 from skimage import measure, filters, morphology
-from skimage.feature import peak_local_maxima
 import xarray as xr
 from typing import List, Dict, Tuple, Optional
 import geojson
