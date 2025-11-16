@@ -31,6 +31,7 @@ export interface PlaybackState {
 
   // Actions
   loadVesselHistory: (vesselId: string, inletId: string | undefined, hours: number) => Promise<void>;
+  loadTestData: (vesselData: VesselPlaybackData) => void;
   clearVesselHistory: (vesselId: string) => void;
   clearAllHistory: () => void;
   toggleVesselSelection: (vesselId: string) => void;
@@ -113,6 +114,28 @@ export const usePlaybackStore = create<PlaybackState>()(
       } catch (error) {
         console.error('Error loading vessel history:', error);
       }
+    },
+
+    loadTestData: (vesselData: VesselPlaybackData) => {
+      set(state => {
+        // Remove existing vessel data if present
+        const filtered = state.vessels.filter(v => v.vessel_id !== vesselData.vessel_id);
+        const newVessels = [...filtered, vesselData];
+
+        // Update global time range
+        const allStarts = newVessels.map(v => v.startTime);
+        const allEnds = newVessels.map(v => v.endTime);
+        const globalStart = new Date(Math.min(...allStarts.map(d => d.getTime())));
+        const globalEnd = new Date(Math.max(...allEnds.map(d => d.getTime())));
+
+        return {
+          vessels: newVessels,
+          selectedVesselIds: [...state.selectedVesselIds, vesselData.vessel_id],
+          startTime: globalStart,
+          endTime: globalEnd,
+          currentTime: state.currentTime || globalStart,
+        };
+      });
     },
 
     clearVesselHistory: (vesselId: string) => {

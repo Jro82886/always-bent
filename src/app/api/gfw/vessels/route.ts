@@ -31,109 +31,145 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
-// Build GFW API URL for v3 Vessels API
-function gfwUpstreamUrl({ inletId, bbox, days }: { inletId?: string; bbox?: string; days: number }) {
-  // Use v3 vessels/search endpoint (GET with bbox support)
-  const base = 'https://gateway.api.globalfishingwatch.org/v3/vessels/search';
-
-  // Determine bbox for geographic filtering
-  let searchBbox = bbox;
-
-  if (!searchBbox && inletId) {
-    // Import inlet config - handle both formats (with and without state prefix)
-    const INLETS = [
-      { id: 'md-ocean-city', center: [-75.0906, 38.3286], zoom: 7.5 },
-      { id: 'ny-shinnecock', center: [-72.48, 40.84], zoom: 7.9 },
-      { id: 'ny-montauk', center: [-71.94, 41.07], zoom: 7.8 },
-      { id: 'nj-manasquan', center: [-74.03, 40.10], zoom: 7.7 },
-      { id: 'nc-hatteras', center: [-75.54, 35.22], zoom: 7.3 },
-      { id: 'nc-morehead', center: [-76.69, 34.72], zoom: 7.6 },
-      { id: 'nc-oregon-inlet', center: [-75.54, 35.77], zoom: 7.4 }
-    ];
-
-    const inlet = INLETS.find(i => i.id === inletId || i.id === inletId.replace(/^[a-z]+-/, ''));
-    if (inlet) {
-      // Approximate bbox from zoom level (larger area for vessel search)
-      const degrees = 1.0; // About 60 nautical miles square
-      const [lng, lat] = inlet.center;
-      searchBbox = `${lng - degrees},${lat - degrees},${lng + degrees},${lat + degrees}`;
-    }
-  }
-
-  // Build v3 Vessels API parameters
-  // v3 API requires datasets as array format: datasets[0]=id1
-  // v3 also requires either 'query' (basic search) or 'where' (advanced search) parameter
-  // NOTE: bbox is NOT supported by vessels/search endpoint in v3
-  // NOTE: limit max is 50 in v3
-  const params = new URLSearchParams();
-  params.append('datasets[0]', 'public-global-vessel-identity:v3.0');
-  params.append('query', 'fishing'); // Basic search query required in v3
-  params.append('limit', '50'); // Max limit is 50 in v3
-
-  return `${base}?${params}`;
+// Parse bbox string to bounds array
+function parseBbox(bbox: string): [number, number, number, number] {
+  const parts = bbox.split(',').map(Number);
+  return [parts[0], parts[1], parts[2], parts[3]];
 }
 
-// Normalize GFW response to our expected format (as per brief)
-function normalizeGFW(up: any) {
-  const vessels = (up?.entries ?? up?.vessels ?? []).map((entry: any) => {
-    // Handle various possible structures
-    const v = entry.vessel || entry;
-    const positions = entry.positions || v.positions || v.track || v.coords || [];
-    
-    // Get gear type - be flexible with naming
-    let gear: 'trawler' | 'longliner' | 'drifting_longline' = 'trawler';
-    const gearStr = (v.geartype || v.gear || v.type || v.activity || '').toLowerCase();
-    
-    if (gearStr.includes('drifting')) {
-      gear = 'drifting_longline';
-    } else if (gearStr.includes('longline') || gearStr.includes('set_longline')) {
-      gear = 'longliner';
-    } else if (gearStr.includes('trawl')) {
-      gear = 'trawler';
-    }
-    
-    // Get last position
-    const last = positions[positions.length - 1];
-    
-    return {
-      id: String(v.id || entry.id || v.vessel_id || crypto.randomUUID()),
-      name: v.shipname || v.name || v.callsign || v.mmsi || 'Unknown',
-      gear,
-      last_pos: last ? {
-        lon: Number(last.lon || last.longitude),
-        lat: Number(last.lat || last.latitude),
-        t: String(last.timestamp || last.t || last.time || new Date().toISOString())
-      } : { lon: 0, lat: 0, t: new Date().toISOString() },
-      track: positions.map((p: any) => ({
-        lon: Number(p.lon || p.longitude),
-        lat: Number(p.lat || p.latitude),
-        t: String(p.timestamp || p.t || p.time || '')
-      }))
-    };
-  }).filter((v: any) => v.last_pos && v.last_pos.lon !== 0);
-  
-  // Extract events
-  const events = Array.isArray(up?.events) ? up.events : 
-    (up?.entries ?? []).flatMap((entry: any) => {
-      const fishingEvents = entry.events?.filter((e: any) => 
-        e.type === 'fishing' || e.type === 'apparent_fishing'
-      ) || [];
-      
-      return fishingEvents.map((event: any) => ({
-        lon: Number(event.position?.lon || event.lon),
-        lat: Number(event.position?.lat || event.lat),
-        t: event.start || event.timestamp,
-        type: 'fishing'
-      })).filter((e: any) => e.lon && e.lat);
+// Get bbox from inlet ID
+function getInletBbox(inletId: string): [number, number, number, number] | null {
+  const INLETS = [
+    { id: 'md-ocean-city', center: [-75.0906, 38.3286], zoom: 7.5 },
+    { id: 'ny-shinnecock', center: [-72.48, 40.84], zoom: 7.9 },
+    { id: 'ny-montauk', center: [-71.94, 41.07], zoom: 7.8 },
+    { id: 'nj-manasquan', center: [-74.03, 40.10], zoom: 7.7 },
+    { id: 'nc-hatteras', center: [-75.54, 35.22], zoom: 7.3 },
+    { id: 'nc-morehead', center: [-76.69, 34.72], zoom: 7.6 },
+    { id: 'nc-oregon-inlet', center: [-75.54, 35.77], zoom: 7.4 }
+  ];
+
+  const inlet = INLETS.find(i => i.id === inletId || i.id === inletId.replace(/^[a-z]+-/, ''));
+  if (!inlet) return null;
+
+  // Create bbox - about 2 degrees (~120 nautical miles) square for vessel search
+  const degrees = 2.0;
+  const [lng, lat] = inlet.center;
+  return [lng - degrees, lat - degrees, lng + degrees, lat + degrees];
+}
+
+// Fetch fishing events for vessels in a geographic area using GFW Events API
+async function fetchFishingEventsInArea(
+  bounds: [number, number, number, number],
+  days: number,
+  apiToken: string
+): Promise<any[]> {
+  const [minLng, minLat, maxLng, maxLat] = bounds;
+
+  // Calculate date range
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  const startDateStr = startDate.toISOString().split('T')[0];
+  const endDateStr = endDate.toISOString().split('T')[0];
+
+  try {
+    const response = await fetch('https://gateway.api.globalfishingwatch.org/v3/events', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        datasets: ['public-global-fishing-events:latest'],
+        startDate: startDateStr,
+        endDate: endDateStr,
+        geometry: {
+          type: 'Polygon',
+          coordinates: [[
+            [minLng, minLat],
+            [maxLng, minLat],
+            [maxLng, maxLat],
+            [minLng, maxLat],
+            [minLng, minLat]
+          ]]
+        }
+      })
     });
 
-  return { vessels, events };
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'no error body');
+      console.error('[GFW] Events API error:', response.status, response.statusText);
+      console.error('[GFW] Error details:', errorText.substring(0, 500));
+      return [];
+    }
+
+    const data = await response.json();
+    console.log('[GFW] Events API returned:', data.entries?.length || 0, 'fishing events');
+    return data.entries || [];
+  } catch (error) {
+    console.error('[GFW] Events API exception:', error);
+    return [];
+  }
+}
+
+// Normalize GFW Events API response to our expected format
+function normalizeEventsToVessels(events: any[]): { vessels: any[]; events: any[] } {
+  // Group events by vessel
+  const vesselMap = new Map<string, any[]>();
+
+  for (const event of events) {
+    if (!event.vessel?.id || !event.position) continue;
+
+    if (!vesselMap.has(event.vessel.id)) {
+      vesselMap.set(event.vessel.id, []);
+    }
+    vesselMap.get(event.vessel.id)!.push(event);
+  }
+
+  // Convert grouped events into vessels
+  const vessels = Array.from(vesselMap.entries()).map(([vesselId, vesselEvents]) => {
+    const firstEvent = vesselEvents[0];
+    const lastEvent = vesselEvents[vesselEvents.length - 1];
+
+    // Determine gear type from vessel flag/type
+    let gear: 'trawler' | 'longliner' | 'drifting_longline' = 'trawler';
+
+    return {
+      id: vesselId,
+      name: firstEvent.vessel.name || `MMSI: ${firstEvent.vessel.ssvid}` || 'Unknown',
+      gear,
+      last_pos: {
+        lon: lastEvent.position.lon,
+        lat: lastEvent.position.lat,
+        t: lastEvent.end || lastEvent.start
+      },
+      track: vesselEvents.map((e: any) => ({
+        lon: e.position.lon,
+        lat: e.position.lat,
+        t: e.start
+      }))
+    };
+  });
+
+  // Extract event points for visualization
+  const eventPoints = events
+    .filter((e: any) => e.position && e.type === 'fishing')
+    .map((e: any) => ({
+      lon: e.position.lon,
+      lat: e.position.lat,
+      t: e.start,
+      type: 'fishing'
+    }));
+
+  return { vessels, events: eventPoints };
 }
 
 export async function GET(req: Request) {
   // API endpoint for fetching GFW vessel data
   if (!gfwEnabled) {
-    return NextResponse.json({
+    return ok({
       configured: false,
       reason: 'disabled-by-flag',
       vessels: [],
@@ -156,7 +192,7 @@ export async function GET(req: Request) {
         const now = Date.now();
 
         if (iat > now) {
-          return NextResponse.json({
+          return ok({
             configured: false,
             reason: 'invalid-token-future-iat',
             message: 'GFW token configuration issue - token dated in future',
@@ -172,7 +208,7 @@ export async function GET(req: Request) {
 
   // Demo mode fallback
   if (process.env.NEXT_PUBLIC_GFW_DEMO === '1') {
-    return NextResponse.json({
+    return ok({
       vessels: [{
         id: 'demo-1',
         name: 'Demo Longliner',
@@ -200,16 +236,12 @@ export async function GET(req: Request) {
 
   // Validate parameters
   if (!inletId && !bbox) {
-    return NextResponse.json({
-      error: 'missing inlet_id/inletId or bbox',
-      vessels: [],
-      events: []
-    });
+    return err('validation', 'missing inlet_id/inletId or bbox');
   }
 
   // Check if token exists
   if (!apiToken) {
-    return NextResponse.json({
+    return ok({
       configured: false,
       reason: 'no-token',
       message: 'GFW API token not configured',
@@ -218,62 +250,44 @@ export async function GET(req: Request) {
     });
   }
 
-  // Try to fetch from GFW API
-  const url = gfwUpstreamUrl({ inletId, bbox, days });
+  // Determine bounds
+  let bounds: [number, number, number, number] | null = null;
+
+  if (bbox) {
+    bounds = parseBbox(bbox);
+  } else if (inletId) {
+    bounds = getInletBbox(inletId);
+  }
+
+  if (!bounds) {
+    return err('validation', 'invalid inlet_id or bbox');
+  }
 
   // Debug: Log request details
-  console.log('[GFW] Vessels API URL:', url);
+  console.log('[GFW] Fetching fishing events in bounds:', bounds, 'for last', days, 'days');
 
   try {
     const started = Date.now();
-    const res = await withTimeout(fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${apiToken}`,
-        'Content-Type': 'application/json'
-      }
-    }), TIMEOUT_MS);
 
-    console.log('[GFW] Response status:', res.status, res.statusText);
+    // Fetch fishing events in the area using Events API
+    const events = await withTimeout(
+      fetchFishingEventsInArea(bounds, days, apiToken),
+      TIMEOUT_MS
+    );
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => '<no body>');
-      console.error('[GFW] upstream error:', res.status, text);
+    console.log('[GFW] Found', events.length, 'fishing events in area');
 
-      return NextResponse.json({
-        error: `GFW API returned ${res.status}`,
-        message: res.status === 401 ? 'GFW token needs activation - see GFW-NEEDS-LIST.md' : 'GFW API unavailable',
-        vessels: [],
-        events: []
-      });
-    }
+    // Convert events to vessels and event points
+    const data = normalizeEventsToVessels(events);
 
-    const raw = await res.json().catch(async () => {
-      const t = await res.text();
-      throw new Error(`non-json body: ${t.slice(0, 200)}`);
-    });
-
-    // Debug: Log raw GFW response
-    console.log('[GFW] Response keys:', Object.keys(raw || {}));
-    console.log('[GFW] Total entries/vessels:', raw?.entries?.length || raw?.vessels?.length || 0);
-    console.log('[GFW] Total available:', raw?.total || 0);
-    if (raw?.entries && raw.entries.length > 0) {
-      console.log('[GFW] First entry keys:', Object.keys(raw.entries[0]));
-      console.log('[GFW] First entry structure:', JSON.stringify(raw.entries[0], null, 2).slice(0, 2000));
-    }
-
-    const data = normalizeGFW(raw);
+    console.log('[GFW] Normalized to', data.vessels.length, 'vessels with tracks');
 
     // Return real data from GFW
-    return NextResponse.json(data);
+    return ok(data);
 
   } catch (e: any) {
     console.error('[GFW] Exception:', e?.message || String(e));
 
-    return NextResponse.json({
-      error: e?.message || String(e),
-      message: 'GFW API request failed',
-      vessels: [],
-      events: []
-    });
+    return err('exception', e?.message || String(e));
   }
 }

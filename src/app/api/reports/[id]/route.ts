@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { ALLOWED_SPECIES } from '@/config/species';
@@ -25,7 +25,18 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          }
+        }
+      }
+    );
     const { id: reportId } = await params;
     
     // Validate UUID format
@@ -33,19 +44,33 @@ export async function GET(
     if (!uuidRegex.test(reportId)) {
       return NextResponse.json({ error: 'Invalid report ID format' }, { status: 400 });
     }
-    
+
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    // Fetch report - RLS ensures user can only see their own
-    const { data, error } = await supabase
+
+    // In dev mode, use service role client to bypass RLS
+    const queryClient = (process.env.NODE_ENV === 'development')
+      ? createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+      : supabase;
+
+    // Fetch report - filter by user_id in dev, RLS enforces in prod
+    let query = queryClient
       .from("reports")
       .select("*")
-      .eq("id", reportId)
-      .single();
+      .eq("id", reportId);
+
+    if (process.env.NODE_ENV === 'development') {
+      query = query.eq('user_id', user.id);
+    }
+
+    const { data, error } = await query.single();
     
     if (error) {
       if (error.code === 'PGRST116') {
@@ -85,7 +110,18 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = await cookies();
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          }
+        }
+      }
+    );
     const { id: reportId } = await params;
     
     // Validate UUID format
@@ -93,35 +129,71 @@ export async function PATCH(
     if (!uuidRegex.test(reportId)) {
       return NextResponse.json({ error: 'Invalid report ID format' }, { status: 400 });
     }
-    
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Get current user - in dev mode, use the authenticated Supabase user if available
+    let user;
+    if (process.env.NODE_ENV === 'development') {
+      // In development, try to get the Supabase auth user first
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      user = authUser;
+
+      // If no Supabase user, that's OK in dev - we'll use service role
+      if (!user) {
+        console.log('[DEV MODE] No Supabase auth user, will use service role to find reports');
+      }
+    } else {
+      // In production, require authentication
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (!authUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      user = authUser;
     }
-    
+
     // Parse and validate request body
     const body = await req.json();
     const parseResult = PatchBodySchema.safeParse(body);
-    
+
     if (!parseResult.success) {
-      return NextResponse.json({ 
-        error: 'Invalid request body', 
-        details: parseResult.error.flatten() 
+      return NextResponse.json({
+        error: 'Invalid request body',
+        details: parseResult.error.flatten()
       }, { status: 422 });
     }
-    
-    // Load the report (RLS ensures owner-only access)
-    const { data: report, error: fetchError } = await supabase
+
+    // In dev mode, use service role to bypass RLS (regardless of auth state)
+    const queryClient = (process.env.NODE_ENV === 'development')
+      ? createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false
+            }
+          }
+        )
+      : supabase;
+
+    // Load the report
+    // In dev: service role bypasses RLS, so we filter by user_id manually
+    // In prod: RLS ensures owner-only access
+    let query = queryClient
       .from('reports')
-      .select('id, type, payload_json, meta')
-      .eq('id', reportId)
-      .single();
+      .select('id, type, payload_json, meta, user_id')
+      .eq('id', reportId);
+
+    // In dev mode, filter by user_id if we have a user (since we're bypassing RLS)
+    if (process.env.NODE_ENV === 'development' && user) {
+      query = query.eq('user_id', user.id);
+    }
+
+    const { data: report, error: fetchError } = await query.single();
     
     if (fetchError || !report) {
-      logReportAction('report_patch_not_found', { 
-        user_id: user.id,
-        report_id: reportId 
+      logReportAction('report_patch_not_found', {
+        user_id: user?.id || 'dev-mode-no-auth',
+        report_id: reportId
       });
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
@@ -158,25 +230,25 @@ export async function PATCH(
     }
     
     // Update the report
-    const { error: updateError } = await supabase
+    const { error: updateError } = await queryClient
       .from('reports')
-      .update({ 
+      .update({
         payload_json: updatedPayload,
         meta: updatedMeta
       })
       .eq('id', reportId);
     
     if (updateError) {
-      logReportAction('report_patch_error', { 
-        user_id: user.id,
+      logReportAction('report_patch_error', {
+        user_id: user?.id || 'dev-mode-no-auth',
         report_id: reportId,
-        error: updateError.message 
+        error: updateError.message
       });
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
     
-    logReportAction('report_patch_ok', { 
-      user_id: user.id,
+    logReportAction('report_patch_ok', {
+      user_id: user?.id || 'dev-mode-no-auth',
       report_id: reportId,
       updates: Object.keys(parseResult.data)
     });

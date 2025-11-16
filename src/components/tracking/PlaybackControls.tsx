@@ -20,6 +20,7 @@ export default function PlaybackControls() {
     jumpToEnd,
     toggleVesselSelection,
     loadVesselHistory,
+    loadTestData,
   } = usePlaybackStore();
 
   const [sliderValue, setSliderValue] = useState(0);
@@ -72,12 +73,143 @@ export default function PlaybackControls() {
 
   const hasData = vessels.length > 0;
 
-  // Load test vessel data
-  const handleLoadTestData = async () => {
-    // Load historical data for our two test vessels
-    // test-1 (Montauk) and test-2 (Ocean City)
-    await loadVesselHistory('test-1', 'ny-montauk', 48);
-    await loadVesselHistory('test-2', 'md-ocean-city', 48);
+  // Load test vessel data with diverse vessel types
+  const handleLoadTestData = () => {
+    const now = new Date();
+    const hoursAgo = (h: number) => new Date(now.getTime() - h * 60 * 60 * 1000);
+
+    // Helper to generate positions along a path
+    // Offshore direction: east means positive longitude change (toward 0 from negative)
+    const generatePath = (
+      startLat: number,
+      startLon: number,
+      pattern: 'transit' | 'fishing' | 'drift',
+      points: number,
+      offsetDirection: { lat: number; lon: number } // Direction to move (offshore)
+    ) => {
+      const positions = [];
+      const startTime = hoursAgo(48);
+      const intervalMs = (48 * 60 * 60 * 1000) / points;
+
+      for (let i = 0; i < points; i++) {
+        const t = new Date(startTime.getTime() + i * intervalMs);
+        const progress = i / points; // 0 to 1
+
+        let lat = startLat;
+        let lon = startLon;
+
+        if (pattern === 'transit') {
+          // Linear movement offshore
+          lat += offsetDirection.lat * progress * 1.0;
+          lon += offsetDirection.lon * progress * 1.0;
+        } else if (pattern === 'fishing') {
+          // Zig-zag pattern (trawling) - move offshore while zig-zagging
+          lat += offsetDirection.lat * progress * 0.5 + Math.sin(i * 0.3) * 0.03;
+          lon += offsetDirection.lon * progress * 0.5 + Math.cos(i * 0.3) * 0.05;
+        } else {
+          // Drift pattern (longlining) - slower offshore drift with randomness
+          lat += offsetDirection.lat * progress * 0.3 + (Math.random() - 0.5) * 0.01;
+          lon += offsetDirection.lon * progress * 0.3 + (Math.random() - 0.5) * 0.02;
+        }
+
+        positions.push({
+          timestamp: t.toISOString(),
+          lat: Number(lat.toFixed(6)),
+          lon: Number(lon.toFixed(6)),
+        });
+      }
+
+      return positions;
+    };
+
+    // 1. Charter Boat - Montauk (Transit pattern heading SE offshore)
+    const charterBoat = generatePath(
+      40.95, -71.85, // Start just offshore of Montauk
+      'transit',
+      96,
+      { lat: -0.3, lon: 0.8 } // Move southeast offshore
+    );
+    loadTestData({
+      vessel_id: 'charter-montauk-1',
+      inlet_id: 'ny-montauk',
+      positions: charterBoat,
+      startTime: new Date(charterBoat[0].timestamp),
+      endTime: new Date(charterBoat[charterBoat.length - 1].timestamp),
+    });
+
+    // 2. Fleet Boat - Ocean City (Transit pattern heading E offshore)
+    const fleetBoat = generatePath(
+      38.25, -74.85, // Start offshore of Ocean City
+      'transit',
+      80,
+      { lat: 0.1, lon: 0.9 } // Move east offshore
+    );
+    loadTestData({
+      vessel_id: 'fleet-ocean-city-1',
+      inlet_id: 'md-ocean-city',
+      positions: fleetBoat,
+      startTime: new Date(fleetBoat[0].timestamp),
+      endTime: new Date(fleetBoat[fleetBoat.length - 1].timestamp),
+    });
+
+    // 3. Commercial Trawler - Shinnecock (Fishing pattern SE offshore)
+    const trawler = generatePath(
+      40.75, -72.30, // Start offshore of Shinnecock
+      'fishing',
+      120,
+      { lat: -0.4, lon: 0.7 } // Move southeast while fishing
+    );
+    loadTestData({
+      vessel_id: 'gfw-trawler-atlantic-1',
+      inlet_id: 'ny-shinnecock',
+      positions: trawler,
+      startTime: new Date(trawler[0].timestamp),
+      endTime: new Date(trawler[trawler.length - 1].timestamp),
+    });
+
+    // 4. Commercial Longliner - Manasquan (Drift pattern E offshore)
+    const longliner = generatePath(
+      40.00, -73.80, // Start offshore of Manasquan
+      'drift',
+      100,
+      { lat: -0.1, lon: 0.8 } // Drift east offshore
+    );
+    loadTestData({
+      vessel_id: 'gfw-longliner-atlantic-2',
+      inlet_id: 'nj-manasquan',
+      positions: longliner,
+      startTime: new Date(longliner[0].timestamp),
+      endTime: new Date(longliner[longliner.length - 1].timestamp),
+    });
+
+    // 5. Commercial Trawler - Cape Cod (Fishing pattern E offshore)
+    const capeCodTrawler = generatePath(
+      41.30, -70.00, // Start offshore east of Cape Cod
+      'fishing',
+      110,
+      { lat: 0.2, lon: 0.6 } // Move northeast offshore
+    );
+    loadTestData({
+      vessel_id: 'gfw-trawler-capecod-3',
+      positions: capeCodTrawler,
+      startTime: new Date(capeCodTrawler[0].timestamp),
+      endTime: new Date(capeCodTrawler[capeCodTrawler.length - 1].timestamp),
+    });
+
+    // 6. Commercial Longliner - Hatteras (Drift pattern E offshore)
+    const hatterasLongliner = generatePath(
+      35.10, -75.30, // Start offshore of Hatteras
+      'drift',
+      90,
+      { lat: 0.0, lon: 0.9 } // Drift east offshore
+    );
+    loadTestData({
+      vessel_id: 'gfw-longliner-hatteras-4',
+      inlet_id: 'nc-hatteras',
+      positions: hatterasLongliner,
+      startTime: new Date(hatterasLongliner[0].timestamp),
+      endTime: new Date(hatterasLongliner[hatterasLongliner.length - 1].timestamp),
+    });
   };
 
   return (
@@ -103,27 +235,41 @@ export default function PlaybackControls() {
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="p-4 space-y-4">
           {/* Vessel Selection */}
           <div className="space-y-2">
             <div className="text-xs text-slate-400 uppercase tracking-wide">Vessels</div>
             <div className="flex flex-wrap gap-2">
-              {vessels.map(vessel => (
-                <button
-                  key={vessel.vessel_id}
-                  onClick={() => toggleVesselSelection(vessel.vessel_id)}
-                  className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
-                    selectedVesselIds.includes(vessel.vessel_id)
-                      ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
-                      : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'
-                  }`}
-                >
-                  {vessel.vessel_id.slice(0, 8)}...
-                  <span className="ml-1 text-xs opacity-60">
-                    ({vessel.positions.length} pts)
-                  </span>
-                </button>
-              ))}
+              {vessels.map(vessel => {
+                // Generate friendly label
+                let label = vessel.vessel_id;
+                if (vessel.vessel_id.startsWith('charter-')) {
+                  label = 'Charter ' + vessel.vessel_id.split('-')[1];
+                } else if (vessel.vessel_id.startsWith('fleet-')) {
+                  label = 'Fleet ' + vessel.vessel_id.split('-')[1];
+                } else if (vessel.vessel_id.startsWith('gfw-trawler-')) {
+                  label = 'Trawler ' + vessel.vessel_id.split('-')[2];
+                } else if (vessel.vessel_id.startsWith('gfw-longliner-')) {
+                  label = 'Longliner ' + vessel.vessel_id.split('-')[2];
+                }
+
+                return (
+                  <button
+                    key={vessel.vessel_id}
+                    onClick={() => toggleVesselSelection(vessel.vessel_id)}
+                    className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${
+                      selectedVesselIds.includes(vessel.vessel_id)
+                        ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+                        : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    {label}
+                    <span className="ml-1 text-xs opacity-60">
+                      ({vessel.positions.length})
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

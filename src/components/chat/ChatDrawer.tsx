@@ -19,28 +19,31 @@ interface ChatDrawerProps {
   userName?: string;
 }
 
-export default function ChatDrawer({ 
-  isOpen, 
-  onClose, 
-  inletId, 
+export default function ChatDrawer({
+  isOpen,
+  onClose,
+  inletId,
   userId,
   userName = 'Anonymous'
 }: ChatDrawerProps) {
-  if (!isOpen || !flags.communityDrawer || !inletId || inletId === 'overview') return null;
-
-  // Map inlet to roomId and use realtime hooks
-  const roomId = `inlet:${inletId}`;
+  // Map inlet to roomId and use realtime hooks (always call hooks)
+  const roomId = inletId ? `inlet:${inletId}` : '';
   const { messages, sendMessage, isConnected } = useRealtimeChat(roomId);
   const { onlineUsers } = useOnlinePresence(roomId);
   const boatsOnline = onlineUsers.length;
-  const inlet = getInletById(inletId);
+  const inlet = inletId ? getInletById(inletId) : null;
   const inletName = inlet?.name ?? 'Inlet';
   const inletColor = inlet?.color ?? '#999';
+
+  // Don't render if conditions not met
+  if (!isOpen || !flags.communityDrawer || !inletId || inletId === 'overview') {
+    return null;
+  }
 
   return (
     <>
       {/* Backdrop for mobile */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
         onClick={onClose}
       />
@@ -50,13 +53,13 @@ export default function ChatDrawer({
         fixed z-50 bg-slate-950/95 backdrop-blur-xl border-l border-cyan-500/20
         transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-        
+
         /* Desktop: right sidebar */
         lg:right-0 lg:top-0 lg:h-full lg:w-96
-        
+
         /* Mobile: bottom sheet */
         right-0 bottom-0 left-0 h-[80vh] rounded-t-2xl lg:rounded-none
-        
+
         /* Flex layout */
         flex flex-col
       `}>

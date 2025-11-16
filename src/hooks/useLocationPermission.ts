@@ -20,6 +20,20 @@ export function useLocationPermission(): UseLocationPermissionReturn {
     if (stored === 'granted' || stored === 'denied') {
       setStatus(stored as LocationPermissionStatus);
     }
+
+    // Listen for permission changes from other components
+    const handlePermissionChange = (event: CustomEvent) => {
+      const newStatus = event.detail?.status;
+      if (newStatus === 'granted' || newStatus === 'denied') {
+        setStatus(newStatus);
+      }
+    };
+
+    window.addEventListener('abfi-location-permission-changed', handlePermissionChange as EventListener);
+
+    return () => {
+      window.removeEventListener('abfi-location-permission-changed', handlePermissionChange as EventListener);
+    };
   }, []);
 
   const requestPermission = async (): Promise<LocationPermissionStatus> => {

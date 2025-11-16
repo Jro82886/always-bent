@@ -14,7 +14,8 @@ export function useRealtimeChat(roomId: string): UseRealtimeChatReturn {
   const [isConnected, setIsConnected] = useState(false);
   const clientRef = useRef<ChatClient | null>(null);
   const mountedRef = useRef(true);
-  const { username } = useAppState();
+  const { user } = useAppState();
+  const displayName = user?.name || 'Anonymous';
 
   useEffect(() => {
     // Initialize chat client
@@ -78,11 +79,11 @@ export function useRealtimeChat(roomId: string): UseRealtimeChatReturn {
   }, [roomId]);
 
   const sendMessage = useCallback(async (text: string) => {
-    if (!clientRef.current || !username || !text.trim()) return;
+    if (!clientRef.current || !displayName || !text.trim()) return;
 
     const message: ChatMessage = {
       id: '', // Will be set by client
-      user: username,
+      user: displayName,
       inletId: roomId,
       text: text.trim(),
       createdAt: Date.now(),
@@ -93,7 +94,7 @@ export function useRealtimeChat(roomId: string): UseRealtimeChatReturn {
     } catch (error) {
       console.error('Send message error:', error);
     }
-  }, [roomId, username]);
+  }, [roomId, displayName]);
 
   return {
     messages,

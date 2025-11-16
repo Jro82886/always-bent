@@ -36,8 +36,8 @@ export default function EastCoastSSTScale({
   // Find current temperature position
   const getCurrentTempPosition = () => {
     if (!currentTemp) return null;
-    const minTemp = 32;
-    const maxTemp = 90;
+    const minTemp = 50; // Updated to match Copernicus range 283K
+    const maxTemp = 86; // Updated to match Copernicus range 303K
     const position = ((currentTemp - minTemp) / (maxTemp - minTemp)) * 100;
     return Math.max(0, Math.min(100, position));
   };
@@ -47,7 +47,7 @@ export default function EastCoastSSTScale({
   // Build gradient from colormap
   const buildGradient = () => {
     const stops = COPERNICUS_THERMAL_COLORMAP.map(point => {
-      const position = ((point.tempF - 32) / (90 - 32)) * 100;
+      const position = ((point.tempF - 50) / (86 - 50)) * 100; // Updated to 50-86°F range
       const color = `rgb(${point.rgb[0]}, ${point.rgb[1]}, ${point.rgb[2]})`;
       return `${color} ${position}%`;
     }).join(', ');
@@ -92,10 +92,10 @@ export default function EastCoastSSTScale({
 
         {/* Temperature labels */}
         <div className="flex justify-between mt-1 text-xs text-slate-400">
-          <span>32°{unit}</span>
           <span>50°{unit}</span>
-          <span>70°{unit}</span>
-          <span>85°{unit}</span>
+          <span>62°{unit}</span>
+          <span>74°{unit}</span>
+          <span>86°{unit}</span>
         </div>
       </div>
 
@@ -165,11 +165,11 @@ export default function EastCoastSSTScale({
 
         {/* Temperature labels */}
         <div className="flex flex-col justify-between text-xs text-slate-400">
-          <span>90°{unit}</span>
-          <span>75°{unit}</span>
-          <span>60°{unit}</span>
-          <span>45°{unit}</span>
-          <span>32°{unit}</span>
+          <span>86°{unit}</span>
+          <span>77°{unit}</span>
+          <span>68°{unit}</span>
+          <span>59°{unit}</span>
+          <span>50°{unit}</span>
         </div>
 
         {/* Seasonal indicators */}
@@ -232,8 +232,8 @@ export function useCurrentSST(lat: number, lng: number) {
  * Mini scale component for map overlay
  */
 export function SSTScaleMini({ currentTemp, className = '' }: { currentTemp?: number; className?: string }) {
-  const minTemp = 32;
-  const maxTemp = 90;
+  const minTemp = 50; // Updated to match Copernicus range 283K
+  const maxTemp = 86; // Updated to match Copernicus range 303K
   const position = currentTemp
     ? ((currentTemp - minTemp) / (maxTemp - minTemp)) * 100
     : null;
@@ -255,9 +255,9 @@ export function SSTScaleMini({ currentTemp, className = '' }: { currentTemp?: nu
         )}
       </div>
       <div className="flex justify-between mt-0.5 text-xs text-slate-500">
-        <span>32</span>
-        <span>60</span>
-        <span>90</span>
+        <span>50</span>
+        <span>68</span>
+        <span>86</span>
       </div>
     </div>
   );

@@ -76,14 +76,10 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           type: 'raster',
           source: srcId,
           layout: { visibility: 'visible' },
-          paint: { 
+          paint: {
             'raster-opacity': 0.95,
-            'raster-resampling': 'linear',
-            'raster-fade-duration': 0,
-            'raster-contrast': 0,
-            'raster-saturation': 0,
-            'raster-brightness-min': 0,
-            'raster-brightness-max': 1
+            'raster-opacity-transition': { duration: 0 },
+            'raster-resampling': 'linear'
           },
         } as any);
 

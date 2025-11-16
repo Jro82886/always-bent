@@ -138,25 +138,6 @@ export default function MapSSTScale({ currentTemp }: MapSSTScaleProps) {
               className="w-full"
             />
 
-            {/* Quick Reference */}
-            <div className="mt-3 pt-3 border-t border-slate-700 space-y-1">
-              <div className="text-xs text-slate-400">Optimal Ranges:</div>
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                <div className="text-slate-300">
-                  <span className="text-cyan-400">•</span> Tuna: 68-78°F
-                </div>
-                <div className="text-slate-300">
-                  <span className="text-green-400">•</span> Mahi: 75-82°F
-                </div>
-                <div className="text-slate-300">
-                  <span className="text-blue-400">•</span> Stripers: 50-65°F
-                </div>
-                <div className="text-slate-300">
-                  <span className="text-yellow-400">•</span> Bluefish: 60-72°F
-                </div>
-              </div>
-            </div>
-
             {/* Hide button */}
             <button
               onClick={() => setIsHidden(true)}

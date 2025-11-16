@@ -99,31 +99,44 @@ export function initChatClient(): ChatClient {
     },
     async send(msg) {
       if (!channel || !currentInlet) return;
-      
+
+      // Get current user, sign in anonymously if needed
+      let { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) {
+        console.log('No authenticated user, signing in anonymously...');
+        const { data: authData, error: authError } = await supabaseClient.auth.signInAnonymously();
+        if (authError) {
+          console.error('Failed to sign in anonymously:', authError);
+          return;
+        }
+        user = authData.user;
+      }
+
       // Save to database first
       try {
         const { data, error } = await supabaseClient
           .from('chat_messages')
           .insert({
             inlet_id: msg.inletId,
-            user_id: msg.user, // This should be a UUID in production
-            text: msg.text
+            user_id: user.id, // Use authenticated user ID
+            text: msg.text,
+            display_name: msg.user // User's display name from the message
           })
           .select()
           .single();
-        
+
         if (error) {
           console.error('Failed to save message:', error);
           // Continue with broadcast even if save fails
         }
-        
+
         // Use DB-generated ID if available
         const finalMsg = {
           ...msg,
           id: data?.id || `temp_${Date.now()}_${nanoid(6)}`,
           createdAt: data?.created_at ? new Date(data.created_at).getTime() : Date.now(),
         };
-        
+
         // Broadcast to other users
         await channel.send({ type: "broadcast", event: "message", payload: finalMsg });
       } catch (error) {
@@ -138,16 +151,16 @@ export function initChatClient(): ChatClient {
           .eq('inlet_id', inletId)
           .order('created_at', { ascending: false })
           .limit(50);
-        
+
         if (error) {
           console.error('Failed to load messages:', error);
           return [];
         }
-        
+
         // Convert to ChatMessage format
         return (data || []).reverse().map(msg => ({
           id: msg.id,
-          user: msg.user_id, // Will need username lookup in production
+          user: msg.display_name || 'Anonymous', // Use denormalized display_name
           inletId: msg.inlet_id,
           text: msg.text,
           createdAt: new Date(msg.created_at).getTime()

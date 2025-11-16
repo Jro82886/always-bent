@@ -25,30 +25,18 @@ export const WMTS_LAYERS = {
     layerPath: 'SST_GLO_PHY_L4_NRT_010_043/cmems_obs-sst_glo_phy_nrt_l4_P1D-m_202303/analysed_sst',
     supportsTime: true,
     supportsElevation: false, // L4 SST is surface only
-    unit: '°F',
+    unit: 'K', // Temporarily showing raw Kelvin values (no conversion)
     conversionFn: (value: number) => {
-      // Copernicus SST is in Kelvin (verified via API test)
-      // Convert: Kelvin → Celsius → Fahrenheit
+      // TEMPORARY: Disabled Fahrenheit conversion - returning raw Kelvin values
+      // Copernicus SST data comes in Kelvin from CMEMS (Copernicus Marine Service)
+      // Product: SST_GLO_PHY_L4_NRT_010_043
+      //
+      // Typical range: 271-313K (-2°C to 40°C or 28°F to 104°F)
+      //
+      // TODO: Re-enable Fahrenheit conversion after reviewing Copernicus documentation
 
-      // Diagnostic: Check if value is in reasonable range for Kelvin or Celsius
-      if (value > 200 && value < 400) {
-        // Value is in Kelvin range (273-373K = 0-100°C)
-        console.log(`[SST_CONV] Input in Kelvin: ${value}K`);
-        const celsius = value - 273.15;
-        const fahrenheit = celsius * 9/5 + 32;
-        console.log(`[SST_CONV] Converted: ${value}K → ${celsius.toFixed(1)}°C → ${fahrenheit.toFixed(1)}°F`);
-        return fahrenheit;
-      } else if (value > -10 && value < 50) {
-        // Value appears to already be in Celsius
-        console.warn(`[SST_CONV] Input appears to be Celsius, not Kelvin: ${value}°C`);
-        const fahrenheit = value * 9/5 + 32;
-        console.log(`[SST_CONV] Converting as Celsius: ${value}°C → ${fahrenheit.toFixed(1)}°F`);
-        return fahrenheit;
-      } else {
-        // Unexpected range
-        console.error(`[SST_CONV] Unexpected value range: ${value}`);
-        return value;
-      }
+      console.log(`[SST_CONV] Raw Kelvin value (no conversion): ${value}K`);
+      return value; // Return raw Kelvin value
     }
   } as WMTSLayer,
   

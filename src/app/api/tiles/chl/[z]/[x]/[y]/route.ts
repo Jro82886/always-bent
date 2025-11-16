@@ -34,9 +34,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   // Generate fallback dates: yesterday and 2 days ago
   // Copernicus data is typically 1-2 days behind real-time
   const fallbackDates: string[] = [];
-  // Use a known good date range (January 2025)
-  // CHL data may have different availability than SST
-  const baseDate = new Date('2025-01-15'); // Use mid-January for better CHL data availability
+  // CHL data may have different availability than SST (more cloud-dependent)
+  // Try recent dates with longer fallback window (up to 7 days)
+  const baseDate = new Date(); // Use current date
   for (let daysAgo = 0; daysAgo <= 7; daysAgo++) {
     const date = new Date(baseDate);
     date.setDate(date.getDate() - daysAgo);

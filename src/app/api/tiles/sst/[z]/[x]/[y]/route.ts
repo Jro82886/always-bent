@@ -33,10 +33,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   // Generate fallback dates: yesterday and 2 days ago
   // Copernicus data is typically 1-2 days behind real-time
   const fallbackDates: string[] = [];
-  // Use the current date, but ensure it's not in the future
+  // Use the current date (Copernicus NRT data typically available within 1-2 days)
   const now = new Date();
-  const maxDate = new Date('2025-01-20'); // Latest known good data
-  const baseDate = now > maxDate ? maxDate : now;
+  const baseDate = now; // Use current date, let API handle availability
 
   for (let daysAgo = 1; daysAgo <= 3; daysAgo++) {
     const date = new Date(baseDate);
@@ -51,9 +50,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ z: s
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(qTime)) {
     // Check if the requested date is in the future
     const requestedDate = new Date(qTime);
-    const maxAllowedDate = new Date('2025-01-20');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (requestedDate > maxAllowedDate) {
+    if (requestedDate > today) {
       // If future date requested, use the most recent available data
       console.log(`[SST] Future date ${qTime} requested, using ${fallbackDates[0].split('T')[0]} instead`);
       timeParam = fallbackDates[0];

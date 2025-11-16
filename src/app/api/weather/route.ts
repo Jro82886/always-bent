@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { lonLat2pixel } from '@/lib/wmts/coordinates';
+import { WMTS_LAYERS } from '@/lib/wmts/layers';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
+
+// Copernicus credentials
+const COPERNICUS_USER = process.env.COPERNICUS_USER || '';
+const COPERNICUS_PASS = process.env.COPERNICUS_PASS || '';
 
 export async function GET(req: NextRequest) {
   try {
@@ -76,15 +82,17 @@ export async function GET(req: NextRequest) {
     // Get water temperature - prioritize real data sources
     // 1. Try Copernicus (most accurate satellite data)
     let waterTempF: number | null = await fetchCopernicusSST(lat, lng);
+    let sstSource = 'copernicus';
 
     // 2. Fall back to StormGlass if Copernicus unavailable
     if (!waterTempF && stormData.weather?.sstC) {
-      const stormglassTempF = toF(stormData.weather.sstC);
+      const stormglassTempF = toF(stormData.weather?.sstC);
       console.log(`[Weather] StormGlass SST: ${stormglassTempF}°F`);
 
       // Only use if physically possible
       if (validateWaterTemp(stormglassTempF)) {
         waterTempF = stormglassTempF;
+        sstSource = 'stormglass';
       } else {
         console.log(`[Weather] Rejecting impossible StormGlass temp: ${stormglassTempF}°F`);
       }
@@ -94,6 +102,7 @@ export async function GET(req: NextRequest) {
     if (!waterTempF) {
       console.log('[Weather] No SST data available from any source');
       waterTempF = null; // Let the client handle missing data
+      sstSource = 'none';
     }
 
     const weatherData = {
@@ -113,8 +122,8 @@ export async function GET(req: NextRequest) {
         value: stormData.weather?.pressureHpa || 1013,
         trend: stormData.weather?.pressureTrend || 'steady'
       },
-      source: stormData.sources?.[0] || { id: 'stormglass', status: 'ok' },
-      lastUpdate: stormData.lastIso || new Date().toISOString()
+      source: { id: sstSource, status: waterTempF ? 'ok' : 'no_data' },
+      lastUpdate: new Date().toISOString()
     };
     
     // DEV LOG: Log actual weather response shape
@@ -170,54 +179,104 @@ function validateWaterTemp(tempF: number): boolean {
   return tempF >= 28 && tempF <= 100;
 }
 
-// Fetch real SST from Copernicus via our raster API
-async function fetchCopernicusSST(lat: number, lng: number): Promise<number | null> {
+// Helper to try a specific coordinate
+async function tryCoordinate(lat: number, lng: number, zoom: number, timeParam: string): Promise<number | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+    const { tileCol, tileRow, i, j } = lonLat2pixel(lng, lat, zoom);
 
-    // Add timeout to prevent long waits
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-
-    const response = await fetch(`${baseUrl}/api/rasters/sample`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        polygon: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'Polygon',
-            coordinates: [[
-              [lng - 0.05, lat - 0.05],
-              [lng + 0.05, lat - 0.05],
-              [lng + 0.05, lat + 0.05],
-              [lng - 0.05, lat + 0.05],
-              [lng - 0.05, lat - 0.05]
-            ]]
-          }
-        },
-        timeISO: new Date().toISOString(),
-        layers: ['sst']
-      }),
-      signal: controller.signal
+    // Build GetFeatureInfo URL
+    const params = new URLSearchParams({
+      service: 'WMTS',
+      request: 'GetFeatureInfo',
+      version: '1.0.0',
+      layer: WMTS_LAYERS.SST.layerPath,
+      tilematrixset: 'EPSG:3857',
+      tilematrix: zoom.toString(),
+      tilerow: tileRow.toString(),
+      tilecol: tileCol.toString(),
+      i: i.toString(),
+      j: j.toString(),
+      infoformat: 'application/json',
+      time: timeParam
     });
 
-    clearTimeout(timeout);
+    const copernicusUrl = `https://wmts.marine.copernicus.eu/teroWmts?${params}`;
 
-    if (response.ok) {
-      const data = await response.json();
-      if (data.stats?.sst?.mean_f) {
-        console.log(`[Weather] Copernicus SST: ${data.stats.sst.mean_f}°F`);
-        return data.stats.sst.mean_f;
-      }
+    const response = await fetch(copernicusUrl, {
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${COPERNICUS_USER}:${COPERNICUS_PASS}`).toString('base64'),
+        'Accept': 'application/json',
+        'User-Agent': 'alwaysbent-abfi'
+      },
+      signal: AbortSignal.timeout(5000) // 5 second timeout
+    });
+
+    if (!response.ok) {
+      return null;
     }
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.log('[Weather] Copernicus SST timeout - falling back to StormGlass');
-    } else {
-      console.error('[Weather] Copernicus SST fetch error:', error);
+
+    const data = await response.json();
+
+    // Extract temperature (in Kelvin)
+    let tempK: number | null = null;
+    if (data.features && data.features.length > 0) {
+      tempK = data.features[0].properties?.analysed_sst ||
+              data.features[0].properties?.value;
     }
+
+    if (tempK !== null && tempK !== undefined) {
+      // Convert Kelvin to Fahrenheit
+      const tempC = tempK - 273.15;
+      const tempF = Math.round(tempC * 9/5 + 32);
+      return tempF;
+    }
+
+    return null;
+  } catch (error) {
+    return null;
   }
-  return null;
+}
+
+// Fetch real SST from Copernicus via our raster API
+async function fetchCopernicusSST(lat: number, lng: number): Promise<number | null> {
+  if (!COPERNICUS_USER || !COPERNICUS_PASS) {
+    console.log('[Weather] Copernicus credentials not configured');
+    return null;
+  }
+
+  try {
+    // Use yesterday's date (Copernicus has 1-2 day processing lag)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const timeParam = yesterday.toISOString().split('T')[0];
+
+    // Use zoom 8 for good balance of coverage and resolution
+    const zoom = 8;
+
+    // Try exact coordinates first
+    let tempF = await tryCoordinate(lat, lng, zoom, timeParam);
+
+    if (tempF !== null) {
+      console.log(`[Weather] Copernicus SST at exact coords: ${tempF}°F`);
+      return tempF;
+    }
+
+    // If no data at exact coordinates (common for inlets very close to shore),
+    // try offset coordinates ~5km offshore (east)
+    console.log(`[Weather] No data at exact coords, trying offshore offset...`);
+    const offsetLng = lng + 0.045; // ~5km east at mid-latitudes
+    tempF = await tryCoordinate(lat, offsetLng, zoom, timeParam);
+
+    if (tempF !== null) {
+      console.log(`[Weather] Copernicus SST at offshore offset: ${tempF}°F`);
+      return tempF;
+    }
+
+    console.log(`[Weather] No Copernicus data for lat=${lat}, lng=${lng} (tried exact + offset)`);
+    return null;
+
+  } catch (error: any) {
+    console.log(`[Weather] Copernicus error: ${error.message}`);
+    return null;
+  }
 }

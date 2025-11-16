@@ -33,17 +33,17 @@ export async function GET(request: NextRequest) {
     // Query vessel positions for the time window
     const { data: positions, error } = await supabase
       .from('vessel_positions')
-      .select('recorded_at, lat, lon')
+      .select('recorded_at, lat, lng')
       .eq('vessel_id', vesselId)
       .gte('recorded_at', startTime.toISOString())
       .order('recorded_at', { ascending: true })
       .limit(500); // Reasonable limit to prevent huge responses
-    
+
     if (error) {
       console.error('Error fetching vessel trail:', error);
       return NextResponse.json({ error: 'Failed to fetch vessel trail' }, { status: 500 });
     }
-    
+
     // Format response
     const response = {
       vessel_id: vesselId,
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       points: (positions || []).map(pos => ({
         t: pos.recorded_at,
         lat: pos.lat,
-        lon: pos.lon
+        lon: pos.lng
       }))
     };
     

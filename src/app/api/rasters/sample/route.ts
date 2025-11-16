@@ -211,21 +211,38 @@ async function sampleLayer(
   try {
     const wmtsLayer = layer === 'sst' ? WMTS_LAYERS.SST : WMTS_LAYERS.CHL;
     const zoom = getFixedZoom(layer);
-    
+
     // Generate deterministic grid
     const points = generateDeterministicGrid(polygon);
-    
+
     if (points.length === 0) {
       return { error: 'NO_OCEAN_PIXELS' };
     }
-  
+
   // Track unique tiles
   const tilesSet = new Set<string>();
-  
+
   // Process points with concurrency limit
   const values: number[] = [];
   let nodata = 0;
-  
+
+  // Build fallback dates (same strategy as tile endpoint)
+  // CHL data often has gaps due to clouds, so try multiple recent dates
+  const fallbackDates: string[] = [];
+  const baseDate = new Date(timeISO);
+  const daysToTry = layer === 'chl' ? 7 : 3; // Try more dates for CHL due to cloud gaps
+
+  for (let daysAgo = 0; daysAgo <= daysToTry; daysAgo++) {
+    const date = new Date(baseDate);
+    date.setDate(date.getDate() - daysAgo);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    fallbackDates.push(`${year}-${month}-${day}`);
+  }
+
+  console.log(`[SAMPLE] ${layer.toUpperCase()} trying dates: ${fallbackDates.slice(0, 3).join(', ')}...`);
+
   // Process in batches
   const results = await processBatch(
     points,
@@ -233,22 +250,25 @@ async function sampleLayer(
       // Track tile
       const { tileCol, tileRow } = lonLat2pixel(lon, lat, zoom);
       tilesSet.add(`${tileCol},${tileRow}`);
-      
-      // Convert ISO to YYYY-MM-DD for Copernicus WMTS
-      let timeDate = timeISO.split('T')[0]; // Extract YYYY-MM-DD
 
-      // Validate date - if it's in the future or too old, use a recent date
-      const requestedDate = new Date(timeDate);
-      const maxDate = new Date('2025-01-20'); // Latest known good data
-      const minDate = new Date('2024-01-01'); // Oldest reasonable data
-
-      if (requestedDate > maxDate || requestedDate < minDate) {
-        // Use a recent date instead
-        timeDate = '2025-01-19';
-        console.log(`[SAMPLE] Invalid date ${timeISO.split('T')[0]}, using ${timeDate} instead`);
+      // Try multiple dates until we get data
+      for (const timeDate of fallbackDates) {
+        try {
+          const value = await fetchPixelValue(wmtsLayer, lon, lat, zoom, timeDate);
+          if (value !== null) {
+            return value;
+          }
+        } catch (err: any) {
+          // Continue to next date on errors except AUTH_ERROR
+          if (err.message === 'AUTH_ERROR') {
+            throw err;
+          }
+          continue;
+        }
       }
 
-      return fetchPixelValue(wmtsLayer, lon, lat, zoom, timeDate);
+      // No data found for any date
+      return null;
     },
     16 // increase max concurrent for faster processing
   );

@@ -17,42 +17,30 @@ export interface ColorTemperatureMapping {
 
 /**
  * Copernicus thermal colormap reference points
- * These are key points sampled from the actual Copernicus thermal colormap
- * The mapping is built from analyzing the STYLE=cmap:thermal parameter
+ * Simplified to match actual Copernicus STYLE=cmap:thermal rendering
+ * Based on visual analysis of real Copernicus tiles (50-86°F East Coast range)
  */
 const COPERNICUS_THERMAL_COLORMAP: ColorTemperatureMapping[] = [
-  // Cold water (purple/deep blue)
-  { rgb: [50, 0, 100], tempF: 35, tempC: 1.7, description: "Very Cold - Deep Winter" },
-  { rgb: [70, 0, 130], tempF: 38, tempC: 3.3, description: "Very Cold - Winter" },
-  { rgb: [90, 0, 160], tempF: 41, tempC: 5.0, description: "Cold - Winter" },
+  // Cold water (purple/violet) - 50-56°F
+  { rgb: [139, 0, 255], tempF: 50, tempC: 10.0, description: "Cold - Maine/New England" },
+  { rgb: [106, 13, 255], tempF: 53, tempC: 11.7, description: "Cold - Early Spring" },
+  { rgb: [72, 61, 255], tempF: 56, tempC: 13.3, description: "Cool - Mid-Atlantic" },
 
-  // Blue range
-  { rgb: [0, 0, 200], tempF: 44, tempC: 6.7, description: "Cold - Late Winter" },
-  { rgb: [0, 50, 220], tempF: 47, tempC: 8.3, description: "Cold - Early Spring" },
-  { rgb: [0, 100, 240], tempF: 50, tempC: 10.0, description: "Cool - Spring" },
+  // Blue transitioning to yellow - 59-68°F
+  { rgb: [64, 96, 255], tempF: 59, tempC: 15.0, description: "Cool - Spring" },
+  { rgb: [96, 128, 255], tempF: 62, tempC: 16.7, description: "Moderate" },
+  { rgb: [160, 192, 255], tempF: 65, tempC: 18.3, description: "Moderate" },
+  { rgb: [224, 224, 128], tempF: 68, tempC: 20.0, description: "Warm" },
 
-  // Cyan range
-  { rgb: [0, 150, 200], tempF: 53, tempC: 11.7, description: "Cool - Spring" },
-  { rgb: [0, 200, 200], tempF: 56, tempC: 13.3, description: "Cool - Late Spring" },
-  { rgb: [0, 220, 180], tempF: 59, tempC: 15.0, description: "Moderate - Spring" },
+  // Yellow range - 71-77°F
+  { rgb: [255, 255, 64], tempF: 71, tempC: 21.7, description: "Warm - Summer" },
+  { rgb: [255, 240, 32], tempF: 74, tempC: 23.3, description: "Warm - Mid Summer" },
+  { rgb: [255, 224, 0], tempF: 77, tempC: 25.0, description: "Very Warm" },
 
-  // Green range
-  { rgb: [0, 200, 100], tempF: 62, tempC: 16.7, description: "Moderate - Late Spring" },
-  { rgb: [0, 180, 50], tempF: 65, tempC: 18.3, description: "Moderate - Early Summer" },
-  { rgb: [50, 200, 0], tempF: 68, tempC: 20.0, description: "Warm - Early Summer" },
-
-  // Yellow-green range
-  { rgb: [150, 200, 0], tempF: 71, tempC: 21.7, description: "Warm - Summer" },
-  { rgb: [200, 200, 0], tempF: 74, tempC: 23.3, description: "Warm - Mid Summer" },
-
-  // Orange range
-  { rgb: [220, 180, 0], tempF: 77, tempC: 25.0, description: "Very Warm - Summer" },
-  { rgb: [240, 150, 0], tempF: 80, tempC: 26.7, description: "Very Warm - Peak Summer" },
-
-  // Red range (Gulf Stream and tropical waters)
-  { rgb: [255, 100, 0], tempF: 83, tempC: 28.3, description: "Hot - Gulf Stream" },
-  { rgb: [255, 50, 0], tempF: 86, tempC: 30.0, description: "Hot - Tropical" },
-  { rgb: [255, 0, 0], tempF: 89, tempC: 31.7, description: "Very Hot - Peak Gulf Stream" }
+  // Orange range - 80-86°F
+  { rgb: [255, 192, 0], tempF: 80, tempC: 26.7, description: "Very Warm - South Florida" },
+  { rgb: [255, 144, 0], tempF: 83, tempC: 28.3, description: "Hot - Gulf Stream" },
+  { rgb: [255, 96, 0], tempF: 86, tempC: 30.0, description: "Hot - Peak Summer" }
 ];
 
 /**

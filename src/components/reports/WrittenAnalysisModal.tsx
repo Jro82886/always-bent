@@ -192,25 +192,25 @@ export default function WrittenAnalysisModal({ report, onClose }: WrittenAnalysi
               )}
 
               {/* Enhanced Analysis Scores */}
-              {payload.raw.enhanced && (
+              {payload.raw.enhanced?.score && (
                 <div className="bg-slate-800/50 rounded-lg p-4">
                   <h4 className="text-sm font-medium text-orange-400 mb-2">Intelligence Score</h4>
                   <div className="space-y-2 text-sm">
-                    {payload.raw.enhanced.score !== undefined && (
+                    {payload.raw.enhanced.score.total !== undefined && (
                       <div className="flex items-center justify-between">
                         <span className="text-slate-400">Overall Score:</span>
                         <span className={`font-bold ${
-                          payload.raw.enhanced.score >= 70 ? 'text-green-400' :
-                          payload.raw.enhanced.score >= 40 ? 'text-yellow-400' :
+                          payload.raw.enhanced.score.total >= 70 ? 'text-green-400' :
+                          payload.raw.enhanced.score.total >= 40 ? 'text-yellow-400' :
                           'text-red-400'
                         }`}>
-                          {payload.raw.enhanced.score}/100
+                          {payload.raw.enhanced.score.total}/100
                         </span>
                       </div>
                     )}
-                    {payload.raw.enhanced.label && (
+                    {payload.raw.enhanced.score.category && (
                       <div className="text-center text-xs text-cyan-300 uppercase tracking-wider">
-                        {payload.raw.enhanced.label}
+                        {payload.raw.enhanced.score.category}
                       </div>
                     )}
                   </div>
