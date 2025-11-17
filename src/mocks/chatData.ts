@@ -1,38 +1,38 @@
 // Mock chat data for demo mode
 export const mockChats: Record<string, any[]> = {
-  'inlet:ocean-city-md': [
+  'inlet:md-ocean-city': [
     {
       id: '1',
       user: 'CaptainMike',
-      inletId: 'inlet:ocean-city-md',
+      inletId: 'inlet:md-ocean-city',
       text: 'Birds working hard 2 miles east of the inlet. Lots of bait.',
       createdAt: Date.now() - 1000 * 60 * 15, // 15 min ago
     },
     {
-      id: '2', 
+      id: '2',
       user: 'ReelDeal22',
-      inletId: 'inlet:ocean-city-md',
+      inletId: 'inlet:md-ocean-city',
       text: 'Thanks Mike! Heading that way now.',
       createdAt: Date.now() - 1000 * 60 * 12,
     },
     {
       id: '3',
       user: 'SaltyDog',
-      inletId: 'inlet:ocean-city-md', 
+      inletId: 'inlet:md-ocean-city',
       text: 'Water temp just hit 76°F on the edge. Fish should turn on soon.',
       createdAt: Date.now() - 1000 * 60 * 8,
     },
     {
       id: '4',
       user: 'CaptainMike',
-      inletId: 'inlet:ocean-city-md',
+      inletId: 'inlet:md-ocean-city',
       text: '@SaltyDog seeing the same temps here. Current is ripping north.',
       createdAt: Date.now() - 1000 * 60 * 5,
     },
     {
       id: '5',
       user: 'FishHawk',
-      inletId: 'inlet:ocean-city-md',
+      inletId: 'inlet:md-ocean-city',
       text: 'Anyone seeing any weed lines forming? Looked clean yesterday.',
       createdAt: Date.now() - 1000 * 60 * 2,
     }
@@ -114,7 +114,7 @@ export const mockChats: Record<string, any[]> = {
 };
 
 export const mockPresence: Record<string, number> = {
-  'inlet:ocean-city-md': 5,
+  'inlet:md-ocean-city': 5,
   'offshore:tuna': 12,
   'inshore:general': 8
 };

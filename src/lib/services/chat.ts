@@ -103,10 +103,25 @@ export function initChatClient(): ChatClient {
       // Get current user, sign in anonymously if needed
       let { data: { user } } = await supabaseClient.auth.getUser();
       if (!user) {
-        console.log('No authenticated user, signing in anonymously...');
+        console.log('[CHAT] No authenticated user, signing in anonymously...');
         const { data: authData, error: authError } = await supabaseClient.auth.signInAnonymously();
         if (authError) {
-          console.error('Failed to sign in anonymously:', authError);
+          console.error('[CHAT] Failed to sign in anonymously:', authError);
+          console.warn('[CHAT] Anonymous auth is disabled. Chat will work but messages won\'t persist.');
+          console.warn('[CHAT] Ask project owner to enable anonymous auth in Supabase Dashboard → Authentication → Providers → Anonymous');
+
+          // Don't save to DB, but still broadcast the message
+          const tempMsg = {
+            ...msg,
+            id: `temp_${Date.now()}_${nanoid(6)}`,
+            createdAt: Date.now(),
+            temp: true
+          };
+
+          // Just broadcast without saving
+          if (channel) {
+            await channel.send({ type: "broadcast", event: "message", payload: tempMsg });
+          }
           return;
         }
         user = authData.user;
@@ -114,6 +129,13 @@ export function initChatClient(): ChatClient {
 
       // Save to database first
       try {
+        console.log('[CHAT] Saving message to DB:', {
+          inlet_id: msg.inletId,
+          user_id: user.id,
+          display_name: msg.user,
+          text: msg.text.substring(0, 50)
+        });
+
         const { data, error } = await supabaseClient
           .from('chat_messages')
           .insert({
@@ -126,8 +148,11 @@ export function initChatClient(): ChatClient {
           .single();
 
         if (error) {
-          console.error('Failed to save message:', error);
+          console.error('[CHAT] Failed to save message to DB:', error);
+          console.error('[CHAT] Error details:', JSON.stringify(error, null, 2));
           // Continue with broadcast even if save fails
+        } else {
+          console.log('[CHAT] Message saved successfully:', data?.id);
         }
 
         // Use DB-generated ID if available
@@ -145,6 +170,8 @@ export function initChatClient(): ChatClient {
     },
     async loadRecent(inletId) {
       try {
+        console.log('[CHAT] Loading recent messages for:', inletId);
+
         const { data, error } = await supabaseClient
           .from('chat_messages')
           .select('*')
@@ -153,9 +180,12 @@ export function initChatClient(): ChatClient {
           .limit(50);
 
         if (error) {
-          console.error('Failed to load messages:', error);
+          console.error('[CHAT] Failed to load messages:', error);
+          console.error('[CHAT] Error details:', JSON.stringify(error, null, 2));
           return [];
         }
+
+        console.log('[CHAT] Loaded', data?.length || 0, 'messages for', inletId);
 
         // Convert to ChatMessage format
         return (data || []).reverse().map(msg => ({
@@ -166,7 +196,7 @@ export function initChatClient(): ChatClient {
           createdAt: new Date(msg.created_at).getTime()
         }));
       } catch (error) {
-        console.error('Load messages error:', error);
+        console.error('[CHAT] Load messages error:', error);
         return [];
       }
     },
