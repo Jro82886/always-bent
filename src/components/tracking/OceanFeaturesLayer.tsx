@@ -110,6 +110,7 @@ export default function OceanFeaturesLayer({
     fetchFeatures();
 
     return () => {
+      if (!map) return; // Guard against null map on unmount
       map.off('moveend', handleMapMove);
       map.off('zoomend', handleMapMove);
       clearTimeout(debounceTimer);
@@ -157,6 +158,7 @@ export default function OceanFeaturesLayer({
     }
 
     return () => {
+      if (!map) return; // Guard against null map on unmount
       if (map.getLayer(layerId)) {
         map.removeLayer(layerId);
       }
@@ -215,6 +217,7 @@ export default function OceanFeaturesLayer({
     }
 
     return () => {
+      if (!map) return; // Guard against null map on unmount
       if (map.getLayer(`${layerId}-outline`)) {
         map.removeLayer(`${layerId}-outline`);
       }
@@ -289,6 +292,7 @@ export default function OceanFeaturesLayer({
     }
 
     return () => {
+      if (!map) return; // Guard against null map on unmount
       if (map.getLayer(`${layerId}-outline`)) {
         map.removeLayer(`${layerId}-outline`);
       }
@@ -372,6 +376,7 @@ export default function OceanFeaturesLayer({
     });
 
     return () => {
+      if (!map) return; // Guard against null map on unmount
       map.off('click', handleClick);
       ['ocean-thermal-fronts-layer', 'ocean-chlorophyll-edges-layer', 'ocean-eddies-layer'].forEach(layerId => {
         map.off('mouseenter', layerId, handleMouseEnter);

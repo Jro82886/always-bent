@@ -206,8 +206,13 @@ function TrackingModeContent() {
       console.log('Map fully ready');
     });
     
-    // Error handling
+    // Error handling - only log critical errors
     map.current.on('error', (e: any) => {
+      // Ignore empty errors or source-related warnings
+      if (!e || !e.error || Object.keys(e.error).length === 0) {
+        return; // Benign error, skip logging
+      }
+
       console.error('Map error:', e);
       if (e.error?.status === 401) {
         console.error('Mapbox token invalid - check NEXT_PUBLIC_MAPBOX_TOKEN');
