@@ -18,7 +18,7 @@ const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 // Nodata values to filter
 const NODATA_VALUES = new Set([-32768, -9999, 255]);
-const SST_VALID_RANGE = { min: 271.15, max: 313.15 }; // Kelvin (-2°C to 40°C)
+const SST_VALID_RANGE = { min: 271.15, max: 313.15 }; // Kelvin (-2°C to 40°C) - validated BEFORE conversion
 const CHL_VALID_RANGE = { min: 0.001, max: 100 }; // mg/m³
 
 // Simple in-memory cache
@@ -84,7 +84,8 @@ export function isValidValue(value: number | null | undefined, layer: 'sst' | 'c
   
   // Check physical range
   if (layer === 'sst') {
-    // Value should be in Celsius after conversion
+    // Value is in Kelvin (will be converted to Fahrenheit later)
+    // Valid range: 271.15-313.15K = -2°C to 40°C = 28°F to 104°F
     return value >= SST_VALID_RANGE.min && value <= SST_VALID_RANGE.max;
   } else {
     return value >= CHL_VALID_RANGE.min && value <= CHL_VALID_RANGE.max;

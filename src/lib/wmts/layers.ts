@@ -25,18 +25,20 @@ export const WMTS_LAYERS = {
     layerPath: 'SST_GLO_PHY_L4_NRT_010_043/cmems_obs-sst_glo_phy_nrt_l4_P1D-m_202303/analysed_sst',
     supportsTime: true,
     supportsElevation: false, // L4 SST is surface only
-    unit: 'K', // Temporarily showing raw Kelvin values (no conversion)
-    conversionFn: (value: number) => {
-      // TEMPORARY: Disabled Fahrenheit conversion - returning raw Kelvin values
+    unit: '°F', // Fahrenheit (converted from Kelvin)
+    conversionFn: (kelvin: number) => {
       // Copernicus SST data comes in Kelvin from CMEMS (Copernicus Marine Service)
       // Product: SST_GLO_PHY_L4_NRT_010_043
       //
       // Typical range: 271-313K (-2°C to 40°C or 28°F to 104°F)
       //
-      // TODO: Re-enable Fahrenheit conversion after reviewing Copernicus documentation
+      // Conversion formula: (K - 273.15) × 9/5 + 32
+      // Example: 283K → (283 - 273.15) × 9/5 + 32 = 50°F
 
-      console.log(`[SST_CONV] Raw Kelvin value (no conversion): ${value}K`);
-      return value; // Return raw Kelvin value
+      const fahrenheit = (kelvin - 273.15) * 9/5 + 32;
+
+      console.log(`[SST_CONV] ${kelvin.toFixed(2)}K → ${fahrenheit.toFixed(1)}°F`);
+      return fahrenheit;
     }
   } as WMTSLayer,
   
