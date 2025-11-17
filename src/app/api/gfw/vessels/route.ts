@@ -257,10 +257,14 @@ export async function GET(req: Request) {
     bounds = parseBbox(bbox);
   } else if (inletId) {
     bounds = getInletBbox(inletId);
+    if (!bounds) {
+      console.log('[GFW] validation', `Inlet '${inletId}' not found in hardcoded list. Client should send bbox instead.`);
+      return err('validation', `Inlet '${inletId}' not configured. Please use map bounds instead.`);
+    }
   }
 
   if (!bounds) {
-    return err('validation', 'invalid inlet_id or bbox');
+    return err('validation', 'Either bbox or valid inlet_id is required');
   }
 
   // Debug: Log request details

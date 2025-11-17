@@ -71,20 +71,15 @@ export default function GFWVesselLayer({
     setIsLoading(true);
     
     try {
-      // Prefer inlet-based query
-      let url = '/api/gfw/vessels';
-      if (selectedInletId && selectedInletId !== 'overview') {
-        url += `?inletId=${selectedInletId}&days=7`;
-      } else {
-        // Fallback to bbox
-        const bounds = map.getBounds();
-        if (!bounds) {
-          console.warn('Unable to get map bounds');
-          return;
-        }
-        const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
-        url += `?bbox=${bbox}&days=7`;
+      // Always use bbox for GFW queries to ensure coverage of all areas
+      const bounds = map.getBounds();
+      if (!bounds) {
+        console.warn('[GFW] Unable to get map bounds');
+        return;
       }
+
+      const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
+      const url = `/api/gfw/vessels?bbox=${bbox}&days=7`;
       
       const response = await fetch(url, { 
         signal: abortController.signal,
