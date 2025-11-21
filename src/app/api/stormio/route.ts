@@ -134,102 +134,78 @@ export async function GET(req: NextRequest) {
     console.log(`[STORMIO] Attempting Copernicus SST for lat=${lat}, lng=${lng}`);
     const copernicusTemp = await fetchCopernicusSST(parseFloat(lat), parseFloat(lng));
 
-    // FALLBACK: Try Stormglass API if Copernicus fails
-    const stormglassApiKey = process.env.STORMGLASS_API_KEY || process.env.STORMIO_API_KEY;
-    let useStormglass = false;
+    // FALLBACK: Try OpenWeather API for supplemental weather data (wind, pressure, air temp)
+    const openWeatherApiKey = process.env.OPENWEATHER_API_KEY;
+    let useOpenWeather = !!openWeatherApiKey;
 
-    if (!copernicusTemp && stormglassApiKey) {
-      console.log('[STORMIO] Copernicus failed, trying StormGlass API');
-      useStormglass = true;
-    } else if (!copernicusTemp && !stormglassApiKey) {
-      console.log('[STORMIO] Both Copernicus and StormGlass unavailable, using mock data');
-      const mockData = generateMockStormioData(parseFloat(lat), parseFloat(lng));
-      return NextResponse.json(mockData);
+    if (!openWeatherApiKey) {
+      console.log('[STORMIO] OpenWeather API key not configured, using calculated/mock data for wind and weather');
     }
-    
-    // Fetch from StormGlass only if needed (fallback)
+
+    // Fetch from OpenWeather for wind, pressure, air temp
     let weatherData: any = null;
-    let tideData: any = null;
-    let astronomyData: any = null;
 
-    if (useStormglass) {
-      // Using Stormglass API v2
-      const stormglassUrl = `https://api.stormglass.io/v2/weather/point?lat=${lat}&lng=${lng}&params=waterTemperature,windSpeed,windDirection,waveHeight,wavePeriod,pressure,airTemperature&source=noaa,sg`;
-      const tideUrl = `https://api.stormglass.io/v2/tide/extremes/point?lat=${lat}&lng=${lng}`;
-      const astronomyUrl = `https://api.stormglass.io/v2/astronomy/point?lat=${lat}&lng=${lng}`;
+    if (useOpenWeather) {
+      // OpenWeather Current Weather API
+      // https://openweathermap.org/current
+      const openWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${openWeatherApiKey}&units=metric`;
 
-      // Fetch weather data
-      const weatherResponse = await fetch(stormglassUrl, {
-        headers: {
-          'Authorization': stormglassApiKey,
-          'Accept': 'application/json'
-        }
-      });
+      try {
+        const weatherResponse = await fetch(openWeatherUrl, {
+          headers: {
+            'Accept': 'application/json'
+          },
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
 
-      if (!weatherResponse.ok) {
-        console.error('Stormglass weather API error:', weatherResponse.status);
-        // If StormGlass fails, use Copernicus data if available
-        if (copernicusTemp) {
-          console.log('[STORMIO] StormGlass failed, using Copernicus SST with mock supplemental data');
-          useStormglass = false; // Fall through to Copernicus-only path below
+        if (!weatherResponse.ok) {
+          console.error('[OPENWEATHER] API error:', weatherResponse.status);
+          if (weatherResponse.status === 401) {
+            console.error('[OPENWEATHER] Invalid API key - check OPENWEATHER_API_KEY');
+          } else if (weatherResponse.status === 429) {
+            console.error('[OPENWEATHER] Rate limit exceeded - using fallback data');
+          }
+          useOpenWeather = false; // Fall back to mock data
         } else {
-          // Return mock data on error
-          const mockData = generateMockStormioData(parseFloat(lat), parseFloat(lng));
-          mockData.sources = [{
-            id: 'stormglass',
-            status: 'error',
-            lastIso: new Date().toISOString()
-          }];
-          return NextResponse.json(mockData);
+          weatherData = await weatherResponse.json();
+          console.log(`[OPENWEATHER] ✓ Weather data fetched for lat=${lat}, lng=${lng}`);
         }
-      } else {
-        weatherData = await weatherResponse.json();
-      }
-    }
-
-    // Only fetch tides and astronomy if we're using StormGlass successfully
-    if (useStormglass && weatherData) {
-      const tideUrl = `https://api.stormglass.io/v2/tide/extremes/point?lat=${lat}&lng=${lng}`;
-      const astronomyUrl = `https://api.stormglass.io/v2/astronomy/point?lat=${lat}&lng=${lng}`;
-
-      // Fetch tide data
-      const tideResponse = await fetch(tideUrl, {
-        headers: {
-          'Authorization': stormglassApiKey!,
-          'Accept': 'application/json'
-        }
-      });
-
-      if (tideResponse.ok) {
-        tideData = await tideResponse.json();
-      }
-
-      // Fetch astronomy data (moon phase, sunrise/sunset)
-      const astronomyResponse = await fetch(astronomyUrl, {
-        headers: {
-          'Authorization': stormglassApiKey!,
-          'Accept': 'application/json'
-        }
-      });
-
-      if (astronomyResponse.ok) {
-        astronomyData = await astronomyResponse.json();
+      } catch (error: any) {
+        console.error('[OPENWEATHER] Fetch error:', error.message);
+        useOpenWeather = false; // Fall back to mock data
       }
     }
     
-    // Get weather data - prioritize Copernicus SST if available
-    const currentHour = weatherData?.hours?.[0] || {};
+    // Extract weather data from OpenWeather API response
+    // OpenWeather API response format:
+    // { main: { temp, pressure }, wind: { speed, deg } }
 
-    // CRITICAL: Use Copernicus SST if available, otherwise StormGlass or default
+    // CRITICAL: Use Copernicus SST if available, otherwise fallback to seasonal estimate
     const waterTemp = copernicusTemp !== null ? copernicusTemp :
-                      (currentHour.waterTemperature?.noaa || currentHour.waterTemperature?.sg || 14);
+                      getSeasonalSST(new Date().getMonth());
 
-    const windSpeed = currentHour.windSpeed?.noaa || currentHour.windSpeed?.sg || 10;
-    const windDir = currentHour.windDirection?.noaa || currentHour.windDirection?.sg || 45;
-    const waveHeight = currentHour.waveHeight?.noaa || currentHour.waveHeight?.sg || 1;
-    const wavePeriod = currentHour.wavePeriod?.noaa || currentHour.wavePeriod?.sg || 8;
-    const pressure = currentHour.pressure?.noaa || currentHour.pressure?.sg || 1013;
-    const airTemp = currentHour.airTemperature?.noaa || currentHour.airTemperature?.sg || 20;
+    // Wind data from OpenWeather (convert m/s to our internal format)
+    const windSpeed = useOpenWeather && weatherData?.wind?.speed !== undefined
+                      ? weatherData.wind.speed  // Already in m/s
+                      : 5.1; // Default: ~10 knots
+
+    const windDir = useOpenWeather && weatherData?.wind?.deg !== undefined
+                    ? weatherData.wind.deg  // Degrees (0-360)
+                    : 180; // Default: South
+
+    // Wave data - OpenWeather doesn't provide this, use mock/estimate
+    const waveHeight = estimateWaveHeight(windSpeed);  // meters
+    const wavePeriod = 6 + Math.random() * 4; // 6-10 seconds (estimate)
+
+    // Atmospheric pressure from OpenWeather
+    const pressure = useOpenWeather && weatherData?.main?.pressure !== undefined
+                     ? weatherData.main.pressure  // hPa
+                     : 1013; // Default: standard sea level pressure
+
+    // Air temperature from OpenWeather (already in Celsius)
+    const airTemp = useOpenWeather && weatherData?.main?.temp !== undefined
+                    ? weatherData.main.temp
+                    : 15; // Default: 15°C (~59°F)
     
     // Convert wind direction degrees to compass
     const getWindDirection = (degrees: number) => {
@@ -238,31 +214,12 @@ export async function GET(req: NextRequest) {
       return directions[index];
     };
     
-    // Process tide data to normalized format
-    const tides = tideData?.data ? {
-      next: tideData.data[0] ? {
-        type: tideData.data[0].type as 'high' | 'low',
-        timeIso: tideData.data[0].time,
-        heightM: tideData.data[0].height
-      } : { type: 'high' as const, timeIso: new Date().toISOString(), heightM: 1.5 },
-      events: tideData.data.slice(0, 4).map((tide: any) => ({
-        type: tide.type as 'high' | 'low',
-        timeIso: tide.time,
-        heightM: tide.height
-      }))
-    } : generateMockTides();
-    
-    // Process astronomy data
-    const astroData = astronomyData?.data?.[0] || {};
-    const moonPhase = astroData.moonPhase ? {
-      phase: getMoonPhaseName(astroData.moonPhase.current.value),
-      illumPct: Math.round(astroData.moonFraction?.current?.value * 100) || 50
-    } : calculateMoonPhase();
-    
-    const sun = astroData.sunrise && astroData.sunset ? {
-      sunriseIso: astroData.sunrise,
-      sunsetIso: astroData.sunset
-    } : calculateSunTimes(parseFloat(lat), parseFloat(lng));
+    // Tide data - use calculated/mock tides (OpenWeather doesn't provide this)
+    const tides = generateMockTides();
+
+    // Astronomy data - use calculated values (more accurate than mock)
+    const moonPhase = calculateMoonPhase();
+    const sun = calculateSunTimes(parseFloat(lat), parseFloat(lng));
     
     // Normalize to exact StormioSnapshot format
     const normalized: StormioResponse = {
@@ -279,11 +236,20 @@ export async function GET(req: NextRequest) {
       tides,
       sun,
       lastIso: new Date().toISOString(),
-      sources: [{
-        id: copernicusTemp !== null ? 'copernicus' : (useStormglass ? 'stormglass' : 'mock'),
-        status: 'ok',
-        lastIso: new Date().toISOString()
-      }]
+      sources: [
+        // SST source
+        {
+          id: copernicusTemp !== null ? 'copernicus-sst' : 'seasonal-estimate',
+          status: 'ok',
+          lastIso: new Date().toISOString()
+        },
+        // Weather source (wind, pressure, air temp)
+        {
+          id: useOpenWeather ? 'openweather' : 'mock-weather',
+          status: useOpenWeather ? 'ok' : 'fallback',
+          lastIso: new Date().toISOString()
+        }
+      ]
     };
     
     // Update cache
@@ -305,6 +271,51 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// Helper functions for calculations and estimates
+
+/**
+ * Get seasonal SST estimate in Celsius based on month
+ * Based on US East Coast typical temperatures (Mid-Atlantic)
+ */
+function getSeasonalSST(month: number): number {
+  // Monthly average SST in Celsius for US East Coast (~38-40°N latitude)
+  const seasonalSSTCelsius = [
+    8,   // Jan
+    7,   // Feb
+    9,   // Mar
+    11,  // Apr
+    14,  // May
+    19,  // Jun
+    23,  // Jul
+    24,  // Aug
+    22,  // Sep
+    18,  // Oct
+    14,  // Nov
+    10   // Dec
+  ];
+
+  return seasonalSSTCelsius[month] + (Math.random() * 2 - 1); // ±1°C variation
+}
+
+/**
+ * Estimate wave height from wind speed using simplified Beaufort scale
+ * @param windSpeedMS Wind speed in meters/second
+ * @returns Wave height in meters
+ */
+function estimateWaveHeight(windSpeedMS: number): number {
+  // Simplified wave height estimation
+  // Based on empirical relationship: H ≈ 0.025 * V^2 (where V is in knots)
+  const windKnots = windSpeedMS * 1.94384; // Convert m/s to knots
+
+  if (windKnots < 1) return 0;
+  if (windKnots < 7) return 0.1 + Math.random() * 0.2; // Calm: 0.1-0.3m
+  if (windKnots < 12) return 0.3 + Math.random() * 0.3; // Light: 0.3-0.6m
+  if (windKnots < 19) return 0.6 + Math.random() * 0.6; // Moderate: 0.6-1.2m
+  if (windKnots < 25) return 1.2 + Math.random() * 1; // Fresh: 1.2-2.2m
+  if (windKnots < 31) return 2.2 + Math.random() * 1.5; // Strong: 2.2-3.7m
+  return 3.7 + Math.random() * 2; // Gale+: 3.7-5.7m
 }
 
 // Helper functions for mock data and calculations
