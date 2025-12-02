@@ -14,8 +14,8 @@ export function useRealtimeChat(roomId: string): UseRealtimeChatReturn {
   const [isConnected, setIsConnected] = useState(false);
   const clientRef = useRef<ChatClient | null>(null);
   const mountedRef = useRef(true);
-  const { user } = useAppState();
-  const displayName = user?.name || 'Anonymous';
+  const { user, username } = useAppState();
+  const displayName = username || 'Anonymous';
 
   useEffect(() => {
     // Initialize chat client

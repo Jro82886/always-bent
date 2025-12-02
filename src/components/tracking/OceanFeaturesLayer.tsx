@@ -45,6 +45,7 @@ export default function OceanFeaturesLayer({
 
       try {
         const bounds = map.getBounds();
+        if (!bounds) return;
         const bbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
 
         // Fetch all features in parallel

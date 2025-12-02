@@ -246,7 +246,7 @@ export async function GET(req: NextRequest) {
         // Weather source (wind, pressure, air temp)
         {
           id: useOpenWeather ? 'openweather' : 'mock-weather',
-          status: useOpenWeather ? 'ok' : 'fallback',
+          status: useOpenWeather ? 'ok' : 'stale' as const,
           lastIso: new Date().toISOString()
         }
       ]

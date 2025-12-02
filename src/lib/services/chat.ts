@@ -118,7 +118,7 @@ export function initChatClient(): ChatClient {
           .from('chat_messages')
           .insert({
             inlet_id: msg.inletId,
-            user_id: user.id, // Use authenticated user ID
+            user_id: user!.id, // Use authenticated user ID (guaranteed by auth above)
             text: msg.text,
             display_name: msg.user // User's display name from the message
           })
