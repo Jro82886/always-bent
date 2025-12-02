@@ -89,48 +89,43 @@ export default function CHLLayer({ map, on, selectedDate = 'today' }: CHLLayerPr
         }
       } catch {}
 
-      // CRITICAL LAYER ORDERING - CHL must be visible above water!
+      // CRITICAL LAYER ORDERING:
+      // - Above water/ocean fills
+      // - BELOW land/coastline layers (so barrier islands show through)
+      // - Below labels and symbols
       const layers = map.getStyle().layers;
-      
-      // Find the water fill layer (which can block raster layers)
-      const waterLayer = layers.find(layer => 
-        layer.id === 'water' || 
-        layer.id.includes('water') && layer.type === 'fill'
+
+      // Find the first land-related layer to position CHL below it
+      // Mapbox uses layers like "land", "landcover", "landuse" for land features
+      const landLayer = layers.find(layer =>
+        layer.id === 'land' ||
+        layer.id === 'landcover' ||
+        layer.id.includes('landcover') ||
+        layer.id.includes('landuse') ||
+        (layer.type === 'fill' && layer.id.includes('land'))
       );
-      
-      // Find label layers (we want to stay below these)
-      const firstLabelLayer = layers.find(layer => 
-        layer.type === 'symbol' || 
-        layer.id.includes('label')
-      );
-      
-      // STRATEGY: Position CHL in the "data layer zone"
-      // Above: base map, water fills, land
-      // Below: labels, symbols, UI elements
-      
-      if (firstLabelLayer) {
-        // Best case: put it right before the first label layer
-        map.moveLayer('chl-lyr', firstLabelLayer.id);
-        console.log(`Positioned CHL before labels (${firstLabelLayer.id})`);
-      } else if (waterLayer) {
-        // If no labels found, at least get above water
-        map.moveLayer('chl-lyr'); // Move to top first
-        console.log('Positioned CHL at top (above water)');
+
+      if (landLayer) {
+        // Position CHL just before the land layer (so land renders on top)
+        map.moveLayer('chl-lyr', landLayer.id);
+        console.log(`[CHL] Positioned below land layer: ${landLayer.id}`);
       } else {
-        // Fallback: just move it up in the stack
-        const currentIndex = layers.findIndex(l => l.id === 'chl-lyr');
-        if (currentIndex < layers.length / 2) {
-          // If in bottom half, move to top
-          map.moveLayer('chl-lyr');
-          console.log('Moved CHL to top of stack');
+        // Fallback: position before labels
+        const firstLabelLayer = layers.find(layer =>
+          layer.type === 'symbol' ||
+          layer.id.includes('label')
+        );
+        if (firstLabelLayer) {
+          map.moveLayer('chl-lyr', firstLabelLayer.id);
+          console.log(`[CHL] Positioned below labels: ${firstLabelLayer.id}`);
         }
       }
-      
+
       // Log final position for debugging
       const newLayers = map.getStyle().layers;
       const finalIndex = newLayers.findIndex(l => l.id === 'chl-lyr');
-      const waterIndex = newLayers.findIndex(l => l.id === 'water');
-      console.log(`CHL final position: ${finalIndex}, Water position: ${waterIndex}`);
+      const landIndex = newLayers.findIndex(l => l.id === 'land' || l.id === 'landcover');
+      console.log(`[CHL] Final position: ${finalIndex}, Land position: ${landIndex}`);
 
       console.log('✅ CHL layer added successfully with proper ordering');
       console.log('Layer exists:', !!map.getLayer('chl-lyr'));

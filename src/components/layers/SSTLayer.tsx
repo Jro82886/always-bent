@@ -83,10 +83,36 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           },
         } as any);
 
+        // Position SST layer correctly in the stack:
+        // - Above water/ocean fills
+        // - BELOW land/coastline layers (so barrier islands show through)
+        // - Below labels and symbols
         const style = map.getStyle();
         if (style && style.layers) {
-          const top = style.layers[style.layers.length - 1]?.id;
-          if (top && top !== lyrId) map.moveLayer(lyrId, top);
+          // Find the first land-related layer to position SST below it
+          // Mapbox uses layers like "land", "landcover", "landuse" for land features
+          const landLayer = style.layers.find(layer =>
+            layer.id === 'land' ||
+            layer.id === 'landcover' ||
+            layer.id.includes('landcover') ||
+            layer.id.includes('landuse') ||
+            (layer.type === 'fill' && layer.id.includes('land'))
+          );
+
+          if (landLayer) {
+            // Position SST just before the land layer (so land renders on top)
+            map.moveLayer(lyrId, landLayer.id);
+            console.log(`[SST] Positioned below land layer: ${landLayer.id}`);
+          } else {
+            // Fallback: position before labels (like CHL does)
+            const labelLayer = style.layers.find(layer =>
+              layer.type === 'symbol' || layer.id.includes('label')
+            );
+            if (labelLayer) {
+              map.moveLayer(lyrId, labelLayer.id);
+              console.log(`[SST] Positioned below labels: ${labelLayer.id}`);
+            }
+          }
         }
 
         // Enforce linear (smooth) rendering at runtime

@@ -165,15 +165,27 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // Get current user (with dev fallback)
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-    
-    // Dev mode: use stub user if no auth (with valid UUID format)
+    // Get current user - try Supabase auth first
+    let { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+
+    // If no Supabase auth user, sign in anonymously (like chat does)
+    // This supports Memberstack-authenticated users who don't have Supabase sessions
+    if (!authUser) {
+      console.log('[REPORTS] No Supabase session, signing in anonymously...');
+      const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
+      if (anonError) {
+        console.error('[REPORTS] Anonymous sign-in failed:', anonError);
+        return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+      }
+      authUser = anonData.user;
+    }
+
+    // Dev mode fallback
     const user = authUser || (process.env.NODE_ENV === 'development' ? {
       id: '05a3cd96-01b5-4280-97cb-46400fab45b9', // Actual dev user UUID
       email: 'dev@always-bent.com'
     } : null);
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -220,19 +232,9 @@ export async function POST(req: NextRequest) {
       meta: body.meta || null
     };
 
-    // In dev mode without auth, use service role to bypass RLS
-    const insertClient = (!authUser && process.env.NODE_ENV === 'development')
-      ? createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-          {
-            auth: {
-              autoRefreshToken: false,
-              persistSession: false
-            }
-          }
-        )
-      : supabase;
+    // Use the authenticated supabase client (user is either Supabase auth or anonymous)
+    // RLS policies should allow inserts for authenticated users
+    const insertClient = supabase;
 
     // Insert report
     const { data, error } = await insertClient
