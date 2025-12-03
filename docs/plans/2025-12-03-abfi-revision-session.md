@@ -188,5 +188,72 @@ Run `railway login` in terminal to authenticate, then deploy Python backend.
 
 ---
 
-*Session saved: December 3, 2025*
-*Resume with: "Let's continue the ABFI revision from where we left off"*
+## Session 3 Update (December 4, 2025)
+
+### 11. GFW API Token Update - COMPLETED
+- **Issue:** GFW token was affected/reset as of November 24, 2025
+- **New token:** `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtpZEtleSJ9...` (application: "new 12.2")
+- **Updated in:**
+  - `.env.local` (local)
+  - Vercel env vars (all 3 environments: production, preview, development)
+
+### Railway Situation - CRITICAL BLOCKER
+
+**Problem:** Railway account is tied to Jeff's GitHub (jroimarina@gmail.com). Cannot simply request access to his Gmail - that's a non-starter.
+
+**Workaround Options:**
+
+| Option | Description | Pros | Cons |
+|--------|-------------|------|------|
+| **A. Jeff Adds Collaborators** | Jeff logs into Railway dashboard via GitHub, adds Amanda & Maurizio as team members | No new accounts needed, keeps existing setup | Requires Jeff's 5 min of time |
+| **B. Transfer Project to Amanda** | Jeff transfers Railway project ownership to Amanda's Railway account | Amanda has full control | May lose some config, needs Jeff |
+| **C. New Railway Account** | Amanda creates fresh Railway account (email-based, not GitHub), redeploy Python backend from scratch | Full independence | Manual re-setup of all env vars, ~30 min work |
+| **D. Switch to Render.com** | Deploy Python backend to Render instead of Railway | Free tier available, simple setup | Migration work, new platform |
+| **E. Vercel Python Functions** | Convert Python backend to Vercel serverless functions | Single platform (Vercel) | May need code changes, cold starts |
+
+**RECOMMENDED: Option A** - Ask Jeff to spend 5 minutes adding collaborators:
+1. Go to https://railway.app/
+2. Click "Login with GitHub" (uses jroimarina@gmail.com automatically)
+3. Go to Project Settings → Members
+4. Add: `amandarosenkilde@gmail.com` and `maurizio@levelthree.co`
+
+### 12. SST Resolution Research - COMPLETED
+
+**Current Setup:**
+- Product: `SST_GLO_PHY_L4_NRT_010_043` (ODYSSEA)
+- Resolution: **0.10° × 0.10°** (~10 km)
+- Source: Multi-sensor blend (L4 gap-free)
+
+**Higher Resolution Options:**
+
+| Product | Resolution | Coverage | Access | Notes |
+|---------|-----------|----------|--------|-------|
+| **OSTIA Global** | 0.05° (~6 km) | Global | WMTS ✓ | `SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001` |
+| **MUR SST (NASA)** | 0.01° (~1 km) | Global | ERDDAP API | Best resolution, but no native WMTS |
+| **Med High-Res** | 1/16° (~7 km) | Mediterranean | WMTS ✓ | Not useful for US East Coast |
+| **NOAA CoastWatch** | 1-4 km | US waters | ERDDAP | Being retired Aug 2025 |
+| **GOES ACSPO** | ~2 km | Americas | NetCDF | Geostationary, frequent updates |
+
+**Recommendation:**
+1. **Quick win:** Switch from ODYSSEA (10km) to OSTIA (6km) - same WMTS API, just different product ID
+2. **Best quality:** Integrate MUR SST via ERDDAP for 1km resolution near coastline
+   - Would require new tile generation or proxy layer
+   - More complex implementation
+
+**OSTIA Product Change (if desired):**
+```
+OLD: SST_GLO_PHY_L4_NRT_010_043/cmems_obs-sst_glo_phy_nrt_l4_P1D-m_202303/analysed_sst
+NEW: SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001/METOFFICE-GLO-SST-L4-NRT-OBS-SST-V2/analysed_sst
+```
+
+### Remaining Items
+
+1. **Railway access** - Need Jeff's 5-min action (Option A)
+2. **Test production** - Verify GFW API works with new token
+3. **SST upgrade** - Optional: switch to OSTIA for ~40% better resolution
+4. **MarineTraffic** - Still waiting for Jeff's API key
+
+---
+
+*Session saved: December 4, 2025*
+*Resume with: "Continue ABFI session"*
