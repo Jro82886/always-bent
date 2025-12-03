@@ -131,6 +131,7 @@ This session addressed a comprehensive revision of the Always Bent Fishing Intel
 ## Git State
 - **Branch:** main
 - **Latest commits:**
+  - `aa19298` - Add session progress file for ABFI revision
   - `013823e` - Fix TypeScript build errors for deployment
   - `cd7e24d` - Fix snip save auth, barrier islands visibility, and layer ordering
   - `7222565` - Merge PR #15 (OpenWeather)
@@ -170,6 +171,20 @@ src/lib/services/chat.ts              # Non-null assertion
    - Chat persistence
 3. **SST resolution research** - Investigate higher-res options
 4. **MarineTraffic** - Wait for Jeff's API key
+
+---
+
+## Session 2 Update (December 3, 2025 - Later)
+
+**Context resumed from previous session.**
+
+### Verified Status:
+- Railway CLI installed (`v4.12.0`) but **NOT authenticated** - needs `railway login`
+- Production site is live at https://app.alwaysbentfishingintelligence.com
+- All 7 completed tasks are deployed and working
+
+### Immediate Next Step:
+Run `railway login` in terminal to authenticate, then deploy Python backend.
 
 ---
 
