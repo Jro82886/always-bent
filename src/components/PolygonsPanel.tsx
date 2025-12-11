@@ -97,6 +97,12 @@ export default function PolygonsPanel({ map }: Props) {
           usedLive = false;
         }
 
+        // Don't update if we got no features - keep existing polygons
+        if (!data?.features?.length) {
+          console.log('No polygon features found, keeping existing');
+          return;
+        }
+
         setIsLive(usedLive);
 
         // Count features by class (not type)
@@ -108,7 +114,7 @@ export default function PolygonsPanel({ map }: Props) {
           }
         });
         setStats(counts);
-        
+
 
         // Add source if not exists
         if (!map.getSource(SOURCE_ID)) {
@@ -116,11 +122,12 @@ export default function PolygonsPanel({ map }: Props) {
             type: 'geojson',
             data
           });
-          
+
         } else {
+          // Only update source if we have features
           const source = map.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource;
           source.setData(data);
-          
+
         }
 
         // Add layers for each feature type
@@ -197,14 +204,19 @@ export default function PolygonsPanel({ map }: Props) {
     // Initial load
     loadPolygons();
 
-    // Reload on map move
-    const handleMoveEnd = () => loadPolygons();
+    // Reload on map move (debounced to prevent rapid reloads)
+    let debounceTimer: NodeJS.Timeout;
+    const handleMoveEnd = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadPolygons, 500); // Wait 500ms after map stops moving
+    };
     map.on('moveend', handleMoveEnd);
 
     return () => {
+      clearTimeout(debounceTimer);
       map.off('moveend', handleMoveEnd);
     };
-  }, [map, enabled]); // Re-run when enabled layers change
+  }, [map]); // Only re-run when map changes, not on enabled toggle
 
   // Toggle layer visibility
   const toggleLayer = (type: keyof typeof enabled) => {
