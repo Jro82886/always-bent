@@ -69,24 +69,35 @@ export default function PolygonsPanel({ map }: Props) {
         const bbox = bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()].join(',') : '';
 
         
-        // Use LIVE polygons that update with SST/CHL data!
-        const res = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
-        
+        // Try LIVE polygons first, fall back to static data if empty
         let data;
-        if (!res.ok) {
-          
-          // Try fallback to static data
-          const fallbackRes = await fetch('/api/polygons');
+        let usedLive = false;
+
+        try {
+          const res = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
+          if (res.ok) {
+            const liveData = await res.json();
+            // Only use live data if it has actual features
+            if (liveData.features && liveData.features.length > 0) {
+              data = liveData;
+              usedLive = true;
+            }
+          }
+        } catch (e) {
+          console.log('Live polygons failed, trying static data');
+        }
+
+        // Fall back to static GeoJSON data
+        if (!data || !data.features?.length) {
+          const fallbackRes = await fetch(`/api/polygons?bbox=${bbox}`);
           if (!fallbackRes.ok) {
-            
             return;
           }
           data = await fallbackRes.json();
-          setIsLive(false);
-        } else {
-          data = await res.json();
-          setIsLive(true); // We're using LIVE data!
+          usedLive = false;
         }
+
+        setIsLive(usedLive);
 
         // Count features by class (not type)
         const counts = { eddy: 0, edge: 0, filament: 0 };
