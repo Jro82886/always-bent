@@ -51,30 +51,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (hasValidEmail) {
           try {
-            // Check if profile exists in Supabase
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('email', member.email)
-              .single();
+            // Get the Supabase auth user (created by MemberstackProvider sync)
+            const { data: { user: supabaseUser } } = await supabase.auth.getUser();
 
-            if (error && error.code === 'PGRST116') {
-              // Profile doesn't exist, create it
-              if (member.id && member.email) {
-                await supabase.from('profiles').insert({
-                  id: member.id,
+            if (supabaseUser) {
+              // Check if profile exists for this Supabase user
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', supabaseUser.id)
+                .single();
+
+              if (error && error.code === 'PGRST116') {
+                // Profile doesn't exist, create it with Supabase UUID (not Memberstack ID)
+                const { error: insertError } = await supabase.from('profiles').insert({
+                  id: supabaseUser.id,  // Use Supabase UUID, not Memberstack ID
                   email: member.email,
                   captain_name: member.customFields?.captainName || 'Captain',
                   boat_name: member.customFields?.boatName || 'Vessel',
                   signup_source: 'memberstack',
                 });
+
+                if (insertError) {
+                  console.error('Error creating profile:', insertError);
+                }
+              } else if (profile) {
+                // Update local user with Supabase data
+                setUser({
+                  ...userData,
+                  ...profile,
+                });
               }
-            } else if (profile) {
-              // Update local user with Supabase data
-              setUser({
-                ...userData,
-                ...profile,
-              });
             }
           } catch (error) {
             console.error('Error syncing with Supabase:', error);

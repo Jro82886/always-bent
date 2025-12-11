@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Call Python backend
-    const pythonUrl = `${PYTHON_BACKEND}/api/ocean-features/${feature}?date=${date}`;
+    // Call Python backend (Railway endpoints are at /ocean-features/*, not /api/ocean-features/*)
+    const pythonUrl = `${PYTHON_BACKEND}/ocean-features/${feature}?date=${date}`;
     
     
     const response = await fetch(pythonUrl, {
