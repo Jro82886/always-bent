@@ -5,6 +5,38 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 /**
+ * Get approximate coastline longitude for a given latitude
+ * Returns the longitude east of which is considered land
+ * This covers the entire US East Coast from Florida Keys to Maine
+ */
+function getApproxCoastlineLongitude(lat: number): number {
+  // Approximate East Coast coastline from Florida Keys to Maine
+  // Using a piecewise linear approximation
+  if (lat < 25) return -80.0;       // Florida Keys
+  if (lat < 26) return -80.1;       // South Florida
+  if (lat < 27) return -80.0;       // Miami area
+  if (lat < 28) return -80.3;       // Palm Beach
+  if (lat < 29) return -80.8;       // Space Coast
+  if (lat < 30) return -81.2;       // Jacksonville area
+  if (lat < 31) return -81.4;       // Georgia coast
+  if (lat < 32) return -80.9;       // Savannah
+  if (lat < 33) return -79.5;       // South Carolina
+  if (lat < 34) return -78.5;       // Wilmington NC
+  if (lat < 35) return -76.5;       // Cape Fear
+  if (lat < 36) return -75.8;       // Outer Banks
+  if (lat < 37) return -75.8;       // Virginia Beach
+  if (lat < 38) return -76.0;       // Chesapeake Bay entrance
+  if (lat < 39) return -74.8;       // Delaware Bay
+  if (lat < 40) return -74.0;       // New Jersey shore
+  if (lat < 41) return -73.8;       // Long Island
+  if (lat < 42) return -72.5;       // Connecticut/Rhode Island
+  if (lat < 43) return -70.5;       // Massachusetts
+  if (lat < 44) return -69.8;       // New Hampshire/Maine
+  if (lat < 45) return -69.0;       // Maine coast
+  return -67.0;                      // Downeast Maine / Maritime Canada
+}
+
+/**
  * LIVE POLYGON GENERATION FROM REAL SST/CHL DATA!
  * This connects to actual ocean data from Copernicus Marine Service
  * Updated: Fixed array index errors
@@ -187,9 +219,10 @@ function generateCleanThermalFronts(values: number[][], tileBounds: number[], la
         const startLng = west + (j / cols) * (east - west);
         const startLat = south + ((rows - i) / rows) * (north - south);
 
-        // Skip if on land
-        if (startLng > -74.5 && startLat > 38.5) continue;
-        if (startLng > -76.5 && startLat < 37) continue;
+        // Skip if clearly on land (use proper East Coast coastline approximation)
+        // Only skip if longitude is west of the coastline for the given latitude
+        const coastlineLng = getApproxCoastlineLongitude(startLat);
+        if (startLng > coastlineLng) continue;
 
         // Generate a smooth curve using control points
         const coords: number[][] = [];
@@ -383,9 +416,9 @@ function generateFilaments(values: number[][], tileBounds: number[]): any[] {
         const centerLng = west + (j / cols) * (east - west);
         const centerLat = south + ((rows - i) / rows) * (north - south);
 
-        // Skip if on land
-        if (centerLng > -74.5 && centerLat > 38.5) continue;
-        if (centerLng > -76.5 && centerLat < 37) continue;
+        // Skip if clearly on land (use proper East Coast coastline approximation)
+        const coastlineLng = getApproxCoastlineLongitude(centerLat);
+        if (centerLng > coastlineLng) continue;
 
         // Create elongated filament polygon
         const coords: number[][] = [];
@@ -452,9 +485,9 @@ function detectFilaments_OLD(edges: boolean[][], tileBounds: number[]): any[] {
         const centerLng = west + (j / cols) * (east - west);
         const centerLat = south + ((rows - i) / rows) * (north - south);
 
-        // Skip if center is on land
-        if (centerLng > -74.5 && centerLat > 38.5) continue; // Delaware/NJ land
-        if (centerLng > -76.5 && centerLat < 37) continue; // Virginia land
+        // Skip if clearly on land (use proper East Coast coastline approximation)
+        const coastlineLngOld = getApproxCoastlineLongitude(centerLat);
+        if (centerLng > coastlineLngOld) continue;
 
         // Create an elongated polygon (filament shape)
         const coords: number[][] = [];
@@ -542,9 +575,9 @@ function detectEddies(values: number[][], tileBounds: number[]): any[] {
           const centerLng = west + (j / cols) * (east - west);
           const centerLat = south + ((rows - i) / rows) * (north - south);
 
-          // Skip if center is on land (very basic check - longitude > -75.5 is mostly land)
-          if (centerLng > -74.5 && centerLat > 38.5) continue; // Delaware/NJ land
-          if (centerLng > -76.5 && centerLat < 37) continue; // Virginia land
+          // Skip if clearly on land (use proper East Coast coastline approximation)
+          const coastlineLng = getApproxCoastlineLongitude(centerLat);
+          if (centerLng > coastlineLng) continue;
 
           const radiusKm = (windowSize / cols) * (east - west) * 111 * 0.5; // Smaller eddies
 
@@ -649,8 +682,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid bbox values' }, { status: 400 });
     }
 
-    // Calculate which tiles we need
-    const zoom = 7; // Use zoom 7 for broader coverage
+    // Calculate adaptive zoom based on bbox size
+    // Larger areas use lower zoom to keep tile count manageable
+    const latSpan = maxLat - minLat;
+    const lngSpan = maxLng - minLng;
+    const maxSpan = Math.max(latSpan, lngSpan);
+
+    // Adaptive zoom: use lower zoom for larger areas
+    let zoom: number;
+    if (maxSpan > 15) zoom = 5;       // Very large (full East Coast) - zoom 5
+    else if (maxSpan > 10) zoom = 6;  // Large regional view - zoom 6
+    else if (maxSpan > 5) zoom = 7;   // Medium regional - zoom 7
+    else zoom = 8;                     // Detailed local view - zoom 8
+
     const minTileX = Math.floor((minLng + 180) / 360 * Math.pow(2, zoom));
     const maxTileX = Math.floor((maxLng + 180) / 360 * Math.pow(2, zoom));
     const minTileY = Math.floor((1 - Math.log(Math.tan(maxLat * Math.PI / 180) +
@@ -658,30 +702,27 @@ export async function GET(req: NextRequest) {
     const maxTileY = Math.floor((1 - Math.log(Math.tan(minLat * Math.PI / 180) +
                      1 / Math.cos(minLat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
 
-    // Limit tile count for performance
-    const tileCount = (maxTileX - minTileX + 1) * (maxTileY - minTileY + 1);
-    if (tileCount > 25) {  // Increased from 9 to 25 for better coverage
-      // Return simplified response for very large areas
-      return NextResponse.json({
-        type: 'FeatureCollection',
-        features: [],
-        properties: {
-          generated_at: new Date().toISOString(),
-          bbox: [minLng, minLat, maxLng, maxLat],
-          message: 'Area too large. Please zoom in for detailed oceanographic analysis',
-          data_source: 'copernicus'
-        }
-      });
-    }
+    // Calculate tile count and apply limit with strategic sampling
+    const rawTileCount = (maxTileX - minTileX + 1) * (maxTileY - minTileY + 1);
+    const maxTiles = 50; // Increased limit for better coverage
+
+    // If too many tiles, we'll sample strategically instead of returning empty
+    const shouldSample = rawTileCount > maxTiles;
 
     const features: any[] = [];
+
+    // Calculate sampling step if needed
+    const xRange = maxTileX - minTileX + 1;
+    const yRange = maxTileY - minTileY + 1;
+    const xStep = shouldSample ? Math.max(1, Math.ceil(xRange / Math.sqrt(maxTiles))) : 1;
+    const yStep = shouldSample ? Math.max(1, Math.ceil(yRange / Math.sqrt(maxTiles))) : 1;
 
     // Process each tile for each layer
     for (const layer of layers.split(',')) {
       if (layer !== 'sst' && layer !== 'chl') continue;
 
-      for (let x = minTileX; x <= maxTileX; x++) {
-        for (let y = minTileY; y <= maxTileY; y++) {
+      for (let x = minTileX; x <= maxTileX; x += xStep) {
+        for (let y = minTileY; y <= maxTileY; y += yStep) {
           // Get real tile data
           const tileData = await getTileData(zoom, x, y, layer as 'sst' | 'chl');
           if (!tileData) continue;
@@ -714,6 +755,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Calculate actual tiles processed for logging
+    const tilesProcessed = Math.ceil(xRange / xStep) * Math.ceil(yRange / yStep);
+
     // If no real features found, add a message
     if (features.length === 0) {
       // Return empty with helpful message
@@ -726,7 +770,9 @@ export async function GET(req: NextRequest) {
           data_sources: layers.split(','),
           data_type: 'real-copernicus',
           message: 'No significant oceanographic features detected in this area. Try different areas or zoom levels.',
-          tiles_processed: tileCount
+          tiles_processed: tilesProcessed,
+          zoom_level: zoom,
+          sampled: shouldSample
         }
       });
     }
@@ -740,10 +786,14 @@ export async function GET(req: NextRequest) {
         bbox: [minLng, minLat, maxLng, maxLat],
         data_sources: layers.split(','),
         data_type: 'real-copernicus',
+        zoom_level: zoom,
+        tiles_processed: tilesProcessed,
+        sampled: shouldSample,
         feature_count: {
           thermal_fronts: features.filter(f => f.properties.type === 'thermal_front').length,
           chlorophyll_edges: features.filter(f => f.properties.type === 'chlorophyll_edge').length,
-          eddies: features.filter(f => f.properties.type === 'eddy').length
+          eddies: features.filter(f => f.properties.type === 'eddy').length,
+          filaments: features.filter(f => f.properties.type === 'filament').length
         }
       }
     };
