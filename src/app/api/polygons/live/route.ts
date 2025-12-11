@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 
 /**
  * Get approximate coastline longitude for a given latitude
- * Returns the longitude east of which is considered land
+ * Returns the longitude of the coastline - points WEST (more negative) are land
  * This covers the entire US East Coast from Florida Keys to Maine
  */
 function getApproxCoastlineLongitude(lat: number): number {
@@ -219,10 +219,9 @@ function generateCleanThermalFronts(values: number[][], tileBounds: number[], la
         const startLng = west + (j / cols) * (east - west);
         const startLat = south + ((rows - i) / rows) * (north - south);
 
-        // Skip if clearly on land (use proper East Coast coastline approximation)
-        // Only skip if longitude is west of the coastline for the given latitude
+        // Skip if clearly on land (west of coastline = more negative longitude)
         const coastlineLng = getApproxCoastlineLongitude(startLat);
-        if (startLng > coastlineLng) continue;
+        if (startLng < coastlineLng) continue;
 
         // Generate a smooth curve using control points
         const coords: number[][] = [];
@@ -416,9 +415,9 @@ function generateFilaments(values: number[][], tileBounds: number[]): any[] {
         const centerLng = west + (j / cols) * (east - west);
         const centerLat = south + ((rows - i) / rows) * (north - south);
 
-        // Skip if clearly on land (use proper East Coast coastline approximation)
+        // Skip if clearly on land (west of coastline = more negative longitude)
         const coastlineLng = getApproxCoastlineLongitude(centerLat);
-        if (centerLng > coastlineLng) continue;
+        if (centerLng < coastlineLng) continue;
 
         // Create elongated filament polygon
         const coords: number[][] = [];
@@ -485,9 +484,9 @@ function detectFilaments_OLD(edges: boolean[][], tileBounds: number[]): any[] {
         const centerLng = west + (j / cols) * (east - west);
         const centerLat = south + ((rows - i) / rows) * (north - south);
 
-        // Skip if clearly on land (use proper East Coast coastline approximation)
+        // Skip if clearly on land (west of coastline = more negative longitude)
         const coastlineLngOld = getApproxCoastlineLongitude(centerLat);
-        if (centerLng > coastlineLngOld) continue;
+        if (centerLng < coastlineLngOld) continue;
 
         // Create an elongated polygon (filament shape)
         const coords: number[][] = [];
@@ -575,9 +574,9 @@ function detectEddies(values: number[][], tileBounds: number[]): any[] {
           const centerLng = west + (j / cols) * (east - west);
           const centerLat = south + ((rows - i) / rows) * (north - south);
 
-          // Skip if clearly on land (use proper East Coast coastline approximation)
+          // Skip if clearly on land (west of coastline = more negative longitude)
           const coastlineLng = getApproxCoastlineLongitude(centerLat);
-          if (centerLng > coastlineLng) continue;
+          if (centerLng < coastlineLng) continue;
 
           const radiusKm = (windowSize / cols) * (east - west) * 111 * 0.5; // Smaller eddies
 
