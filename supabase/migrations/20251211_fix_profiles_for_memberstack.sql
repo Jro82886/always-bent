@@ -11,11 +11,20 @@
 -- causing 406 (GET blocked by RLS) and 400 (INSERT fails FK constraint)
 -- =============================================
 
--- Step 1: Drop the foreign key constraint to auth.users
--- This allows Memberstack IDs (which aren't in auth.users) to be stored
+-- Step 1: Drop ALL existing RLS policies FIRST (before any column changes)
+-- This is required because policies depend on the id column
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON profiles;
+DROP POLICY IF EXISTS "Public can view profiles" ON profiles;
+DROP POLICY IF EXISTS "profiles_select_all" ON profiles;
+DROP POLICY IF EXISTS "profiles_insert_all" ON profiles;
+DROP POLICY IF EXISTS "profiles_update_all" ON profiles;
+
+-- Step 2: Drop the foreign key constraint to auth.users
 DO $$
 BEGIN
-    -- Find and drop the FK constraint if it exists
     IF EXISTS (
         SELECT 1 FROM information_schema.table_constraints
         WHERE constraint_name = 'profiles_id_fkey'
@@ -24,23 +33,19 @@ BEGIN
         ALTER TABLE profiles DROP CONSTRAINT profiles_id_fkey;
         RAISE NOTICE 'Dropped foreign key constraint profiles_id_fkey';
     ELSE
-        RAISE NOTICE 'Foreign key constraint profiles_id_fkey does not exist (already dropped or different name)';
+        RAISE NOTICE 'FK constraint profiles_id_fkey does not exist';
     END IF;
 END $$;
 
--- Step 2: Change id column type to TEXT to support Memberstack string IDs
--- Memberstack IDs are like "mem_sb_xxx" not UUIDs
+-- Step 3: Change id column type to TEXT (supports Memberstack string IDs like "mem_sb_xxx")
 DO $$
 BEGIN
-    -- Check current column type
     IF EXISTS (
         SELECT 1 FROM information_schema.columns
         WHERE table_name = 'profiles'
         AND column_name = 'id'
         AND data_type = 'uuid'
     ) THEN
-        -- Need to alter column type - this may fail if there's data
-        -- First drop dependent constraints
         ALTER TABLE profiles ALTER COLUMN id TYPE TEXT USING id::TEXT;
         RAISE NOTICE 'Changed profiles.id from UUID to TEXT';
     ELSE
@@ -48,30 +53,15 @@ BEGIN
     END IF;
 END $$;
 
--- Step 3: Drop existing RLS policies that may conflict
-DO $$
-BEGIN
-    -- Drop old restrictive policies
-    DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
-    DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
-    DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
-    DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON profiles;
-    DROP POLICY IF EXISTS "Public can view profiles" ON profiles;
-    RAISE NOTICE 'Dropped existing RLS policies';
-END $$;
-
 -- Step 4: Create new permissive RLS policies for Memberstack
--- Allow public read access (needed for lookups)
 CREATE POLICY "profiles_select_all" ON profiles
     FOR SELECT
     USING (true);
 
--- Allow inserts for anyone (Memberstack handles auth)
 CREATE POLICY "profiles_insert_all" ON profiles
     FOR INSERT
     WITH CHECK (true);
 
--- Allow updates for anyone (frontend handles auth via Memberstack)
 CREATE POLICY "profiles_update_all" ON profiles
     FOR UPDATE
     USING (true);
@@ -83,10 +73,9 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 GRANT SELECT, INSERT, UPDATE ON profiles TO anon;
 GRANT SELECT, INSERT, UPDATE ON profiles TO authenticated;
 
--- Step 7: Make email NOT unique (multiple Memberstack profiles may share email in edge cases)
+-- Step 7: Make email NOT unique (multiple Memberstack profiles may share email)
 DO $$
 BEGIN
-    -- Drop unique constraint if it exists
     IF EXISTS (
         SELECT 1 FROM information_schema.table_constraints
         WHERE constraint_name = 'profiles_email_key'
@@ -97,7 +86,7 @@ BEGIN
     END IF;
 END $$;
 
--- Step 8: Make email nullable (not all Memberstack users may have email)
+-- Step 8: Make email nullable
 ALTER TABLE profiles ALTER COLUMN email DROP NOT NULL;
 
 -- Step 9: Add index on email for efficient lookups
@@ -109,11 +98,5 @@ BEGIN
     RAISE NOTICE '=========================================';
     RAISE NOTICE 'PROFILES TABLE FIXED FOR MEMBERSTACK!';
     RAISE NOTICE '=========================================';
-    RAISE NOTICE '✅ Removed auth.users foreign key constraint';
-    RAISE NOTICE '✅ Changed id column to TEXT (supports Memberstack IDs)';
-    RAISE NOTICE '✅ Created permissive RLS policies';
-    RAISE NOTICE '✅ Granted anon permissions';
-    RAISE NOTICE '✅ Made email nullable and non-unique';
-    RAISE NOTICE '';
     RAISE NOTICE 'Memberstack users can now create/read profiles!';
 END $$;
