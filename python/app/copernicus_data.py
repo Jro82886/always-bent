@@ -168,6 +168,22 @@ def fetch_chlorophyll_data(
         return None
 
 
+def convert_to_native_types(obj):
+    """Convert numpy types to native Python types for JSON serialization"""
+    if isinstance(obj, dict):
+        return {k: convert_to_native_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_native_types(item) for item in obj]
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    else:
+        return obj
+
+
 def generate_real_polygons_for_region(
     min_lon: float, max_lon: float,
     min_lat: float, max_lat: float
@@ -214,13 +230,16 @@ def generate_real_polygons_for_region(
         all_features.extend(edges)
         logger.info(f"Detected {len(edges)} chlorophyll edges")
 
-    return {
+    # Convert all numpy types to native Python for JSON serialization
+    result = {
         "type": "FeatureCollection",
-        "features": all_features,
+        "features": convert_to_native_types(all_features),
         "properties": {
             "generated_at": datetime.now().isoformat(),
-            "bbox": [min_lon, min_lat, max_lon, max_lat],
+            "bbox": [float(min_lon), float(min_lat), float(max_lon), float(max_lat)],
             "data_source": "Copernicus Marine Service (CMEMS)",
             "real_data": True
         }
     }
+
+    return result
