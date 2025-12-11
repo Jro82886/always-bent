@@ -11,3 +11,4 @@ opencv-python-headless
 scipy
 pyproj
 geojson
+copernicusmarine

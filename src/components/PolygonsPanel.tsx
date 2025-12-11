@@ -69,25 +69,49 @@ export default function PolygonsPanel({ map }: Props) {
         const bbox = bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()].join(',') : '';
 
         
-        // Try LIVE polygons first, fall back to static data if empty
+        // Try REAL Copernicus data from Railway backend first
         let data;
         let usedLive = false;
 
-        try {
-          const res = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
-          if (res.ok) {
-            const liveData = await res.json();
-            // Only use live data if it has actual features
-            if (liveData.features && liveData.features.length > 0) {
-              data = liveData;
-              usedLive = true;
+        // Railway backend URL for real Copernicus data
+        const railwayUrl = process.env.NEXT_PUBLIC_POLYGONS_URL || '';
+
+        if (railwayUrl) {
+          try {
+            // Format: south,west,north,east
+            const bounds = map.getBounds();
+            const realBbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+            const res = await fetch(`${railwayUrl}/ocean-features/real?bbox=${realBbox}`);
+            if (res.ok) {
+              const realData = await res.json();
+              if (realData.features && realData.features.length > 0) {
+                data = realData;
+                usedLive = true;
+                console.log(`Loaded ${realData.features.length} REAL Copernicus features`);
+              }
             }
+          } catch (e) {
+            console.log('Real Copernicus data failed, trying local detection');
           }
-        } catch (e) {
-          console.log('Live polygons failed, trying static data');
         }
 
-        // Fall back to static GeoJSON data
+        // Try local tile-based detection if Railway failed
+        if (!data || !data.features?.length) {
+          try {
+            const res = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
+            if (res.ok) {
+              const liveData = await res.json();
+              if (liveData.features && liveData.features.length > 0) {
+                data = liveData;
+                usedLive = true;
+              }
+            }
+          } catch (e) {
+            console.log('Local live detection failed');
+          }
+        }
+
+        // Fall back to static GeoJSON data (real Copernicus data from previous fetch)
         if (!data || !data.features?.length) {
           const fallbackRes = await fetch(`/api/polygons?bbox=${bbox}`);
           if (!fallbackRes.ok) {

@@ -414,6 +414,47 @@ async def get_eddies_legacy(
         }
     }
 
+@app.get("/ocean-features/real")
+async def get_real_ocean_features(
+    bbox: str = Query(..., description="Bounding box as 'south,west,north,east'"),
+):
+    """
+    Get REAL ocean features from live Copernicus satellite data
+
+    This endpoint fetches actual SST/CHL data from Copernicus Marine Service
+    and runs scientific detection algorithms (Sobel, Canny, Okubo-Weiss).
+
+    Returns real oceanographic features - NOT demo data.
+    """
+    try:
+        from app.copernicus_data import generate_real_polygons_for_region
+
+        # Parse bbox
+        try:
+            south, west, north, east = map(float, bbox.split(','))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid bbox format. Expected: 'south,west,north,east'")
+
+        logger.info(f"Fetching REAL ocean features for bbox: {bbox}")
+
+        # Generate real polygons from Copernicus data
+        result = generate_real_polygons_for_region(west, east, south, north)
+
+        logger.info(f"Generated {len(result['features'])} real features")
+
+        return result
+
+    except ImportError as e:
+        logger.error(f"Import error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Copernicus data fetching not available. Check copernicusmarine installation."
+        )
+    except Exception as e:
+        logger.error(f"Error generating real features: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     import os
