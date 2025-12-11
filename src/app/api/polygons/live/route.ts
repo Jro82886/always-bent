@@ -182,7 +182,7 @@ function generateCleanThermalFronts(values: number[][], tileBounds: number[], la
 
       // If there's significant temperature variation, create a thermal front
       const tempRange = maxTemp - minTemp;
-      if (tempRange > 2 && validCount > 10 && Math.random() > 0.5) {
+      if (tempRange > 0.5 && validCount > 5 && Math.random() > 0.3) { // Lowered thresholds
         // Create a smooth, flowing curve
         const startLng = west + (j / cols) * (east - west);
         const startLat = south + ((rows - i) / rows) * (north - south);
@@ -379,7 +379,7 @@ function generateFilaments(values: number[][], tileBounds: number[]): any[] {
         }
       }
 
-      if (count > 5 && Math.random() > 0.6) {
+      if (count > 3 && Math.random() > 0.4) { // Lowered thresholds for more filaments
         const centerLng = west + (j / cols) * (east - west);
         const centerLat = south + ((rows - i) / rows) * (north - south);
 
@@ -531,12 +531,12 @@ function detectEddies(values: number[][], tileBounds: number[]): any[] {
       }
 
       // Detect if center is significantly different from surroundings
-      if (neighborCount >= 8) {
+      if (neighborCount >= 4) {  // Lowered from 8 to detect more
         const avgNeighbor = neighborSum / neighborCount;
         const diff = Math.abs(center - avgNeighbor);
 
-        // Lower threshold and add randomness for more eddies
-        if (diff > 0.5 && Math.random() > 0.3) { // Very low threshold for more eddies
+        // Very low threshold to detect subtle eddies
+        if (diff > 0.2 && Math.random() > 0.2) { // Much lower threshold
           const warmCore = center > avgNeighbor;
 
           const centerLng = west + (j / cols) * (east - west);
@@ -584,8 +584,12 @@ function detectEddies(values: number[][], tileBounds: number[]): any[] {
 async function getTileData(z: number, x: number, y: number, layer: 'sst' | 'chl'): Promise<number[][] | null> {
   try {
     // Build the URL for our tile endpoint
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+    // Use VERCEL_URL in production, fallback to localhost for dev
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
     const tileUrl = `${baseUrl}/api/tiles/${layer}/${z}/${x}/${y}?time=latest`;
+    console.log(`Fetching tile: ${tileUrl}`);
 
     // Fetch the tile with 10 second timeout
     const controller = new AbortController();
