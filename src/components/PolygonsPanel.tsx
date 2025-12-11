@@ -79,6 +79,7 @@ export default function PolygonsPanel({ map }: Props) {
         if (railwayUrl) {
           try {
             const bounds = map.getBounds();
+            if (!bounds) return;
             const viewHeight = bounds.getNorth() - bounds.getSouth();
 
             // If viewing large area (> 10° lat), fetch multiple regions in parallel
