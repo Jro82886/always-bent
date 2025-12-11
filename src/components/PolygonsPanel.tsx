@@ -52,34 +52,44 @@ export default function PolygonsPanel({ map }: Props) {
 
   // Load polygons when map is ready and at least one layer is enabled
   useEffect(() => {
-    if (!map) return;
-    
+    console.log('[PolygonsPanel] useEffect triggered, map:', !!map);
+    if (!map) {
+      console.log('[PolygonsPanel] No map, returning');
+      return;
+    }
+
     // Don't load if no layers are enabled
     const anyEnabled = Object.values(enabled).some(v => v);
+    console.log('[PolygonsPanel] anyEnabled:', anyEnabled, 'enabled:', enabled);
 
     const loadPolygons = async () => {
+      console.log('[PolygonsPanel] loadPolygons called');
       if (!anyEnabled) {
-        
+        console.log('[PolygonsPanel] No layers enabled, returning');
         return;
       }
-      
+
       setLoading(true);
       try {
         const bounds = map.getBounds();
         const bbox = bounds ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()].join(',') : '';
+        console.log('[PolygonsPanel] bounds:', bounds ? 'yes' : 'no', 'bbox:', bbox);
 
-        
         // Try REAL Copernicus data from Railway backend first
         let data;
         let usedLive = false;
 
         // Railway backend URL for real Copernicus data
         const railwayUrl = process.env.NEXT_PUBLIC_POLYGONS_URL || '';
+        console.log('[PolygonsPanel] railwayUrl:', railwayUrl || '(empty)');
 
         if (railwayUrl) {
           try {
             const bounds = map.getBounds();
-            if (!bounds) return;
+            if (!bounds) {
+              console.log('[PolygonsPanel] No bounds in Railway block, returning');
+              return;
+            }
             const viewHeight = bounds.getNorth() - bounds.getSouth();
 
             // If viewing large area (> 10° lat), fetch multiple regions in parallel
