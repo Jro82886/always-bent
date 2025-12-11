@@ -10,10 +10,13 @@ function parseBbox(s: string | null): BBox | null {
   if (!s) return null;
   const parts = s.split(',').map((p) => parseFloat(p));
   if (parts.length !== 4 || parts.some((v) => Number.isNaN(v))) return null;
-  const [minLatMaybe, minLonMaybe, maxLatMaybe, maxLonMaybe] = parts; // callers may send lat,lon order by mistake
-  // Heuristic: if first value looks like latitude (|v| <= 90) and second looks like longitude (|v| <= 180), swap to lon,lat
-  const looksLatLon = Math.abs(minLatMaybe) <= 90 && Math.abs(minLonMaybe) <= 180;
-  const a = looksLatLon ? [minLonMaybe, minLatMaybe, maxLonMaybe, maxLatMaybe] : parts;
+
+  // Standard bbox format: minLon, minLat, maxLon, maxLat
+  // For East Coast US: lon is negative (-80 to -65), lat is positive (24 to 45)
+  // Only swap if it CLEARLY looks like lat,lon order (positive first, negative second)
+  const [v0, v1, v2, v3] = parts;
+  const looksLikeLatLonOrder = v0 > 0 && v1 < 0 && v2 > 0 && v3 < 0;
+  const a = looksLikeLatLonOrder ? [v1, v0, v3, v2] : parts;
   let [minLon, minLat, maxLon, maxLat] = a as [number, number, number, number];
   // Apply small buffer to avoid edge misses
   const buf = parseFloat(process.env.POLYGONS_BBOX_BUFFER_DEG || '0.25');
