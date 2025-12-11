@@ -255,5 +255,77 @@ NEW: SST_GLO_SST_L4_NRT_OBSERVATIONS_010_001/METOFFICE-GLO-SST-L4-NRT-OBS-SST-V2
 
 ---
 
-*Session saved: December 4, 2025*
+## Session 4 Update (December 11, 2025)
+
+### 13. Python Backend Railway Deployment - COMPLETED ✅
+
+**Problem Resolved:** Jeff added Maurizio to Railway team account
+
+**Deployment Steps Completed:**
+1. Authenticated Railway CLI (`railway login`)
+2. Created new project: `abfi-ocean-backend` on jro82886's Projects
+3. Fixed multiple deployment issues:
+   - Dockerfile paths (was referencing `python/` prefix when deploying from within `python/` dir)
+   - Python import statement (`from ocean_features` → `from app.ocean_features`)
+   - Added `__init__.py` to make `app/` a proper Python package
+   - Changed `opencv-python` → `opencv-python-headless` (Docker compatibility)
+   - Removed broken `cd app &&` from start command
+4. Set Copernicus environment variables:
+   - `COPERNICUS_USER=jrosenkilde`
+   - `COPERNICUS_PASS=qemvyz-zykqe4-nYqtoq`
+5. Generated public domain
+
+**Railway Backend URL:** https://abfi-ocean-backend-production.up.railway.app
+
+**Verified Endpoints:**
+- `/health` → `{"status":"healthy"}`
+- `/` → API info with available endpoints
+- `/ocean-features/fronts`, `/ocean-features/edges`, `/ocean-features/eddies`
+
+### 14. Frontend Integration - COMPLETED ✅
+
+**Vercel Environment Variables Updated:**
+- `POLYGONS_BACKEND_URL=https://abfi-ocean-backend-production.up.railway.app`
+- `NEXT_PUBLIC_POLYGONS_URL=https://abfi-ocean-backend-production.up.railway.app`
+- Updated for all environments: production, preview
+
+**Next.js Security Update:**
+- Updated from 15.5.2 → 15.5.7 (Vercel was blocking vulnerable version)
+
+**Production Deployment:** Successfully deployed to Vercel
+
+**Verified:** Ocean features API at `https://app.alwaysbentfishingintelligence.com/api/ocean-features/live` returns real feature data (eddies, edges, filaments)
+
+### Files Modified This Session
+```
+python/Dockerfile           # Fixed COPY paths, shell-form CMD
+python/app/main.py          # Fixed import path
+python/app/__init__.py      # NEW - package init file
+python/railway.json         # DOCKERFILE builder, removed cd command
+python/requirements.txt     # opencv-python-headless
+package.json               # Next.js 15.5.7
+package-lock.json          # Updated dependencies
+```
+
+### Git Commit
+- `02d0add` - Deploy Python backend to Railway and update Next.js
+
+### Current Status - ALL SYSTEMS OPERATIONAL ✅
+
+| Service | URL | Status |
+|---------|-----|--------|
+| **Production App** | https://app.alwaysbentfishingintelligence.com | ✅ Live |
+| **Python Backend** | https://abfi-ocean-backend-production.up.railway.app | ✅ Live |
+| **Vercel Dashboard** | jro82886s-projects/always-bent | ✅ |
+| **Railway Dashboard** | https://railway.com/project/06ec0663-1593-45a2-abea-4cfbd4531ac4 | ✅ |
+
+### Remaining Items
+
+1. **MarineTraffic API** - Still waiting for Jeff's API key
+2. **SST Resolution Upgrade** - Optional: switch to OSTIA for ~40% better resolution
+3. **GFW API Testing** - Should verify vessel tracking with new token
+
+---
+
+*Session saved: December 11, 2025*
 *Resume with: "Continue ABFI session"*
