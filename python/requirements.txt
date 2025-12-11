@@ -7,7 +7,7 @@ pydap
 scikit-image
 shapely
 requests
-opencv-python
+opencv-python-headless
 scipy
 pyproj
 geojson

@@ -10,7 +10,7 @@ from typing import List, Dict, Optional
 import numpy as np
 import logging
 
-from ocean_features import OceanFeatureDetector
+from app.ocean_features import OceanFeatureDetector
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
