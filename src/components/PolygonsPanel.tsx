@@ -78,16 +78,54 @@ export default function PolygonsPanel({ map }: Props) {
 
         if (railwayUrl) {
           try {
-            // Format: south,west,north,east
             const bounds = map.getBounds();
-            const realBbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-            const res = await fetch(`${railwayUrl}/ocean-features/real?bbox=${realBbox}`);
-            if (res.ok) {
-              const realData = await res.json();
-              if (realData.features && realData.features.length > 0) {
-                data = realData;
+            const viewHeight = bounds.getNorth() - bounds.getSouth();
+
+            // If viewing large area (> 10° lat), fetch multiple regions in parallel
+            if (viewHeight > 10) {
+              // Define East Coast regions for comprehensive coverage
+              const regions = [
+                { name: 'New England', bbox: '40,-72,45,-66' },      // Maine to CT
+                { name: 'Mid-Atlantic', bbox: '37,-76,41,-70' },     // NJ to VA
+                { name: 'Carolinas', bbox: '32,-80,37,-74' },        // NC/SC
+                { name: 'Georgia', bbox: '30,-82,33,-78' },          // GA
+                { name: 'North Florida', bbox: '27,-82,31,-79' },    // Jacksonville area
+                { name: 'South Florida', bbox: '24,-82,28,-79' },    // Miami to Keys
+              ];
+
+              // Fetch all regions in parallel
+              const results = await Promise.allSettled(
+                regions.map(r =>
+                  fetch(`${railwayUrl}/ocean-features/real?bbox=${r.bbox}`)
+                    .then(res => res.ok ? res.json() : null)
+                )
+              );
+
+              // Combine all features
+              const allFeatures: any[] = [];
+              results.forEach((result, i) => {
+                if (result.status === 'fulfilled' && result.value?.features) {
+                  console.log(`${regions[i].name}: ${result.value.features.length} features`);
+                  allFeatures.push(...result.value.features);
+                }
+              });
+
+              if (allFeatures.length > 0) {
+                data = { type: 'FeatureCollection', features: allFeatures };
                 usedLive = true;
-                console.log(`Loaded ${realData.features.length} REAL Copernicus features`);
+                console.log(`Loaded ${allFeatures.length} REAL Copernicus features from ${regions.length} regions`);
+              }
+            } else {
+              // Single region fetch for zoomed-in views
+              const realBbox = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+              const res = await fetch(`${railwayUrl}/ocean-features/real?bbox=${realBbox}`);
+              if (res.ok) {
+                const realData = await res.json();
+                if (realData.features && realData.features.length > 0) {
+                  data = realData;
+                  usedLive = true;
+                  console.log(`Loaded ${realData.features.length} REAL Copernicus features`);
+                }
               }
             }
           } catch (e) {
