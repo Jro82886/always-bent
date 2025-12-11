@@ -327,5 +327,37 @@ package-lock.json          # Updated dependencies
 
 ---
 
+## Session 5 Update (December 11, 2025 - Later)
+
+### 15. Profiles Table Memberstack Fix - PENDING USER ACTION
+
+**Problem:** Console errors when loading the app:
+```
+GET .../profiles?email=eq.maurizio%40levelthree.co 406 (Not Acceptable)
+POST .../profiles 400 (Bad Request)
+```
+
+**Root Cause:**
+1. `profiles.id` has `REFERENCES auth.users(id)` - Memberstack IDs aren't valid Supabase auth UUIDs
+2. RLS policies require `auth.uid() = id` - Memberstack users don't have Supabase auth sessions
+3. Email queries blocked by restrictive RLS
+
+**Fix Created:** `supabase/migrations/20251211_fix_profiles_for_memberstack.sql`
+
+**Changes:**
+- Remove FK constraint to `auth.users`
+- Change `id` column from UUID to TEXT (supports Memberstack IDs like `mem_sb_xxx`)
+- Create permissive RLS policies (allow anon read/write)
+- Grant anon role permissions
+- Make email nullable and non-unique
+
+**Action Required:**
+1. Go to Supabase SQL Editor: https://supabase.com/dashboard/project/hobvjmmambhonsugehge/sql
+2. Copy contents of `supabase/migrations/20251211_fix_profiles_for_memberstack.sql`
+3. Paste and run in SQL Editor
+4. Refresh the app to test
+
+---
+
 *Session saved: December 11, 2025*
 *Resume with: "Continue ABFI session"*
