@@ -294,17 +294,18 @@ export function frontsToGeoJSON(
           }
           avgGradient /= contour.length;
 
-          // Determine feature type based on gradient strength
-          // Strong gradients (>0.1 K/km) = thermal front, weaker = edge
-          const featureType = avgGradient > 0.1 ? 'thermal_front' : 'edge';
-          const featureClass = avgGradient > 0.15 ? 'eddy' : avgGradient > 0.05 ? 'edge' : 'filament';
+          // All thermal front detections are "edges" - NOT eddies
+          // Real eddy detection requires rotation/vorticity analysis (Okubo-Weiss)
+          // which this NOAA dataset doesn't provide
+          const featureType = 'thermal_front';
+          const featureClass = 'edge'; // All thermal detections are edges (orange)
 
           if (contour.length > 10) {
-            // Long contours become LineStrings (fronts)
+            // Long contours become LineStrings (thermal fronts) - ORANGE
             features.push({
               type: 'Feature',
               properties: {
-                class: 'eddy', // GREEN for thermal fronts
+                class: 'edge', // ORANGE for thermal fronts
                 feature_type: featureType,
                 gradient_strength: avgGradient,
                 id: `noaa_front_${featureId++}`,
@@ -316,13 +317,13 @@ export function frontsToGeoJSON(
               }
             });
           } else {
-            // Short contours become small polygons (patches)
+            // Short contours become small polygons (thermal patches) - ORANGE
             const closedCoords = [...coords, coords[0]];
             features.push({
               type: 'Feature',
               properties: {
-                class: featureClass,
-                feature_type: 'patch',
+                class: 'edge', // ORANGE for all thermal detections
+                feature_type: 'thermal_patch',
                 gradient_strength: avgGradient,
                 id: `noaa_patch_${featureId++}`,
                 source: 'NOAA CoastWatch ACSPO'
