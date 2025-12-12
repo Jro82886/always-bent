@@ -3,10 +3,12 @@
  *
  * Fetches REAL satellite-derived ocean features from NOAA:
  * 1. Gulf Stream North/South Wall positions from OPC (traced line)
- * 2. SST thermal front detections from ACSPO (scattered features)
+ * 2. SST thermal front detections via Sobel edge detection (organic shapes)
  *
  * NO AUTHENTICATION REQUIRED - Free public data
  */
+
+import { detectOceanFeatures } from './sst-edge-detection';
 
 // NOAA ERDDAP base URL for ACSPO SST with thermal fronts
 const ERDDAP_BASE = 'https://coastwatch.noaa.gov/erddap/griddap';
@@ -458,21 +460,33 @@ export async function getNOAAPolygons(
     console.error('[NOAA] Failed to fetch Gulf Stream walls:', e);
   }
 
-  // 2. Fetch SST front detections (scattered thermal features)
+  // 2. Detect ocean features using Sobel edge detection on raw SST data
+  // This produces organic, natural shapes like the Railway Python backend
   try {
-    const frontsData = await fetchNOAAFronts(minLon, maxLon, minLat, maxLat);
-    if (frontsData) {
-      const frontFeatures = frontsToGeoJSON(
-        frontsData.fronts,
-        frontsData.lons,
-        frontsData.lats,
-        frontsData.gradient
-      );
-      allFeatures.push(...frontFeatures);
-      console.log(`[NOAA] Added ${frontFeatures.length} thermal front features`);
+    const edgeFeatures = await detectOceanFeatures(minLon, maxLon, minLat, maxLat);
+    if (edgeFeatures && edgeFeatures.length > 0) {
+      allFeatures.push(...edgeFeatures);
+      console.log(`[NOAA] Added ${edgeFeatures.length} edge-detected features`);
     }
   } catch (e) {
-    console.error('[NOAA] Failed to fetch thermal fronts:', e);
+    console.error('[NOAA] Failed to detect ocean features:', e);
+
+    // Fallback to simple binary fronts if edge detection fails
+    try {
+      const frontsData = await fetchNOAAFronts(minLon, maxLon, minLat, maxLat);
+      if (frontsData) {
+        const frontFeatures = frontsToGeoJSON(
+          frontsData.fronts,
+          frontsData.lons,
+          frontsData.lats,
+          frontsData.gradient
+        );
+        allFeatures.push(...frontFeatures);
+        console.log(`[NOAA] Added ${frontFeatures.length} fallback thermal front features`);
+      }
+    } catch (fallbackError) {
+      console.error('[NOAA] Fallback also failed:', fallbackError);
+    }
   }
 
   if (allFeatures.length === 0) {
@@ -499,7 +513,7 @@ export async function getNOAAPolygons(
       bbox: [minLon, minLat, maxLon, maxLat],
       sources: [
         'NOAA Ocean Prediction Center (Gulf Stream)',
-        'NOAA CoastWatch ERDDAP (thermal fronts)'
+        'NOAA CoastWatch ERDDAP (Sobel edge detection)'
       ],
       gulf_stream_date: gulfStreamDate,
       real_data: true,
