@@ -160,13 +160,16 @@ export default function PolygonsPanel({ map }: Props) {
           // Check the actual property name in the data
           // The API returns "class" not "type"
           
-          // Fill layer
+          // Fill layer - ONLY for Polygon geometries (not LineStrings)
           if (!map.getLayer(config.fill)) {
             map.addLayer({
               id: config.fill,
               type: 'fill',
               source: SOURCE_ID,
-              filter: ['==', ['get', 'class'], type], // Changed from 'type' to 'class'
+              filter: ['all',
+                ['==', ['get', 'class'], type],
+                ['==', ['geometry-type'], 'Polygon'] // Only fill polygons, not lines
+              ],
               paint: {
                 'fill-color': config.color,
                 'fill-opacity': 0.25
