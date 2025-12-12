@@ -1,8 +1,9 @@
 /**
- * NOAA CoastWatch ERDDAP Integration
+ * NOAA CoastWatch & Ocean Prediction Center Integration
  *
- * Fetches REAL satellite-derived SST thermal fronts from NOAA
- * Dataset: ACSPO Daily Global 0.02° SST with pre-computed thermal fronts
+ * Fetches REAL satellite-derived ocean features from NOAA:
+ * 1. Gulf Stream North/South Wall positions from OPC (traced line)
+ * 2. SST thermal front detections from ACSPO (scattered features)
  *
  * NO AUTHENTICATION REQUIRED - Free public data
  */
@@ -10,6 +11,9 @@
 // NOAA ERDDAP base URL for ACSPO SST with thermal fronts
 const ERDDAP_BASE = 'https://coastwatch.noaa.gov/erddap/griddap';
 const DATASET_ID = 'noaacwLEOACSPOSSTL3SnrtCDaily';
+
+// NOAA Ocean Prediction Center Gulf Stream data
+const OPC_GULF_STREAM_URL = 'https://ocean.weather.gov/gulf_stream_text.php';
 
 interface NOAAGridData {
   table: {
@@ -26,6 +30,140 @@ interface GeoJSONFeature {
     type: string;
     coordinates: number[] | number[][] | number[][][];
   };
+}
+
+/**
+ * Parse coordinate string like "25.2N80.2W" to [lon, lat]
+ */
+function parseGulfStreamCoord(coord: string): [number, number] | null {
+  // Format: 25.2N80.2W or 25.2N 80.2W
+  const match = coord.match(/(\d+\.?\d*)N\s*(\d+\.?\d*)W/);
+  if (!match) return null;
+
+  const lat = parseFloat(match[1]);
+  const lon = -parseFloat(match[2]); // West is negative
+
+  if (isNaN(lat) || isNaN(lon)) return null;
+  return [lon, lat];
+}
+
+/**
+ * Fetch Gulf Stream North and South Wall positions from NOAA OPC
+ * Returns the actual traced Gulf Stream line from satellite/buoy data
+ */
+export async function fetchGulfStreamWalls(): Promise<{
+  northWall: [number, number][];
+  southWall: [number, number][];
+  date: string;
+} | null> {
+  try {
+    console.log('[NOAA OPC] Fetching Gulf Stream wall positions...');
+
+    const response = await fetch(OPC_GULF_STREAM_URL, {
+      headers: { 'Accept': 'text/html' },
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!response.ok) {
+      console.error('[NOAA OPC] HTTP error:', response.status);
+      return null;
+    }
+
+    const html = await response.text();
+
+    // Extract date from "NORTH WALL DATA FOR 06 DEC 25:"
+    const dateMatch = html.match(/NORTH WALL DATA FOR (\d+ \w+ \d+)/);
+    const date = dateMatch ? dateMatch[1] : 'unknown';
+
+    // Extract North Wall coordinates
+    const northWallMatch = html.match(/NORTH WALL DATA FOR[^:]+:([\s\S]*?)(?:GULF STREAM SOUTH|$)/);
+    const northWallText = northWallMatch ? northWallMatch[1] : '';
+
+    // Extract South Wall coordinates
+    const southWallMatch = html.match(/SOUTH WALL DATA FOR[^:]+:([\s\S]*?)(?:<\/pre>|2\.|$)/);
+    const southWallText = southWallMatch ? southWallMatch[1] : '';
+
+    // Parse coordinates
+    const northWall: [number, number][] = [];
+    const southWall: [number, number][] = [];
+
+    // Match all coordinate pairs like "25.2N80.2W"
+    const coordPattern = /(\d+\.?\d*N\s*\d+\.?\d*W)/g;
+
+    let match;
+    while ((match = coordPattern.exec(northWallText)) !== null) {
+      const coord = parseGulfStreamCoord(match[1]);
+      if (coord) northWall.push(coord);
+    }
+
+    coordPattern.lastIndex = 0; // Reset regex
+    while ((match = coordPattern.exec(southWallText)) !== null) {
+      const coord = parseGulfStreamCoord(match[1]);
+      if (coord) southWall.push(coord);
+    }
+
+    console.log(`[NOAA OPC] Parsed ${northWall.length} north wall points, ${southWall.length} south wall points (${date})`);
+
+    if (northWall.length === 0 && southWall.length === 0) {
+      console.warn('[NOAA OPC] No coordinates parsed from response');
+      return null;
+    }
+
+    return { northWall, southWall, date };
+
+  } catch (error) {
+    console.error('[NOAA OPC] Fetch error:', error);
+    return null;
+  }
+}
+
+/**
+ * Convert Gulf Stream walls to GeoJSON features
+ */
+function gulfStreamToGeoJSON(
+  northWall: [number, number][],
+  southWall: [number, number][],
+  date: string
+): GeoJSONFeature[] {
+  const features: GeoJSONFeature[] = [];
+
+  if (northWall.length > 1) {
+    features.push({
+      type: 'Feature',
+      properties: {
+        class: 'eddy', // GREEN - main Gulf Stream
+        feature_type: 'gulf_stream_north_wall',
+        id: 'gulf_stream_north_wall',
+        source: 'NOAA Ocean Prediction Center',
+        date: date,
+        description: 'Gulf Stream North Wall - based on max SST gradient from satellite IR, bathythermographs, and drifting buoys'
+      },
+      geometry: {
+        type: 'LineString',
+        coordinates: northWall
+      }
+    });
+  }
+
+  if (southWall.length > 1) {
+    features.push({
+      type: 'Feature',
+      properties: {
+        class: 'eddy', // GREEN - main Gulf Stream
+        feature_type: 'gulf_stream_south_wall',
+        id: 'gulf_stream_south_wall',
+        source: 'NOAA Ocean Prediction Center',
+        date: date,
+        description: 'Gulf Stream South Wall - based on max SST gradient from satellite IR, bathythermographs, and drifting buoys'
+      },
+      geometry: {
+        type: 'LineString',
+        coordinates: southWall
+      }
+    });
+  }
+
+  return features;
 }
 
 /**
@@ -282,6 +420,10 @@ function sortContourPoints(points: [number, number][]): [number, number][] {
 
 /**
  * Main function: Fetch NOAA data and convert to GeoJSON FeatureCollection
+ *
+ * Combines:
+ * 1. Gulf Stream North/South Wall from OPC (the main traced lines)
+ * 2. SST thermal front detections from ERDDAP (scattered features)
  */
 export async function getNOAAPolygons(
   minLon: number,
@@ -295,36 +437,72 @@ export async function getNOAAPolygons(
 }> {
   console.log(`[NOAA] Fetching polygons for bbox: [${minLon}, ${minLat}, ${maxLon}, ${maxLat}]`);
 
-  const data = await fetchNOAAFronts(minLon, maxLon, minLat, maxLat);
+  const allFeatures: GeoJSONFeature[] = [];
+  let gulfStreamDate = 'unknown';
 
-  if (!data) {
-    console.warn('[NOAA] Failed to fetch data, returning empty collection');
+  // 1. Fetch Gulf Stream walls (the main traced lines)
+  try {
+    const gulfStream = await fetchGulfStreamWalls();
+    if (gulfStream) {
+      gulfStreamDate = gulfStream.date;
+      const gulfStreamFeatures = gulfStreamToGeoJSON(
+        gulfStream.northWall,
+        gulfStream.southWall,
+        gulfStream.date
+      );
+      allFeatures.push(...gulfStreamFeatures);
+      console.log(`[NOAA] Added ${gulfStreamFeatures.length} Gulf Stream wall features`);
+    }
+  } catch (e) {
+    console.error('[NOAA] Failed to fetch Gulf Stream walls:', e);
+  }
+
+  // 2. Fetch SST front detections (scattered thermal features)
+  try {
+    const frontsData = await fetchNOAAFronts(minLon, maxLon, minLat, maxLat);
+    if (frontsData) {
+      const frontFeatures = frontsToGeoJSON(
+        frontsData.fronts,
+        frontsData.lons,
+        frontsData.lats,
+        frontsData.gradient
+      );
+      allFeatures.push(...frontFeatures);
+      console.log(`[NOAA] Added ${frontFeatures.length} thermal front features`);
+    }
+  } catch (e) {
+    console.error('[NOAA] Failed to fetch thermal fronts:', e);
+  }
+
+  if (allFeatures.length === 0) {
+    console.warn('[NOAA] No features fetched from any source');
     return {
       type: 'FeatureCollection',
       features: [],
       properties: {
         error: 'Failed to fetch NOAA data',
         generated_at: new Date().toISOString(),
-        source: 'NOAA CoastWatch ERDDAP',
+        source: 'NOAA',
         real_data: false
       }
     };
   }
 
-  const features = frontsToGeoJSON(data.fronts, data.lons, data.lats, data.gradient);
-
-  console.log(`[NOAA] Generated ${features.length} features from real satellite data`);
+  console.log(`[NOAA] Total: ${allFeatures.length} real features`);
 
   return {
     type: 'FeatureCollection',
-    features,
+    features: allFeatures,
     properties: {
       generated_at: new Date().toISOString(),
       bbox: [minLon, minLat, maxLon, maxLat],
-      source: 'NOAA CoastWatch ERDDAP - ACSPO SST',
-      dataset: DATASET_ID,
+      sources: [
+        'NOAA Ocean Prediction Center (Gulf Stream)',
+        'NOAA CoastWatch ERDDAP (thermal fronts)'
+      ],
+      gulf_stream_date: gulfStreamDate,
       real_data: true,
-      feature_count: features.length
+      feature_count: allFeatures.length
     }
   };
 }
