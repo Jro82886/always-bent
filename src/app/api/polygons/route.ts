@@ -1,8 +1,12 @@
 import { NextRequest } from 'next/server';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { getNOAAPolygons } from '@/lib/noaa-coastwatch';
 
 export const dynamic = 'force-dynamic';
+
+// Feature flag: Use NOAA CoastWatch for REAL satellite data
+const USE_NOAA = process.env.USE_NOAA_COASTWATCH !== 'false'; // Default: enabled
 
 type BBox = { minLon: number; minLat: number; maxLon: number; maxLat: number };
 
@@ -78,10 +82,47 @@ export async function GET(req: NextRequest) {
     const _daysBack = url.searchParams.get('days_back');
     const _gsUrl = url.searchParams.get('gs_url');
 
-    // Try Railway backend first (server-side to avoid CORS issues)
+    // Parse bbox for use with data sources
+    const bbox = parseBbox(bboxParam);
+
+    // =========================================================================
+    // OPTION 1: NOAA CoastWatch (FREE, NO AUTH, REAL SATELLITE DATA)
+    // =========================================================================
+    if (USE_NOAA && bbox) {
+      try {
+        console.log('[/api/polygons] Trying NOAA CoastWatch for REAL satellite data...');
+        const noaaData = await getNOAAPolygons(
+          bbox.minLon,
+          bbox.maxLon,
+          bbox.minLat,
+          bbox.maxLat
+        );
+
+        if (noaaData.features.length > 0) {
+          console.log(`[/api/polygons] NOAA returned ${noaaData.features.length} real features`);
+          return new Response(JSON.stringify(noaaData), {
+            status: 200,
+            headers: {
+              'content-type': 'application/json',
+              'cache-control': 'public, max-age=3600', // Cache for 1 hour (data updates daily)
+              'x-data-source': 'NOAA CoastWatch ERDDAP'
+            },
+          });
+        } else {
+          console.log('[/api/polygons] NOAA returned no features, trying fallbacks...');
+        }
+      } catch (e) {
+        console.error('[/api/polygons] NOAA fetch failed:', e);
+      }
+    }
+
+    // =========================================================================
+    // OPTION 2: Railway backend (Copernicus data - requires auth, may sleep)
+    // =========================================================================
     const railwayUrl = process.env.NEXT_PUBLIC_POLYGONS_URL || process.env.POLYGONS_BACKEND_URL;
     if (railwayUrl && bboxParam) {
       try {
+        console.log('[/api/polygons] Trying Railway backend...');
         // Convert bbox from Mapbox format (minLon,minLat,maxLon,maxLat)
         // to Railway format (minLat,minLon,maxLat,maxLon)
         const parts = bboxParam.split(',');
@@ -102,6 +143,7 @@ export async function GET(req: NextRequest) {
         if (res.ok) {
           const railwayData = await res.json();
           if (railwayData?.features?.length > 0) {
+            console.log(`[/api/polygons] Railway returned ${railwayData.features.length} features`);
             // Normalize feature_type to class for frontend compatibility
             railwayData.features = railwayData.features.map((f: any) => {
               if (f.properties?.feature_type && !f.properties?.class) {
@@ -113,7 +155,11 @@ export async function GET(req: NextRequest) {
             });
             return new Response(JSON.stringify(railwayData), {
               status: 200,
-              headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+              headers: {
+                'content-type': 'application/json',
+                'cache-control': 'public, max-age=300',
+                'x-data-source': 'Railway (Copernicus)'
+              },
             });
           }
         }
@@ -122,8 +168,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Fall back to static GeoJSON
-    const bbox = parseBbox(bboxParam);
+    // =========================================================================
+    // OPTION 3: Static GeoJSON fallback (procedurally generated - NOT REAL DATA)
+    // =========================================================================
+    console.log('[/api/polygons] Using static GeoJSON fallback (NOT real data)');
 
     const dataPathCandidates = [
       path.join(process.cwd(), 'public', 'abfi_sst_edges_latest.geojson'),
