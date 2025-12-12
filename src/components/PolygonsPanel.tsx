@@ -184,15 +184,11 @@ export default function PolygonsPanel({ map }: Props) {
                 'fill-opacity': 0.25
               },
               layout: {
-                'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
+                'visibility': 'visible' // Start visible, toggleLayer handles state
               }
             });
-            
-          } else {
-            // Update visibility if layer exists
-            map.setLayoutProperty(config.fill, 'visibility', 
-              enabled[type as keyof typeof enabled] ? 'visible' : 'none');
           }
+          // Don't update visibility on reload - toggleLayer handles that
 
           // Line layer
           if (!map.getLayer(config.line)) {
@@ -200,22 +196,18 @@ export default function PolygonsPanel({ map }: Props) {
               id: config.line,
               type: 'line',
               source: SOURCE_ID,
-              filter: ['==', ['get', 'class'], type], // Changed from 'type' to 'class'
+              filter: ['==', ['get', 'class'], type],
               paint: {
                 'line-color': config.color,
                 'line-width': 3,
                 'line-opacity': 1
               },
               layout: {
-                'visibility': enabled[type as keyof typeof enabled] ? 'visible' : 'none'
+                'visibility': 'visible' // Start visible, toggleLayer handles state
               }
             });
-            
-          } else {
-            // Update visibility if layer exists
-            map.setLayoutProperty(config.line, 'visibility', 
-              enabled[type as keyof typeof enabled] ? 'visible' : 'none');
           }
+          // Don't update visibility on reload - toggleLayer handles that
         });
         
         // Move polygon layers to top to ensure visibility
