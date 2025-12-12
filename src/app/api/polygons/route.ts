@@ -78,11 +78,39 @@ export async function GET(req: NextRequest) {
     const _daysBack = url.searchParams.get('days_back');
     const _gsUrl = url.searchParams.get('gs_url');
 
-    // If a backend service is configured, try to proxy through to it
-    // NOTE: Railway backend doesn't serve raw GeoJSON from root, skip it for this endpoint
-    // The Railway backend is for /ocean-features/* endpoints, not /api/polygons
-    // Using local GeoJSON files instead for better reliability
+    // Try Railway backend first (server-side to avoid CORS issues)
+    const railwayUrl = process.env.NEXT_PUBLIC_POLYGONS_URL || process.env.POLYGONS_BACKEND_URL;
+    if (railwayUrl && bboxParam) {
+      try {
+        // Railway expects bbox as: minLat,minLon,maxLat,maxLon
+        const res = await fetch(`${railwayUrl}/ocean-features/real?bbox=${bboxParam}`, {
+          headers: { 'Accept': 'application/json' },
+          next: { revalidate: 300 } // Cache for 5 minutes
+        });
+        if (res.ok) {
+          const railwayData = await res.json();
+          if (railwayData?.features?.length > 0) {
+            // Normalize feature_type to class for frontend compatibility
+            railwayData.features = railwayData.features.map((f: any) => {
+              if (f.properties?.feature_type && !f.properties?.class) {
+                let mappedClass = f.properties.feature_type;
+                if (mappedClass === 'thermal_front') mappedClass = 'edge';
+                return { ...f, properties: { ...f.properties, class: mappedClass } };
+              }
+              return f;
+            });
+            return new Response(JSON.stringify(railwayData), {
+              status: 200,
+              headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+            });
+          }
+        }
+      } catch (e) {
+        console.log('[/api/polygons] Railway fetch failed, using static fallback');
+      }
+    }
 
+    // Fall back to static GeoJSON
     const bbox = parseBbox(bboxParam);
 
     const dataPathCandidates = [
