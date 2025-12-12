@@ -178,15 +178,34 @@ export default function PolygonsPanel({ map }: Props) {
 
         setIsLive(usedLive);
 
-        // Count features by class (not type)
+        // Count features by class OR feature_type (Railway uses feature_type, static uses class)
+        // Map feature_type values: thermal_front -> edge
         const counts = { eddy: 0, edge: 0, filament: 0 };
         data.features?.forEach((f: any) => {
-          const featureClass = f.properties?.class; // API uses 'class' not 'type'
+          let featureClass = f.properties?.class || f.properties?.feature_type;
+          // Map Railway's naming to our internal naming
+          if (featureClass === 'thermal_front') featureClass = 'edge';
           if (featureClass && counts[featureClass as keyof typeof counts] !== undefined) {
             counts[featureClass as keyof typeof counts]++;
           }
         });
         setStats(counts);
+
+        // Normalize feature properties: ensure all features have 'class' for Mapbox filters
+        data.features = data.features.map((f: any) => {
+          if (f.properties?.feature_type && !f.properties?.class) {
+            let mappedClass = f.properties.feature_type;
+            if (mappedClass === 'thermal_front') mappedClass = 'edge';
+            return {
+              ...f,
+              properties: {
+                ...f.properties,
+                class: mappedClass
+              }
+            };
+          }
+          return f;
+        });
 
 
         // Add source if not exists
