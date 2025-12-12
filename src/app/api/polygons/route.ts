@@ -89,10 +89,16 @@ export async function GET(req: NextRequest) {
         const [minLon, minLat, maxLon, maxLat] = parts;
         const railwayBbox = `${minLat},${minLon},${maxLat},${maxLon}`;
 
+        // Use AbortController for timeout (5 seconds max)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
         const res = await fetch(`${railwayUrl}/ocean-features/real?bbox=${railwayBbox}`, {
           headers: { 'Accept': 'application/json' },
+          signal: controller.signal,
           next: { revalidate: 300 } // Cache for 5 minutes
         });
+        clearTimeout(timeoutId);
         if (res.ok) {
           const railwayData = await res.json();
           if (railwayData?.features?.length > 0) {
