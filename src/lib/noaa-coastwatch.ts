@@ -131,7 +131,7 @@ function gulfStreamToGeoJSON(
     features.push({
       type: 'Feature',
       properties: {
-        class: 'eddy', // GREEN - main Gulf Stream
+        class: 'gulf_stream', // Dedicated class for Gulf Stream
         feature_type: 'gulf_stream_north_wall',
         id: 'gulf_stream_north_wall',
         source: 'NOAA Ocean Prediction Center',
@@ -149,7 +149,7 @@ function gulfStreamToGeoJSON(
     features.push({
       type: 'Feature',
       properties: {
-        class: 'eddy', // GREEN - main Gulf Stream
+        class: 'gulf_stream', // Dedicated class for Gulf Stream
         feature_type: 'gulf_stream_south_wall',
         id: 'gulf_stream_south_wall',
         source: 'NOAA Ocean Prediction Center',

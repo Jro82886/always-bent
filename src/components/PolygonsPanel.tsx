@@ -12,24 +12,31 @@ const SOURCE_ID = 'sst-polygons';
 
 // Layer IDs for each feature type
 const LAYERS = {
+  gulf_stream: {
+    fill: 'sst-gulfstream-fill',
+    line: 'sst-gulfstream-line',
+    color: '#00ff88', // GREEN - main Gulf Stream
+    icon: TrendingUp,
+    label: 'Gulf Stream'
+  },
   eddy: {
     fill: 'sst-eddy-fill',
     line: 'sst-eddy-line',
-    color: '#00ff88',
+    color: '#00ff88', // GREEN
     icon: Circle,
     label: 'Eddies'
   },
   edge: {
-    fill: 'sst-edge-fill', 
+    fill: 'sst-edge-fill',
     line: 'sst-edge-line',
-    color: '#ff6600',
+    color: '#ff6600', // ORANGE
     icon: TrendingUp,
     label: 'Edges'
   },
   filament: {
     fill: 'sst-filament-fill',
-    line: 'sst-filament-line', 
-    color: '#00ccff',
+    line: 'sst-filament-line',
+    color: '#00ccff', // CYAN
     icon: GitBranch,
     label: 'Filaments'
   }
@@ -38,12 +45,14 @@ const LAYERS = {
 export default function PolygonsPanel({ map }: Props) {
   const [showPanel, setShowPanel] = useState(true); // Start open to show features
   const [enabled, setEnabled] = useState({
-    eddy: true,     // ON by default - show oceanographic features
-    edge: true,     // ON by default - show thermal fronts
-    filament: true  // ON by default - show all features
+    gulf_stream: true, // ON by default - main Gulf Stream position
+    eddy: true,        // ON by default - show oceanographic features
+    edge: true,        // ON by default - show thermal fronts
+    filament: true     // ON by default - show all features
   });
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
+    gulf_stream: 0,
     eddy: 0,
     edge: 0,
     filament: 0
@@ -113,7 +122,7 @@ export default function PolygonsPanel({ map }: Props) {
 
         // Count features by class OR feature_type (Railway uses feature_type, static uses class)
         // Map feature_type values: thermal_front -> edge
-        const counts = { eddy: 0, edge: 0, filament: 0 };
+        const counts = { gulf_stream: 0, eddy: 0, edge: 0, filament: 0 };
         data.features?.forEach((f: any) => {
           let featureClass = f.properties?.class || f.properties?.feature_type;
           // Map Railway's naming to our internal naming
