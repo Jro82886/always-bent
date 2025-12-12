@@ -76,26 +76,24 @@ export default function PolygonsPanel({ map }: Props) {
         console.log('[PolygonsPanel] bounds:', bounds ? 'yes' : 'no', 'bbox:', bbox);
 
         // Fetch polygon data from API (which proxies Railway server-side with timeout)
-        let data;
+        let data: { type: 'FeatureCollection'; features: any[] } | null = null;
         let usedLive = false;
 
         // Try local tile-based detection first
-        if (!data || !data.features?.length) {
-          try {
-            const res = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
-            if (res.ok) {
-              const liveData = await res.json();
-              if (liveData.features && liveData.features.length > 0) {
-                data = liveData;
-                usedLive = true;
-              }
+        try {
+          const res = await fetch(`/api/polygons/live?bbox=${bbox}&layers=sst,chl`);
+          if (res.ok) {
+            const liveData = await res.json();
+            if (liveData.features && liveData.features.length > 0) {
+              data = liveData;
+              usedLive = true;
             }
-          } catch (e) {
-            console.log('Local live detection failed');
           }
+        } catch (e) {
+          console.log('Local live detection failed');
         }
 
-        // Fall back to static GeoJSON data (real Copernicus data from previous fetch)
+        // Fall back to /api/polygons (proxies Railway with timeout, then static fallback)
         if (!data || !data.features?.length) {
           const fallbackRes = await fetch(`/api/polygons?bbox=${bbox}`);
           if (!fallbackRes.ok) {
