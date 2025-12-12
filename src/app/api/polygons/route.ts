@@ -82,8 +82,14 @@ export async function GET(req: NextRequest) {
     const railwayUrl = process.env.NEXT_PUBLIC_POLYGONS_URL || process.env.POLYGONS_BACKEND_URL;
     if (railwayUrl && bboxParam) {
       try {
-        // Railway expects bbox as: minLat,minLon,maxLat,maxLon
-        const res = await fetch(`${railwayUrl}/ocean-features/real?bbox=${bboxParam}`, {
+        // Convert bbox from Mapbox format (minLon,minLat,maxLon,maxLat)
+        // to Railway format (minLat,minLon,maxLat,maxLon)
+        const parts = bboxParam.split(',');
+        if (parts.length !== 4) throw new Error('Invalid bbox');
+        const [minLon, minLat, maxLon, maxLat] = parts;
+        const railwayBbox = `${minLat},${minLon},${maxLat},${maxLon}`;
+
+        const res = await fetch(`${railwayUrl}/ocean-features/real?bbox=${railwayBbox}`, {
           headers: { 'Accept': 'application/json' },
           next: { revalidate: 300 } // Cache for 5 minutes
         });
