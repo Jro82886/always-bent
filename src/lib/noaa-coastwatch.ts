@@ -44,9 +44,12 @@ export async function fetchNOAAFronts(
     // Stride of 5 to reduce data volume (0.02° * 5 = 0.1° resolution)
     const stride = 5;
 
-    const url = `${ERDDAP_BASE}/${DATASET_ID}.json?` +
-      `sst_front_position[(last)][(${minLat}):${stride}:(${maxLat})][(${minLon}):${stride}:(${maxLon})],` +
-      `sst_gradient_magnitude[(last)][(${minLat}):${stride}:(${maxLat})][(${minLon}):${stride}:(${maxLon})]`;
+    // Build query with URL-encoded brackets
+    // Format: sst_front_position[(last)][(minLat):stride:(maxLat)][(minLon):stride:(maxLon)]
+    const frontQuery = `sst_front_position%5B(last)%5D%5B(${minLat}):${stride}:(${maxLat})%5D%5B(${minLon}):${stride}:(${maxLon})%5D`;
+    const gradQuery = `sst_gradient_magnitude%5B(last)%5D%5B(${minLat}):${stride}:(${maxLat})%5D%5B(${minLon}):${stride}:(${maxLon})%5D`;
+
+    const url = `${ERDDAP_BASE}/${DATASET_ID}.json?${frontQuery},${gradQuery}`;
 
     console.log('[NOAA] Fetching fronts from:', url);
 
