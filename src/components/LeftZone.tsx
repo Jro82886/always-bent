@@ -179,13 +179,11 @@ export default function LeftZone({
         map.setLayoutProperty('ocean-layer', 'visibility', newState ? 'visible' : 'none');
       }
     } else if (layer === 'sst') {
+      // SSTLayer component handles the actual map layer based on 'on' prop
       setSstActive(!sstActive);
     } else if (layer === 'chl') {
-      const newState = !chlActive;
-      setChlActive(newState);
-      if (map?.getLayer('chl-lyr')) {
-        map.setLayoutProperty('chl-lyr', 'visibility', newState ? 'visible' : 'none');
-      }
+      // CHLLayer component handles the actual map layer based on 'on' prop
+      setChlActive(!chlActive);
     }
   };
   

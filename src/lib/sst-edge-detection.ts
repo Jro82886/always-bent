@@ -268,7 +268,7 @@ function sortContourPoints(points: number[][]): number[][] {
 
 /**
  * Classify a contour based on its shape
- * - Eddy: Roughly circular (width ≈ height, closed)
+ * - Eddy: Roughly circular or compact blob (width ≈ height)
  * - Filament: Elongated (length >> width)
  * - Edge: Linear thermal front
  */
@@ -290,16 +290,24 @@ function classifyContour(contour: number[][]): 'eddy' | 'filament' | 'edge' {
   const width = maxJ - minJ;
   const aspectRatio = Math.max(height, width) / (Math.min(height, width) + 0.1);
 
-  // Check if contour is closed (start near end)
+  // Check if contour is closed (start near end) - more lenient
   const start = contour[0];
   const end = contour[contour.length - 1];
-  const isClosed = Math.abs(start[0] - end[0]) <= 2 && Math.abs(start[1] - end[1]) <= 2;
+  const isClosed = Math.abs(start[0] - end[0]) <= 3 && Math.abs(start[1] - end[1]) <= 3;
 
-  // Classify
-  if (isClosed && aspectRatio < 2.0 && contour.length > 15) {
-    return 'eddy'; // Roughly circular, closed
-  } else if (aspectRatio > 3.0) {
-    return 'filament'; // Very elongated
+  // Calculate compactness (how blob-like vs line-like)
+  // Area approximation vs perimeter - more compact = more eddy-like
+  const area = height * width;
+  const perimeter = contour.length;
+  const compactness = area / (perimeter * perimeter + 0.1);
+
+  // Classify - RELAXED criteria for eddies
+  // Eddy: compact blob shape OR closed circular contour
+  if ((isClosed && aspectRatio < 2.5 && contour.length >= 8) ||
+      (aspectRatio < 1.8 && compactness > 0.05 && contour.length >= 6)) {
+    return 'eddy'; // Roughly circular, closed OR compact blob
+  } else if (aspectRatio > 2.5) {
+    return 'filament'; // Elongated
   } else {
     return 'edge'; // Default: thermal edge/front
   }

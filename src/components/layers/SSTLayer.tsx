@@ -29,6 +29,7 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
       const tileSize = 512; // High-res tiles
 
       if (!on) {
+        console.log('[SST] Removing layer (on=false)');
         try {
           if (map.getLayer(lyrId)) map.removeLayer(lyrId);
           if (map.getSource(srcId)) (map as any).removeSource(srcId);
@@ -58,8 +59,8 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
       
       // Use proxy endpoint EXACTLY like CHL
       const url = `/api/tiles/sst/{z}/{x}/{y}${dateParam}`;
-      
-      
+
+      console.log('[SST] Adding layer with URL:', url);
 
       try {
         if (map.getLayer(lyrId)) map.removeLayer(lyrId);
@@ -120,16 +121,23 @@ export default function SSTLayer({ map, on, selectedDate = 'today' }: Props) {
           map.setPaintProperty(lyrId, 'raster-resampling', 'linear');
           const canvas = map.getCanvas?.();
           if (canvas) (canvas as any).style.imageRendering = 'auto';
-          if (process.env.NODE_ENV !== 'production') {
-            const sst = map.getPaintProperty(lyrId, 'raster-resampling');
-            if (sst !== 'linear') {
-              // eslint-disable-next-line no-console
-              console.warn('Smooth rendering OFF: SST raster-resampling is not linear');
-            }
-          }
         } catch {}
+
+        console.log('✅ [SST] Layer added successfully');
+        console.log('[SST] Layer exists:', !!map.getLayer(lyrId));
+        console.log('[SST] Source exists:', !!map.getSource(srcId));
+
+        // Debug: Check for tile errors
+        const handleError = (e: any) => {
+          if (e.sourceId === srcId) {
+            console.error('[SST] Tile error:', e.error);
+          }
+        };
+        map.off('error', handleError);
+        map.on('error', handleError);
+
       } catch (error) {
-        // Layer update error handled
+        console.error('[SST] Layer creation error:', error);
       }
     };
     

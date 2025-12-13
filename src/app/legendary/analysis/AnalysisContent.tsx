@@ -6,7 +6,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@/styles/mapbox-controls.css';
 import '@/styles/analysis-snip.css';
-import { setVis } from '@/map/layerVis';
+// setVis import removed - SSTLayer and CHLLayer handle their own visibility
 import SSTLayer from '@/components/layers/SSTLayer';
 import CHLLayer from '@/components/layers/CHLLayer';
 import CoastlineSmoother from '@/components/layers/CoastlineSmoother';
@@ -372,19 +372,8 @@ function AnalysisModeContent() {
     }
   };
 
-  // Initialize layer defaults
-  useEffect(() => {
-    if (!map.current) return;
-    // Layers start hidden - user must manually toggle
-    setTimeout(() => {
-      if (map.current) {
-        setVis(map.current, 'sst-lyr', false);  // Start SST OFF
-        setVis(map.current, 'chl-lyr', false);  // Start CHL OFF
-        setSstActive(false);  // SST state OFF
-        setChlActive(false);  // CHL state OFF
-      }
-    }, 1000);
-  }, []);
+  // Layers start hidden by default (sstActive=false, chlActive=false)
+  // SSTLayer and CHLLayer components handle their own visibility based on 'on' prop
 
   // SST toggle - Copernicus high-resolution temperature
   const toggleSST = () => {
